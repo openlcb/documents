@@ -1,0 +1,164 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>NMRAnet Note: Streaming</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090928;371700">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Streaming Protocol</H1>
+<P>Streaming is used to move large amounts of data (kilobytes and up)
+across a NMRAnet implementation. 
+</P>
+<P>This documents describes the streaming protocol(s) in NMRAnet. 
+</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Must work within NMRAnet
+	architecture of a flat address space and unique identifiers 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Receiving end must be able to
+	throttle rate of arrival. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Multiple transfers at the same
+	time over a single NMRAnet segment, so that transfers between
+	disjoint nodes don't need to be coordinated. 
+	</P>
+	<LI><P>Needs to be effective over CAN, with acceptable bit
+	efficiency.</P>
+</UL>
+<H3>Preferences</H3>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">It should be possible to have
+	multiple streams active at the same time to or from a single node.
+	Nodes can choose not to support this.</P>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Different
+	buffers sizes can be used. High capability nodes can use large
+	buffers for efficiency, low capability nodes can still function with
+	small buffers.</P>
+	<LI><P></P>
+</UL>
+<H3>Design Points</H3>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Data integrity is handled by
+	transport level, and need not be ensured in the streaming protocol. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">A stream has a beginning and an
+	end, and some number of bytes transferred in between. All other
+	structures are implemented by higher-level protocols outside the
+	streaming protocol or data fields within the streamed data itself.
+	For example, the streaming protocol doesn't have tools for telling
+	what type of data is involved, or define a format for sound files
+	send over streams, etc. The stream has no intrinsic block, or record
+	structure.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Streaming is not needed for short
+	transfers, so a certain amount of overhead is acceptable<SPAN STYLE="font-style: normal">.
+	(This implies a Datagram protocol to cover the gap between Events
+	and Streams in size, see separate document)</SPAN></P>
+	<LI><P></P>
+</UL>
+<H2>Protocol</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Optionally, the destination can
+	request that the source start a transfer. This uses some mechanism
+	not discussed here, e.g. Datagram messages.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The source sends an &quot;Stream
+	Initiate Request (Addressed)&quot; to the destination. It carries a
+	&quot;Max Buffer Size&quot; value (2 bytes) and a &quot;Source
+	Stream ID&quot; (1 byte) in the data section. The combination of
+	source, destination, and Source Stream ID must uniquely identify
+	this stream transmission. The Source Stream ID has no meaning to the
+	destination. <I>(Requires the alias-addressed form of CAN frame,
+	which uses two bytes for the address, leaving six bytes free for
+	payload)</I></P>
+	<LI><P>The destination returns a &quot;Stream Initiate Reply
+	(Addressed)&quot; with a &quot;Max Buffer Size&quot; value (2
+	bytes), &quot;Source Stream ID&quot; (1 byte) and &quot;Destination
+	Stream ID&quot; (1 byte). 
+	</P>
+	<P>The &quot;Max Buffer Size&quot; is less than or equal to the
+	value in the Initiate Stream Request, and is the negotiated buffer
+	size for this transfer. If it's zero, the request to start the
+	stream has been rejected, and the exchange is over. The source can
+	try again later.</P>
+	<P>The Source Stream ID is the same as the value in the Initiate
+	Stream Request, and is returned for the convenience of the source.
+	The destination doesn't do anything with it except return it. The
+	source can use it to match up multiple operations, as a way of
+	identifying buffers, or for any other purpose.</P>
+	<P STYLE="margin-bottom: 0cm">The Destination Stream ID is used to
+	tag the data sent to the destination. It has no meaning to the
+	source. The destination can, but need not, use it to associate the
+	stream data with a particular buffer or usage.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The source starts sending bytes
+	using Stream Data Send (Addressed) messages, each carrying up to the
+	message size limit on the particular wire protocol and the
+	Destination Stream ID. After sending Max Buffer Size bytes in one or
+	more messages, the source pauses. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Upon receiving Max Buffer Size
+	bytes via one or more messages, the destination sends a Stream Data
+	Proceed (Addressed) message to the source, carrying the Source
+	Stream ID and Destination Stream ID. This tells the source that
+	there is enough buffer space available that another Max Buffer Size
+	bytes can be sent.</P>
+	<LI><P>When the last data has been sent, the source sends a Stream
+	Data Complete message carrying the Source Stream ID and Destination
+	Stream ID to indicate that all data has been sent. When this is
+	received by the destination, the transfer is complete. 
+	</P>
+</UL>
+<H3>Comments</H3>
+<P>On a CAN segment, the data limit is 8 bytes. (There are also a few
+bits in the header that can be used if need be) Two will be used for
+the destination address, one for the stream ID, leaving five for
+payload. 
+</P>
+<P>If the stream ID was a property of the link, not of the
+end-points, the CAN stream data payload could be raised to 7 bytes or
+perhaps even 8 bytes per frame, but at the cost of significantly
+increased complexity because the stream ID would have to be
+negotiated across all nodes on the link so that multiple streams
+could be in flight at once; limiting to only one stream on a CAN link
+at once would also require negotiation across all nodes, again a
+complex operation.</P>
+<P><SPAN STYLE="font-style: normal">The best way to get the CAN
+payload size, and hence bit efficiency up, is to get more into the
+CAN header.  If we were to limit to only one stream between a given
+source and destination on a CAN link, hence not needing the stream ID
+byte, and if we were to use 12-bit node ID aliases instead of 16
+(hence only 4095 accessible off-link node IDs instead of 64k), we
+could fit everything into a special format CAN header.  That would
+give 8 byte payloads, and about a 50% bit efficiency for transfer.</SPAN></P>
+<P>The &quot;Stream Data Proceed&quot; from the destination is
+clearance to send another buffer-size-worth of data. To achieve
+better performance, the destination can send it before receiving the
+entire buffer-size-worth of data, as soon as it has room to receive
+what's already been OK'd plus one more buffer size. For example, a
+destination with a 4kB buffer could reply with Max Buffer Size of 2K,
+followed by an immediate Stream Data Proceed, to do single overlap of
+the transfer. 
+</P>
+<P>Intermediate nodes need to be able to handle transfers, and
+therefore need permission to lower the Max Buffer Size on the
+outbound Stream Initiate Request message. The length in the returned
+Stream Initiate Reply can't be changed, as the destination need to
+know when to send clearance for another buffer's worth of data.</P>
+<P><SPAN STYLE="font-style: normal">A CAN ↔ Ethernet bridge might
+receive several kilobytes of data from the Ethernet side at a time.
+It's then responsible for breaking that up into CAN frames and
+forwarding it. It can reduce the buffer size of transfers if need be
+to ensure there's a place to store the data while this is done.</SPAN></P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

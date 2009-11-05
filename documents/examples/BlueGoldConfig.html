@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Example: Blue/Gold Configuration Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090125;19373000">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Example: Blue/Gold Configuration Protocol</H1>
+<P>Entry-level NMRAnet users should be able to buy two NMRAnet nodes
+and configure them to do something useful with only the pushbutton(s)
+and LED(s) on them, without requiring a separate configuration tool,
+computer, etc. One way to do that is presented here. It's not the
+only way, and there is no requirement for a standard in this area. 
+</P>
+<P>This method is based on easily creating a known-unique new Event
+ID. When Event IDs are much longer than Node ID numbers (NIDs), it's
+straightforward to do this by using the NID followed by a sequential
+number when a new unique Event ID is needed. 
+</P>
+<H2>Default Producer</H2>
+<P>Assume that a node can detect N conditions, each of which should
+send a unique P/C Event ID (the non-unique case is discussed below).
+The factory default condition is that each of those conditions will
+send a PCER message with a P/C Event ID of the board's unique NID
+followed by the input number (1, 2, etc). This is enough to get the
+board up and working. 
+</P>
+<P>For example, a board with 48-bit NID 0x123456789ABC would by
+default send Event ID 0x123456789ABC001 when its first input
+condition happened, 0x123456789ABC002 when its second input condition
+happened, etc. These Event IDs could then be counted on for no- or
+low-configuration use. 
+</P>
+<H2>Configuring a Consumer</H2>
+<P>Assume a node that can do N separate actions in response to PCER
+messages on the NMRAnet, where N is reasonably small. 
+</P>
+<P>The board has a blue button and associated LED. 
+</P>
+<P>To enter configuration mode, the button is pressed once. The LED
+starts periodically flashing once. While in this mode, the next PCER
+message received will be associated with the 1st action. Each
+additional button press moves on to the next higher-numbered action.
+The board exits capture mode after N+1 button presses, or upon being
+power-cycled. 
+</P>
+<P>The configuration sequence is then: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Quiesce the layout, or use a
+	bench-top setup so you can control when messages are sent 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Press the blue button once, and
+	confirm that the LED is now flashing once. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Force the event that should
+	trigger action 1, e.g. by stimulating a producer board. The Event ID
+	will be captured and configured when received. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Press the blue button once more,
+	and confirm that the LED is now flashing twice. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Force the event that should
+	trigger action 2, which will cause it to be captured. 
+	</P>
+	<LI><P>Repeat through all N actions 
+	</P>
+</UL>
+<H2>Configuring An Event in Multiple Producers and Consumers</H2>
+<P>One advantage of P/C is that it's easy to have multiple causes of
+an event, and multiple actions in response to that event. For
+example, the user might want two separate pushbuttons to set the
+turnouts at each end of a siding; that's implemented as two producers
+for a specific event (the two pushbuttons), and two consumers (the
+two turnout drivers). 
+</P>
+<P>Using the blue button to configure two consumers to action on a
+single P/C Event ID (PCER message) is straightforward: You just
+configure them like that using the sequence above. 
+</P>
+<P>Configuring two producers to use the same P/C Event ID uses the
+same ideas. The producer board has a gold (yellow) button and
+associated LED. To enter configuration mode, the gold button is
+pressed once. The LED starts to flash, indicating that the board is
+ready to configure input condition 1. The next PCER message's P/C
+Event ID will be captured so that the next time input condition 1
+occurs, this new P/C Event ID will be sent. 
+</P>
+<P>The configuration sequence is then: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Quiesce the layout, or use a
+	bench-top setup so you can control when messages are sent 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Press the gold button once, and
+	confirm that the LED is now flashing once. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Force the event that should also
+	be sent by condition 1, which will cause it to be captured. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Press the gold button once more,
+	and confirm that the LED is now flashing twice. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Force the event that should also
+	be sent by condition 2, which will cause it to be captured. 
+	</P>
+	<LI><P>Repeat through all N actions 
+	</P>
+</UL>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

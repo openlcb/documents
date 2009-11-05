@@ -1,0 +1,57 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>S9.6 FAQ</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090803;13223500">
+	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
+	<STYLE TYPE="text/css">
+	<!--
+		@page { margin: 2cm }
+		P { margin-bottom: 0.21cm }
+		H2 { margin-bottom: 0.21cm }
+		H2.western { font-family: "Arial", sans-serif; font-size: 14pt; font-style: italic }
+		H2.cjk { font-size: 14pt; font-style: italic }
+		H2.ctl { font-size: 14pt; font-style: italic }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>S/RP 9.6 Frequently Asked Questions</H1>
+<P STYLE="margin-bottom: 0cm">This page holds the answers to some
+frequently asked questions about S/RP 9.6 NMRAnet.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><I>(draft: Please reorder, add,
+subtract as discussions go on)</I></P>
+<H2 CLASS="western">Does a S/RP 9.6 network need any central nodes
+such as a network manager, configuration manager, etc?</H2>
+<P STYLE="margin-bottom: 0cm">No.  You certainly can add those if you
+want, but the full capability of NMRAnet is available without them.</P>
+<H2 CLASS="western">Can any S/RP 9.6 node be configured to send any
+event?  In other words, can multiple nodes produce the same event
+message?</H2>
+<P STYLE="margin-bottom: 0cm">The message will be slightly different,
+so you can tell where it comes from when debugging, but two nodes can
+produce the same eventID.  In that case, consumers will treat the two
+messages identically.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H2 CLASS="western">How can two nodes send the same eventID if the
+top four bytes of the eventID are required to be a valid nodeID?</H2>
+<P STYLE="margin-bottom: 0cm">Those four bytes are the nodeID of the
+node that <U>defines</U> the event, not the node that's currently
+<U>producing</U><SPAN STYLE="text-decoration: none"> it.  The first
+node to use an eventID (produce or consume) defines what it means. 
+Other nodes can use it without trouble. That defining node is then
+reponsible for making sure that any other events it defines don't use
+the same eventID.  That ensures that eventIDs are always unique, and
+so no reconfigurations to avoid collisions are required.</SPAN></P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
