@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091011;20221500">
+	<META NAME="CHANGED" CONTENT="20091105;10500000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -16,10 +16,10 @@
 <BODY LANG="en-US" DIR="LTR">
 <H1>CAN Wire Protocol</H1>
 <P>CAN bus (ISO 11989-*) provides a very convenient transport medium
-for NMRAnet on a specific module or layout. This section defines a
-specific wire protocol for transporting NMRAnet over CAN bus. 
+for OpenLCB on a specific module or layout. This section defines a
+specific wire protocol for transporting OpenLCB over CAN bus. 
 </P>
-<P>Common NMRAnet messages need to be translated for transport via
+<P>Common OpenLCB messages need to be translated for transport via
 CAN 2.0B frames because of the limited CAN frame sizes and to take
 advantage of CAN interface features such as filtering on the header
 bits. 
@@ -39,8 +39,8 @@ bits.
 </UL>
 <P>Note that these adaptions must be possible in standard CAN
 components, e.g. bridges and computer adapters must not require
-customization to operate with NMRAnet. This provides a stringent
-requirement on protocol design, in that NMRAnet CAN cannot require
+customization to operate with OpenLCB. This provides a stringent
+requirement on protocol design, in that OpenLCB CAN cannot require
 specific timing, deliberate creation of error cases or specific error
 handling. 
 </P>
@@ -96,7 +96,7 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 	</UL>
 </UL>
 <H2>Link Layer</H2>
-<P>NMRAnet common messages are converted, to the extent possible, to
+<P>OpenLCB common messages are converted, to the extent possible, to
 single CAN frames via a one-to-one mapping. 
 </P>
 <P>The translations include: 
@@ -105,7 +105,7 @@ single CAN frames via a one-to-one mapping.
 	<LI><P>The NID Source ID (SID) is mapped to a shorter form, called a
 	&quot;NID Alias&quot; (NIDa). The method for this mapping is defined
 	such that devices on the CAN segment (e.g. gateways to other parts
-	of the larger NMRAnet installation) can determine the full NID that
+	of the larger OpenLCB installation) can determine the full NID that
 	corresponds to a particular alias. 
 	</P>
 	<P STYLE="margin-bottom: 0cm">Because this alias is still unique on
@@ -116,7 +116,7 @@ single CAN frames via a one-to-one mapping.
 	depending on bit allocations. 
 	</P>
 	<LI><P>When possible, Destination NIDs are also mapped to the
-	shorter form. In some NMRAnet messages, this is not possible, in
+	shorter form. In some OpenLCB messages, this is not possible, in
 	which case the full NID form is sent; a bit is provided to indicate
 	which format is carried. 
 	</P>
@@ -155,7 +155,7 @@ header):
 	now; at front to ensure it acts like a true priority; 0 for high
 	priority, 1 for low; not checked by receivers) 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Frame Type (1 bit) NMRAnet message
+	<LI><P STYLE="margin-bottom: 0cm">Frame Type (1 bit) OpenLCB message
 	or CAN control message 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">Variable Field (15 bits) 
@@ -190,7 +190,7 @@ access disambiguation via CAN's standard mechanisms.</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P ALIGN=CENTER>Frame Type</P>
-			<P ALIGN=CENTER>1: NMRAnet Message</P>
+			<P ALIGN=CENTER>1: OpenLCB Message</P>
 			<P ALIGN=CENTER>0: CAN Control Message</P>
 		</TD>
 		<TD WIDTH=25%>
@@ -205,8 +205,8 @@ access disambiguation via CAN's standard mechanisms.</P>
 </P>
 <P STYLE="margin-bottom: 0cm">The &quot;Variable field&quot; has
 different meanings depending on the &quot;Frame Type&quot; field. CAN
-control messages are identified with a Frame Type bit  of 0, to
-ensure high priority.</P>
+control messages are identified with a Frame Type bit of 0, to ensure
+high priority.</P>
 <P><BR><BR>
 </P>
 <P><I>Document no-seven-1-bits-in-top-N limitation.</I> 
@@ -297,7 +297,7 @@ page</A>.
 </P>
 <H3>CAN-specific messages</H3>
 <P>Most CAN frames are one-to-one or many-to-one equivalents of
-common NMRAnet messages. 
+common OpenLCB messages. 
 </P>
 <P>A few additional messages are used for CAN-specific purposes. 
 </P>
@@ -358,18 +358,18 @@ NIDs, a gateway needs to be able to send a CAN frame requiring
 mapping, this needs to return the NID of just the specific
 CAN-attached hardware, not all the NIDs that can be e.g. reached
 through a gateway, so it needs to be a segment-specific message
-defined only at the CAN level. It must not be a NMRAnet common
+defined only at the CAN level. It must not be a OpenLCB common
 message. 
 </P>
-<H2>NMRAnet message format</H2>
-<P>NMRAnet common messages are carried in frames with a 1 in the
+<H2>OpenLCB message format</H2>
+<P>OpenLCB common messages are carried in frames with a 1 in the
 Frame Type field. They contain message type information and/or
 address information in the 15-bit variable field, and zero to eight
 CAN data bytes.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P><SPAN STYLE="font-style: normal">For NMRAnet messages, the
-variable field is used in three forms:</SPAN></P>
+<P STYLE="font-style: normal">For OpenLCB messages, the variable
+field is used in three forms:</P>
 <UL>
 	<LI><P STYLE="font-style: normal">Unaddressed messages – messages
 	that don't have a destination address put the low 12 bits of the MTI
@@ -429,22 +429,22 @@ variable field is used in three forms:</SPAN></P>
 <P><BR><BR>
 </P>
 <P>Putting the destination alias in the header allows filtering on it
-with common CAN hardware.  Putting the Stream ID in the header also
+with common CAN hardware. Putting the Stream ID in the header also
 allows filtering, and preserves the full 8-byte CAN payload for
 stream data.</P>
-<P><SPAN STYLE="font-style: normal">The specific MTI values are </SPAN><SPAN STYLE="font-style: normal">being
+<P><SPAN STYLE="font-style: normal">The specific MTI values are being
 allocated in a separate spread sheet.</SPAN></P>
-<P><SPAN STYLE="font-style: normal">Some MTIs have additional status
-bits defined.  For example, there are two status bits associated with
+<P STYLE="font-style: normal">Some MTIs have additional status bits
+defined. For example, there are two status bits associated with
 “Consumer Identified” which must be kept in the header since
-there is no room in the CAN data field.</SPAN></P>
+there is no room in the CAN data field.</P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">Note that messages
-with Destinations IDs actually occur in two forms:  with an alias in
+with Destinations IDs actually occur in two forms: with an alias in
 the header and the MTI in the message; and with a full address in the
 data field and the MTI in the header.</P>
-<P STYLE="margin-bottom: 0cm; font-style: normal"><BR>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal"><BR>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
 <P>This is SVN $Revision$ 
