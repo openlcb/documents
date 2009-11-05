@@ -1,0 +1,104 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<!-- $Id$ -->
+<html lang="en"><head>
+<title>Example: Start of Day Operations</title>
+</head>
+<body>
+<h1>Example: Start of Day Operations</h1>
+
+These examples discussion various aspects of 
+bringing up an NMRAnet, including adding segments and individual
+nodes to a running NMRAnet.
+
+<p>
+For an NMRAnet that's separated into multiple segments, 
+e.g. several modules on CAN networks connected via an Ethernet backbone, 
+it is likely that the segments will initialize at different times.
+
+<h2>Node Verification</h2>
+
+When a node becomes operational, it sends out an "Initialization Complete"
+message which other nodes can use to e.g. update status tables,
+trigger notifications, etc. It follows this with notification of 
+the Event IDs it wants to receive/consume 
+and the ones it is capable of sending/producing.
+
+<p>
+When a node comes up, it can check on the existance of 
+other nodes several ways:
+<ol>
+<li>To check for the existance of a specific node, 
+send a "Verify Node Serial Number (Addressed)" message to the specific node.
+<li>To get a list of all currently reachable nodes, 
+send a "Verify Node Serial Number (Unadressed)" message.
+<li>To check for the existance of at least one node 
+that produces a specific Event ID, e.g. one consumed by a node,
+the "Producer Identification"
+standard interaction can be used.
+There is no requirement that every Event ID configured into 
+an given consumer exist, so a lack of response to this interaction
+is not an error, but it can provide useful information.
+<li>To check for the existance of at least one node 
+that consumes a specific Event ID, e.g. one produced by a node,
+the "Consumer Identification"
+standard interaction can be used.
+There is no requirement that every Event ID configured into 
+an given producer exist, so a lack of response to this interaction
+is not an error, but it can provide useful information.
+</ol>
+
+<p>
+No mechanism is provided to find all the nodes that can 
+be reached by a newly-operational node.
+
+<h2>Configuration Upload</h2>
+
+<i>Is there a need for a mechanism by which a newly-operational
+node can e.g. upload configuration information, large files (e.g. sounds)
+or similar?  Might be nice to not have to store them locally, particularly
+with large bandwidth NMRAnets.</i>
+
+<h2>State Restoration</h2>
+
+Producer/Consumer systems react to state changes, which are 
+transferred as Events. 
+When a node first becomes operational, however, 
+it may not have any knowledge of the existing state.  
+It can't figure out how to act until the next external change 
+results in an Event, which is distributed as a PCER message.
+
+<p>
+NMRAnet doesn't solve this problem completely for nodes that are powered up individually.
+They'll operate, but higher level mechanisms are needed for initialization.  
+Those mechanisms can be triggered by e.g. "Initialization Complete" messages
+from the newly-functional node.
+
+<p>
+Several mechanisms are available for implementation:
+
+<ol>
+<li>
+A store-load mechanism can capture and store the state of nodes, 
+and restore those latter.  
+This puts the layout back to the earlier state, 
+but doesn't handle any state changes that have happened since the state was captured.
+<p>
+The current state can be captured via the "Identify Consumers" common message.
+Restoration of this will restore the output state.
+Input state changes can be identified with via the "Identify Producers" common message.
+Non-producer/consumer mechanisms will need separate mechanisms.
+
+<li>
+The newly-functional node can use the Producer Identification interaction to 
+get "valid" bits from (all) the Producers of the Event IDs 
+that can effect the newly-functional node.  
+This is not fool-proof, however, as not all nodes can produce those,
+and there might be history (e.g. which Producer fired most recently) 
+that can't be recovered.
+
+</ol>
+
+<hr>
+This is SVN $Revision$
+</body>
+</html>

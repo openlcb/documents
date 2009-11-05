@@ -1,0 +1,517 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Common Message Types</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091011;20172500">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Common Message Types</H1>
+<P>The content listed here are in addition to the originating NID,
+MTI and Destination Node ID, if any. 
+</P>
+<H3>Verify Node ID Number</H3>
+<P>Content: None 
+</P>
+<P>Global (unaddressed) or with specified destination address.</P>
+<H3>Verified Node ID Number</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>NID of the sending node 
+	</P>
+</UL>
+<P>Only Global (unaddressed) form available.</P>
+<H3>Optional Interaction Rejected</H3>
+<P>Content:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Original MTI 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Optional error code (TBD) 
+	</P>
+	<LI><P>Optional data content (TBD) 
+	</P>
+</UL>
+<P>Destination address required.</P>
+<H3>Terminate Due to Error</H3>
+<P>Content:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Mandatory most recent MTI 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Mandatory error code (TBD) 
+	</P>
+	<LI><P>Optional data content (TBD) 
+	</P>
+</UL>
+<P>Destination address required.</P>
+<H3>Producer/Consumer Event Report</H3>
+<P>Content:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">P/C Event ID (8 bytes) 
+	</P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<H3>Identify Consumers</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>P/C Event ID (8 bytes) 
+	</P>
+</UL>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<H3>Identify Consumed Range</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>P/C Event ID (8 bytes) with low bits as mask</P>
+</UL>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<P>The least significant bit determines whether “Low 0 bits are
+mask” and “Low 1 bits are mask”</P>
+<P>Example: Identify Consumed Range with EventID 0x23 23 23 23 23 23
+23 2F</P>
+<P>The LSB is a 1, so the mask is made of 1 bits. The low 1 bits are
+bits 0-3, since bit 4 is a zero. Therefore the mask and value are
+0x23 23 23 23 23 23 23 2X</P>
+<P>Example: A mask of 1 bits can't be used for a mask and value of
+0x23 23 23 23 23 23 23 7X, as there would be 7 low order 1 bits in
+that case, and they'd be interpreted as a 7-bit mask. Instead, use 0
+bits for the mask: Identify Consumed Range with EventID 0x23 23 23 23
+23 23 23 70 gives a mask and value of 0x23 23 23 23 23 23 23 7X.</P>
+<H3>Consumer Identified</H3>
+<P>Content:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">P/C Event ID (8 bytes) 
+	</P>
+</UL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Flags: 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+	current state of the node corresponds to this P/C Event ID having
+	been received. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">&quot;uncertain&quot; if set, the
+	&quot;valid&quot; bit value is not known to be correct 
+	</P>
+</UL>
+<P><BR><BR>
+</P>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<H3>Identify Producers</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>P/C Event ID (8 bytes) 
+	</P>
+</UL>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<H3>Identify Produced Range</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>P/C Event ID (8 bytes) with low bits as mask</P>
+</UL>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<P>The least significant bit determines whether “Low 0 bits are
+mask” and “Low 1 bits are mask”</P>
+<H3>Producer Identified</H3>
+<P>Content:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">P/C Event ID (8 bytes) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Flags: 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+	current state of the node corresponds to this P/C Event ID being
+	eligible to be sent.</P>
+	<LI><P>&quot;uncertain&quot; if set, the &quot;valid&quot; bit value
+	is not known to be correct 
+	</P>
+</UL>
+<P>Only Global (unaddressed) form available due to CAN limitations.</P>
+<H3>Identify Events</H3>
+<P>Content:</P>
+<UL>
+	<LI><P>P/C Event ID (8 bytes) 
+	</P>
+</UL>
+<P>Destination address required.</P>
+<H3>Initialization Complete</H3>
+<P><I>May want to rename this to &quot;Node Reachable&quot;</I><BR>Content:</P>
+<UL>
+	<LI><P>NID of the sending node 
+	</P>
+</UL>
+<P>Only Global (unaddressed) form available.</P>
+<H2>MTI Allocation</H2>
+<P>The common Message Type Indicator (MTI) is a 16 bit quantity.</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The most-significant 6 bits are
+	reserved. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next 6 bits are used to
+	indicate the message type. The top two of these are used to form
+	priority groups, with the lower four indicating the specific type.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The following bit is reserved. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next-to-least-significant bit
+	indicates whether this message carries a destination node address
+	(DID). If a Destination Node ID (DID) is present, it is located at
+	the start of the message content. The form of a Destination Node ID
+	is defined by the particular wire protocol, but must be mappable to
+	the full NID of the intended destination. 
+	</P>
+	<LI><P>The least-significant bit indicates whether this message
+	carries a P/C Event ID field. If a P/C Event ID is present, it's at
+	the start of the message, except after the Destination Node ID, if
+	present. 
+	</P>
+</UL>
+<P>We're attempting to allocate bit fields to make decoding simpler;
+if possible, aligned on nibble boundaries to make it easy to read as
+hexadecimal numbers. Note that, as a special dispensation for CAN,
+higher priority messages (MTIs with lower numerical values) may pass
+lower priority ones; this must be taken into account.</P>
+<P><I>(If possible, want to allocate and reserve bits so that this
+16-bit field will easily &amp; simply be mappable to and from the CAN
+format)</I></P>
+<P STYLE="margin-bottom: 0cm">There are two bits in the MTI that, for
+simplicity in routing and translation, indicate the format of the
+message content. These could be combined into a byte-coded MTI if
+needed to shorten a local header. 
+</P>
+<TABLE BORDER=1 CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TH>
+			<P>Originating<BR>NID</P>
+		</TH>
+		<TH>
+			<P>Message Type</P>
+		</TH>
+		<TH>
+			<P>MTI Value</P>
+		</TH>
+		<TH>
+			<P>DID Present?</P>
+		</TH>
+		<TH>
+			<P>Field 1</P>
+		</TH>
+		<TH>
+			<P>Field 2</P>
+		</TH>
+		<TH>
+			<P>Field 3</P>
+		</TH>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Verify Node ID Number</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD COLSPAN=3 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Verify Node ID Number</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>DID</P>
+		</TD>
+		<TD COLSPAN=3 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Verified Node ID Number</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD>
+			<P>NID of the sending node</P>
+		</TD>
+		<TD COLSPAN=2 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Optional Interaction Rejected</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>DID</P>
+		</TD>
+		<TD>
+			<P>Original MTI</P>
+		</TD>
+		<TD>
+			<P>Optional error code (TBD)</P>
+		</TD>
+		<TD>
+			<P>Optional data content (TBD)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Terminate Due to Error</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>DID</P>
+		</TD>
+		<TD>
+			<P>Mandatory most recent MTI</P>
+		</TD>
+		<TD>
+			<P>Mandatory error code (TBD)</P>
+		</TD>
+		<TD>
+			<P>Optional data content (TBD)</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Producer/Consumer Event Report</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD>
+			<P>Sequence (1 byte) (TBD)</P>
+		</TD>
+		<TD VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Identify Consumers</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD COLSPAN=2 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Consumer Identified</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD>
+			<P STYLE="margin-bottom: 0cm">Flags: 
+			</P>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+				current state of the node corresponds to this P/C Event ID having
+				been transmitted 
+				</P>
+			</UL>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;uncertain&quot; if set,
+				the &quot;valid&quot; bit value is not known to be correct 
+				</P>
+			</UL>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Consumer Identified</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>DID</P>
+		</TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD>
+			<P STYLE="margin-bottom: 0cm">Flags: 
+			</P>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+				current state of the node corresponds to this P/C Event ID having
+				been transmitted 
+				</P>
+			</UL>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;uncertain&quot; if set,
+				the &quot;valid&quot; bit value is not known to be correct 
+				</P>
+			</UL>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Identify Producers</P>
+		</TD>
+		<TD></TD>
+		<TD></TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD COLSPAN=2 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Producer Identified</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD>
+			<P STYLE="margin-bottom: 0cm">Flags: 
+			</P>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+				current state of the node corresponds to this P/C Event ID having
+				been received 
+				</P>
+			</UL>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;uncertain&quot; if set,
+				the &quot;valid&quot; bit value is not known to be correct 
+				</P>
+			</UL>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Producer Identified</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>DID</P>
+		</TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD>
+			<P STYLE="margin-bottom: 0cm">Flags: 
+			</P>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;valid&quot; if set, the
+				current state of the node corresponds to this P/C Event ID having
+				been received 
+				</P>
+			</UL>
+			<UL>
+				<LI><P STYLE="margin-bottom: 0cm">&quot;uncertain&quot; if set,
+				the &quot;valid&quot; bit value is not known to be correct 
+				</P>
+			</UL>
+			<P><BR>
+			</P>
+		</TD>
+		<TD VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Identify Events</P>
+		</TD>
+		<TD></TD>
+		<TD>
+			<P>Addressed</P>
+		</TD>
+		<TD>
+			<P>P/C Event ID (8 bytes)</P>
+		</TD>
+		<TD COLSPAN=2 VALIGN=TOP></TD>
+	</TR>
+	<TR>
+		<TD>
+			<P>ONID</P>
+		</TD>
+		<TD>
+			<P>Initialization Complete</P>
+		</TD>
+		<TD>
+			<P><BR>
+			</P>
+		</TD>
+		<TD>
+			<P><FONT SIZE=3>Global</FONT></P>
+		</TD>
+		<TD>
+			<P>NID of the sending node</P>
+		</TD>
+		<TD COLSPAN=2 VALIGN=TOP></TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">(Several of these carry EventIDs and
+are an addressed form; that doesn't fit in CAN; check operational
+form to see what DID does on those)</P>
+<H2>Still To Be Defined</H2>
+<P STYLE="margin-bottom: 0cm">Need to include Datagram, Streaming
+messages.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Add a column to indicate “minimal”
+messages?</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

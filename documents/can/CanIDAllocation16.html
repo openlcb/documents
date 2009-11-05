@@ -1,0 +1,211 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>NMRAnet CAN: Node ID Alias Allocation Algorithm</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090811;22121900">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Node ID Alias Allocation Algorithm</H1>
+<P>NMRAnet nodes on CAN segments do CAN arbitration by using their
+unique Node ID alias (NIDa) as part of the CAN header. This page
+documents a proposed algorithm for assigning unique Node ID aliases. 
+</P>
+<H2>Introduction</H2>
+<P>This method of assigning aliases and checking that they are unique
+is necessary because of the characteristics and limitations of CAN. 
+</P>
+<P>Each node has 48-bit unique id, and each wants a 16-bit local
+alias. Each assigns itself a potential 16-bit alias. The problem
+comes in determining whether this alias is in use by another node. 
+</P>
+<P>If a node sends out an check message containing just the alias,
+then it could expect that another node to complain if it has the same
+alias. This would work, except in the (very unlikely) case where both
+nodes send out the identical check message simultaneously. Neither
+would recognize a conflict and both would consider that they own the
+same alias. Therefore, a method needs to be found that guarantees
+that the check message(s) are unique, even if they are send
+simultaneously. 
+</P>
+<P>Unfortunately, limitations of CAN will not allow the full 48-bit
+NodeID to be included in the check message. Doing so would violate
+CAN rules as it could not be wholly contained in the header, and
+packets with identical headers are not allowed to have differing
+data-parts. 
+</P>
+<P>Therefore, the CIM/RIM method splits the NodeID into byte-sized
+parts, sends out 6 check messages (CIM = Check Id Messages, RIM =
+Reserved Id Message), each consisting of the alias and one byte of
+the 48 bit id. Only if all of the CIMs *do not* conflict with another
+node (ie no RIM is received) does it guarantee that the alias is not
+in use by another node. Even if two nodes send out the identical
+packets simultaneously, at least one of these will differ due to a
+differing ID-part between the two nodes. 
+</P>
+<H2>Requirements</H2>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Must not require any user
+	intervention. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Must be possible to map the
+	assigned alias to a Node Sequence Number and vice-versa.</P>
+	<LI><P STYLE="margin-bottom: 0cm">It is not required to come up with
+	the same alias every time a node or segment is powered up. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Must always converge to an alias,
+	regardless of when or in what order nodes come up. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Another node watching the process
+	must be able to monitor how the decision was reached and what the
+	result was. 
+	</P>
+	<LI><P>It is desirable to detect duplicate (non-unique) NIDs, but
+	100% reliable detection is not required. 
+	</P>
+</UL>
+<H2>Algorithm</H2>
+<P>Start with the six-byte unique ID in each node, with the bytes
+labelled N1 through N6. 
+</P>
+<P>Initialize a specific full-sequence 32bit PRNG with N1 ^ N2 &lt;&lt;5
+^ N3 &lt;&lt;10 ^ N4 &lt;&lt;15 ^ N5 &lt;&lt; 20 ^ N6 &lt;&lt; 24. If
+that forms an invalid zero seed, use (N1 &lt;&lt; 23)+(N2 &lt;&lt;
+19)+(N3 &lt;&lt; 15)+(N4 &lt;&lt; 11)+(N5 &lt;&lt; 7)+N6; the second
+alternative is guaranteed nonzero for valid (non-zero) NodeIDs, but
+has less entropy. As a final test, to handle the case of an improper
+zero NodeID, if both seed attempts give zero results, initialize the
+PRNG with 0xAC01 to ensure the full sequence.</P>
+<P>A: 
+</P>
+<P>Take the next element from the PRNG and call the lower 16 bits the
+TCA, the tentative alias. 
+</P>
+<P>Start listening for CAN frames containing Check ID messages (CIMs)
+and Reserved ID Messages (RIMs). A CIM consists of an extended header
+with an 8 bit Source NIDa field, an 8 bit Nn field, and other bits to
+denote that this is a Check ID Message. There is no other variable
+information in the frame. Having NIDa and the Nn in the message
+ensure that CAN arbitration will work without error. An RIM is the
+same, except that it can be identified as being a different message
+for diagnostic purposes; it means the same thing upon receipt. 
+</P>
+<P>Send six CIMs with N1 through N6 in the Nn field and TCA in the
+Source NIDa field. During this process, if a CIM or RIM is received
+that contains the TCA value in its CI field, TCA does not belong to
+this node. Repeat from (A). 
+</P>
+<P>Keep listening for until your CAN hardware ways your last CIM
+message has been sent and the CAN link is idle, plus 500 msec. If you
+cannot detect that condition, wait 1 second.</P>
+<P>If no CIM or RIM with this TCA value in the CI field is received
+before the end of the previous step, you've successfully allocated
+TCA as this node's source NIDa. Send an RIM with TCA in the CI field
+and go into normal operation. 
+</P>
+<UL>
+	<LI><P>If that message fails with an error occurring during the data
+	portion of the message, it's possible that two nodes have the same
+	NodeID, a fatal error. To prevent the NMRAnet being taken down, this
+	node should stop trying to allocate an alias and signal the error to
+	the user via some non-CAN method, e.g. LEDs, emitting smoke, etc.</P>
+	<LI><P>If any other error occurs, repeat from A.</P>
+</UL>
+<P>While in normal operation, if you receive a CIM with your source
+NIDa, send a RIM, which will cause the other node to back off and try
+something else. 
+</P>
+<P>It should not be possible to receive an RIM with your allocated
+source NIDa in normal operation. If you do, log an error (on whatever
+it is they log it on there) and restart the process at (A). 
+</P>
+<H3>Proposed PRNG</H3>
+<P>See the <A HREF="http://en.wikipedia.org/wiki/Linear_feedback_shift_register">Wikipedia
+page</A> on &quot;Linear feedback shift registers&quot; for
+background. 
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT COLOR="#973131"><FONT FACE="Courier, monospace"><FONT SIZE=2>unsigned</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2>lfsr
+</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>=</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#0000e4"><FONT FACE="Courier, monospace"><FONT SIZE=2>1</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>;</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#973131"><FONT FACE="Courier, monospace"><FONT SIZE=2>unsigned</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2>period
+</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>=</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#0000e4"><FONT FACE="Courier, monospace"><FONT SIZE=2>0</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>;</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT>
+</P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#b1b300"><FONT FACE="Courier, monospace"><FONT SIZE=2>do</FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT>
+</P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2>{</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#808080"><FONT FACE="Courier-Oblique, monospace"><FONT SIZE=2><I>/*
+taps: 32 31 29 1; characteristic polynomial: x^32 + x^31 + x^29 + x +
+1 */</I></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
+</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">=</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
+</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&gt;&gt;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">^</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">-</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
+</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&amp;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&amp;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">0xd0000001u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT>
+</P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">++</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">period</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">}</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#b1b300"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">while</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
+</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">!=</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
+</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT></P>
+<H2>Discussion</H2>
+<P>CAN arbitration reliably avoids collisions between frames with
+unique headers. It does not guarantee arbitration between frames with
+identical headers and no data; if the timing is right, they may
+overlay each other such that only one frame appears to have been
+sent. It is very difficult to ensure that two nodes send
+initialization packets only at different times. In addition, CAN will
+eventually signal an error if two packets with the same header and
+different data payloads collide, but not all CAN interface hardware
+provides reliable indications about why that error occurred.</P>
+<P>At the highest level, this algorithm is broadcasting the complete
+Node ID and tentative alias to see if any other node is checking the
+same tentative alias. If two nodes have taken the same tentative
+alias, at least one of the six packets used in that broadcast will
+not be identical between the two nodes, because their six-byte Node
+IDs are different in at least one bit. CAN will successfully
+arbitrate this, and the other node will receive the frame, causing it
+to back off.</P>
+<P>CAN transmissions are not atomic operations; you can receive a
+frame between the time you tell the hardware to send a frame and the
+time that frame is actually sent. It's therefore possible for both
+nodes contending for the same alias value to back off and try again.
+Using the pseudo-random number generator as a sequence number makes
+it likely that the next attempt will be made using different alias
+values in the two nodes. <SPAN STYLE="font-style: normal">The use of
+the sequence generator also makes the arbitration process faster in
+the case of sequential Node ID values. People like to use small and
+sequential numbers for things, and the sequence generator maps those
+to very different values that are less likely to collide during
+arbitration. </SPAN>
+</P>
+<P>The delays at the end of the algorithm are to ensure that higher
+latency nodes, such as software nodes working through USB convertors,
+can reply to CID messages from nodes that come up on a working link.
+NMRAnet is a soft-real-time system, and software that's interacting
+with it needs to have response times of a couple hundred milliseconds
+or better to be reliable. The algorithm provides a wait of a few
+times that to enable those programs to take part.</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,462 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>The Role of Ethernet</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091016;11510500">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Discovering Topology</H1>
+<P>Notes from an email discussion in October 2009 about discovering
+the topology of a large modular layout.</P>
+<H3>David Harris</H3>
+<P>MERG list has been batting ideas around about how to do signalling
+and other control using local links between control points.</P>
+<P>I think we need to try to define this for S9.6, and we have
+previously made some suggestions around this. I think including local
+topological links are a good idea. Alan and others had suggested
+using a 1-wire like interface to send node.interface info between
+adjacent nodes -- while in addition having a LCB connection for
+information flow, both between nodes and to others, such as displays.
+The suggestion is to have 4-6 links per node, to connect to adjacent
+nodes. In the case of a track section, only two are needed, for a
+turnout, three, and for slips and other nodes, perhaps up to 6. 
+</P>
+<P>One idea would be to use a very simple active-low 1-wire link. A
+node would pull-down the appropritate link concurrently with&nbsp;a
+successful transmission of (specific) LCB packets. The links would
+notify adjacent nodes to process the associated LCB-packets. The
+packets would include the NID and interface#, for auto-configuration,
+but also other information with state -- for example occupancy,
+signal state, etc. 
+</P>
+<H3>Alan Robinson</H3>
+<P>It's interesting you've picked this one up. The discussion was
+sparked off by Pertti Tapola, a new Finnish member of the MERG Yahoo
+Group. His postings are - how shall I say it - voluminous (pot
+calling kettle black?) but so far he's been a great brain-stormer who
+likes to discuss options rather than fight for&nbsp;some stupid
+corner. It'might be good to have him on board, but I've no idea if
+he'd be at all interested. 
+</P>
+<P>We haven't got as simple as a 1-wire interface yet. Mike
+Bolton&nbsp;asked if we were familiar with Dallas One-Wire, but
+that's all. The most likely options discussed so far have been my own
+QCBSP (3 pins/wires minimum per neighbour link) and software UARTs (2
+pins/wires minimum). So far, I'm inclined to favour UARTs (software,
+probably, but the standard needn't specify) for this job. If you've
+got a suggestion using only one wire, I'm all ears. If not, can we
+come up with one? 
+</P>
+<P>I'm a bit nervous about using a simple open-collector link and a
+protocol operating over the bus because it has to work without any
+central control. If two nodes simultaneously try to establish who
+their neighbours are, how do we guarantee they don't interfere?
+It&nbsp;might not&nbsp;be too hard if they're on the same CAN
+segment, but if not, what then?&nbsp;That could happen in a
+get-together&nbsp;where&nbsp;adjacent modules&nbsp;are on
+different&nbsp;CAN segments. 
+</P>
+<P>Half-duplex software UARTs, perhaps? If the neighbour links only
+have to carry repeated node ID and port number, message
+collisions&nbsp;ought to be&nbsp;easy to deal with. If each node
+tries again after a pseudo-random interval based on its node ID
+(we've already&nbsp;mandated code that does most of that), and
+doesn't start to transmit if it has seen an incoming start bit, that
+should work. Another refinement: once a node has successfully
+received its neighbour's node ID, it could drop to a much lower but
+still pseudo-random transmission rate. Hmmmm. Didn't think of that
+until now: I think I'll post&nbsp;it on MERG. 
+</P>
+<P>Whether the neighbour links also carry track occupancy, etc. as
+well is a moot point. The MERG discussions so far haven't ruled a
+common bus in or out. Pertti's starting point was NX routing using
+distributed modules. The comms topology is still entirely up for
+grabs. What we're talking about here is his option (2) out of quite a
+lot, which uses a bus and neighbour links to establish who is next
+door to who. My initial inclination (that's all it is) is to say that
+the neighbour links are only used to establish topology. If they only
+carry node ID and port number, they can be slow as hell and therefore
+easily interference-proof and dirt cheap, as well as using up very
+little processing power. Once a node knows who its neighbours are, it
+can do all the rest via the bus.</P>
+<P>Are you happy with my terminology, 'Neighbour Link', and 'Port
+Number' especially? We'd have to agree something. 
+</P>
+<H3>Bob Jacobsen</H3>
+<P>I think, in the context of S9.6/OpenLCB, all you need is the
+ability to advertise a few bytes to your physical neighbors. 
+</P>
+<P>The distance involved isn't large, because you're connecting
+&quot;right next door&quot;. If you're willing to pull a two-wire
+cable &amp; use a common CAN ground, you could use e.g. the Maxim
+1-wire 64-bit part which is practically free. Except for the shared
+ground, no other electrical connection is needed; the part is powered
+by the 1-wire connection. 
+</P>
+<P>Example protocol: 
+</P>
+<P>Goal is to find the node ID of the node handling various things on
+the adjacent module. From there, you can build up whatever protocol
+needed for EventIDs, etc. 
+</P>
+<P>Some nodes have a &quot;next-door identification feature&quot;
+(NDIF); all others aren't involved. 
+</P>
+<P>A) Send out a specific broadcast NMRA communication that means
+&quot;All NDIF nodes, do your thing&quot;. I'd use a specific
+reserved EventID for this, but you could use a special op code. 
+</P>
+<P>B) All NDIF nodes hear the message and read 48 bits from their
+neighbor. Those 48 bits are the neighbors nodeID. Now they've got
+that NodeID, and are happy for their internal purposes. 
+</P>
+<P>C) In addition, the NDIF nodes can datagram that information to
+whoever sent (A), since the source of (A) was known from that
+message. (A) then picks up the entire topology from the combination
+of source&amp;next-door-ID in those messages. And there's enough
+redundancy to detect lots of types of errors. 
+</P>
+<P>So what can you do with a neighbor's node ID? That Node ID is key
+to identifying known-unique events that your neighbor could emit. For
+example, establish a convention that modules will have a node at each
+end, emitting ID/1 for last block occupied; ID/2 for last block not
+occupied; ID/3 for block track not clear to enter (turnout set
+against , or whatever), etc. Now you've got a signaling and control
+system that can automatically set up. 
+</P>
+<P>The protocol is standard S9.6/OpenLCB, with special boards (for
+the next-door connection) and conventions on use. 
+</P>
+<H3>Alan Robinson</H3>
+<BLOCKQUOTE>The distance involved isn't large, because you're
+connecting &quot;right
+next door&quot;.  If you're willing to pull a
+two-wire cable &amp; use a common CAN ground, you could use e.g. the
+Maxim 1-wire 64-bit part which is practically free.  Except for the
+shared ground, no other electrical connection is needed; the part is
+powered by the 1-wire
+ connection.</BLOCKQUOTE>
+<P>Not so sure about that. The longest likely neighbour link would be
+the
+length of the longest plain-track block, plus some more for where
+modules
+are located and round-the-houses wiring routes. Long wires
+are likely to be
+loomed or trunked with others, and we don't know
+what those wires are
+carrying, so it could be noisy. I think the
+neighbour links should be about
+as noise immune as the CAN bus is.
+There's little point in making them much
+better, unless that's
+achievable at no extra cost. Some sort of low bit-rate
+comms would
+make this objective easier to meet because interference will
+be
+mostly HF, which can be filtered out by a simple RC. Achieving
+noise
+immunity does of course include packet validation in software.
+One simple
+way would be to accept the data only when the same values
+have been received
+more than once. A bit more thinking needed,
+perhaps.
+</P>
+<BLOCKQUOTE>B) All NDIF nodes hear the message and read 48 bits from
+their
+neighbor. Those 48 bits are the neighbors nodeID.  Now they've
+got
+that NodeID, and are happy for their internal purposes.
+</BLOCKQUOTE>
+<P>Yes, except port number is needed too, for the (probably few)
+cases where
+adjacent nodes have more than one neighbour link. One
+case I thought of was
+a reversing loop where a plain track module has
+both its links connected to
+the same turnout module. That said,
+Pertti has cast doubt on whether plain
+track modules are needed. But
+he started with ideas on how to do NX routing
+without a central
+signalbox, and he's now moving on to automatic control of
+the trains
+as well (expect DC versus DCC sparks!), so I don't know where
+that's
+heading.
+</P>
+<BLOCKQUOTE>So what can you do with a neighbor's node ID?  That Node
+ID is key to identifying known-unique events that your neighbor could
+emit.  For example, establish a convention that modules will have a
+node at each end, emitting ID/1 for last block occupied; ID/2 for
+last block not occupied; ID/3 for block track not clear to enter
+(turnout set against , or whatever), etc.  Now you've got a signaling
+and control system that can automatically set up.
+</BLOCKQUOTE>
+<P>
+Yes. Plus number of blocks ahead unoccupied, lengths of those
+blocks, and
+speed limits: info which could be input to a superbly
+realistic automatic
+train control process.
+</P>
+<BLOCKQUOTE>The protocol is standard S9.6/OpenLCB, with special
+boards (for the next-door connection) and conventions on use.
+
+</BLOCKQUOTE>
+<P>Yes. And neighbour-to-neighbour comms would use directed packets,
+not
+events. Since the data passed could get quite complex, should it
+use the
+streaming protocol, one stream per neighbour link?
+
+</P>
+<P>Why is the broadcast message in (A) above needed, and who sends
+it? If the
+neighbour links are only ever used to send node ID and
+port number, they
+could simply transmit them continuously. That would
+fit in nicely with data
+validation by comparing successive frames.
+</P>
+<P>So how about this: the neighbour link protocol includes a bit that
+says 'I
+now know what your address is'. When both nodes see this from
+their peers
+they can have a little bus dialogue to confirm things,
+after which they're
+in up-and-running mode. Or is the little dialogue
+superfluous?
+</P>
+<H3>Alan Robinson</H3>
+<P>I'm beginning to have a vision thing. The various threads led by
+Pertti
+Tapola on the MERG list and this discussion here seem to me to
+be converging
+on something most interesting.
+
+</P>
+<P>Pertti began with wondering how a distributed modular NX routing
+panel might
+be made. Now the discussion is broadening into how trains
+might be
+automatically controlled. Very soon we'll have ideas for all
+the components
+of a totally automated layout run entirely by standard
+general-purpose
+software.
+
+</P>
+<P>Humans and scripted timetables generate route requests. The
+modules provide
+the signalling. With track occupancy detection, you
+know not only the route
+(block lengths, speed limits, number of
+blocks ahead unoccupied, even gradients if you want!) but where on
+its route each train is. In other
+words, you've got a complete
+electronic 'driver's eye' view of the line
+ahead of each train. A
+piece of automatic driver software, constantly updated with what's
+ahead of each train, sends packets to a DCC command
+station to
+control them. The driver software doesn't need to know anything
+about
+the rest of the layout: just the line ahead. The only configuration
+it
+needs is train characteristics.
+
+</P>
+<P>Because it contains both signalman-centred and driver-centred
+elements, it
+removes the difficulties of using DCC with automation.
+I've been wondering
+how you might do that for a while. If you're
+ahead of me there, I apologise!
+
+</P>
+<P>A system like this allows NX routing. It allows very realistic
+automated
+operation. It allows a mixture of scripted-timetable and
+ad-hoc workings. It
+allows a mixture of automated trains and manually
+controlled trains. And it
+allows throttles to show a human driver
+what's ahead.
+</P>
+<P>Few people would want all that capability of course, but a system
+that can
+do it ought to be capable of anything, which why it appeals
+to me.
+Especially throttles with graphic displays of the line ahead,
+which I guess
+would find a larger market than automation.
+</P>
+<H3>Bob Jacobsen</H3>
+<P>…</P>
+<P>The advantage of using a 1-wire memory chip to hold the data is
+that it can be electrically isolated from everything else that's
+going on.  The sender powers it over the single-wire+ground
+connection. That greatly reduces problems with ground offsets, etc.
+</P>
+<P>…</P>
+<P>&quot;port number&quot; isn't really a S9.6/OpenLCB concept at the
+moment, but the more I think about it, the more useful it seems for
+this.
+
+</P>
+<P>I was thinking that each &quot;end&quot; of a module would use a
+different node or at least a different node number. That would then
+be used for addressing, event IDs, etc. 
+</P>
+<P>Two node numbers in a single piece of hardware is a little
+complex, though.
+
+</P>
+<P>Better might be to define a port number (1 through 32? 1 through
+255?), and then include that in EventIDs, datagrams, etc.  Each
+1-wire connection sender advertises it's NodeID and port number; the
+receiver can combine those to know what EventIDs to look for and
+where to send datagrams.
+</P>
+<P>…</P>
+<P>Need to define a format for the exchanged data, and make sure it's
+extensible for future things.</P>
+<P>…</P>
+<BLOCKQUOTE>Why is the broadcast message in (A) above needed,
+</BLOCKQUOTE>
+<P>It implements the statement &quot;your connections are complete,
+so you can start thinking now&quot;.  I think you still want it, even
+if you have a local activation, because there might be long-distance
+effects in the information. I can't think of any at the moment, but
+that doesn't mean they don't exist.
+</P>
+<BLOCKQUOTE>and who sends it?
+</BLOCKQUOTE>
+<P>A circuit board with a CAN connection and a button, whose only
+purpose in life is to do this.  Or a computer.  Or any of the special
+&quot;Module Handler Node&quot; boards, when a special button on them
+is pushed.
+
+</P>
+<BLOCKQUOTE>If the
+neighbour links are only ever used to send node ID
+and port number, they
+could simply transmit them continuously. That
+would fit in nicely with data
+validation by comparing successive
+frames.
+</BLOCKQUOTE>
+<BLOCKQUOTE>So how about this: the neighbour link protocol includes a
+bit that says 'I
+now know what your address is'. When both nodes see
+this from their peers
+they can have a little bus dialogue to confirm
+things, after which they're
+in up-and-running mode. Or is the little
+dialogue superfluous?
+
+</BLOCKQUOTE>
+<P>I like the idea of a completely local &quot;We're connected, so
+lets come up&quot; mechanism. That would let pieces of a modular
+layout be tested as they're connected together. 
+
+</P>
+<P>Having a &quot;are we really connected?&quot; dialog (or a
+timeout: Have to keep getting data for 3 seconds to make sure the
+connection has really been made) is a good idea.  You need both the
+1-wire and CAN connections up to succeed, so that's the thing to
+test.
+
+</P>
+<P>Also, it's got to handle the &quot;opps, hooked that up wrong,
+this module needs to go over there!&quot; case.  Maybe if a node
+notices different information on the 1-wire, it starts over?  (Can't
+start over on loss-of-signal, because the next mode might just have
+been turned off for a second)
+</P>
+<H3>Alan Robinson</H3>
+<P>Some more thoughts........
+
+</P>
+<OL>
+	<LI><P>Pertti's first idea of track control nodes was as physical
+	entities. But
+the same entities (same code, even) could run on a PC.
+	A mixture of both
+could work together. They could run on more than
+	one PC (e.g. one per
+module). They just send messages to each other,
+	and needn't know or care
+what hardware is hosting their peers.
+
+</P>
+	<LI><P>A use for automatic train driver software: throttles which
+	can be
+switched in and out of autopilot. Scenario: Despatcher at
+	module D and
+Receiver at module R between them request a route from
+	D's yard to R's yard.
+When he gets the off, D drives the train
+	manually out of his yard onto the
+main line, then switches his
+	throttle to autopilot. If R is a long way from
+D the train is going
+	to end up in an elephant parade. All handled
+automatically. Sometime
+	after D has switched to autopilot, the train is
+handed from throttle
+	D to throttle R, including the train characteristics
+info. To an
+	observer of the train, the handover is completely seamless
+	and
+unnoticeable. Someone at an intermediate module might set up a
+	conflicting
+movement, and the train has to wait. All handled. All
+	this may be going on
+completely out of sight of either D or R, who
+	are now shunting their yards.
+Eventually, R gets notice that a route
+	has been set up into his yard, so he
+knows the train is coming. D
+	might have been a bit of a devil and not even
+told him what sort of
+	train it is. Doesn't matter. When the train comes into
+view, R
+	switches his throttle out of autopilot and drives the train
+	manually
+into his yard.
+
+</P>
+</OL>
+<P>I reckon we've got the brains between us to work out all the
+details and
+standards needed to achieve something like that. S9.6
+could become something
+rather more than just a me-too rival to CBUS
+or S9.5.
+</P>
+<H3>David Harris</H3>
+<P>There was mention on MERG about all-RF control of trains (but Alan
+shut it down ;-) ).&nbsp;
+
+</P>
+<P>I can see all RF coming, too.  However, OpenLCB should be able to
+adapt easily&nbsp;to these, since we are planning message-routing,
+etc. 
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
+
+

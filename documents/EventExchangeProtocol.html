@@ -1,0 +1,129 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Standard Interactions</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090824;21211800">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Producer/Consumer Event Transfer</H1>
+<P STYLE="margin-left: 0.98cm">NMRAnet nodes interact to control the
+layout via the reporting and observation of &quot;events&quot;. 
+</P>
+<P STYLE="margin-left: 0.98cm">The protocol used to transfer these
+events is described here. It is built on top of the standard
+interactions and messages.</P>
+<H2>Event Transfer</H2>
+<P STYLE="margin-left: 1.01cm">NMRAnet nodes respond to local inputs
+and state changes by emitting Producer/Consumer Event Report (PCER)
+messages. When they do this, they are acting as &quot;Producers&quot;.
+NMRAnet nodes receive these messages, and can act on them locally if
+desired. If they do so, they are acting as &quot;Consumers&quot;. 
+</P>
+<P STYLE="margin-left: 1.01cm">The P/C Event ID included in a PCER
+message is a 8-byte unique identifier.  The method for assigning
+these and ensuring their uniqueness is <A HREF="EventIdUniqueAssignment.html">specified
+elsewhere</A>.</P>
+<P STYLE="margin-left: 1.01cm">There are many possible ways to use
+these 64 bits, some of which are discussed as examples below. In
+particular, NMRAnet does not require or enforce any particular
+partitioning of the eight bytes. More than one node may emit the same
+P/C Event ID (note that the NID of the emitting node is available in
+the message). More than one node may receive and act on a PCER
+message with a specific P/C Event ID. The only requirement is that
+the 8-byte quantity be unique to the event. 
+</P>
+<H2>Consumer Identification</H2>
+<P STYLE="margin-left: 0.98cm">It is useful to be able to determine
+which, if any, nodes are listening for a specific P/C Event ID
+message. 
+</P>
+<P STYLE="margin-left: 0.98cm">This can be used as a configuration
+diagnostic, and as a way of building routing tables. 
+</P>
+<P STYLE="margin-left: 0.98cm">To determine which nodes are listening
+for a particular P/C Event ID, a node sends an Identify Consumers
+message carrying the desired P/C Event ID. This is an unaddressed
+message processed by all nodes. 
+</P>
+<P STYLE="margin-left: 0.98cm">All nodes that are listening for that
+P/C Event ID reply with a Consumer Identified broadcast message. 
+</P>
+<P STYLE="margin-left: 0.98cm">The &quot;valid&quot; bit indicates
+that the node is currently in the state it would be if this message
+had been received last. For example, assume a node sets its output
+active for P/C Event ID 2, and inactive for a P/C Event ID 4. Then if
+the output was active and the node was asked about P/C Event ID 2, it
+would reply &quot;valid&quot;; if asked about P/C Event ID 4, it
+would reply &quot;not valid&quot;. Depending on the node's structure,
+it might not always be possible to set the &quot;valid&quot; bit with
+certainty, in which case the &quot;unknown&quot; bit must be set. 
+</P>
+<H2>Producer Identification</H2>
+<P STYLE="margin-left: 0.98cm">It is useful to be able to determine
+which, if any, nodes are configured to possibly emit a specific P/C
+Event ID message and their current state. 
+</P>
+<P STYLE="margin-left: 0.98cm">This can be used as a configuration
+diagnostic, and as a way of building filtering and routing tables. 
+</P>
+<P STYLE="margin-left: 0.98cm">To determine which nodes can send a
+particular P/C Event ID, a node sends an Identify Producers message
+carrying the desired P/C Event ID. This is an unaddressed message
+addressed to all nodes. 
+</P>
+<P STYLE="margin-left: 0.98cm">All nodes that are listening for that
+P/C Event ID reply with a Producer Identified broadcast message. 
+</P>
+<P STYLE="margin-left: 0.98cm">The &quot;valid&quot; bit indicates
+that the node's internal condition is consistent with sending this
+P/C Event ID. For example, assume a node sends P/C Event ID 2 when
+the input goes active and P/C Event ID 4 when the input goes
+inactive. Then if the input was active and the node was asked about
+P/C Event ID 2, it would reply &quot;valid&quot;; if asked about P/C
+Event ID 4, it would reply &quot;not valid&quot;. Depending on the
+node's structure, it might not always be possible to set the &quot;valid&quot;
+bit with certainty, in which case the &quot;unknown&quot; bit must be
+set. 
+</P>
+<H2>Event Identification</H2>
+<P STYLE="margin-left: 0.98cm">It is useful to be able to rapidly
+determine which, if any, P/C Event IDs that a particular node is
+listening for and that it can emit. 
+</P>
+<P STYLE="margin-left: 0.98cm">This can be used as a configuration
+diagnostic. 
+</P>
+<P STYLE="margin-left: 0.98cm">To determine which P/C Event IDs can
+be send by a particular node, the inquiring node sends an Identify
+Events message addressed to the target node. 
+</P>
+<P STYLE="margin-left: 0.98cm">The node must reply with a Producer
+Identified message for each P/C Event ID it can produce, and a
+Consumer Identified message for each P/C Event ID for which it is
+listening.</P>
+<H2>Initialization and Configuration Changes</H2>
+<P STYLE="margin-left: 0.98cm">To ensure that event messages are
+properly routed, nodes must announce when they start to produce or
+consume messages. Specifically, they must do this at two times: 
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">When the node is first initialized
+	and the &quot;Initialization Complete&quot; message has been sent. 
+	</P>
+	<LI><P>When a configuration change has added an event ID that can be
+	produced or consumed. 
+	</P>
+</OL>
+<P STYLE="margin-left: 0.98cm">To announce new Event IDs being
+consumed, the node must transmit a Producer Identified message for
+each P/C Event ID it can produce, and a Consumer Identified message
+for each P/C Event ID for which it is listening. 
+</P>
+<P><I>This is SVN $Revision$ </I>
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,225 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Reliable Binary Wire Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090126;13575800">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Reliable Binary Wire Protocol</H1>
+<P>This section describes carrying NMRAnet across a transport
+mechanism that is reliable (all bytes are guaranteed to arrive in
+their original order) and can carry binary bytes. 
+</P>
+<P>Examples of this include: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">TCP/IP point-to-point links 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">High-bandwidth wireless links 
+	</P>
+	<LI><P>Program-to-program links within computers 
+	</P>
+</UL>
+<P>Reliable binary links can carry the full NMRAnet protocol.
+Messages are carried in full common format. 
+</P>
+<P>The reliable binary wire protocol is meant to attach multiple
+segments of the entire NMRAnet instance. Using this protocol,
+messages can be moved from one gateway to another, where one or more
+additional NMRAnet nodes can be reached through the gateway(s). 
+</P>
+<P>It is meant for applications from attaching a single remote
+console to interconnecting large modular layouts totaling 500 or more
+segments and 10's of thousands of devices. As such, it must have no
+addressing limitations beyond those built into the NMRAnet common
+message format and node serial number format. 
+</P>
+<P>This wire protocol makes no assumptions about the available
+bandwidth. In particular, it must work, with perhaps limited
+effectiveness, when the link bandwidth is small compared to the
+capacity on the other side of the gateways. 
+</P>
+<P>No assumption is made that this wire protocol is being used over
+point-to-point connections. Broadcast and multicast connections
+between nodes via this protocol are also permitted. 
+</P>
+<H2>Message Form</H2>
+<P>Individual messages are preceded by a preamble that contains: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Originating gateway Node ID –
+	the Node ID of the gateway that send/forwarded this message onto the
+	point-to-point or multicast link. May or may not be the original
+	source of the message.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Message capture time at
+	originating gateway - a 64-bit number of monotonic milliseconds
+	since (before) the connection was created; no time synchronization
+	with other nodes implied; could have been a sequence number 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Flags - 16 bit quantity, the
+	most-significant 15 bits are reserved. The least significant bit
+	indicates whether the remaining message is a common NMRAnet message
+	or a gateway-gateway communication. 
+	</P>
+	<LI><P>Remaining message length in bytes 
+	</P>
+</UL>
+<H2>Routing</H2>
+<P>To reduce NMRAnet traffic on the individual NMRAnet segments, it's
+useful to forward messages only to segments where nodes are listening
+for them. The two ends of the gateway-gateway link can exchange
+internal messages to control which common messages should be
+forwarded over the link. 
+</P>
+<P><I>This entire section should probably move to the <A HREF="../notes/Routing.html">Note
+on Routing</A>.</I> 
+</P>
+<H3>Addressed Messages</H3>
+<P>Each gateway maintains a list of nodes (NIDs) that it knows are
+present at the local end of the link, and a separate list of those
+NIDs that can be reached via the remote end of the link. 
+</P>
+<P>When a node is seen on the local end: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The remote table is checked, and
+	the NID removed if present. 
+	</P>
+	<LI><P>The NID is placed in the local table if not present. 
+	</P>
+</UL>
+<P>When a node is seen from the remote end: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The local table is checked, and
+	the NID removed if present. 
+	</P>
+	<LI><P>The NID is placed in the remote table if not present. 
+	</P>
+</UL>
+<P>Messages arriving across the TCP/IP link are forwarded to the
+local segment. (Nodes bouncing back and forth between “assigned to
+local” and “assigned to remote” may indicate a routing loop;
+nodes that do that just once may have been physically moved)</P>
+<P>Messages with a destination Node ID (destination address) that are
+seen on the local segment are checked to see where the node is
+located. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">If it's remote, the message must
+	be forwarded across the link. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">If it's local, the message can
+	optionally be forwarded across the link or dropped. 
+	</P>
+	<LI><P>If it's neither, e.g. not known, the message is forwarded,
+	preceded by a &quot;Verify Node Serial Number (Addressed)&quot;
+	message addressed to the same NID. This will eventually return a
+	message from the node, resulting in routing table entries. Note that
+	this is an unusual occurrence, which should only happen when a
+	gateway comes up on an already operating NMRAnet. <I>(What's the
+	utility of this? You have to forward the original message anyway, so
+	that it's not lost, so what does this gain? Nothing for a
+	point-to-point link, but if there are multiple remote destinations,
+	e.g. a central scatter-gather, this allows the scatter to send the
+	message only to the addressed node)</I></P>
+</UL>
+<H3>Unaddressed Messages</H3>
+<P>Some unaddressed messages, such as &quot;Initialization Complete&quot;,
+are rare enough that there is little cost to universally routing
+them. That also provides operating nodes knowledge of all the other
+nodes present on the NMRAnet. 
+</P>
+<P>Producer/Consumer Event Reports can be numerous enough that
+complete routing would be excessive. The message itself doesn't show
+an destination, however. A gateway can filter PCER messages from
+outgoing transmission if it knows there is no node listening at the
+remote end. To determine this, when a previously-unseen P/C Event ID
+occurs, it can be routed over the link followed by a &quot;Identify
+Consumers&quot; message with the same P/C Event ID. If any &quot;Consumer
+Identity&quot; messages come back, this PCER must continue to be
+routed. If none have returned after an appropriate time, the messages
+need not be routed any longer. (This is needed to handle connecting
+two live networks; adding a node emits the “Consumer
+Identity/Identified” message automatically)</P>
+<P>To allow live networks to be configured to use new P/C Event IDs,
+gateways need to be able to restart routing of a P/C Event ID at a
+later time. The &quot;Identified Consumer&quot; message triggers
+this, and node are therefore required to emit an &quot;Identify
+Consmer&quot; message when they first attach to the NMRAnet or if
+they are configured to consume a new Event Id. When an &quot;Identified
+Consumer&quot; is received from the remote side, PCER messages with
+that P/C Event ID must in the future be routed from the local side to
+the remote side. 
+</P>
+<H3>Issues to Resolve</H3>
+<P>The routing discussion doesn't properly handle routing loops, e.g.
+a TCP/IP link with both ends on the same CAN segment. Most can be
+detected by seeing the same source Node ID coming from two different
+links or passing onto a segment that originates that same Node ID,
+but can all can be detected that way?</P>
+<P>A time-to-live field is probably needed for detecting routing
+problems, but how to transfer it across e.g. intermediate CAN
+segments? Is that required? 
+</P>
+<P>As an alternative to time-to-live, and as a way to detect and
+diagnose loops, each forwarding gateway could add a new messages
+header (instead of replacing the old one) of node, time and flags.
+One of the flags would be whether the content started with another
+header, so that this could be broken apart. This still doesn't detect
+loops that involve CAN segments, where these headers are lost, so
+maybe it's not worth it.</P>
+<P>There needs to be a standard way to command remote gateway
+configuration, e.g. to set a &quot;send everything, I want to see it
+all&quot;. That has to work on a IP-CAN-IP-CAN-IP multisegment link,
+so has to be done with common messages. 
+</P>
+<H2>Gateway-Gateway Messages</H2>
+<P>The TCP/IP gateway to gateway links effectively partition the
+overall NMRAnet into smaller &quot;islands&quot; or &quot;subnets&quot;.
+NMRAnet nodes in any of these must be able to communicate with each
+other, including over intermediate wire-protocols that differ. 
+</P>
+<P STYLE="margin-bottom: 0cm">(<I>More needed here, most likely</I>) 
+</P>
+<H2>Discussion</H2>
+<P STYLE="margin-bottom: 0cm">Section contains work in progress,
+notes-to-self, and background information. 
+</P>
+<H3>Relationship with Ethernet Connections</H3>
+<P>Imagine you have five NMRAnet CAN segments, connected by small
+boxes to an Ethernet: You can use an Ethernet-specific protocol (e.g.
+ala Ethertalk, etc), or you can use IP connections (probably TCP/IP).</P>
+<P>The TCP/IP solution seems to require more overhead, but it works
+about the same on a single Ethernet segment and across multiple
+segments, wide area links, etc.</P>
+<P>The Ethernet-protocol solution seems somewhat simpler (though
+getting a protocol certified is a lot of work), but can't get traffic
+off the local Ethernet segment. It spans hubs, but not switches, and
+would require NMRAnet-specific devices to connect to the larger
+Internet. So although an Ethernet-specific protocol seems simpler to
+create, in practice you'd still need to create Ethernet to Internet
+routers, resulting in an overall increase in engineering effort.</P>
+<P>Where Ethernet-specific protocol might be useful is in reducing
+the configuration load for single-segment implementations. It would
+be nice if people could plug e.g. five NMRAnet CAN-Ethernet adapters
+into a single Ethernet and have them find and configure themselves to
+interconnect. This doesn't require new NMRAnet-specific protocols;
+it's much more likely that a robust solution could be created using
+e.g. Bonjour (a form of ZeroConf) and similar standard protocols.
+Some recommendations here would improve interoperability of
+implementing devices.</P>
+<P>These ideas are being developed in <A HREF="../notes/Ethernet.html">another
+document</A>.</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

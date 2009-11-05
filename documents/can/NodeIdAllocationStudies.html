@@ -1,0 +1,617 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>NMRAnet: CAN Wire Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091011;17460000">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Studies of Collisions During Node ID Alias Allocation</H1>
+<H2>Study of 12 Bit Alias</H2>
+<P>There's a small test program in S9.6 SVN for estimating the
+probability of collisions in identifiers:</P>
+<P STYLE="margin-left: 2cm">prototypes/java/test/simulations/NodeIDCollisions.java</P>
+<P>For example, if you assign random and independent 12-bits aliases
+to N nodes and then put them together, what fraction of the time will
+there be a collision?</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=33% SDNUM="1033;0;@">
+			<P>0.0109</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00006727" SDNUM="1033;0;@">
+			<P>0.001096</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="25" SDNUM="1033;0;@">
+			<P>25</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0046" SDNUM="1033;0;@">
+			<P>0.0706</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00018452" SDNUM="1033;0;@">
+			<P>0.00292</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="100" SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0727" SDNUM="1033;0;@">
+			<P>0.702</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00075333" SDNUM="1033;0;@">
+			<P>0.011980</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The two &quot;collision rate&quot; numbers are the fraction of
+trials in which one or more collisions were observed on the network,
+and the fraction of the nodes that had a collision when the network
+first started up.</P>
+<P>The first example shows that 70% of the time, when you put
+together a 100 node network, you'll have at least one collision in
+the network if you use this method of assigning IDs. Any particular
+node, though, has only a 1% chance of having a collision and needing
+to retry.</P>
+<P>The number of nodes doesn't stop at 100, though.  Since the
+protocol allows off-CAN-segment nodes to communicate, and you have to
+be able to address them, the numbers can continue to rise:</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=33%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="250" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>250</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.379" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.99962</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0019" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.0297</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="1000" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>1000</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.9996" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>1.0</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0076" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.1126</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Large modular layouts <U>will</U> have collisions, but even big
+ones won't require nodes to retry very often.</P>
+<P>If IDs are sequentially, as opposed to randomly, assigned by a
+single source, the problem goes away.  For example, if a manufacturer
+assigns serial numbers to boards, they won't conflict.  But what if
+two manufacturers are involved?  Does that make the problem better or
+worse?</P>
+<P>We model this as picking N unique numbers from each of M
+manufacturers who have sequentially numbered L boards so far.  What's
+the chance then? If the manufacturers have only made a small number
+of boards, e.g. 100, the chance of a collision becomes pretty large:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=20%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number of Vendors</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number Produced</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="2" SDNUM="1033;0;@">
+			<P>2</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="100" SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="0.6672" SDNUM="1033;0;@">
+			<P>0.6672</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0997</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9375 
+			</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.4757</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>20</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1.0</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>(continuous)</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>With 100 boards produced by each of several vendors, collisions
+are very likely! 
+</P>
+<P>If they've produced a thousand boards, the chance goes down, but
+it's still significant:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=20%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number of Vendors</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number Produced</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="2" SDNUM="1033;0;@">
+			<P>2</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="100" SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="0.6672" SDNUM="1033;0;@">
+			<P>0.0975</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0102</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.2247</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0501</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>20</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9928</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9256</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>These rates are quite high; sequential numbering without some form
+of extra information (e.g. a manufacturer number) causes high
+collision rates.</P>
+<P>Properly seeding the alias algorithm can greatly reduce this
+problem.  For example, putting manufacturer information in the top
+byte of the alias, and serial number in the lower, reduces the
+collision rate to zero for up to 255 manufactured nodes.  Even in the
+case of a few thousand, careful choice of packing can reduce the
+collision rate to close to (but not exactly) zero.  The collision
+algorithm really only earns its keep when the network has caught on
+enough that tens of thousands of nodes are in use. That's not such a
+stretch, however, as there are tens of millions of DCC decoders in
+operation now, and the goal of the current networking proposals is to
+last for a similar length of time.</P>
+<H2>Study of 16 Bit Alias</H2>
+<P>This section describes a study of the earlier 16-bit alias
+proposal.</P>
+<P>There's a small test program in S9.6 SVN for estimating the
+probability of collisions in identifiers:</P>
+<P STYLE="margin-left: 2cm">prototypes/java/test/simulations/NodeIDCollisions.java</P>
+<P>For example, if you assign random and independent 16-bits aliases
+to N nodes and then put them together, what fraction of the time will
+there be a collision?</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=33% SDNUM="1033;0;@">
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=33% SDNUM="1033;0;@">
+			<P>0.0006727</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00006727" SDNUM="1033;0;@">
+			<P>0.00006727</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="25" SDNUM="1033;0;@">
+			<P>25</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0046" SDNUM="1033;0;@">
+			<P>0.0046</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00018452" SDNUM="1033;0;@">
+			<P>0.00018452</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="100" SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0727" SDNUM="1033;0;@">
+			<P>0.0727</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.00075333" SDNUM="1033;0;@">
+			<P>.00075333</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The two &quot;collision rate&quot; numbers are the fraction of
+trials in which one or more collisions were observed on the network,
+and the fraction of the nodes that had a collision when the network
+first started up.</P>
+<P>The first example shows that 7% of the time, when you put together
+a 100 node network, you'll have at least one collision in the network
+if you use this method of assigning IDs. Any particular node, though,
+has only a 0.07% chance of causing a problem.</P>
+<P>The number of nodes doesn't stop at 100, though.  Since the
+protocol allows off-CAN-segment nodes to communicate, and you have to
+be able to address them, the numbers can continue to rise:</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=33%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="250" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>250</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.379" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.3793</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0019" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.0019</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33% SDVAL="1000" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>1000</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.9996" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.9996</P>
+		</TD>
+		<TD WIDTH=33% SDVAL="0.0076" SDNUM="1033;0;@">
+			<P ALIGN=CENTER>0.0076</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Large modular layouts <U>will</U> have collisions.</P>
+<P>If IDs are sequentially, as opposed to randomly, assigned by a
+single source, the problem goes away.  For example, if a manufacturer
+assigns serial numbers to boards, they won't conflict.  But what if
+two manufacturers are involved?  Does that make the problem better or
+worse?</P>
+<P>We model this as picking N unique numbers from each of M
+manufacturers who have sequentially numbered L boards so far.  What's
+the chance then? If the manufacturers have only made a small number
+of boards, e.g. 100, the chance of a collision becomes pretty large:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=20%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number of Vendors</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number Produced</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="2" SDNUM="1033;0;@">
+			<P>2</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="100" SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="0.6672" SDNUM="1033;0;@">
+			<P>0.6672</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0997</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9375 
+			</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.4757</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>20</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>100</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1.0</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>(continuous)</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>With 100 boards produced by each of several vendors, collisions
+are very likely! 
+</P>
+<P>If they've produced a thousand boards, the chance goes down, but
+it's still significant:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<COL WIDTH=51*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=20%>
+			<P>Nodes</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number of Vendors</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Number Produced</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Net Collision Rate</P>
+		</TH>
+		<TH WIDTH=20%>
+			<P>Node Collision Rate</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDVAL="10" SDNUM="1033;0;@">
+			<P>10</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="2" SDNUM="1033;0;@">
+			<P>2</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="100" SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDVAL="0.6672" SDNUM="1033;0;@">
+			<P>0.0975</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0102</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.2247</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.0501</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>5</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>20</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>1000</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9928</P>
+		</TD>
+		<TD WIDTH=20% SDNUM="1033;0;@">
+			<P>0.9256</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>These rates are quite high; sequential numbering without some form
+of extra information (e.g. a manufacturer number) causes high
+collision rates.</P>
+<P>Properly seeding the alias algorithm can greatly reduce this
+problem.  For example, putting manufacturer information in the top
+byte of the alias, and serial number in the lower, reduces the
+collision rate to zero for up to 255 manufactured nodes.  Even in the
+case of a few thousand, careful choice of packing can reduce the
+collision rate to close to (but not exactly) zero.  The collision
+algorithm really only earns its keep when the network has caught on
+enough that tens of thousands of nodes are in use. That's not such a
+stretch, however, as there are tens of millions of DCC decoders in
+operation now, and the goal of the current networking proposals is to
+last for a similar length of time.</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
