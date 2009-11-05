@@ -1,0 +1,73 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Routing</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090615;23293000">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Routing</H1>
+<P>NMRAnet is intended to be fully routable, in that any NMRAnet
+message should be able to get from any source node to any destination
+node. 
+</P>
+<P>This note discusses some aspects of that. (<I>There's a lot more
+in the <A HREF="../binary/index.html">Binary Wire Protocol</A>
+discussion, and much of that should be moved here</I>)</P>
+<H2>Ranges</H2>
+<P STYLE="margin-bottom: 0cm">Some devices might want to consume or
+produce a large number of Event IDs.  For example, a real time or
+fast clock might advertise time as a range of EventIDs; a bridge to
+another network type (XpressNet, LocoNet, etc) might want to send a
+lot of events to represent net traffic, etc.  These need to be
+routed, identified, etc. This could be done with numerous “Identify
+Consumer” and “Identify Producer” messages, but this would take
+a lot of them. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Solving this is the purpose for the
+“Identify Produced Range” and “Identify Consumed Range”
+messages. They define a range of EventIDs using a mask on the lower
+order bits of the EventID.  (This is not a general purpose mask or
+range system, to simplify the necessary routing algorithms; there are
+well-known algorithms for routing when a variable number of low-order
+bits have “don't care values”, as this is essentially the
+Internet routing problem)</P>
+<H2>Loops</H2>
+<P>Because multiple gateways can be connected to e.g. a single CAN
+segment, it's possible to create loops and other examples of
+multiple-path routing. These, in turn, can create multiple copies of
+NMRAnet messages unless gateways protect against this. 
+</P>
+<H3>Diagnostics</H3>
+<P>Multi-path routing can cause packets to traverse a link in both
+directions, which in turn can be detected by storing a direction for
+each NID address being routed. 
+</P>
+<P>True loops, where a packet circulates around a series of links,
+can't be detected this way. They require e.g. a &quot;steps taken&quot;
+or &quot;steps to live&quot; field so that a gateway can detect that
+the same packet has reached the gateway with different values, hence
+via different routes. Or they can be detected (always? usually?) by
+detecting the same unique source Node ID coming from two different
+directions. 
+</P>
+<P STYLE="margin-bottom: 0cm">Unfortunately, NMRAnet CAN links don't
+have lots of space available to carry routing information. This
+implies that the verification needs to be done with special messages,
+either for testing routing, or as part of node initialization. 
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

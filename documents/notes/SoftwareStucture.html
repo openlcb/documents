@@ -1,0 +1,44 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>NMRAnet Note: On Software Structure</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090203;12533500">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>On Software Structure</H1>
+<P>Much of NMRAnet is based on broadcast messaging: A request for
+information is sent, received by all nodes, and perhaps some of them
+will reply. The protocol provides no concrete way to know when the
+last answer has been received.</P>
+<P>Software that works with this system should keep track of
+everything that it hears, maintaining an internal model of the state
+of the parts of the NMRAnet that it's interested in. As messages come
+in, that model is then updated so that it's always as up-to-date as
+possible. The NMRAnet protocols help this by broadcasting status
+information as nodes become active, are reconfigured, etc. When a
+node or program joins the network, it can send requests for the
+information it needs to track. It then receives the direct responses
+to build an initial model, plus additional messages later on to keep
+the model up to date.</P>
+<P>A model-based approach works much better than an “inquire when
+you need to know” approach. If the program waits until the last
+possible moment to request information that it needs, it'll still
+have to wait for the replies, and it won't reliably know when the
+last reply arrives. It will still need to build a model based on the
+replies, but now it will be much harder to ensure that model is
+complete. Sending lots of un-needed broadcast requests, along with
+the associated replies, can result in significant load on the network
+and nodes.</P>
+<HR>
+<P><I>This is SVN $Revision$ </I>
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,314 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Datagram Support</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090927;23310000">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Datagram Protocol</H1>
+<P>Some wire protocols can support only very short packets/frames,
+e.g. CAN with a limited header and data payload. As NMRAnet evolves,
+it will inevitably need messages larger than that. Streaming provides
+a very large payload, at some cost in setup time and complexity.
+&quot;Datagram Support&quot; is in between &quot;small enough to
+always be atomic&quot; and &quot;large enough to justify streaming
+overhead&quot;. 
+</P>
+<P>This note is a working draft of a proposal.</P>
+<H2>Use Cases</H2>
+<P>Configuration: Simple one-value reads and writes of configuration
+data are one-to-one operations that need to exchange 4-8-16 bytes of
+data. 
+</P>
+<P>External-network control: If the S9.6 net is attached to single
+external networks, e.g. a DCC or LocoNet system, one-to-one
+transmission can be used to exchange native commands. E.g. “Send
+the following LocoNet message” may need to be up to 18 bytes long
+with current LocoNet definitions. Communcation to LocoNet/DCC/etc can
+be one-to-one to insure communications; return messages can be many
+one-to-one to listeners, but there's also a need for one-to-many or
+broadcast which is not addressed here.</P>
+<P>RFID tags carry 40 (vs 64, and need to plan for future growth)
+bits of payload. Adding in some status and location information,
+reporting a RFID tag requires a 8-16 byte payload. RFID tags as
+broadcast might be valuable, but given payload size might not be easy
+(but consider N smaller events carrying part of it?). In that case, a
+datagram report might be the best approach.</P>
+<H2>Discussion</H2>
+<P>Datagrams are a one-to-one connection between nodes. They have a
+source address and a single destination address, and only have to be
+delivered to that single destination. Delivery is guaranteed if the
+destination node is active, initialized and reachable, but it's not
+possible to guarantee in advance that a buffer is available in the
+destination to receive and assemble the datagram.</P>
+<P>At the high end, what's the maximum size for a datagram, beyond
+which it makes sense to move to a stream? Depends a little on the
+overhead for establishing the stream, not yet decided, but 64 bytes
+seems a reasonable cross-over point. The maximum datagram size must
+be short enough that nodes can afford to have a fixed
+receive-and-process buffer for datagrams allocated, unlike streams
+that can be too large to buffer. 
+</P>
+<P>At the low end, datagrams should go all the way down to zero
+bytes, because they are distinct from Events. 
+</P>
+<P>The datagram protocol doesn't need error correction, because
+NMRAnet is based only on reliable links. CAN, TCP/IP, etc, handle
+their own error conditions. The datagram protocol needs flow control
+and synchronization, however, as a small node might not have
+resources to accumulate a large number of datagrams that are arriving
+in an interleaved order. Perhaps a “retry immediately” response
+is the right way to handle that, but in order for the sending node to
+know it can free its buffer holding the transmitted message, there
+needs to be an “received OK, acknowledged” reply. In this case,
+'reliable transport' just refers to a lack of content and order
+errors, not that messages always end up effective at the remote
+destination.</P>
+<P STYLE="margin-bottom: 0cm">On CAN links, the datagram protocol is
+constrained by the need to limit space used for addresses. Datagrams
+must be broken into multiple frames, but there's just not enough
+space in a CAN frame to include the destination address in every
+frame. The protocol must allow for the possibility that datagrams to
+a particular node can be interleaved if several nodes are
+transmitting at the same time. Note that a node can control what it
+sends, so it is possible to ensure that only one datagram is being
+sent from a node at one time, just not that only one is being
+received.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">We're relying on CAN not reordering
+messages, even in the presence of error recovery. That's needed in
+any case for streams, which are so large that complete internal
+buffering cannot be assumed.</P>
+<H2>Base Protocol Proposal</H2>
+<P>In the base protocol a datagram is just a single short message
+containing the Datagram MTI and the data byte(s).</P>
+<P STYLE="margin-bottom: 0cm">Once the datagram has been successfully
+received, the receiving node replies to the original source node with
+a “Datagram Acknowledged” message. Note that the node is not
+required to examine or process the datagram before replying;
+execution errors that happen later must be signaled using another
+protocol.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Instead of “Datagram Acknowledged”,
+the receiving node may return a “Datagram Rejected” message
+tagged to represent exactly one of several conditions:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">“Permanent error” - This node
+	does not process datagrams, will not accept a datagram from this
+	source, or for some other reason will not ever be able to accept
+	this datagram. The datagram should not be retransmitted. Optionally,
+	the node can mark the reply with one or more of several conditions:</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Information Logged” - the
+	node supports the logging protocol and information was logged for
+	later retrieval.</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Invalid Datagram” - something
+	made the datagram improper, such as longer than the max permitted
+	length. Proper datagrams might be acceptable.</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Source not permitted” -
+	datagrams from this source will never be accepted</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Datagrams not accepted” -
+	this node will not accept datagrams under any circumstance.  A node
+	can also reject the interaction instead of sending Datagram Rejected
+	with this code.</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Buffer shortage, resend” -
+	The node wasn't able to receive the datagram because of a shortage
+	of buffers. The sending node should resend at its convenience.</P>
+</UL>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H2>CAN protocol proposal</H2>
+<P STYLE="margin-bottom: 0cm">The datagram protocol on CAN links uses
+the same structure as the base protocol, except for the need to split
+the message into frames.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Only one datagram may be sent from a
+specific source node ID to a specific destination ID at a time. The
+sender breaks the datagram content into one or more frames. The first
+frame contains the 2-byte destination NodeID alias in the data
+content, plus up to six data bytes. The source NodeID alias is
+contained in the header as usual.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">If there are more than six bytes to the
+datagram, the rest are send as consecutive frames. Because CAN
+transmission retains frame order, no order information is added to
+the frames to simplify packing and unpacking. The last frame is
+marked with a “datagram complete” bit. A ode may only send one
+datagram at a time to any given destination node. A node may
+interleave transmission of datagrams to separate nodes, but this is
+not recommended because it increases the probability of buffer
+collisions.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The receiving node receives the frames
+into a buffer. The frames from more than one datagram may arrive in
+interleaved order, in which case the receiving node can tell them
+apart using their source NodeID alias and store them in separate
+buffers. Once the “datagram complete bit” is received for a
+datagram, the node replies to the original source node with a
+“Datagram Acknowledged” message.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">An interface or gateway onto a CAN link
+must do the datagram fragmentation locally. Buffer retries may be
+either done locally by the gateway, or by reflecting the response
+back to the original sender.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">In addition to the response codes in
+the base protocol, a CAN node can reply with “Datagram Rejected,
+Out of Order” if an improper sequence of CAN frames is observed.
+The interface or gateway charged with fragmentation may reattempt
+transmission. Since this is not ever supposed to happen, it is
+recommended that it be logged.</P>
+<H2>CAN Examples</H2>
+<H4>Normal CAN case</H4>
+<P STYLE="margin-bottom: 0cm">Start Datagram →</P>
+<P STYLE="margin-bottom: 0cm">Mid Datagram →</P>
+<P STYLE="margin-bottom: 0cm">Mid Datagram →</P>
+<P STYLE="margin-bottom: 0cm">End Datagram →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Acknowledged</P>
+<H4>Short CAN datagram case</H4>
+<P STYLE="margin-bottom: 0cm">Start&amp;End Datagram →</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Acknowledged</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H4>Rejected short CAN datagram case</H4>
+<P STYLE="margin-bottom: 0cm">Even a short datagram can be rejected
+with a “Temporarily unable to receive” if there's e.g. a shortage
+of buffers:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Start&amp;End Datagram →</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Rejected, Buffer shortage,
+Resend</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H4>Rejected interleaved CAN datagram case:</H4>
+<P STYLE="margin-bottom: 0cm">Accidental interleave, at a node that
+can't handle that:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Start Datagram from A →</P>
+<P STYLE="margin-bottom: 0cm">Start Datagram from B →</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Rejected, Buffer shortage,
+Resend to B</P>
+<P STYLE="margin-bottom: 0cm">Mid Datagram from A →</P>
+<P STYLE="margin-bottom: 0cm">End Datagram from A-&gt;</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to A</P>
+<P STYLE="margin-bottom: 0cm">Start Datagram from B →</P>
+<P STYLE="margin-bottom: 0cm">End Datagram from B-&gt;</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to B</P>
+<H4>Invalid CAN protocol case:</H4>
+<P STYLE="margin-bottom: 0cm">End Datagram → (without start
+datagram from this source)</P>
+<P STYLE="margin-bottom: 0cm">← Datagram Rejected, Out of Order</P>
+<H2>Datagram Content</H2>
+<P>There needs to be a method for identifying the content of a
+general datagram. Although it's possible to for two nodes to
+negotiate a particular use of datagrams, but more often then will be
+used to exchange commands and responses between general nodes.</P>
+<P>We also want those “datagram content IDs” to be unique,
+unambiguous, easily assigned, etc. To do that, there are two basic
+approaches:</P>
+<UL>
+	<LI><P>Have a one-byte or two-byte ID field, and have some central
+	sequential method of assignment.  This is small, so doesn't use much
+	space on CAN, but is a pain to maintain.  Pretty soon we'll have
+	collisions, undecodable values, etc.</P>
+	<LI><P>Use a 6 byte field assigned the same way that node unique
+	identifiers are.  The NMRA-reserved space could be used for common
+	formats, and the manufacturer space can be used for custom formats.
+	This takes significantly more space, particularly on CAN, but is
+	simple to maintain.</P>
+</UL>
+<H3>Numerology</H3>
+<P>If one byte is used for the datagram format field, the first
+CAN-link datagram contains 5 payload bytes (the following datagrams
+can contain 8). That counts as part of the information that the
+datagram is transporting, though. Perhaps we should make the maximum
+datagram size (9*8-2) = 70 bytes, to ensure that even with a little
+bit of higher protocol, say up to 6 bytes, 64 bytes of actual data
+can be delivered at a shot?</P>
+<P STYLE="margin-bottom: 0cm">If we use a few codes in the first data
+byte to select various configuration operations, the remaining 5
+bytes could do 16 bit writes in a 24 bit space in a single-frame
+datagram, or similarly read back a full-word (four bytes). For
+configuration writes, maybe it's just an address followed by N bytes
+for the value. Is a 3-byte address too short if e.g. sound data
+appears in the configuration space (3 bytes = 2^24 = 16*10^6
+locations)? The maximum write is just limited by the maximum length.
+On read, that leaves two bytes for length, which is enough over a CAN
+link. Multiple formats are a pain to implement, but so are
+segmentation registers, etc. How to make the data from large reads
+show up in a stream instead of a too-long datagram?</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">For external protocols, e.g. support
+for LocoNet, XpressNet, DCC, etc, it's a great simplification if the
+datagrams can carry <U>any</U> basic message of the external protocol
+in a single datagram. Is 64 bytes then enough? NMRA DCC is up to 5
+bytes, including addressing, so it's clearly OK. Others?</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">On the other hand, even with the long
+format IDs, most operations would fit in two CAN frames, and would be
+much simpler to code and decode.</P>
+<H2>Extensions</H2>
+<P STYLE="margin-bottom: 0cm">In this version of the datagram
+protocol, there is no provision for multiple recipients of a single
+message. Transmission is strictly one-to-one. This isn't because of
+addressing (making them globally visible isn't hard), but rather the
+need for guaranteed buffering at the receiving node. In the future,
+we may want to provide one-to-many datagrams. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The recipient needs to have a buffer
+into which any datagram in flight can be received. On a tiny node,
+those might be a scarce resource. But, without any protocol support,
+e.g. if datagrams were &quot;fire and forget&quot; like event
+notifications, you might need to have a very large number of those
+buffers. There's nothing in the protocol that prevents nodes A, B, C
+<U>and</U> D from firing off a datagram at node X at the same time,
+and having their CAN frames be interleaved when they arrive at X.(The
+stream protocol negotiates this in advance, but that requires time
+and resources only appropriate to large transfers) To properly
+receive them, X needs N=4 buffers to reassemble them in this case.
+But how big an N is really required? It's not possible to know, so
+instead we add protocol support: X can tell nodes sending it
+datagrams to repeat them. That way X can accept as many datagrams as
+it has buffers (at least one), while telling the others to &quot;say
+that again, please, I wasn't paying attention the first time&quot;. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">A sending node knows that it has to
+hang onto the datagram until it gets a &quot;acknowledged&quot;
+message, because if it gets a &quot;say that again&quot; it needs to
+still have the content to resend it. The &quot;acknowledged&quot; and
+&quot;say that again&quot; are not about data loss on a link, but
+about buffer management in tiny nodes. A one-to-many protocol could
+also do something like that, because the transmitter still knows how
+many &quot;many&quot; is. Global broadcast, like events, is hard
+because the <U>transmitters</U> buffer management gets complicated
+unless it knows how many nodes are listening for it's reply. Perhaps
+the solution is a &quot;not available on CAN links&quot; protocol for
+&quot;global datagrams&quot;. This would allow broadcast to non-CAN
+nodes, but not directly to nodes on CAN links.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

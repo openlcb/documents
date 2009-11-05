@@ -1,0 +1,92 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Using NMRAnet with DCC</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090620;16410900">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Using NMRAnet with DCC</H1>
+<P>NMRAnet needs to be able to interoperate with DCC systems in
+several ways. Initially, the two most important cases are:</P>
+<P>DCC defines methods for operating accessory decoders. It should be
+possible to build an adapter that uses those commands to control
+NMRAnet-attached devices in a similar way.</P>
+<P>(figure)</P>
+<P>It should be possible to build an adapter that takes NMRAnet Event
+Report messages and uses them to operate DCC accessory decoders.
+(This implies a dedicated DCC bus that the NMRAnet adapter would
+drive, not a general connection to the control bus of a DCC command
+station). This might be desirable, for example, to put a two-wire bus
+around the layout that just drives existing signals and turnouts,
+etc.</P>
+<P>(figure)</P>
+<P>Similar bidirectional operation for throttles (although throttles
+are explicitly not a part of the NMRAnet WG charge...)</P>
+<P>Adapters to DCC system control busses will also be wanted, e.g. to
+XpressNet or LocoNet. The only new complexity these add is “sensor”
+messages, inputs from the NMRAnet to the DCC control bus. These are
+conceptually similar to moving DCC accessory commands from NMRAnet to
+the DCC control bus, and similar methods should work.</P>
+<P>(figure)</P>
+<H2>Configuration</H2>
+<P>Simple configuration is needed, but we believe it's possible to
+build an adapter that doesn't require a computer tool for
+configuration.</P>
+<P>A DCC-to-NMRAnet adapter could create events where the top bytes
+of the EventID are the adapter's Node ID, and the lower two bytes are
+the DCC accessory decoder address. NMRAnet consumers would then be
+configured in any of the usual ways to respond to those events.</P>
+<P>For example, the <A HREF="http://examples/BlueGoldConfig.html">Blue/Gold
+algorithm</A> for configuring producer/consumer events with just two
+pushbuttons could be used. (In summary, the “blue” button makes a
+producer or consumer capture the next report NMRAnet EventID; the
+“gold” button has it emit a report with a new, guaranteed-unique
+EventID).</P>
+<P>Going the other way is a little more complicated. The easiest
+method is to have a large table in the adapter that lists the (large
+number) of EventIDs recognized and the associated DCC accessory
+decoder address. In practice, perhaps only a few hundred are
+required, but that's still a lot of memory and configuration.</P>
+<P><I>BobJ: Alternately, somebody might want to create a device that
+has a fixed map in the EventIDs it recognizes: It looks for a
+specific upper part, and the DCC accessory decoder address in the
+bottom part. This would require that the rest of the layout be
+configured to work with this device, not the other way around, and
+would not be generally as powerful as a fully configurable device.
+But there still might be a market for it, and there's no reason to
+forbid somebody from marketing it. At most, a standard might require
+that it be marked with a warning about “not fully configurable”
+or something like that.</I></P>
+<P><I>See also the recent work on putting mapping LocoNet packets to
+and from NMRAnet EventIDs in a <A HREF="ExternalConnections.html">separate
+note</A>.</I></P>
+<H2>Numerology</H2>
+<P>DCC packets for multi-function (locomotive) packets are 1 or 2
+bytes of address, 1 to 3 bytes of content, and 1 byte of error.
+Accessory packets are at most 5 bytes, including address. If this
+could fit in the basic datagram, that would be great. (“DCC
+address” is part of the packet, not part of the destination nodeID
+in this calculation, but it if <U>was</U> part of the destination
+node, that might allow some interesting routing, etc, for large
+layouts)</P>
+<P>Consider whether DCC packets should be put in lower bytes of
+<U>events</U>, which makes them globally available. This will cause a
+lot of traffic if it includes refresh packets to e.g. locomotives,
+but might allow some other things to happen. Sort them?</P>
+<P><BR><BR>
+</P>
+<HR>
+<P><BR><BR>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

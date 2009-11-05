@@ -1,0 +1,160 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>CAN Background Information</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090803;22151100">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>CAN Background Information</H1>
+<P>Not part of the proposal, this is just a place to dump reference
+information and links for CAN implementations. 
+</P>
+<H2>Headers</H2>
+<P>11-bit standard header 
+</P>
+<P>29-bit extended header and 8-byte payload results in a total
+transmission taking about 135 bit times.</P>
+<H2>Rate and Length Tradeoffs</H2>
+<P>Email on wiring:</P>
+<P>The spec for CAT5/CAT5e is less than 188ohm/km, out and back, so
+roughly 5.7 ohms for 200 feet. CAT5 cable meets that, the phone cable
+doesn't (though it's not very different). These values are _very_ far
+from the limits for CAN. Typically CAN is meant to work up to 100
+meters with 320 ohms per km (which is what you get with AWG24 wire
+plus gold connectors assuming 100 nodes; less nodes means more
+length). There's also an outline of this calculation in the excellent
+Phillips app note:
+&lt;http://www.nxp.com/acrobat_download/applicationnotes/AN96116.pdf&gt;
+The real difference is likely to be in characteristic differential
+impedance, which is the much more critical parameter for cables of
+significant length. 
+</P>
+<P>The usual CAN physical layer is designed for a terminated
+differential impedance of about 124 ohms.</P>
+<P>CAT5 is 100+/-5 ohms at 100MHz, somewhat above the frequency for
+CAN. Most (modern) phone wiring is ADSL compatible, which requires
+100 ohms (with a typical tolerance of 'less than 220' ohms for
+typical inter-house lengths; I've never seen a lower tolerance limit,
+but these are phone lines with a notional audio-frequency impedance
+of 600 ohms so the struggle is usually on the higher end) from 26kHz
+to as high as possible, preferably to 1.1MHz for full DSL bandwidth.
+That's a lower frequency range than CAN, but for copper/poly wire the
+impedance isn't going to change much up to a few hundred MHz. 
+</P>
+<P>Connections can cause discontinuities, as can stubs to connect to
+individual nodes. There are several working group reports and app
+notes available on this. There's a particularly thorough ISO working
+group report, but unfortunately those are not available on the web
+for free AFAIK. The app note referenced above is pretty good, though
+(see section 6). Basically, a linear wiring system (node to node to
+node to node to ...) with fixed end terminators is going to be able
+to easily do 125kHz/100m/100nodes with either of the cables you're
+looking at. 
+</P>
+<P>On length limitations and timing, there's another app note:
+&lt;http://www.nxp.com/acrobat_download/applicationnotes/AN10211_2.pdf&gt;
+Table 7 is referring to what is stated by the SAE J2284 standard.
+That's &quot;High Speed CAN (HSC) for Vehicle Applications at
+500kbps&quot;, and it really does say 50 meters (I don't think it's
+freely available online, but most college MechE departments will have
+access). 50m is probably a little short for a model railroad bus. But
+for use in an automobiles and trucks, that's a very reasonable length
+limit, and they explicitly discuss various forms of fault-tolerance
+operation where short lengths help.</P>
+<P>There is also the &quot;thick cable&quot; form of Device Net,
+which has a low DC specific cable resistance, typically about the
+equivalent of AWG16 wire. There's also a &quot;thin cable&quot; form,
+roughly equivalent to the 11898 CAN automotive cable or AWG23.
+Particularly for large numbers of nodes, these do result in different
+limits. The &quot;thick cable&quot; form typically has about a factor
+3 or 4 longer DC limitation than &quot;thin cable&quot;. But all of
+these are well above 100m/100nodes, even in the AWG24 form. (There's
+a table on page 21 of AN96116)</P>
+<P>125Kbps with max-length extended header frames is about 900
+frames/second. CAN is very good at running at 100% utilization, so
+long as nodes can keep up and a proper set of priorities is in place.</P>
+<H2>Connection and Cabling Standards</H2>
+<P>The <A HREF="http://www.euromap.org/files/eu66-1.pdf">EUROMAP 66-1
+“Protocol for Communication with Peripheral Equipment” standard
+</A>defines a CAN interface that's commonly used in shop floor
+automation. It uses DB9 connectors that optionally includes a 24V
+power line. Each device has two connectors and permanently attached
+terminator. The intent is to use male-female cables to connect
+modules together, but in practice other arrangements are also used.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=128*>
+	<COL WIDTH=128*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=50%>
+			<P>Pin</P>
+		</TH>
+		<TH WIDTH=50%>
+			<P>Use</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=50% SDVAL="2" SDNUM="1033;">
+			<P>2</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P>CAN Low</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=50% SDVAL="3" SDNUM="1033;">
+			<P>3</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P>CAN Ground</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=50% SDVAL="7" SDNUM="1033;">
+			<P>7</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P>CAN High</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=50% SDVAL="9" SDNUM="1033;">
+			<P>9</P>
+		</TD>
+		<TD WIDTH=50%>
+			<P>Optional: CAN 24V power</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>This connector wiring is also used for e.g. the Lawicell CAN
+adapters.</P>
+<H2>Using Existing Cabling</H2>
+<P>LocoNet cables are often “conductor swapping”. (The data leads
+don't care if the wires are swapped; the Rail Synch leads might if
+using transponding, but otherwise don't) This is a problem for using
+them with CAN. Otherwise, they're just nice 6-wire untwisted cables.</P>
+<P>NCE cab and control buses won't have conductor swaps, at least not
+if they've been working.</P>
+<P>The breakout panels are probably not electrically compatible with
+high-speed CAN.</P>
+<H2>CIM/RIM message content and format</H2>
+<P>The CIM/RIM algorithm for finding aliases is designed to work
+without any CAN errors. Arbitration conflicts are OK, but deliberate
+errors are not, because different CAN implementations may deal with
+them differently. During execution of the algorithm, some frames
+might have the same header. They therefore have to have the same
+contents, or else a non-arbitration error can occur.</P>
+<P>Although it might be a useful debugging tool, putting the full NID
+in the data portion of the frames can cause errors. Therefore, we
+decided not to do that.</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

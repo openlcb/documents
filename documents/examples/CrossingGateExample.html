@@ -1,0 +1,267 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Crossing Gate Example</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090215;12172500">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Crossing-gate Example</H1>
+<P STYLE="margin-bottom: 0cm">(This example is from an earlier
+proposal and needs to be updated to the current terminology, etc)</P>
+<P STYLE="margin-bottom: 0cm">This is an example of how a model
+railroader might first encounter NMRAnet by using it to automate a
+crossing gate.</P>
+<H2>Basic Setup</H2>
+<P STYLE="margin-bottom: 0cm">A user wants to operate a crossing gate
+from two block detectors (left and right). Specifically, the crossing
+gate assembly is made by Manufacturer A, and has a bus interface. The
+block detectors come with a single block interface card. 
+</P>
+<P STYLE="margin-bottom: 0cm">This is his first use of the bus. He
+has neither parts nor knowledge to reuse.</P>
+<P STYLE="margin-bottom: 0cm">His criteria are: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Low cost - the cards are cheap, as
+	is anything else he has to buy 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Simple setup 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Reliable operation</P>
+	<LI><P STYLE="margin-bottom: 0cm">Expandible - his investment in
+	this cards (and any associated parts) will continue to pay off, even
+	as he does more and more with the bus 
+	</P>
+</UL>
+<H2>Purchases 
+</H2>
+<P STYLE="margin-bottom: 0cm">He needs to buy the crossing gate (with
+interface) and the block detectors (with interface), plus 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">A RJ45 cable long enough to
+	connect them 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Two RJ45 terminators (might be in
+	the box with each card)</P>
+	<LI><P STYLE="margin-bottom: 0cm">Is he _required_ to purchase
+	anything else? 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Power brick (wall wart) for the
+	CAN cable? 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Central node &amp; additional
+	cable? 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Configuration tool?</P>
+	<LI><P STYLE="margin-bottom: 0cm">Computer interface &amp; programs?
+	etc? 
+	</P>
+</UL>
+<H2>Assembly &amp; Configuration (Option A)</H2>
+<P STYLE="margin-bottom: 0cm">This option uses on-board capabilities
+only. See option B for use of a separate configuration tool.</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">The user mechanically installs the
+	boards on the layout or test bench, wires them to power and other
+	connections as needed. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user connects the cable
+	between the two cards 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user puts a terminator in the
+	empty second socket on each card 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Layout power (power to both
+	boards) is turned on 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Each of the two boards initializes
+	itself using its on-board resources. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">(The &quot;new board gets new IDs&quot;
+	process is performed twice to configure the boards with unique &amp;
+	valid, but otherwise unknown, CAN IDs, node IDs and one or two
+	device IDs. These are then remembered and used by the board from now
+	until changed. More detail on this is needed. It's assumed to take
+	less than people-time, e.g. no explicit wait for it is required) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The block occupancy board comes
+	with tie-IDs pre-configured to be unique from each other. The user
+	can test them by adding and removing loads to the monitor track
+	sections; the LEDs on each of the boards should react (see the
+	&quot;Diagnostics&quot; section). Because this is an initial
+	configuration, the block occupancy board needs nothing else. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The crossing gate board needs to
+	learn four events: &quot;Left track occupied&quot;, &quot;left track
+	empty&quot;, &quot;right track occupied&quot;, &quot;right track
+	empty&quot;. To do this, the user ensures that the two tracks are
+	unoccupied, then: 
+	</P>
+</OL>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The user pushes the learn mode
+	button on the crossing gate board once. An indication, e.g. via an
+	LED, that it's waiting for the 1st event would be desirable, but is
+	not required. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user puts a load on the left
+	track. When that's first detected, the occupancy detector unit sends
+	the associated event, which is then captured by the crossing gate
+	board. This might be followed by several other messages, as the load
+	bounces, but these have no effect. It would be desirable to show the
+	user that the event was captured, e.g. by changing the blink pattern
+	on a LED. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user pushes the learn mode
+	button once. Again, it would be desirable to show the user that the
+	push was registered, e.g. by changing the blink pattern on a LED. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user removes the load from the
+	left track. When that's first detected, the occupancy detector unit
+	sends the associated event, which is then captured by the crossing
+	gate board. This might be followed by several other messages, as the
+	load bounces, but these have no effect. It would be desirable to
+	show the user that the event was captured, e.g. by changing the
+	blink pattern on a LED. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The last two steps are repeated
+	two more times for the right track. After the &quot;right track
+	unloaded&quot; event is received and stored, configuration is
+	complete, and it would be desirable for that to be indicated on the
+	LED. 
+	</P>
+</UL>
+<P STYLE="margin-bottom: 0cm">The user can then test the operation by
+adding and removing loads from the track. It's up to the crossing
+gate as to how it responds, e.g. lights, motion, etc.</P>
+<H2>Assembly &amp; Configuration (Option B)</H2>
+<P STYLE="margin-bottom: 0cm">This option uses a separate
+configuration tool. See option A for use of only on-board
+capabilities. 
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">The user mechanically installs the
+	boards on the layout, wires them to power and other connections as
+	needed. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user installs the
+	configuration node where wanted; if that involves connection to a
+	computer and installation of software, the user does that 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user connects the three nodes
+	with two cables 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The user puts a terminator in the
+	two empty sockets 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">(Some text goes here about the
+	user experience, where information comes from, etc, for basic
+	configuration as above) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">(Additional text about more
+	advanced configuration, e.g. sound volume, gate up/down delay, etc,
+	including configuring events for e.g. &quot;gate all the way down&quot;)
+		</P>
+</OL>
+<H2>Operation</H2>
+<P STYLE="margin-bottom: 0cm">Layout power comes on 
+</P>
+<P STYLE="margin-bottom: 0cm">Each of the two boards initializes
+itself using its on-board resources. 
+</P>
+<P STYLE="margin-bottom: 0cm">No less than 2(?) seconds after power
+is up &amp; stable, each board transmits an &quot;I am here&quot;
+message which starts the &quot;board checks for no collision on its
+ID&quot; process.</P>
+<P STYLE="margin-bottom: 0cm">If the &quot;board checks for no
+collision on its ID&quot; finds a problem, the board(s) involved
+invoke the &quot;board handles ID collision&quot; process 
+</P>
+<P STYLE="margin-bottom: 0cm">Once &quot;board checks for no
+collision on its ID&quot; (or, if needed, &quot;board handles ID
+collision&quot;) is complete, the occupancy detector checks the
+status of the monitored tracks. The default track status is by
+default unoccupied; if the track status at this point is the same as
+the default status, no event needs to be reported. If the tracks
+status at this point is different from the default status, the
+appropriate event is generated. (Optionally, the board can have the
+default status configurable, including optionally the ability to
+configure it so that the current state always generates an event at
+this point) 
+</P>
+<P STYLE="margin-bottom: 0cm">When a change to track occupancy is
+detected, the occupancy detector board sends the relevant tie-ID as a
+message. This occurs on either type of change, for either section.
+(Optionally, the occupancy board can have debouncing and/or delay
+built in, which might or might not be configurable. In any case, once
+an event is reported, the device is considered to be in the reported
+state, and any change in the state requires another event to be
+reported) 
+</P>
+<P STYLE="margin-bottom: 0cm">When it receives an event message from
+the occupancy detector, the crossing gate module uses its own
+internal logic and configuration information to act. This might be as
+simple as &quot;gate down when either track occupied, stays down
+until both tracks cleared. Or it might be more complicated, like
+&quot;gate down when one track goes occupied, gate goes up when that
+track clears, even if other track is occupied' (directional logic).
+Etc. 
+</P>
+<P STYLE="margin-bottom: 0cm">Neither module retains state on power
+down warning. 
+</P>
+<P STYLE="margin-bottom: 0cm">Diagnosis: 
+</P>
+<P STYLE="margin-bottom: 0cm">(This section describes some basic
+diagnostic capabilities. As such, it's not clear that it fits a
+&quot;normal operation&quot; scenario, but we've got so much invested
+in the context of this scenario, and diagnostics are so necessary in
+practice, that I've included it. Some of the stuff mentioned here is
+not replicated above in the interest of brevity, but it could be)</P>
+<P STYLE="margin-bottom: 0cm">Each board carries an LED (the &quot;bus
+activity LED&quot;) that flashes when the node sees a good frame from
+_another_ node on the bus. Note that this LED does not flash when
+this node sends a message. The flashing does not depend on whether
+this node acts on the message, or even is interested in it. 
+</P>
+<P STYLE="margin-bottom: 0cm">Each board also carries an LED (the
+&quot;addressed LED&quot;) that flashes when the node emits a message
+or receives a message that it will act on.</P>
+<P STYLE="margin-bottom: 0cm">Shortly after layout powerup, each node
+will therefore flash its bus activity once, At about the same time,
+each node will also flash its bus activity LED (at least) once to
+indicate that the connection to the other node(s) is operational.</P>
+<P STYLE="margin-bottom: 0cm">When one of the occupancy detectors is
+triggered, e.g. by a load going on or off the track in that section,
+the activity LED should blink on all cards, and the addressed LED
+should blink on the occupancy detector card. If that doesn’t
+happen, the bus wiring should be tested. Once the bus is working
+properly and the cards are configured, the crossing-gate card’s
+activity light should also flash when an occupancy detector goes
+active, signaling that the crossing gate card is configured to listen
+for that even. 
+</P>
+<HR>
+<P STYLE="margin-bottom: 0cm">This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

@@ -1,0 +1,106 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Common Message Format</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090628;21380300">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Common Message Format</H1>
+<P>(Talk about link level vs application level separation) 
+</P>
+<P>A common message consists of several parts: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Node ID Number of the Source node
+	(SID) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Message Type Indicator (MTI) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">In some cases, the Destination
+	Node ID (DID) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">In some cases, a P/C Event ID
+	(EID) 
+	</P>
+	<LI><P>Message content, as defined by the particular message type 
+	</P>
+</UL>
+<P>Each NMRAnet wire protocol will define local representations for
+each of these components. This may involve replacement (e.g. using a
+shorter "Alias" token for the node ID number), reordering,
+and/or specific
+representations that differ from the common ones, but in all cases it
+must be possible to translate from the wire protocol message to a
+complete common message using only locally available information. 
+</P>
+<P>By convention, multi-byte quantities in NMRAnet are represented in
+big-endian order (This is the same as Ethernet and the common
+internet protocols, but not the same as the Intel x86 architecture). 
+</P>
+<P>Reserved quantities must be created with a zero value unless
+otherwise specified. When processing a message, any reserved
+quantities must be ignored unless otherwise specified. When
+transporting a message, reserved quantities must be transported
+unchanged. The zero value sometimes indicates a non-initialized
+value. 
+</P>
+<H2>Node ID Numbers - NID</H2>
+<P>A node ID number is 48 bits. The NMRA will allocate number ranges
+to individuals or organizations upon request, and maintain a public
+list of assignments. A detailed mechanism for kinds of delegation has
+been <A HREF="NidUniqueAssignment.html">separately proposed</A>. 
+</P>
+<H2>Message Type Indicator</H2>
+<P>The common Message Type Indicator (MTI) is a 16 bit quantity. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The most-significant 8 bits are
+	reserved. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next 5 bits are used to
+	indicate the message type. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The following two bits are
+	reserved. 
+	</P>
+	<LI><P>The least-significant bit indicates whether this message
+	carries a destination node ID (DID). If a Destination Node ID is
+	present, it is located at the start of the message content. The form
+	of a Destination Node ID is defined by the particular wire protocol,
+	but must be mappable to the full Node ID of the intended
+	destination. 
+	</P>
+</UL>
+<P>Each specific MTI has a specific defined content, but there are a
+few general points. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Messages are variable length. The
+	specific wire protocol is responsible for carrying length
+	information as needed. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">If the message carries a
+	destination address, that destination node ID (destination address)
+	is the first part of the message content. The form of a Destination
+	Node ID is defined by the particular wire protocol, but must be
+	mappable to the full Node ID of the intended destination. 
+	</P>
+	<LI><P>To make decoding and filtering easier, MTI values are
+	assigned to create a &quot;simple protocol bit&quot;, which
+	indicates which messages all (even simple) nodes must examine and
+	which can be ignored by simple nodes. 
+	</P>
+	<P><I>DPH: Needs discussion. Was this discussed and agreed to? Is it
+	possible and worth the effort? </I>
+	</P>
+</UL>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

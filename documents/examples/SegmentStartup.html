@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Example: Segment Startup</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090125;18161000">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Example: CAN Segment Startup</H1>
+<P>NMRAnet nodes on a CAN segment emit and receive a number of frames
+during startup of the segment. This is an example calculation of the
+number of messages and how long it takes. 
+</P>
+<P>See also the &quot;<A HREF="../notes/MessageTypesForSimpleNodes.html">Messages
+Types for Simple Nodes</A>&quot; note. 
+</P>
+<H2>Message Counts</H2>
+<P>A simple CAN node, in the typical case (no contention, no
+non-unique MUIDs, etc) will generate the following messages at
+startup: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">6 CIM messages while allocating a
+	alias 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">1 RIM message at the end of the
+	allocation 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">1 Initialization Complete message
+	at the end of initialization 
+	</P>
+	<LI><P>Npc Producer/Consumer Indentified messages for events of
+	interest 
+	</P>
+</UL>
+<H2>Example</H2>
+<P>Assume a segment of 100 simple nodes, each producing or consuming
+32 events (Npc = 32). 
+</P>
+<P>Then a total of 
+</P>
+<PRE STYLE="margin-bottom: 0.5cm">  100 * (8+32) = 4000 messages</PRE><P>
+will be emitted at startup. 
+</P>
+<P>An extended-header CAN frame is 65 bit times plus data content.
+Assuming (for now) 8-byte data contents, this is approximately
+4000*16*8 = 512,000 bits, or about 4 seconds at 125kbps. 
+</P>
+<P>CAN is very good at contention management, so it's quite capable
+of reaching (close to) 100% utilization for something like this.
+Therefore, each node will be presented with those 4000 packets at
+about 1000 packets per second during startup. 
+</P>
+<P STYLE="margin-bottom: 0cm">Routing/Gateway nodes need to be able
+to handle the full rate. They don't have to forward the RIM/CIM
+frames off the segment, so the bandwidth requirements are a little
+less, but they still have to process those to keep an alias table.  
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Simple nodes that only act on P/C
+messages need only listen to the CIM/RIM messages at the beginning. 
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>

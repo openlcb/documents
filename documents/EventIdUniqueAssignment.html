@@ -1,0 +1,210 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Unique Event ID Assignment</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20090824;20153000">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Unique Event ID Assignment</H1>
+<P>The proposed NMRAnet depends on globally unique Event ID numbers
+(EIDs). This node discusses the assignment of those. 
+</P>
+<P>The &quot;globally unique&quot; requirement only refers to the
+universe of connected nodes; nodes that never need to communicate
+with each other don't need to have separate Event IDs. In general,
+however, nodes can move: They can be sold or loaned for use on
+another layout, nodes on modular layouts can be connected to other
+arbitrary modules, and few assumptions can be made. Therefore, we
+require globally uniqueness for all EventIDs.</P>
+<P>To ensure uniqueness, the top 6 bytes of EventIDs that you define
+are <U>required</U> to be within the NodeID space that you control.
+The low two bytes would be any number you prefer, so long as you use
+each value for only one event.</P>
+<P>This requirement applies equally to events defined by a hardware
+node, e.g. by button pushing, a software node in a computer, or
+EventIDs that are defined by a human writing them on a piece of
+paper. In each case, the thing doing the definition must ensure it
+has control over the NodeID corresponding to the top four bytes, so
+it can ensure that the EventID not be reused.</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.21cm; margin-bottom: 0.21cm; page-break-after: avoid">
+<FONT SIZE=3><I>Table 1: Event Number Construction</I></FONT></P>
+<CENTER>
+	<TABLE WIDTH=80% BORDER=1 CELLPADDING=4 CELLSPACING=3 STYLE="page-break-inside: avoid">
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<TR>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 2</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 3</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 4</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 5</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 6</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 7</P>
+			</TD>
+			<TD WIDTH=13%>
+				<P ALIGN=CENTER>Byte 8</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD COLSPAN=6 WIDTH=75%>
+				<P ALIGN=CENTER>Node ID assigned to you</P>
+			</TD>
+			<TD COLSPAN=2 WIDTH=25%>
+				<P ALIGN=CENTER>Unique 16 bit extension</P>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P><BR><BR>
+</P>
+<P>The Node ID part could be e.g. from real nodes that you own. For
+example, the <A HREF="examples/BlueGoldConfig.html">Blue/Gold
+algorithm</A> for assigning Event IDs automatically puts the Node ID
+of the first node to use that event in the Event ID, guaranteeing it
+to be unique.</P>
+<P>Not all Event IDs need to be assigned through that algorithm. For
+example, a software configuration tool might define events and assign
+Event IDs to them. A board manufacturer may prefer some other
+pushbutton configuration process. A modular club may decide that
+certain events form the “boundaries” of modules, and need to be
+assigned well-known Event IDs to make it easier to create large
+modular layouts. Whatever the method, the Event IDs need to be
+globally unique, and we ensure that by requiring that people create
+EventIDs using node ID numbers assigned to them (and therefore not
+assigned to anybody else), plus an additional 16 bits that they are
+responsible for using only once.</P>
+<P>Note that the Node ID part of an Event ID doesn't have to
+correspond to any physical node. So long as you've got some Node ID
+address space assigned to you, you can use that. For example, a
+fast-clock manufacturer might want to define a range of EventIDs so
+that a different event is emitted every fast minute. (This lets e.g.
+lamp controllers do day-night cycles automatically). For the sake of
+argument, let's say 24 bits worth of specific events are needed (it's
+actually smaller, but let's use this). The manufacturer has a large
+range of node IDs assigned already, so can use 8bits worth of that
+space, plus the extra 16 bits in the EventID below the
+nodeID-like-part, to do this. For example, if a manufacturer had a
+range of Node IDs that included at least 0x123456789A00 through
+0x123456789AFF (in other words, all possible values of the low byte),
+he could create a set of Event IDs with the low 24 bits used to carry
+a time value:</P>
+<P ALIGN=CENTER STYLE="margin-top: 0.21cm; margin-bottom: 0.21cm; page-break-after: avoid">
+<FONT SIZE=3><I>Table 2: Example of defining a Set of Events</I></FONT></P>
+<CENTER>
+	<TABLE WIDTH=80% BORDER=1 CELLPADDING=4 CELLSPACING=3 STYLE="page-break-inside: avoid">
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<COL WIDTH=32*>
+		<TR VALIGN=TOP>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 2</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 3</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 4</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 5</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 6</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>Byte 7</P>
+			</TD>
+			<TD WIDTH=13%>
+				<P ALIGN=CENTER>Byte 8</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD COLSPAN=6 WIDTH=75%>
+				<P ALIGN=CENTER>Assigned Node ID</P>
+			</TD>
+			<TD COLSPAN=2 WIDTH=25%>
+				<P ALIGN=CENTER>Unique 16 bit extension</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>0x12</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>0x34</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>0x56</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>0x78</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>0x9A</P>
+			</TD>
+			<TD COLSPAN=3 WIDTH=38%>
+				<P ALIGN=CENTER>Time Value</P>
+			</TD>
+		</TR>
+	</TABLE>
+</CENTER>
+<P STYLE="margin-bottom: 0cm">This is guaranteed to be unique, no
+matter where one of these devices is taken, because the node ID range
+is guaranteed to belong to the manufacturer, and he'll use it only
+once. 
+</P>
+<H3>Well-known Event ID extensions</H3>
+<P STYLE="margin-bottom: 0cm">Because events are a very convenient
+way to broadcast information to the entire network, we define some
+extension values to represent common conditions:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">0xFFF8 – Node has logged a new log
+entry (See <A HREF="notes/Logging.html">logging protocol note</A>)</P>
+<P STYLE="margin-bottom: 0cm">0xFFF7 - 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
