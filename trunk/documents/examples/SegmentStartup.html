@@ -1,0 +1,47 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Example: Segment Startup</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="824.48">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times}
+    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times}
+    p.p3 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times; color: #0000f0}
+    p.p4 {margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times}
+    p.p5 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Courier}
+    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    p.p8 {margin: 0.0px 0.0px 6.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    span.s1 {color: #000000}
+    span.s2 {text-decoration: underline}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times"><b>Example: CAN Segment Startup</b></h1>
+<p class="p2">OpenLCB nodes on a CAN segment emit and receive a number of frames during startup of the segment. This is an example calculation of the number of messages and how long it takes.</p>
+<p class="p3"><span class="s1">See also the "<a href="file:///Users/dpharris/openlcb/trunk/documents/notes/MessageTypesForSimpleNodes.html"><span class="s2">Messages Types for Simple Nodes</span></a>" note.</span></p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Message Counts</b></h2>
+<p class="p2">A simple CAN node, in the typical case (no contention, no non-unique MUIDs, etc) will generate the following messages at startup:</p>
+<ul>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">6 CIM messages while allocating a alias</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">1 RIM message at the end of the allocation</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">1 Initialization Complete message at the end of initialization</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">Npc Producer/Consumer Indentified messages for events of interest</li>
+</ul>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Example</b></h2>
+<p class="p2">Assume a segment of 100 simple nodes, each producing or consuming 32 events (Npc = 32).</p>
+<p class="p2">Then a total of</p>
+<p class="p6"><span class="Apple-converted-space">  </span>100 * (8+32) = 4000 messages</p>
+<p class="p2">will be emitted at startup.</p>
+<p class="p2">An extended-header CAN frame is 65 bit times plus data content. Assuming (for now) 8-byte data contents, this is approximately 4000*16*8 = 512,000 bits, or about 4 seconds at 125kbps.</p>
+<p class="p2">CAN is very good at contention management, so it's quite capable of reaching (close to) 100% utilization for something like this. Therefore, each node will be presented with those 4000 packets at about 1000 packets per second during startup.</p>
+<p class="p5">Routing/Gateway nodes need to be able to handle the full rate. They don't have to forward the RIM/CIM frames off the segment, so the bandwidth requirements are a little less, but they still have to process those to keep an alias table.</p>
+<p class="p7"><br></p>
+<p class="p5">Simple nodes that only act on P/C messages need only listen to the CIM/RIM messages at the beginning.</p>
+<p class="p8"><br></p>
+<p class="p2">This is SVN $Revision: 52 $</p>
+</body>
+</html>
