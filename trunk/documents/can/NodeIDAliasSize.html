@@ -1,0 +1,117 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>NMRAnet: CAN Wire Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091009;22142500">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Discussion of NodeID Alias Size on CAN Links</H1>
+<P>How big should the NodeID alias field be on CAN links?</P>
+<UL>
+	<LI><P>Smaller (fewer bits) allows more payload and/or simpler
+	coding of other parts of messages. 
+	</P>
+	<LI><P>Larger allows more unique nodes to be accessed.</P>
+</UL>
+<P>This note describes the issues in more detail, followed by a
+recommendation.</P>
+<H2>Issues</H2>
+<H3>Addressing</H3>
+<P>The Node ID size limits the number of unique nodes that can take
+part in communications on the CAN segment. Because Node ID aliases
+are assigned independently on each CAN segment, the only issue is how
+many different nodes are involved, not which ones they are or what
+pattern(s) are available in their address numbers.</P>
+<P>For electrical/timing reasons, a segment itself can only support a
+maximum of about 100 nodes, but communication also involves nodes off
+the segment. For example, chaining N CAN segments via bridges will
+generally make up to 100*N nodes available. We have a use case of
+chaining small numbers of CAN segments together, implying the need to
+address 500 or 1000 nodes. 
+</P>
+<P>As another example, a very large network might connect many CAN
+segments via TCP/IP or other networked connections. Each CAN-attached
+node might need to communicate with a larger number of others spread
+across that network.</P>
+<P>(CAN backbone case)</P>
+<H3>Collisions during Allocation</H3>
+<P>The allocation process resolves collisions (attempt to use an
+already allocated Node ID alias), but that takes time. Minimizing the
+number of collisions is good. If the address space is just the size
+of the number of things you want to address, the collisions get hard
+/slow to resolve across multiple nodes. This points to having a
+factor of 2, at least, between the number of nodes to be addressed
+and the size of the address space.</P>
+<P>(Mostly talking about separate nodes here, not just one big
+interface node: Points to CAN backbone case)</P>
+<H3>Size</H3>
+<P>Reducing size most important (so far) in the stream protocol.</P>
+<P>Events and Datagrams can be transmitted with a 16-bit alias size.</P>
+<P>To get the full payload (8 bytes) for streaming requires getting
+the rest of the protocol control, including two aliases for source
+and destination, in the 29 bit header. Allowing 2 bits for
+priority/extension, 2 for protocol control, 2 for MTI and 3 for
+stream ID (all very bare minima) leads to a 10-bit node ID alias
+length. 
+</P>
+<P>Using 1 of 8 payload bytes allows up to 14 bit node ID alias
+lengths, or 12 bit node ID alias lengths with some room for expansion
+and simpler MTI coding.</P>
+<H3>Simplicity</H3>
+<P>Byte vs nibble vs bit boundaries in code, when debugging the
+protocol, etc.</P>
+<P>Having extra bits available in the header allows much simpler MTI
+coding, reserving specific bits for expansion instead of codes, etc.</P>
+<H3>Past, Present, Future History</H3>
+<P>The notional node ID alias size was originally 16 bits. Changing
+it now would require some recoding of examples, and have some
+political costs.</P>
+<P>Enlarging it in the future would be extremely difficult. Once CAN
+nodes have been produced and released in the wild, they will continue
+to use the same alias fields forever, and it's not realistic to
+change them. Having two separate alias field formats (“large” and
+“small”) would split the protocol into two non-interoperating
+formats, which is not acceptable.</P>
+<H3>Filtering</H3>
+<P>Having the destination short enough to be in the header allows
+automated filtering of traffic.</P>
+<H2>Recommendation</H2>
+<P>Size considerations would push toward 10 bits, but allocation
+would then limit that to about 500 nodes, and that's just too small.</P>
+<P>???</P>
+<H2>Alternative: Combined Stream ID and Destination Address</H2>
+<P><I>(Alex Shepherd made a very interesting suggestion)</I></P>
+<P>Combine destination &amp; stream ID into a smaller field, limiting
+the number of streams from a given destination on a link, but
+reducing the space used. (Alex) Might also allow useful filtering.
+Limits number of streams on a link to <U>any</U> node, but perhaps
+that's OK on a single CAN link. Limits number <U>from</U> a <U>single</U>
+initiator. Does not limit number of streams to a destination, e.g.
+number of people sending logging or debugging information to a node.</P>
+<P>What do intermediate gateways need to do for this? Is this more
+than just pre-allocating buffers for streams they have to forward,
+and throwing away streams that don't have pre-allocated buffers? Can
+this be done without routing tables, e.g. “Allocate buffer on
+initialization message. Throw away buffer and don't forward if you
+next see a data transfer, without seeing the returning
+initialization, because that means that some other path is servicing
+this”</P>
+<P>If the gateway is doing the mapping from src/dest/streamID to
+src/streamID', it might have to reject based on “not enough IDs
+available” or something like that, which the upstream needs to then
+retry.</P>
+<P>Looks like if we allow 16 streams from a source on a single CAN
+link, all fits in header, so get 8 bytes in packet.</P>
+<HR>
+<P>This is SVN $Revision: 81 $ 
+</P>
+</BODY>
+</HTML>

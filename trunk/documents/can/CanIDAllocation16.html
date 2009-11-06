@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>NMRAnet CAN: Node ID Alias Allocation Algorithm</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="824.48">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times}
+    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times}
+    p.p3 {margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times}
+    p.p4 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times}
+    p.p5 {margin: 0.0px 0.0px 14.0px 0.0px; font: 14.0px Times}
+    p.p6 {margin: 0.0px 0.0px 0.0px 0.0px; font: 10.0px Courier; color: #9b3030}
+    p.p7 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 15.0px; font: 10.0px Courier}
+    p.p8 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 15.0px; font: 10.0px Courier; color: #b3b300}
+    p.p9 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 15.0px; font: 10.0px Courier; color: #049d00}
+    p.p10 {margin: 0.0px 0.0px 0.0px 0.0px; line-height: 15.0px; font: 10.0px Courier; color: #808080}
+    p.p11 {margin: 0.0px 0.0px 6.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    span.s1 {text-decoration: underline ; color: #0000f0}
+    span.s2 {font: 12.0px Times; color: #000000}
+    span.s3 {color: #000000}
+    span.s4 {color: #349c26}
+    span.s5 {color: #0000e6}
+    span.s6 {color: #9b3030}
+    span.s7 {font: 12.0px Times}
+    span.s8 {color: #049d00}
+    span.s9 {color: #b3b300}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times"><b>Node ID Alias Allocation Algorithm</b></h1>
+<p class="p2">OpenLCB nodes on CAN segments do CAN arbitration by using their unique Node ID alias (NIDa) as part of the CAN header. This page documents a proposed algorithm for assigning unique Node ID aliases.</p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Introduction</b></h2>
+<p class="p2">This method of assigning aliases and checking that they are unique is necessary because of the characteristics and limitations of CAN.</p>
+<p class="p2">Each node has 48-bit unique id, and each wants a 16-bit local alias. Each assigns itself a potential 16-bit alias. The problem comes in determining whether this alias is in use by another node.</p>
+<p class="p2">If a node sends out an check message containing just the alias, then it could expect that another node to complain if it has the same alias. This would work, except in the (very unlikely) case where both nodes send out the identical check message simultaneously. Neither would recognize a conflict and both would consider that they own the same alias. Therefore, a method needs to be found that guarantees that the check message(s) are unique, even if they are send simultaneously.</p>
+<p class="p2">Unfortunately, limitations of CAN will not allow the full 48-bit NodeID to be included in the check message. Doing so would violate CAN rules as it could not be wholly contained in the header, and packets with identical headers are not allowed to have differing data-parts.</p>
+<p class="p2">Therefore, the CIM/RIM method splits the NodeID into byte-sized parts, sends out 6 check messages (CIM = Check Id Messages, RIM = Reserved Id Message), each consisting of the alias and one byte of the 48 bit id. Only if all of the CIMs *do not* conflict with another node (ie no RIM is received) does it guarantee that the alias is not in use by another node. Even if two nodes send out the identical packets simultaneously, at least one of these will differ due to a differing ID-part between the two nodes.</p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Requirements</b></h2>
+<ul>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Must not require any user intervention.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Must be possible to map the assigned alias to a Node Sequence Number and vice-versa.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">It is not required to come up with the same alias every time a node or segment is powered up.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Must always converge to an alias, regardless of when or in what order nodes come up.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Another node watching the process must be able to monitor how the decision was reached and what the result was.</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">It is desirable to detect duplicate (non-unique) NIDs, but 100% reliable detection is not required.</li>
+</ul>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Algorithm</b></h2>
+<p class="p2">Start with the six-byte unique ID in each node, with the bytes labelled N1 through N6.</p>
+<p class="p2">Initialize a specific full-sequence 32bit PRNG with N1 ^ N2 &lt;&lt;5 ^ N3 &lt;&lt;10 ^ N4 &lt;&lt;15 ^ N5 &lt;&lt; 20 ^ N6 &lt;&lt; 24. If that forms an invalid zero seed, use (N1 &lt;&lt; 23)+(N2 &lt;&lt; 19)+(N3 &lt;&lt; 15)+(N4 &lt;&lt; 11)+(N5 &lt;&lt; 7)+N6; the second alternative is guaranteed nonzero for valid (non-zero) NodeIDs, but has less entropy. As a final test, to handle the case of an improper zero NodeID, if both seed attempts give zero results, initialize the PRNG with 0xAC01 to ensure the full sequence.</p>
+<p class="p2">A:</p>
+<p class="p2">Take the next element from the PRNG and call the lower 16 bits the TCA, the tentative alias.</p>
+<p class="p2">Start listening for CAN frames containing Check ID messages (CIMs) and Reserved ID Messages (RIMs). A CIM consists of an extended header with an 8 bit Source NIDa field, an 8 bit Nn field, and other bits to denote that this is a Check ID Message. There is no other variable information in the frame. Having NIDa and the Nn in the message ensure that CAN arbitration will work without error. An RIM is the same, except that it can be identified as being a different message for diagnostic purposes; it means the same thing upon receipt.</p>
+<p class="p2">Send six CIMs with N1 through N6 in the Nn field and TCA in the Source NIDa field. During this process, if a CIM or RIM is received that contains the TCA value in its CI field, TCA does not belong to this node. Repeat from (A).</p>
+<p class="p2">Keep listening for until your CAN hardware ways your last CIM message has been sent and the CAN link is idle, plus 500 msec. If you cannot detect that condition, wait 1 second.</p>
+<p class="p2">If no CIM or RIM with this TCA value in the CI field is received before the end of the previous step, you've successfully allocated TCA as this node's source NIDa. Send an RIM with TCA in the CI field and go into normal operation.</p>
+<ul>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">If that message fails with an error occurring during the data portion of the message, it's possible that two nodes have the same NodeID, a fatal error. To prevent the OpenLCB being taken down, this node should stop trying to allocate an alias and signal the error to the user via some non-CAN method, e.g. LEDs, emitting smoke, etc.</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">If any other error occurs, repeat from A.</li>
+</ul>
+<p class="p2">While in normal operation, if you receive a CIM with your source NIDa, send a RIM, which will cause the other node to back off and try something else.</p>
+<p class="p2">It should not be possible to receive an RIM with your allocated source NIDa in normal operation. If you do, log an error (on whatever it is they log it on there) and restart the process at (A).</p>
+<h3 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 14.0px Times"><b>Proposed PRNG</b></h3>
+<p class="p2">See the <a href="http://en.wikipedia.org/wiki/Linear_feedback_shift_register"><span class="s1">Wikipedia page</span></a> on "Linear feedback shift registers" for background.</p>
+<p class="p6">unsigned<span class="s2"> </span><span class="s3">lfsr </span><span class="s4">=</span><span class="s2"> </span><span class="s5">1</span><span class="s4">;</span></p>
+<p class="p7"><span class="s6">unsigned</span><span class="s7"> </span>period <span class="s4">=</span><span class="s7"> </span><span class="s5">0</span><span class="s4">;</span></p>
+<p class="p8">do</p>
+<p class="p9">{</p>
+<p class="p10"><i>/* taps: 32 31 29 1; characteristic polynomial: x^32 + x^31 + x^29 + x + 1 */</i></p>
+<p class="p7">lfsr <span class="s4">=</span><span class="s7"> </span><span class="s8">(</span>lfsr <span class="s4">&gt;&gt;</span><span class="s7"> </span>1<span class="s8">)</span><span class="s7"> </span><span class="s4">^</span><span class="s7"> </span><span class="s8">(</span><span class="s4">-</span><span class="s8">(</span>lfsr <span class="s4">&amp;</span><span class="s7"> </span>1u<span class="s8">)</span><span class="s7"> </span><span class="s4">&amp;</span><span class="s7"> </span>0xd0000001u<span class="s8">)</span><span class="s4">;</span></p>
+<p class="p7"><span class="s4">++</span>period<span class="s4">;</span></p>
+<p class="p7"><span class="s8">}</span><span class="s7"> </span><span class="s9">while</span><span class="s8">(</span>lfsr <span class="s4">!=</span><span class="s7"> </span>1u<span class="s8">)</span><span class="s4">;</span></p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Discussion</b></h2>
+<p class="p2">CAN arbitration reliably avoids collisions between frames with unique headers. It does not guarantee arbitration between frames with identical headers and no data; if the timing is right, they may overlay each other such that only one frame appears to have been sent. It is very difficult to ensure that two nodes send initialization packets only at different times. In addition, CAN will eventually signal an error if two packets with the same header and different data payloads collide, but not all CAN interface hardware provides reliable indications about why that error occurred.</p>
+<p class="p2">At the highest level, this algorithm is broadcasting the complete Node ID and tentative alias to see if any other node is checking the same tentative alias. If two nodes have taken the same tentative alias, at least one of the six packets used in that broadcast will not be identical between the two nodes, because their six-byte Node IDs are different in at least one bit. CAN will successfully arbitrate this, and the other node will receive the frame, causing it to back off.</p>
+<p class="p2">CAN transmissions are not atomic operations; you can receive a frame between the time you tell the hardware to send a frame and the time that frame is actually sent. It's therefore possible for both nodes contending for the same alias value to back off and try again. Using the pseudo-random number generator as a sequence number makes it likely that the next attempt will be made using different alias values in the two nodes. The use of the sequence generator also makes the arbitration process faster in the case of sequential Node ID values. People like to use small and sequential numbers for things, and the sequence generator maps those to very different values that are less likely to collide during arbitration.</p>
+<p class="p2">The delays at the end of the algorithm are to ensure that higher latency nodes, such as software nodes working through USB convertors, can reply to CID messages from nodes that come up on a working link. OpenLCB is a soft-real-time system, and software that's interacting with it needs to have response times of a couple hundred milliseconds or better to be reliable. The algorithm provides a wait of a few times that to enable those programs to take part.</p>
+<p class="p11"><br></p>
+<p class="p2">This is SVN $Revision: 83 $</p>
+</body>
+</html>
