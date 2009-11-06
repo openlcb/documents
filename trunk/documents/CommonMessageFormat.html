@@ -1,0 +1,52 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  <meta http-equiv="Content-Style-Type" content="text/css">
+  <title>Common Message Format</title>
+  <meta name="Generator" content="Cocoa HTML Writer">
+  <meta name="CocoaVersion" content="824.48">
+  <style type="text/css">
+    p.p1 {margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times}
+    p.p2 {margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times}
+    p.p3 {margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times}
+    p.p4 {margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times}
+    p.p5 {margin: 0.0px 0.0px 6.0px 0.0px; font: 12.0px Times; min-height: 14.0px}
+    span.s1 {text-decoration: underline ; color: #0000f0}
+  </style>
+</head>
+<body>
+<h1 style="margin: 0.0px 0.0px 16.0px 0.0px; font: 24.0px Times"><b>Common Message Format</b></h1>
+<p class="p2">(Talk about link level vs application level separation)</p>
+<p class="p2">A common message consists of several parts:</p>
+<ul>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Node ID Number of the Source node (SID)</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Message Type Indicator (MTI)</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">In some cases, the Destination Node ID (DID)</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">In some cases, a P/C Event ID (EID)</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">Message content, as defined by the particular message type</li>
+</ul>
+<p class="p2">Each OpenLCB wire protocol will define local representations for each of these components. This may involve replacement (e.g. using a shorter "Alias" token for the node ID number), reordering, and/or specific representations that differ from the common ones, but in all cases it must be possible to translate from the wire protocol message to a complete common message using only locally available information.</p>
+<p class="p2">By convention, multi-byte quantities in OpenLCB are represented in big-endian order (This is the same as Ethernet and the common internet protocols, but not the same as the Intel x86 architecture).</p>
+<p class="p2">Reserved quantities must be created with a zero value unless otherwise specified. When processing a message, any reserved quantities must be ignored unless otherwise specified. When transporting a message, reserved quantities must be transported unchanged. The zero value sometimes indicates a non-initialized value.</p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Node ID Numbers - NID</b></h2>
+<p class="p2">A node ID number is 48 bits. The NMRA will allocate number ranges to individuals or organizations upon request, and maintain a public list of assignments. A detailed mechanism for kinds of delegation has been <a href="file:///Users/dpharris/openlcb/trunk/documents/NidUniqueAssignment.html"><span class="s1">separately proposed</span></a>.</p>
+<h2 style="margin: 0.0px 0.0px 14.0px 0.0px; font: 18.0px Times"><b>Message Type Indicator</b></h2>
+<p class="p2">The common Message Type Indicator (MTI) is a 16 bit quantity.</p>
+<ul>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">The most-significant 8 bits are reserved.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">The next 5 bits are used to indicate the message type.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">The following two bits are reserved.</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">The least-significant bit indicates whether this message carries a destination node ID (DID). If a Destination Node ID is present, it is located at the start of the message content. The form of a Destination Node ID is defined by the particular wire protocol, but must be mappable to the full Node ID of the intended destination.</li>
+</ul>
+<p class="p2">Each specific MTI has a specific defined content, but there are a few general points.</p>
+<ul>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">Messages are variable length. The specific wire protocol is responsible for carrying length information as needed.</li>
+  <li style="margin: 0.0px 0.0px 0.0px 0.0px; font: 12.0px Times">If the message carries a destination address, that destination node ID (destination address) is the first part of the message content. The form of a Destination Node ID is defined by the particular wire protocol, but must be mappable to the full Node ID of the intended destination.</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times">To make decoding and filtering easier, MTI values are assigned to create a "simple protocol bit", which indicates which messages all (even simple) nodes must examine and which can be ignored by simple nodes.</li>
+  <li style="margin: 0.0px 0.0px 12.0px 0.0px; font: 12.0px Times"><i>DPH: Needs discussion. Was this discussed and agreed to? Is it possible and worth the effort?</i></li>
+</ul>
+<p class="p5"><br></p>
+<p class="p2">This is SVN $Revision: 58 $</p>
+</body>
+</html>
