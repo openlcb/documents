@@ -5,8 +5,8 @@
 	<TITLE>NMRAnet Note: Streaming</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20090928;371700">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20091107;21234400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -15,21 +15,21 @@
 <BODY LANG="en-US" DIR="LTR">
 <H1>Streaming Protocol</H1>
 <P>Streaming is used to move large amounts of data (kilobytes and up)
-across a NMRAnet implementation. 
+across a OpenLCB implementation. 
 </P>
-<P>This documents describes the streaming protocol(s) in NMRAnet. 
+<P>This documents describes the streaming protocol(s) in OpenLCB. 
 </P>
 <H2>Environment of Proposal</H2>
 <H3>Requirements</H3>
 <UL>
-	<LI><P STYLE="margin-bottom: 0cm">Must work within NMRAnet
+	<LI><P STYLE="margin-bottom: 0cm">Must work within OpenLCB
 	architecture of a flat address space and unique identifiers 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">Receiving end must be able to
 	throttle rate of arrival. 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">Multiple transfers at the same
-	time over a single NMRAnet segment, so that transfers between
+	time over a single OpenLCB segment, so that transfers between
 	disjoint nodes don't need to be coordinated. 
 	</P>
 	<LI><P>Needs to be effective over CAN, with acceptable bit
@@ -130,14 +130,14 @@ negotiated across all nodes on the link so that multiple streams
 could be in flight at once; limiting to only one stream on a CAN link
 at once would also require negotiation across all nodes, again a
 complex operation.</P>
-<P><SPAN STYLE="font-style: normal">The best way to get the CAN
-payload size, and hence bit efficiency up, is to get more into the
-CAN header.  If we were to limit to only one stream between a given
-source and destination on a CAN link, hence not needing the stream ID
-byte, and if we were to use 12-bit node ID aliases instead of 16
-(hence only 4095 accessible off-link node IDs instead of 64k), we
-could fit everything into a special format CAN header.  That would
-give 8 byte payloads, and about a 50% bit efficiency for transfer.</SPAN></P>
+<P STYLE="font-style: normal">The best way to get the CAN payload
+size, and hence bit efficiency up, is to get more into the CAN
+header. If we were to limit to only one stream between a given source
+and destination on a CAN link, hence not needing the stream ID byte,
+and if we were to use 12-bit node ID aliases instead of 16 (hence
+only 4095 accessible off-link node IDs instead of 64k), we could fit
+everything into a special format CAN header. That would give 8 byte
+payloads, and about a 50% bit efficiency for transfer.</P>
 <P>The &quot;Stream Data Proceed&quot; from the destination is
 clearance to send another buffer-size-worth of data. To achieve
 better performance, the destination can send it before receiving the
@@ -152,11 +152,11 @@ therefore need permission to lower the Max Buffer Size on the
 outbound Stream Initiate Request message. The length in the returned
 Stream Initiate Reply can't be changed, as the destination need to
 know when to send clearance for another buffer's worth of data.</P>
-<P><SPAN STYLE="font-style: normal">A CAN ↔ Ethernet bridge might
-receive several kilobytes of data from the Ethernet side at a time.
-It's then responsible for breaking that up into CAN frames and
-forwarding it. It can reduce the buffer size of transfers if need be
-to ensure there's a place to store the data while this is done.</SPAN></P>
+<P STYLE="font-style: normal">A CAN ↔ Ethernet bridge might receive
+several kilobytes of data from the Ethernet side at a time. It's then
+responsible for breaking that up into CAN frames and forwarding it.
+It can reduce the buffer size of transfers if need be to ensure
+there's a place to store the data while this is done.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
