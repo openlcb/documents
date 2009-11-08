@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>The Role of Ethernet</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091108;13565600">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: An OpenLCB Bootloader Protocol</H1>
+<P>it should be possible to load new programs into OpenLCB nodes
+connected via CAN bus. Even better would be a common protocol for
+that.</P>
+<P>The rest of this note is where we develop that.</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<UL>
+	<LI><P>Only use standard OpenLCB protocols</P>
+	<LI><P>Loads may fail, but that must leave the node in a state that
+	can attempt another load</P>
+	<LI><P>Must work when the loader and loaded nodes are not on the
+	same CAN segment.</P>
+</UL>
+<H3>Preferences</H3>
+<UL>
+	<LI><P>Must be straightforward to implement in low cost, low
+	capability devices</P>
+	<UL>
+		<LI><P>Minimal complexity in the loaded node</P>
+		<LI><P>Must handle limitations of rewriting memory in PICs, AVRs,
+		etc</P>
+		<UL>
+			<LI><P>Erase requirement</P>
+			<LI><P>Block size and alignment</P>
+			<LI><P>Timing (dead during write, erase?)</P>
+		</UL>
+	</UL>
+	<LI><P>Conformance must be testable with reasonable infrastructure.</P>
+	<LI><P>Manufacturers must be able to prevent unauthorized loading of
+	their hardware</P>
+	<LI><P>Either end can initiate load</P>
+	<LI><P>Efficient transfer</P>
+	<LI><P>Must be able to load a single node while it's still on a
+	complex OpenLCB setup; don't want to require recabling.</P>
+</UL>
+<H3>Design Choices</H3>
+<UL>
+	<LI><P>Put as much work as possible at the loading end or further
+	upstream, not the loaded end. E.g. it's OK to insist that the
+	download data have a certain structure, which the loading node (or
+	even better, the tools that create the program load fine in the
+	first place) must ensure, rather than having the loaded node have to
+	deal with a more general format.</P>
+</UL>
+<H2>Discussion</H2>
+<P>This overlaps a little with questions of configuration: Both are
+changing the internal state of a node. (See the development note on
+<A HREF="Configuration.html">Configuration</A>) Do we want a single
+protocol that can do everything?  The real difference about a
+bootloader is that you <U>can't</U> assume that the node is actually
+working.  Cheap nodes don't have room for two copies of the program,
+so they have to retreat to a small corner of memory, erase the rest,
+and get the download.  This is really different from modifying some
+configuration variables.</P>
+<P>Does a NMRAnet node have to really <U>be</U> an NMRAnet node while
+downloading?  E.g. if the little downloader kernel can't take part in
+various other interactions, what are the implications?</P>
+<H3>Legacy approach</H3>
+<P>An approach based on e.g. the Digitrax board load protocol, in
+OpenLCB terms:</P>
+<P STYLE="margin-left: 2cm">Datagrams to set up the load process
+(request, get permission, negotiate stream)</P>
+<P STYLE="margin-left: 2cm">Followed by a stream that contains the
+data. End of stream means “boot into new code”</P>
+<P STYLE="margin-left: 2cm">That raises the question of the format of
+the data within the stream – Intel Hex format, with restrictions on
+e.g. data alignment and order.</P>
+<P>What does the negotiation at the beginning doing?</P>
+<P>It has to tell the code that a download is coming, but that could
+also be done i.e. by the stream content ID at the start of the
+stream.</P>
+<P>Issue: How to handle timing for writing, and any requirement to
+erase first. Is this something that gets negotiated at the start? The
+download is prepared for specific hardware, so the programmer knows
+what the limitations are. Those could be specified and control how
+fast the data is being sent down the stream?</P>
+<H3>Datagram/stream approach</H3>
+<P>(From David Harris email)</P>
+<P>So, I think you are suggesting that we use datagrams to set up a
+bidirectional stream between two nodes: 
+</P>
+<P>The originating node would do: Stream.setup(originating-NID,
+target-NID, originating-stream-id, originating-maxbuffer) 
+</P>
+<P>And expect a response from the target: Stream.setupAck(target-NID,
+originating-NID, target-stream-id, target-maxbuffer). 
+</P>
+<P>After this, the buffer-size has been negotiated as
+min(originating, target), zero means the stream has been rejected. 
+</P>
+<P>At this point each node can send stream messages to its opposite,
+and these stream-messages are identified by their NID:stream-id. 
+</P>
+<P>I suggest we let the stream-messages be one of two types: (1)
+'command' messages, that inform the far-end of the intent and the
+content-format of subsequent data: <BR>Stream.sendCommand(src-NID,
+src-stream-id, command, *data); 
+</P>
+<P>and (2) 'data' messages: <BR>Stream.sendData(src-NID,
+src-stream-id, *data). 
+</P>
+<P>Examples of 'command' messages are: <BR>(Proceed) <BR>(Abort)
+<BR>(Error, type, data) <BR>(Upload, mem-type, address) 
+</P>
+<P>An example of an stream might be: <BR>--&gt; Stream.setup(0001,
+0055, 05, 200) <BR>&lt;-- Stream.setupAck(0055, 0001, 01, 100) // the
+stream is now set-up, with buffer of 100 bytes <BR>--&gt;
+Stream.sendCommand(0001, 05, upload, flash, 0x0000) // start an
+upload <BR>--&gt; Stream.sendData(0001, 05, 0x45, 0x64, 0x00, 0x55,
+0x55, 0x55, ...) <BR>--&gt; Stream.sendData(0001, 05, 0xFF, 0xFE,
+0x00, 0x8F, 0x55, 0x55, ...) <BR>... <BR>&lt;--
+Stream.sendCommand(0055, 01, dataProceed) // target can accept more
+data <BR>--&gt; Stream.sendCommand(0001, 05, upload, flash, 0x0100)
+// new upload address <BR>--&gt; Stream.sendData(0001, 05, 0x45,
+0x64, 0x00, 0x55, 0x55, 0x55, ...) <BR>--&gt; Stream.sendData(0001,
+05, 0xFF, 0xFE, 0x00, 0x8F, 0x55, 0x55, ...) <BR>... <BR>&lt;--
+Stream.sendCommand(0055, 01, dataProceed) <BR>--&gt;
+Stream.sendCommand(0001, 05, setVariable32, 0x0234, 0x12345678) //
+set a 32-bit variable <BR>--&gt; Stream.sendCommand(0001, 05,
+setVariable16, 0x0010, 0x1234) // set a 16-bit variable <BR>--&gt;
+Stream.sendCommand(0001, 05, reqVariable16, 0x0010) // request a
+variable <BR>&lt;-- Stream.sendCommand(0055, 01, repVariable16,
+0x0010, 0x1234) // report a variable <BR><BR><BR>
+</P>
+<P>I am not sure at all about the last stuff, may be duplicating what
+datagrams should be doing. 
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
