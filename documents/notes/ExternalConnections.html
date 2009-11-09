@@ -5,8 +5,8 @@
 	<TITLE>Note: External Connections</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20090616;17482300">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20091108;19585900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -20,49 +20,49 @@
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: External Connections</H1>
-<P>NMRAnet adoption would be made more likely and faster if NMRAnet
+<P>OpenLCB adoption would be made more likely and faster if OpenLCB
 could interoperate with existing systems via external connections. 
 </P>
 <P><I>(Should this move to separate docs at some point?)</I></P>
 <H2>DCC</H2>
-<P>NMRAnet should be able to control DCC accessory decoders (and
+<P>OpenLCB should be able to control DCC accessory decoders (and
 eventually control stations?) ... 
 </P>
-<P>(See also <A HREF="UseWithDCC.html">separate document</A>
-on this topic)</P>
+<P>(See also <A HREF="UseWithDCC.html">separate document</A> on this
+topic)</P>
 <H2>XPressNet</H2>
 <P>S88 inputs? 
 </P>
 <H2>LocoNet</H2>
-<P>NMRAnet should be able to control devices via LocoNet and have
-LocoNet-attached devices create NMRAnet events.  Layout occurances
+<P>OpenLCB should be able to control devices via LocoNet and have
+LocoNet-attached devices create OpenLCB events. Layout occurances
 such as turnout throws, sensor changes, etc, should be mapped to and
-from NMRAnet P/C Event messages so they can be used without
+from OpenLCB P/C Event messages so they can be used without
 limitation.</P>
 <P>A LocoNet is a limited resource, so large modular meets already
-use multiple interconnected LocoNets.  The NMRAnet support should
-allow these to interoperate with NMRAnet devices, if not with each
+use multiple interconnected LocoNets. The OpenLCB support should
+allow these to interoperate with OpenLCB devices, if not with each
 other, transparently.</P>
 <P>Some messages could be carried via the low-order e.g. 4 or 6 bytes
 of events (routing would require “route range” support, not yet
 present), but some are long enough to require datagrams.</P>
 <H2 CLASS="heading-3">LocoNet Protocol Summary</H2>
 <P>LocoNet uses variable-length messages, with the length encoded in
-the first byte as part of an op-code.  The MSB is used to indicate
-message boundaries.  The last byte of each message is a check byte.</P>
+the first byte as part of an op-code. The MSB is used to indicate
+message boundaries. The last byte of each message is a check byte.</P>
 <P>The messages for controlling turnouts (accessory decoders) and
-sensors are four bytes long.  LocoNet defines two separate address
-spaces for turnouts, and at least two for sensors.  Throttle (DCC)
+sensors are four bytes long. LocoNet defines two separate address
+spaces for turnouts, and at least two for sensors. Throttle (DCC)
 control is done via a mix of four-byte and much longer messages.</P>
 <P>LocoNet has provision for a one-byte “LocoNet ID” to separate
-multiple radio-operated LocoNets located close together.  The vast
+multiple radio-operated LocoNets located close together. The vast
 majority of LocoNets use the default value, but modular layout groups
 are used to setting unique LocoNet IDs.</P>
-<H2 CLASS="heading-3">NMRAnet support</H2>
+<H2 CLASS="heading-3">OpenLCB support</H2>
 <P>LocoNet layout control messages effectively already are P/C
 events, in that they are broadcast to a set of unknown listeners.
 Mapping a set of these to and from unique EventIDs would make the
-connection to NMRAnet straightforward.</P>
+connection to OpenLCB straightforward.</P>
 <P>LocoNet EventID format:</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=32*>
@@ -114,21 +114,21 @@ connection to NMRAnet straightforward.</P>
 <P><BR><BR>
 </P>
 <P>The unique ID is taken from (somebody's) assigned name space, so
-that it's guaranteed to remain unique.  If there are ever multiple
+that it's guaranteed to remain unique. If there are ever multiple
 vendors of LocoNet gateways, they'd have separate Unique IDs.</P>
-<P>Two ways of mapping LocoNet to and from NMRAnet have been
+<P>Two ways of mapping LocoNet to and from OpenLCB have been
 proposed. In the “transformation” approach, the gateway parses
 incoming LocoNet messages to extract their type, device address, etc,
 and then this is used to form the message-specific content of the
 event.</P>
 <P>Another approach, which simplifies the gateway code, is just send
-LocoNet messages as received.  Short ones fit in a single NMRAnet
+LocoNet messages as received. Short ones fit in a single OpenLCB
 event message. (To send a LocoNet packet on a LocoNet, the remote
 gateway has to look at the 1<SUP>st</SUP> byte to decide how many
-bytes are present to send; the check byte isn't sent over NMRAnet)</P>
+bytes are present to send; the check byte isn't sent over OpenLCB)</P>
 <P>For example, the LocoNet packet to throw turnout 12 is 0xB0 0x0B
 0x10 0x54</P>
-<P>The corresponding NMRAnet Event ID would be:</P>
+<P>The corresponding OpenLCB Event ID would be:</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=32*>
 	<COL WIDTH=32*>
@@ -184,10 +184,10 @@ bytes are present to send; the check byte isn't sent over NMRAnet)</P>
 </TABLE>
 <P><BR><BR>
 </P>
-<P>Any NMRAnet device wanting throw LocoNet turnout 12 or be notified
+<P>Any OpenLCB device wanting throw LocoNet turnout 12 or be notified
 when LocoNet turnout 12 has been thrown could just use this Event ID.</P>
 <P>LocoNet messages longer than four bytes would be sent as multiple
-event messages.  Since NMRAnet is a reliable ordered transport, the
+event messages. Since OpenLCB is a reliable ordered transport, the
 LocoNet MSB and length code in byte 4 of the first message is
 sufficient for reassembling a LocoNet message before transmitting it
 on the LocoNet link.</P>
