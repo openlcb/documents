@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091011;17563200">
+	<META NAME="CHANGED" CONTENT="20091108;20550300">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -75,22 +75,16 @@ due to a differing ID-part between the two nodes.
 <P>Start with the six-byte unique Node ID in each node, with the
 bytes labelled N1 through N6. 
 </P>
-<P>Initialize a specific full-sequence 32bit PRNG with N1 ^ N2 &lt;&lt;5
-^ N3 &lt;&lt;10 ^ N4 &lt;&lt;15 ^ N5 &lt;&lt; 20 ^ N6 &lt;&lt; 24. If
-that forms an invalid zero seed, use (N1 &lt;&lt; 23)+(N2 &lt;&lt;
-19)+(N3 &lt;&lt; 15)+(N4 &lt;&lt; 11)+(N5 &lt;&lt; 7)+N6; the second
-alternative is guaranteed nonzero for valid (non-zero) NodeIDs, but
-has less entropy. As a final test, to handle the case of an improper
-zero NodeID, if both seed attempts give zero results, initialize the
-PRNG with 0xAC01 to ensure the full sequence.</P>
+<P>Initialize a specific full-sequence 48bit PRNG with the 48 Node
+ID. 
+</P>
 <P>A: 
 </P>
-<P>Take the next element from the PRNG and call the lower 12 bits the
-TCA, the tentative alias. 
-</P>
+<P>Take the next element from the PRNG . Derive the 12-bit value for
+TCA, the tentative alias. If TCA is zero, repeat.</P>
 <P>Start listening for CAN frames containing Check ID messages (CIMs)
 and Reserved ID Messages (RIMs). A CIM consists of an extended header
-with a 12 bit Source NIDa field, an 3 bit sequence field,  a 12-bit
+with a 12 bit Source NIDa field, an 3 bit sequence field, a 12-bit
 TestN field, and other bits to denote that this is a Check ID
 Message. There is no other variable information in the frame. Having
 NIDa, Nn and TestN in the message ensure that CAN arbitration will
@@ -128,46 +122,27 @@ something else.
 source NIDa in normal operation. If you do, log an error (on whatever
 it is they log it on there) and restart the process at (A). 
 </P>
+<H3>Proposed alias derivation</H3>
+<P>The 12 bit alias has to be derived from a 48-bit sequence number
+in a way that keeps as much entropy as possible.</P>
+<P>Sequentially numbered nodes will have initial seeds that differ
+only in the low bits of the PRNG output. For shift-register PRNGs,
+this can present a problem, as all bytes of the result are shifting
+together.  Combining bytes (or even 12-bit chunks) via XOR or add
+operations results in reduced entropy.</P>
+<P>The OpenLCB proposed PRNG (next section) uses add operations with
+a constant term to avoid this problem, so treating the 48-bit PRNG
+output as  four 12-but values, which are then XORed, works well.</P>
 <H3>Proposed PRNG</H3>
-<P>See the <A HREF="http://en.wikipedia.org/wiki/Linear_feedback_shift_register">Wikipedia
-page</A> on &quot;Linear feedback shift registers&quot; for
-background. 
-</P>
-<P STYLE="margin-bottom: 0cm"><FONT COLOR="#973131"><FONT FACE="Courier, monospace"><FONT SIZE=2>unsigned</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2>lfsr
-</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>=</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#0000e4"><FONT FACE="Courier, monospace"><FONT SIZE=2>1</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>;</FONT></FONT></FONT></P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#973131"><FONT FACE="Courier, monospace"><FONT SIZE=2>unsigned</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2>period
-</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>=</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#0000e4"><FONT FACE="Courier, monospace"><FONT SIZE=2>0</FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2>;</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT>
-</P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#b1b300"><FONT FACE="Courier, monospace"><FONT SIZE=2>do</FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT>
-</P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2>{</FONT></FONT></FONT></P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#808080"><FONT FACE="Courier-Oblique, monospace"><FONT SIZE=2><I>/*
-taps: 32 31 29 1; characteristic polynomial: x^32 + x^31 + x^29 + x +
-1 */</I></FONT></FONT></FONT></P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
-</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">=</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
-</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&gt;&gt;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">^</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">-</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
-</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&amp;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">&amp;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">0xd0000001u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT>
-</P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">++</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">period</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT></P>
-<P STYLE="margin-bottom: 0cm; line-height: 0.42cm"><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">}</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#b1b300"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">while</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">(</SPAN></FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">lfsr
-</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">!=</SPAN></FONT></FONT></FONT><FONT COLOR="#000000">
-</FONT><FONT COLOR="#000000"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">1u</SPAN></FONT></FONT></FONT><FONT COLOR="#179c00"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">)</SPAN></FONT></FONT></FONT><FONT COLOR="#399b29"><FONT FACE="Courier, monospace"><FONT SIZE=2><SPAN STYLE="font-style: normal">;</SPAN></FONT></FONT></FONT></P>
+<P>The proposed 48-bit PRNG is from “A 48-Bit Pseudo-Random Number
+Generator”, Heidi G. Kuehn, Communications of the ACM, Volume
+4,&nbsp;Issue 8 (August 1961), pages 350-352.</P>
+<P>x<SUB>i+1</SUB> = (2<SUP>9</SUP>+1) x<SUB>i</SUB> + c</P>
+<P>where c = 29,741,096,258,473 or 0x1B0CA37A4BA9.The paper actually
+describes a PRNG that uses signed arithmetic, but for our purposes
+the 48<SUP>th</SUP> “sign” bit isn't important.</P>
+<P>Note that, unlike some other PNRGs, this one can generate a zero
+result, and can accept a zero seed.</P>
 <H2>Discussion</H2>
 <P>CAN arbitration reliably avoids collisions between frames with
 unique headers. It does not guarantee arbitration between frames with
