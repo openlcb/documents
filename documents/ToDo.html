@@ -5,8 +5,8 @@
 	<TITLE>NMRAnet To Do: Remaining Questions</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091107;21244700">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091110;9514700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -19,14 +19,17 @@
 resolved. This is not a place for recording the discussion or
 decisions; once a decision is made, it should be implemented in the
 documents it affects. In particular, please don't make this a list of
-<U>answered</U> questions. The numbering is historical order; please
-delete an item that's done, not renumber below it, so SVN can track
-usage.</P>
+<U>answered</U> questions, those live in the docs we're writing. The
+numbering is historical order; please delete an item that's done, not
+renumber below it, so SVN can track usage.</P>
 <P STYLE="margin-bottom: 0cm">3. Settle question of terminology:
 &quot;Wire Protocol&quot; vs &quot;Transport Mechanism&quot;,
 &quot;Transport Layer Implementation&quot;, etc. E.g. do we stress
 protocol and wiring, or the transport/application layering? (See also
-item 14 below).</P>
+item 14 below).  If this terminology needs to be standardized and
+consistent, get it done, otherwise remove from ToDo list.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <P STYLE="margin-bottom: 0cm">4. Where do we document how the
 proposal meets the use cases? (<I>This is a question about
 documentation; what document is the right place? I suggest in a 2</I><SUP><I>nd</I></SUP>
@@ -40,11 +43,6 @@ both at line level (how to move data) and at the higher level. See
 <A HREF="notes/Configuration.html">separate note.</A></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">11. Add masking notification for events
-(for David Harris's desire to attach to ranges of Event ID as a
-defacto &quot;Event plus data&quot;) This can be done with &quot;mask
-low 0&quot; and &quot;mask low 1&quot; forms. 
-</P>
 <P STYLE="margin-bottom: 0cm">12. Throttle: define initial protocol.
 See <A HREF="notes/LocomotiveControl.html">separate document.</A></P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -52,7 +50,8 @@ See <A HREF="notes/LocomotiveControl.html">separate document.</A></P>
 <P STYLE="margin-bottom: 0cm">13. Alex raised the issue of a &quot;layout
 ID&quot; so e.g. portable devices (WiFi throttles) can identify which
 of several layouts (e.g. at a show) should be joined. See <A HREF="notes/LayoutID.html">working
-note</A>.</P>
+note</A>. <I>(Does this indicate need for another OpenLCB spec, for
+WiFi connection and access? BobJ)</I></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">14. MTI (Message Type Indicator)
@@ -61,10 +60,10 @@ and &quot;OpenLCB application level&quot;. Is the MTI (which needs to
 be renamed in any case) really a transport-specific field?</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">15. NsnUniqueAssignment.html needs work
-for individual people. Will they be willing to use something like a
-phone number, or is this entire approach just invalid? Maybe they
-just have to get a number from the web site.</P>
+<P STYLE="margin-bottom: 0cm">15. <A HREF="NidUniqueAssignment.html">NidUniqueAssignment.html</A>
+needs work for individual people. Will they be willing to use
+something like a phone number, or is this entire approach just
+invalid? Maybe they just have to get a number from the web site.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">17. Still need to think about
@@ -78,12 +77,13 @@ appropriate prefix. I had thought use of masks might allow a flexible
 mechanism, that is well understood, to let different subnets
 (segments) have varying numbers of nodes and events. </I>
 </P>
-<P>18. Do we want to define a (small number) of “globally known”
-events that people can use if they want to? E.g. “power down” or
-“emergency stop”? (See lighting item 24 below) It's not clear
-what's gained by those for the layout. (item done)(item done) If we
-decide to do this, make it a separate note, and mention in overviews.
-How to get those in e.g. Blue/Gold configuration?</P>
+<P><BR><BR>
+</P>
+<P>18. We plan to define a (small number) of “globally known”
+events that people can use if they want to. E.g. “power down” or
+“emergency stop” (See lighting item 24 below)  (item done)(item
+done) Document this, make it a separate note, and mention in
+overviews. How to get those in e.g. Blue/Gold configuration?</P>
 <P STYLE="margin-bottom: 0cm">20. Write an XML-based representation,
 e.g. as a separate wire protocol for web services.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -130,7 +130,10 @@ consume all of them to display a fast-clock, or a station-clock.
 Configuration would be manufacturer dependant. Need to include rate
 indication, so devices can extrapolate between events? Simpler in
 remote nodes than figuring it out from spacing. Also, need to know
-running vs stopped?</P>
+running vs stopped? (Just slightly more than 2^16 seconds in a day,
+just less than 2^12 minutes.  Are fast seconds needed, e.g. to
+synchronize automation?  Lots of traffic)  <I>(This should go in a
+note where we can really develop it – Bob J)</I></P>
 <P>26. Streaming Media, specifically semi-real time delivery of
 content (not on CAN; see also 23)</P>
 <OL START=13>
@@ -151,13 +154,6 @@ content (not on CAN; see also 23)</P>
 	has a lot of choices for e.g. streaming sound, video, etc.</P>
 	<P>In any case, document decisions, and (if needed) add a note.</P>
 </OL>
-<P>29. Make a careful estimate of the number of NID aliases (NIDas)
-needed for messages to a CAN segments from the outside world. There
-might be lots of nodes sending in unaddressed nodes from elsewhere.
-How much resources are needed to map those? Does this motivate an
-'unmapped' value for NIDa? Or have a block of these used
-sequentially, with mapping known but not advertised, but you can ask
-for it before its reused?</P>
 <P>35. Go through CAN bit assignments to make sure we have reserved 1
 and 0 bits before and after MTI so that we have full flexibility
 later on. Add note about which reserved bits must not be checked
@@ -168,13 +164,6 @@ experience, and advantages to users. This is not quite the same thing
 as use cases, but those could be a starting point.</P>
 <P>38. Turn the current introduction into a real geek-level document
 with a consistent organization.</P>
-<P>41. Need to do a lot of work on cabling, connectors, etc at the
-CAN physical layer. Some things, like a built in terminator, should
-be “desirable but not required”; there's more than one way to do
-it (switch on board; ship a resistor in one of the CAN connectors on
-the board; etc) Can we reasonably <U>require</U> a cable
-implementation? Recommend one? Document one solution? Issue of power
-in a required implementation will be a contentious one.</P>
 <P>43. The Consumer Identified and Producer Identified messages in
 CAN format carry flags that don't fit into the 8-byte data payload
 (as EventID is now the full 8 bytes), so have to go in header. This
@@ -278,8 +267,10 @@ approach:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm"><SPAN STYLE="font-style: normal">53.
-From the <A HREF="StreamProtocol.html">StreamProtocol</A> document:
-The best way to get the streaming CAN payload size, and hence the
+</SPAN><I>(Status: Decision made 10/2009 for 12-bit, docs converted,
+still have to convert prototype code) </I><SPAN STYLE="font-style: normal">From
+the <A HREF="StreamProtocol.html">StreamProtocol</A> document: The
+best way to get the streaming CAN payload size, and hence the
 streaming bit efficiency up, is to get more into the CAN header. If
 we were to limit to only one stream between a given source and
 destination on a CAN link, hence not needing the stream ID byte, and
@@ -292,7 +283,8 @@ bits for other info in the header (priority, type, a few MTI bits,
 etc). Large numbers of aliases are needed if (1) EventID filtering
 isn't used on off CAN-segment links and/or (2) the CAN link carries
 traffic between two off-CAN links, e.g. CAN is used as a central
-backbone instead of using IP for that.</SPAN></P>
+backbone instead of using IP for that.   </SPAN>
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">54. Need a
@@ -301,18 +293,26 @@ datagram example.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">55. (from the
-can/index.html To Do list) Decide on CAN connector and cabling, as
-needed</P>
+can/index.html To Do list) Need to do a lot of work on cabling,
+connectors, etc at the CAN physical layer.  Can we reasonably <U>require</U>
+a cable implementation? Recommend one? Document one solution? 
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">56. (from the
 can/index.html To Do list) Decide on CAN device termination
-requirements, as needed</P>
+requirements, as needed.<I> (Some things, like a built in terminator,
+should be “desirable but not required”; there's more than one way
+to do it: switch on board; ship a resistor in one of the CAN
+connectors on the board; etc. - BobJ)</I> Even if the decision is not
+to have a requirement, document that.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">57. (from the
 can/index.html To Do list) Decide on CAN power/ground supply &amp;
-isolation requirements, as needed</P>
+isolation requirements, as needed. <I>(Issue of power in a required
+implementation will be a contentious one. - BobJ)</I> Even if the
+decision is not to have a requirement, document that.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">58. (from the
@@ -321,14 +321,16 @@ assignments to ensure that priority is properly implied</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">59. Datagram
-example: Small displays around the layout. Datagrams smaller than
-e.g. 4lines x 80characters, how to address that?</P>
+example: Small displays around the layout. Datagram payload is
+smaller than e.g. 4lines x 80characters, how to address that?
+Addressable content?  Longer Datagram?</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">60. Datagram
 support requires dedicated buffer (well, sort of requires it) for
 receipt in CAN nodes. That's a real limitation in RAM starved PIC
-nodes, or even basic Arduino nodes. Is 64 bytes reasonable? 32? 80?</P>
+nodes, or even basic Arduino nodes. Is 64 bytes reasonable? 32? 80?
+(16+64) 88? (for 80 char line of text)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">61. Need to redo
@@ -347,18 +349,17 @@ MTI allocation. Aspects (which need to be documented!) are:</P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">62. Put a unique 8
-byte ID at the start of a stream, so separate datagrams aren't
-needed?</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">63.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal">63. Finish
+terminology switch to OpenLCB.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">64.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">65.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">66.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
