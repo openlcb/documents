@@ -5,8 +5,8 @@
 	<TITLE>NMRAnet Note: Streaming</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091107;21234400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091109;20101100">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -44,7 +44,8 @@ across a OpenLCB implementation.
 	buffers sizes can be used. High capability nodes can use large
 	buffers for efficiency, low capability nodes can still function with
 	small buffers.</P>
-	<LI><P></P>
+	<LI><P>Streams should have a way of identifying their content &amp;
+	purpose within themselves, in addition to through other protocols.</P>
 </UL>
 <H3>Design Points</H3>
 <UL>
@@ -72,13 +73,13 @@ across a OpenLCB implementation.
 	not discussed here, e.g. Datagram messages.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The source sends an &quot;Stream
 	Initiate Request (Addressed)&quot; to the destination. It carries a
-	&quot;Max Buffer Size&quot; value (2 bytes) and a &quot;Source
-	Stream ID&quot; (1 byte) in the data section. The combination of
-	source, destination, and Source Stream ID must uniquely identify
-	this stream transmission. The Source Stream ID has no meaning to the
-	destination. <I>(Requires the alias-addressed form of CAN frame,
-	which uses two bytes for the address, leaving six bytes free for
-	payload)</I></P>
+	&quot;Max Buffer Size&quot; value (2 bytes), a “Tagged” boolean
+	flag (1 bit) and a &quot;Source Stream ID&quot; (1 byte) in the data
+	section. The combination of source, destination, and Source Stream
+	ID must uniquely identify this stream transmission. The Source
+	Stream ID has no meaning to the destination. <I>(Requires the
+	alias-addressed form of CAN frame, which uses two bytes for the
+	address, leaving six bytes free for payload)</I></P>
 	<LI><P>The destination returns a &quot;Stream Initiate Reply
 	(Addressed)&quot; with a &quot;Max Buffer Size&quot; value (2
 	bytes), &quot;Source Stream ID&quot; (1 byte) and &quot;Destination
@@ -104,6 +105,14 @@ across a OpenLCB implementation.
 	Destination Stream ID. After sending Max Buffer Size bytes in one or
 	more messages, the source pauses. 
 	</P>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0cm">If the “Tagged” flag was true
+		during initialization, the first 6 bytes of the data are a unique
+		data-type indicator.  These are allocated the same way that Node
+		IDs, etc, are allocated, but form a separate name space.  If that
+		“Tagged” flag is false, some higher-level protocol must
+		identify the data-type of the stream data.</P>
+	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Upon receiving Max Buffer Size
 	bytes via one or more messages, the destination sends a Stream Data
 	Proceed (Addressed) message to the source, carrying the Source
