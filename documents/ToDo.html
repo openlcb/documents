@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091111;10422400">
+	<META NAME="CHANGED" CONTENT="20091118;8502000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -16,12 +16,17 @@
 <BODY LANG="en-US" DIR="LTR">
 <H1>To Do: Remaining Questions</H1>
 <P>This page is a place to record issues that are still to be
-resolved. This is not a place for recording the discussion or
+resolved. This is <U>not</U> a place for recording the discussion or
 decisions; once a decision is made, it should be implemented in the
 documents it affects. In particular, please don't make this a list of
 <U>answered</U> questions, those live in the docs we're writing. The
-numbering is historical order; please delete an item that's done, not
-renumber below it, so SVN can track usage.</P>
+numbering is historical-order; please delete an item that's done, not
+renumber below it, so SVN can track progress.  If you want to tag
+something as high-priority, please use color. Currently, “<SPAN STYLE="background: #99ccff">blue
+8</SPAN>” is high-priority documentation tasks, and “<SPAN STYLE="background: #00ff00">light
+green</SPAN>” is high-priority implementation tasks. (Feel free to
+modify those color chooses, they were picked by a color-challenged
+person)</P>
 <P STYLE="margin-bottom: 0cm">3. Settle question of terminology:
 &quot;Wire Protocol&quot; vs &quot;Transport Mechanism&quot;,
 &quot;Transport Layer Implementation&quot;, etc. E.g. do we stress
@@ -77,13 +82,15 @@ appropriate prefix. I had thought use of masks might allow a flexible
 mechanism, that is well understood, to let different subnets
 (segments) have varying numbers of nodes and events. </I>
 </P>
-<P><BR><BR>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P>18. We plan to define a (small number) of “globally known”
 events that people can use if they want to. E.g. “power down” or
 “emergency stop” (See lighting item 24 below) (item done)(item
 done) Document this, make it a separate note, and mention in
-overviews. How to get those in e.g. Blue/Gold configuration?</P>
+overviews. Document allocation mechanism (reservation mechanism) for
+global, manufacturer-specific conventions. How to get those in e.g.
+Blue/Gold configuration? See item 45.</P>
 <P STYLE="margin-bottom: 0cm">20. Write an XML-based representation,
 e.g. as a separate wire protocol for web services.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -154,21 +161,23 @@ content (not on CAN; see also 23)</P>
 	has a lot of choices for e.g. streaming sound, video, etc.</P>
 	<P>In any case, document decisions, and (if needed) add a note.</P>
 </OL>
-<P>35. Go through CAN bit assignments to make sure we have reserved 1
-and 0 bits before and after MTI so that we have full flexibility
-later on. Add note about which reserved bits must not be checked
-(future use) and which are for future priority use, hence should not
-be checked.</P>
-<P>37. Add a user-level introduction that talks about the user
-experience, and advantages to users. This is not quite the same thing
-as use cases, but those could be a starting point.</P>
-<P>38. Turn the current introduction into a real geek-level document
-with a consistent organization.</P>
-<P>43. The Consumer Identified and Producer Identified messages in
-CAN format carry flags that don't fit into the 8-byte data payload
-(as EventID is now the full 8 bytes), so have to go in header. This
-is mixing transport/data/application layer, and we need to put some
-real effort into getting it right. 
+<P><SPAN STYLE="background: #00ff00">35. Go through CAN bit
+assignments to make sure we have reserved 1 and 0 bits before and
+after MTI so that we have full flexibility later on. Add note about
+which reserved bits must not be checked (future use) and which are
+for future priority use, hence should not be checked.</SPAN></P>
+<P><SPAN STYLE="background: #99ccff">37. Add a user-level
+introduction that talks about the user experience, and advantages to
+users. This is not quite the same thing as use cases, but those could
+be a starting point.</SPAN></P>
+<P><SPAN STYLE="background: #99ccff">38. Turn the current
+introduction into a real geek-level document with a consistent
+organization.</SPAN></P>
+<P><SPAN STYLE="background: #00ff00">43. The Consumer Identified and
+Producer Identified messages in CAN format carry flags that don't fit
+into the 8-byte data payload (as EventID is now the full 8 bytes), so
+have to go in header. This is mixing transport/data/application
+layer, and we need to put some real effort into getting it right. </SPAN>
 </P>
 <P>44. Need to limit pileup on CAN network by throttling &quot;responsive
 events&quot;? e.g. wait 10 msec before sending things that happened
@@ -191,11 +200,14 @@ in response to input?</P>
 define some node-specific global events? E.g. “Node has logged
 error”, “Node has logged warning”; that in turn can e.g.
 trigger log retrieval. Others? Can define standard events as NodeID
-with low of 0xFFFF, etc.</P>
+with low of 0xFFFF, etc.  <A HREF="notes/Logging.html">This has
+started in the Logging note.</A>  Are there other areas that should
+be considered? See item 18.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">47. Eventually,
-write some words about common log format?</P>
+write some words about common log format? (mechanism is being
+developed in Logging note, but not format of log records)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">48. Make a notional
@@ -232,16 +244,17 @@ configuration, logging, etc, but not really the basic protocol;
 current protocol.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<BLOCKQUOTE STYLE="margin-left: 0cm; margin-right: 0cm">50. Redo
-priority order of CAN CIM/RIM messages (see alanheathrobinson email
-of 2009-08-11) so that the CIM sequence is in increasing priority
-order (give priority to completing some allocations); should we make
-RIM higher priority than CIM to get them done and announced?</BLOCKQUOTE>
+<BLOCKQUOTE STYLE="margin-left: 0cm; margin-right: 0cm"><SPAN STYLE="background: #00ff00">50.
+Redo priority order of CAN CIM/RIM messages (see alanheathrobinson
+email of 2009-08-11) so that the CIM sequence is in increasing
+priority order (give priority to completing some allocations); should
+we make RIM higher priority than CIM to get them done and announced?</SPAN></BLOCKQUOTE>
 <BLOCKQUOTE STYLE="margin-left: 0cm; margin-right: 0cm; font-style: normal">
-51. If a CAN node receives a RIM with its alias during normal
-operation, in addition to going offline it should emit a “help me”
-frame that can be caught and logged. (Probably shouldn't resend in
-case of error, as collisions can happen in this case)</BLOCKQUOTE>
+<SPAN STYLE="background: #00ff00">51. If a CAN node receives a RIM
+with its alias during normal operation, in addition to going offline
+it should emit a “help me” frame that can be caught and logged.
+(Probably shouldn't resend in case of error, as collisions can happen
+in this case)</SPAN></BLOCKQUOTE>
 <P STYLE="margin-bottom: 0cm; font-style: normal">52. NodeId vs
 UniqueID terminology, esp. in the EventID allocation. Notional
 approach:</P>
@@ -266,9 +279,10 @@ approach:</P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm"><SPAN STYLE="font-style: normal">53.
-</SPAN><I>(Status: Decision made 10/2009 for 12-bit, docs converted,
-still have to convert prototype code) </I><SPAN STYLE="font-style: normal">From
+<P STYLE="margin-bottom: 0cm"><SPAN STYLE="font-style: normal"><SPAN STYLE="background: #00ff00">53.
+</SPAN></SPAN><I><SPAN STYLE="background: #00ff00">(Status: Decision
+made 10/2009 for 12-bit, docs converted, still have to convert
+prototype code) </SPAN></I><SPAN STYLE="font-style: normal"><SPAN STYLE="background: #00ff00">From
 the <A HREF="StreamProtocol.html">StreamProtocol</A> document: The
 best way to get the streaming CAN payload size, and hence the
 streaming bit efficiency up, is to get more into the CAN header. If
@@ -283,7 +297,7 @@ bits for other info in the header (priority, type, a few MTI bits,
 etc). Large numbers of aliases are needed if (1) EventID filtering
 isn't used on off CAN-segment links and/or (2) the CAN link carries
 traffic between two off-CAN links, e.g. CAN is used as a central
-backbone instead of using IP for that. </SPAN>
+backbone instead of using IP for that. </SPAN></SPAN>
 </P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -315,9 +329,9 @@ implementation will be a contentious one. - BobJ)</I> Even if the
 decision is not to have a requirement, document that.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">58. (from the
-can/index.html To Do list) Revisit CAN bit position and polarity
-assignments to ensure that priority is properly implied</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">58.
+(from the can/index.html To Do list) Revisit CAN bit position and
+polarity assignments to ensure that priority is properly implied</SPAN></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">59. Datagram
@@ -333,39 +347,52 @@ nodes, or even basic Arduino nodes. Is 64 bytes reasonable? 32? 80?
 (16+64) 88? (for 80 char line of text)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">61. Need to redo
-MTI allocation. Aspects (which need to be documented!) are:</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">61.
+Need to redo MTI allocation. Aspects (which need to be documented!)
+are:</SPAN></P>
 <UL>
-	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Code with a
-	fixed bit to indicate only 8 (?) bits are significant, so that it
-	sets into CAN OK</P>
-	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Make it easy
-	to separate addressed vs unaddressed, again for CAN</P>
-	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Make it easy
-	to separate out the stream payload (or other sort-of-addressed
-	messages)</P>
-	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Make it easy
-	to separate out “must attend” messages for filtering</P>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">Code
+	with a fixed bit to indicate only 8 (?) bits are significant, so
+	that it sets into CAN OK</SPAN></P>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">Make
+	it easy to separate addressed vs unaddressed, again for CAN</SPAN></P>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">Make
+	it easy to separate out the stream payload (or other
+	sort-of-addressed messages)</SPAN></P>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #00ff00">Make
+	it easy to separate out “must attend” messages for filtering</SPAN></P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">63. Finish
-terminology switch to OpenLCB.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal"><SPAN STYLE="background: #99ccff">63.
+Finish terminology switch to OpenLCB.</SPAN></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">64. Perhaps add a simple mark/reply
-out-of-band signal to Streams.  Allow marking a byte as “this byte
-is marked” (or perhaps “last byte moved/provided is marked”). 
-Allow sending a no-data reply back the other way.  Useful to prevent
+out-of-band signal to Streams. Allow marking a byte as “this byte
+is marked” (or perhaps “last byte moved/provided is marked”).
+Allow sending a no-data reply back the other way. Useful to prevent
 people from trying to use buffer size as a stand-in for e.g. record
 length (can't count on that size being anything in particular anyway)
 Use case is for use in bootloader.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">65.</P>
+<P STYLE="margin-bottom: 0cm"><SPAN STYLE="background: #99ccff">66.
+Redo introductory docs, esp. TN-9-6-NMRANET-Overview-Draft.pdf</SPAN></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">66.</P>
+<P STYLE="margin-bottom: 0cm"><SPAN STYLE="background: #00ff00">67.
+Create sample C implementations, along with a C build, test and
+distribution infrastructure</SPAN></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">68.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">69.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">70.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
