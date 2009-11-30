@@ -1,0 +1,72 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>RFID usage with OpenLCB</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20091130;1494400">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: RFID and OpenLCB</H1>
+<P>Notes from an email discussion in November 2009 about use of RFID
+tags with OpenLCB.</P>
+<H3>Mike Johnson</H3>
+<P>My next question is about RFID tags, the 64 bit tags have 40 bits
+of data.
+The EM4102 spec seems to have a 32 bit global unique number
+plus an 8 bit version/user code.
+So it seems that a minimum size for
+an event would be 6 byte NID + 4 bytes of tag. (Pity the NID was not
+4 bytes, so it could all fit in one packet as an 8 byte event).
+
+</P>
+<P>I'm thinking that it would be nice if the RFID tag event could be
+used like
+any other event to select a route for a train or turn on an
+LED.
+</P>
+<P>But, an RFID reader can only send the tag, with the NIDa in the
+header
+needing to be translated to a full NID by a consumer. Perhaps
+translating an
+RFID tag event to a normal event needs to be done by a
+larger node or PC.
+
+Have RFID tags been considered ? 
+</P>
+<H3>Bob Jacobsen</H3>
+<P>There's a brief mention of them in the Datagram
+doc:
+&lt;<A HREF="http://openlcb.sourceforge.net/trunk/documents/DatagramProtocol.html">http://openlcb.sourceforge.net/trunk/documents/DatagramProtocol.html</A>&gt;
+
+</P>
+<P>The idea there was that they'd be sending information from a point
+to a point, e.g. reporting to a central yard processor as a train
+arrives, so a datagram was fine.
+
+</P>
+<P>If one wants to put both tag and location in a single 8 byte
+event, you certainly can, you just can't use the node ID to do it. 
+So how to allocate the 64-40 or 64-32 other bits?  
+
+</P>
+<P>Since the source NodeID is carried _separately_ from the EventID
+in every produced-event message, one approach would be to define a
+unique upper 24 or 32 bits for &quot;RFID Event&quot;, and then key
+location to the source NodeID (reserving that much space for
+well-known events is easy, since you're really only reserving a small
+part of it).  You could even allocate a little more space if desired,
+e.g. for an extra couple of status bits, but you can't go too far
+that way.
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
