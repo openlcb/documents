@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20100526;10241500">
+	<META NAME="CHANGED" CONTENT="20100526;10333900">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Event Configuration Protocol</H1>
@@ -15,9 +15,9 @@ and configure them to do something useful with only the pushbutton(s)
 and LED(s) on them, without requiring a separate configuration tool,
 computer, etc. 
 </P>
-<P>This document outlines the protocol for doing this.  
+<P>This document outlines the protocol for doing this. 
 </P>
-<P>This protocol does not mandate how a node defines its local UI.  
+<P>This protocol does not mandate how a node defines its local UI. 
 </P>
 <P><BR><BR>
 </P>
@@ -25,24 +25,24 @@ computer, etc.
 <P>Producer-nodes (ones that implement buttons, toggle switches,
 BODs, etc) and consumers-nodes (signals, leds, displays, layout
 lighting, etc) can be linked, such that activating a producer will
-cause one or more consumers to activate.  
+cause one or more consumers to activate. 
 </P>
 <OL>
 	<LI><P>On one or more 'learner'-nodes, select a number of
 	producers/consumers (p/c's).</P>
 	<LI><P>On the 'teacher'-node select the p/c which will teach the
-	other nodes and activate the teaching.  
+	other nodes and activate the teaching. 
 	</P>
 	<LI><P>As a result, activating one of the producers will activate
-	all the linked consumers.   
+	all the linked consumers. 
 	</P>
 </OL>
 <H2>Protocol Description</H2>
 <OL>
-	<LI><P>'Learner'-nodes flag selected producers and consumers.  
+	<LI><P>'Learner'-nodes flag selected producers and consumers. 
 	</P>
 	<LI><P>The 'teacher'-node sends a TeachEvent message containing the
-	event# associated with the selected p/c.  
+	event# associated with the selected p/c. 
 	</P>
 </OL>
 <H2>Examples of User Interfaces</H2>
@@ -56,86 +56,78 @@ cause one or more consumers to activate.
 	</P>
 	<LI><P>Push the Gold-button;</P>
 	<LI><P>As a result, all producers selected above will activate all
-	the consumers.  
+	the consumers. 
 	</P>
 </OL>
 <P>Notes: 
 </P>
 <OL>
 	<LI><P>Pushing the Blue-button selects p/s's in a circular fashion,
-	with a 'no-selection' before starting again at the beginning.  
+	with a 'no-selection' before starting again at the beginning. 
 	</P>
-	<LI><P>The teaching- p/c can be a consumer.  
+	<LI><P>The teaching- p/c can be a consumer. 
 	</P>
-	<LI><P>New teaching will replace the previous teaching.  
+	<LI><P>New teaching will replace the previous teaching. 
 	</P>
 	<LI><P>Pushing Gold for more than 3-seconds will reset the node to
-	its factory events.  
+	its factory events. 
 	</P>
 </OL>
-<P>One way to do that is presented here. It's not the only way, and
-there is no requirement for a standard in this area beyond one
-optional message type.</P>
-<P>This method is based on easily creating a known-unique new Event
-ID. When Event IDs are much longer than Node ID numbers (NIDs), it's
-straightforward to do this by using the NID followed by a sequential
-number when a new unique Event ID is needed. 
-</P>
 <H2><FONT SIZE=3>Examples</FONT></H2>
 <P><FONT SIZE=3>Given two Button-nodes, each with three buttons, A-C
 and D-F, respectively, and four Signals-nodes, 1-4:</FONT></P>
 <OL>
 	<LI><P><FONT SIZE=3>Buttons set Aspects: Push the blue-button on
-	Signal-1 until the 'green' aspect is selected.  On the first
+	Signal-1 until the 'green' aspect is selected. On the first
 	Button-node, push the blue-button <U>once</U> to select button-A,
 	then push the gold-button. On Signal-1 use the blue-button to select
 	aspect 'red', and on the Button-node push the blue-button twice to
-	select button-B, and then the gold.  Now, pushing button-A will
-	change Signal-1 to green, and button-B will change it to red.  </FONT>
+	select button-B, and then the gold. Now, pushing button-A will
+	change Signal-1 to green, and button-B will change it to red. </FONT>
 	</P>
 	<LI><P><FONT SIZE=3>Make a duplicate buttons: On the second
-	Button-node, push blue once to select button-D,  and on the first
-	Button-node, push blue once and then gold.  On the second
-	Button-node, push blue twice to select button-E,  and on the first
-	Button-node, push blue twice and then gold.  Now, button-D will turn
-	Signal-1 to green, and button-E will turn it to red.  </FONT>
+	Button-node, push blue once to select button-D, and on the first
+	Button-node, push blue once and then gold. On the second
+	Button-node, push blue twice to select button-E, and on the first
+	Button-node, push blue twice and then gold. Now, button-D will turn
+	Signal-1 to green, and button-E will turn it to red. </FONT>
 	</P>
 	<LI><P><FONT SIZE=3>Add a second consumer-node: On Signal-2 push
 	blue to select red, then on Signal-1 push blue to select green, push
-	gold.  On Signal-2 push blue to select green, then on Signal-1 push
-	blue to select red, push gold.  Now pushing button-A sets Signal-1
-	to green and signal-2 to red, and button-B turns Signal-1 to red and
-	Signal-2 to green.    </FONT>
+	gold. On Signal-2 push blue to select green, then on Signal-1 push
+	blue to select red, push gold. Now pushing button-A sets Signal-1 to
+	green and signal-2 to red, and button-B turns Signal-1 to red and
+	Signal-2 to green. </FONT>
 	</P>
 </OL>
 <H2><FONT SIZE=4 STYLE="font-size: 15pt"><U>Modified Blue/Gold</U></FONT></H2>
 <OL>
 	<LI><P>On one or more 'learner'-nodes, use the Blue-button to choose
 	a consumer/producer, and then the Gold-button briefly to make it a
-	learner.  Repeat for other p/c's on this node, and note this
-	includes teacher-node, if one of its p/c's is to be a learner.</P>
+	learner. Repeat for other p/c's on this node, and note this includes
+	teacher-node, if one of its p/c's is to be a learner.</P>
 	<LI><P>On the 'teacher'-node, push the Gold-button, and use the
 	Blue-button to choose a consumer/producer, push the Gold-button to
 	activate the teaching session. 
 	</P>
 	<LI><P>As a result, all producers selected above will activate all
-	the consumers.  
+	the consumers. 
 	</P>
 </OL>
 <P>Notes: 
 </P>
 <OL>
 	<LI><P>Pushing the Blue-button selects p/s's in a circular fashion,
-	with a 'no-selection' before starting again at the beginning.  
+	with a 'no-selection' before starting again at the beginning. 
 	</P>
-	<LI><P>The teaching- p/c can be a consumer.  
+	<LI><P>The teaching- p/c can be a consumer. 
 	</P>
 	<LI><P>New teaching will replace to previous teaching, to add to the
 	previous teaching, push the Gold button for 2-seconds, this will let
-	the selected p/c produce or consume two or more events, .  
+	the selected p/c produce or consume two or more events, . 
 	</P>
 	<LI><P>Pushing both Blue and Gold simultaneously for more than
-	5-seconds will reset the node to its factory events.  
+	5-seconds will reset the node to its factory events. 
 	</P>
 </OL>
 <H2><FONT SIZE=3>Examples</FONT></H2>
@@ -147,17 +139,17 @@ Signal-2 to red:</FONT></P>
 <OL>
 	<LI><P><FONT SIZE=3>On Button-node, push button-D and gold, on
 	Signal-1 push blue to select red and gold, on Signal-2 push blue to
-	select green and gold.  Then on Button-node push gold, button-A and
-	gold.  </FONT>
+	select green and gold. Then on Button-node push gold, button-A and
+	gold. </FONT>
 	</P>
 	<LI><P><FONT SIZE=3>On Button-node, push button-E and gold, on
 	Signal-1 push blue to select green and gold, on Signal-2 push blue
-	to select red and gold.  Then on Button-node push gold, button-B and
-	gold.  </FONT>
+	to select red and gold. Then on Button-node push gold, button-B and
+	gold. </FONT>
 	</P>
 	<LI><P><FONT SIZE=3>Now, button-A or button-D sets Signal-1 to red
 	and Signal-2 to green, and button-B or button-E sets Signal-1 to
-	green and Signal-2 to red.  </FONT>
+	green and Signal-2 to red. </FONT>
 	</P>
 </OL>
 <P STYLE="text-indent: -0.64cm"><BR><BR>
@@ -167,33 +159,33 @@ Signal-2 to red:</FONT></P>
 controls 8 turnouts with an included BODs, each turnout might have
 these consumers and producers:</FONT></H2>
 <OL>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&gt; Set
-	turnout to straight</SPAN></FONT></P>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&gt; Set
-	turnout to diverging</SPAN></FONT></P>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&lt; Turnout
-	was set to straight</SPAN></FONT></P>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&lt; Turnout
-	set to diverging</SPAN></FONT></P>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&lt; Turnout
-	is occupied</SPAN></FONT></P>
-	<LI><P><FONT SIZE=3><SPAN STYLE="font-weight: normal">&lt; Turnout
-	is unoccupied</SPAN></FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&gt; Set turnout to
+	straight</FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&gt; Set turnout to
+	diverging</FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&lt; Turnout was set
+	to straight</FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&lt; Turnout set to
+	diverging</FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&lt; Turnout is
+	occupied</FONT></P>
+	<LI><P STYLE="font-weight: normal"><FONT SIZE=3>&lt; Turnout is
+	unoccupied</FONT></P>
 </OL>
-<P><FONT SIZE=3><SPAN STYLE="font-weight: normal">The node would have
-three buttons and two digit seven-segment display to indicate active
-turnout and p/c.  The first button would select the active
-turnout(1), the second would choose a p/c(2), and the third would be
-Gold.  To set a learner, use button-1 to select a turnout, and 2 to
-select a p/c, then gold.  To select a teacher,  push gold, then 1&amp;2
-to select a p/c, and then gold to activate the teaching session.  </SPAN></FONT>
+<P STYLE="font-weight: normal"><FONT SIZE=3>The node would have three
+buttons and two digit seven-segment display to indicate active
+turnout and p/c. The first button would select the active turnout(1),
+the second would choose a p/c(2), and the third would be Gold. To set
+a learner, use button-1 to select a turnout, and 2 to select a p/c,
+then gold. To select a teacher, push gold, then 1&amp;2 to select a
+p/c, and then gold to activate the teaching session. </FONT>
 </P>
 <P><FONT SIZE=3><B>Example</B></FONT></P>
-<P><FONT SIZE=3><SPAN STYLE="font-weight: normal">Align turnout-2 to
+<P STYLE="font-weight: normal"><FONT SIZE=3>Align turnout-2 to
 turnout-1 if turnout-1 is occupied: using 1&amp;2 select
 turnout-2-Set diverging and gold, then push gold, select
-turnout-1-occupied, and gold.  Now if a train enters turnout-1,
-turnout-2 will change to align with it.  </SPAN></FONT>
+turnout-1-occupied, and gold. Now if a train enters turnout-1,
+turnout-2 will change to align with it. </FONT>
 </P>
 <H2>Default Producer and Consumer EventIDs</H2>
 <P>For reasons discussed above, it's important that the default
