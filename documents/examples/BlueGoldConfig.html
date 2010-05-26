@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100525;22515600">
+	<META NAME="CHANGED" CONTENT="20100525;23233300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -15,18 +16,81 @@
 and configure them to do something useful with only the pushbutton(s)
 and LED(s) on them, without requiring a separate configuration tool,
 computer, etc. One way to do that is presented here. It's not the
-only way, and there is no requirement for a standard in this area. 
-</P>
+only way, and there is no requirement for a standard in this area
+beyond one optional message type.</P>
 <P>This method is based on easily creating a known-unique new Event
 ID. When Event IDs are much longer than Node ID numbers (NIDs), it's
 straightforward to do this by using the NID followed by a sequential
 number when a new unique Event ID is needed. 
 </P>
-<H2>Default Producer</H2>
+<H2>Basic Configuration</H2>
+<P>The basic configuration operation is to set producers and/or
+consumers into “learn” mode, and then send a “LearnEvent”
+message carrying an EventID that will be configured into those
+producers and/or consumers. The producers and/or consumers then leave
+learn mode.</P>
+<H2>Blue/Gold Method</H2>
+<P>There is no standard for how users interact with boards to make
+this happen, but in this section we describe a way to do this will
+two buttons and optionally LEDs. This provides a basic method that
+allows users to configure boards without any additional tools, and
+manufacturers are strongly encouraged to include it or something
+similar.</P>
+<P>Each board has a blue button that is used to select an individual
+producer or consumer on the board, and a gold button to tell the
+board to send the LearnEvent message. These buttons can also be used
+for other purposes, e.g. pushing both buttons for three seconds could
+reset the board to factory defaults. Blue and gold are suggested
+instead of e.g. red and green to make them very distinctive, even for
+color blind or vision challenged users.</P>
+<P>To configure a connection between a producer on one board and a
+consumer on another, you:</P>
+<UL>
+	<LI><P>Go to the consumer board, and press the blue button enough
+	times to select the specific consumer. That consumer is now in learn
+	mode.  (If you change your mind, press the button a total of N+1
+	times to get back to the original, off state)</P>
+	<LI><P>Go to the producer board, and press the bue button enough
+	times to select the specific producer. Press the gold button.  A
+	LearnEvent message with the current EventID of that producer is
+	emitted, and the consumer learns to respond to it.</P>
+</UL>
+<P>Since each producer and consumer starts with a unique default
+EventID configured in, this will always create a unique connection
+that doesn't interfere with others. Note that you could also do it in
+the other direction, configuring the producer board to listen to the
+consumer board. Also, you can add a new consumer or producer to an
+existing connection between producers and consumers using this same
+technique.</P>
+<P>The optional LEDs can be used to help the user through the
+process.  For example, the LED associated with the blue button could
+flash N times so that the user didn't need to keep count. A LED
+associated with the gold button could flash on all participating
+boards to assure the user that the process worked.</P>
+<H2>Configuring An Event in Multiple Producers and Consumers</H2>
+<P>One advantage of P/C is that it's easy to have multiple causes of
+an event, and multiple actions in response to that event. For
+example, the user might want two separate pushbuttons to set the
+turnouts at each end of a siding; that's implemented as two producers
+for a specific event (the two pushbuttons), and two consumers (the
+two turnout drivers). 
+</P>
+<P>Using the buttons to configure two consumers to action on a single
+P/C Event ID (PCER message) is straightforward: You select the
+consumer(s) that need to be programmed with the blue button, then on
+another node select a producer or consumer that already knows the
+right EventID and press the gold button.</P>
+<P>Configuring two producers to use the same P/C Event ID uses the
+same ideas. 
+</P>
+<H2>Default Producer and Consumer EventIDs</H2>
+<P>For reasons discussed above, it's important that the default
+EventID that producers and consumers are configured to react to be
+unique. This section describes how to ensure that.</P>
 <P>Assume that a node can detect N conditions, each of which should
 send a unique P/C Event ID (the non-unique case is discussed below).
 The factory default condition is that each of those conditions will
-send a PCER message with a P/C Event ID of the board's unique NID
+produce a PCER message with a P/C Event ID of the board's unique NID
 followed by the input number (1, 2, etc). This is enough to get the
 board up and working. 
 </P>
@@ -36,82 +100,10 @@ condition happened, 0x123456789ABC002 when its second input condition
 happened, etc. These Event IDs could then be counted on for no- or
 low-configuration use. 
 </P>
-<H2>Configuring a Consumer</H2>
-<P>Assume a node that can do N separate actions in response to PCER
-messages on the NMRAnet, where N is reasonably small. 
-</P>
-<P>The board has a blue button and associated LED. 
-</P>
-<P>To enter configuration mode, the button is pressed once. The LED
-starts periodically flashing once. While in this mode, the next PCER
-message received will be associated with the 1st action. Each
-additional button press moves on to the next higher-numbered action.
-The board exits capture mode after N+1 button presses, or upon being
-power-cycled. 
-</P>
-<P>The configuration sequence is then: 
-</P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Quiesce the layout, or use a
-	bench-top setup so you can control when messages are sent 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Press the blue button once, and
-	confirm that the LED is now flashing once. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Force the event that should
-	trigger action 1, e.g. by stimulating a producer board. The Event ID
-	will be captured and configured when received. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Press the blue button once more,
-	and confirm that the LED is now flashing twice. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Force the event that should
-	trigger action 2, which will cause it to be captured. 
-	</P>
-	<LI><P>Repeat through all N actions 
-	</P>
-</UL>
-<H2>Configuring An Event in Multiple Producers and Consumers</H2>
-<P>One advantage of P/C is that it's easy to have multiple causes of
-an event, and multiple actions in response to that event. For
-example, the user might want two separate pushbuttons to set the
-turnouts at each end of a siding; that's implemented as two producers
-for a specific event (the two pushbuttons), and two consumers (the
-two turnout drivers). 
-</P>
-<P>Using the blue button to configure two consumers to action on a
-single P/C Event ID (PCER message) is straightforward: You just
-configure them like that using the sequence above. 
-</P>
-<P>Configuring two producers to use the same P/C Event ID uses the
-same ideas. The producer board has a gold (yellow) button and
-associated LED. To enter configuration mode, the gold button is
-pressed once. The LED starts to flash, indicating that the board is
-ready to configure input condition 1. The next PCER message's P/C
-Event ID will be captured so that the next time input condition 1
-occurs, this new P/C Event ID will be sent. 
-</P>
-<P>The configuration sequence is then: 
-</P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Quiesce the layout, or use a
-	bench-top setup so you can control when messages are sent 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Press the gold button once, and
-	confirm that the LED is now flashing once. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Force the event that should also
-	be sent by condition 1, which will cause it to be captured. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Press the gold button once more,
-	and confirm that the LED is now flashing twice. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Force the event that should also
-	be sent by condition 2, which will cause it to be captured. 
-	</P>
-	<LI><P>Repeat through all N actions 
-	</P>
-</UL>
+<P>Similarly, by default a board with M consumers will start with
+those consumers configured to match default EventIDs consisting of
+the NID followed by a sequential number that doesn't overlap with the
+producer sequence described above.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
