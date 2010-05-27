@@ -13,7 +13,7 @@
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Reliable Binary Wire Protocol</H1>
-<P>This section describes carrying NMRAnet across a transport
+<P>This section describes carrying OpenLCB across a transport
 mechanism that is reliable (all bytes are guaranteed to arrive in
 their original order) and can carry binary bytes. 
 </P>
@@ -27,18 +27,18 @@ their original order) and can carry binary bytes.
 	<LI><P>Program-to-program links within computers 
 	</P>
 </UL>
-<P>Reliable binary links can carry the full NMRAnet protocol.
+<P>Reliable binary links can carry the full OpenLCB protocol.
 Messages are carried in full common format. 
 </P>
 <P>The reliable binary wire protocol is meant to attach multiple
-segments of the entire NMRAnet instance. Using this protocol,
+segments of the entire OpenLCB instance. Using this protocol,
 messages can be moved from one gateway to another, where one or more
-additional NMRAnet nodes can be reached through the gateway(s). 
+additional OpenLCB nodes can be reached through the gateway(s). 
 </P>
 <P>It is meant for applications from attaching a single remote
 console to interconnecting large modular layouts totaling 500 or more
 segments and 10's of thousands of devices. As such, it must have no
-addressing limitations beyond those built into the NMRAnet common
+addressing limitations beyond those built into the OpenLCB common
 message format and node serial number format. 
 </P>
 <P>This wire protocol makes no assumptions about the available
@@ -65,14 +65,14 @@ between nodes via this protocol are also permitted.
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">Flags - 16 bit quantity, the
 	most-significant 15 bits are reserved. The least significant bit
-	indicates whether the remaining message is a common NMRAnet message
+	indicates whether the remaining message is a common OpenLCB message
 	or a gateway-gateway communication. 
 	</P>
 	<LI><P>Remaining message length in bytes 
 	</P>
 </UL>
 <H2>Routing</H2>
-<P>To reduce NMRAnet traffic on the individual NMRAnet segments, it's
+<P>To reduce OpenLCB traffic on the individual OpenLCB segments, it's
 useful to forward messages only to segments where nodes are listening
 for them. The two ends of the gateway-gateway link can exchange
 internal messages to control which common messages should be
@@ -124,7 +124,7 @@ located.
 	message addressed to the same NID. This will eventually return a
 	message from the node, resulting in routing table entries. Note that
 	this is an unusual occurrence, which should only happen when a
-	gateway comes up on an already operating NMRAnet. <I>(What's the
+	gateway comes up on an already operating OpenLCB. <I>(What's the
 	utility of this? You have to forward the original message anyway, so
 	that it's not lost, so what does this gain? Nothing for a
 	point-to-point link, but if there are multiple remote destinations,
@@ -135,7 +135,7 @@ located.
 <P>Some unaddressed messages, such as &quot;Initialization Complete&quot;,
 are rare enough that there is little cost to universally routing
 them. That also provides operating nodes knowledge of all the other
-nodes present on the NMRAnet. 
+nodes present on the OpenLCB. 
 </P>
 <P>Producer/Consumer Event Reports can be numerous enough that
 complete routing would be excessive. The message itself doesn't show
@@ -153,7 +153,7 @@ Identity/Identified” message automatically)</P>
 gateways need to be able to restart routing of a P/C Event ID at a
 later time. The &quot;Identified Consumer&quot; message triggers
 this, and node are therefore required to emit an &quot;Identify
-Consmer&quot; message when they first attach to the NMRAnet or if
+Consmer&quot; message when they first attach to the OpenLCB or if
 they are configured to consume a new Event Id. When an &quot;Identified
 Consumer&quot; is received from the remote side, PCER messages with
 that P/C Event ID must in the future be routed from the local side to
@@ -183,8 +183,8 @@ so has to be done with common messages.
 </P>
 <H2>Gateway-Gateway Messages</H2>
 <P>The TCP/IP gateway to gateway links effectively partition the
-overall NMRAnet into smaller &quot;islands&quot; or &quot;subnets&quot;.
-NMRAnet nodes in any of these must be able to communicate with each
+overall OpenLCB into smaller &quot;islands&quot; or &quot;subnets&quot;.
+OpenLCB nodes in any of these must be able to communicate with each
 other, including over intermediate wire-protocols that differ. 
 </P>
 <P STYLE="margin-bottom: 0cm">(<I>More needed here, most likely</I>) 
@@ -194,7 +194,7 @@ other, including over intermediate wire-protocols that differ.
 notes-to-self, and background information. 
 </P>
 <H3>Relationship with Ethernet Connections</H3>
-<P>Imagine you have five NMRAnet CAN segments, connected by small
+<P>Imagine you have five OpenLCB CAN segments, connected by small
 boxes to an Ethernet: You can use an Ethernet-specific protocol (e.g.
 ala Ethertalk, etc), or you can use IP connections (probably TCP/IP).</P>
 <P>The TCP/IP solution seems to require more overhead, but it works
@@ -203,15 +203,15 @@ segments, wide area links, etc.</P>
 <P>The Ethernet-protocol solution seems somewhat simpler (though
 getting a protocol certified is a lot of work), but can't get traffic
 off the local Ethernet segment. It spans hubs, but not switches, and
-would require NMRAnet-specific devices to connect to the larger
+would require OpenLCB-specific devices to connect to the larger
 Internet. So although an Ethernet-specific protocol seems simpler to
 create, in practice you'd still need to create Ethernet to Internet
 routers, resulting in an overall increase in engineering effort.</P>
 <P>Where Ethernet-specific protocol might be useful is in reducing
 the configuration load for single-segment implementations. It would
-be nice if people could plug e.g. five NMRAnet CAN-Ethernet adapters
+be nice if people could plug e.g. five OpenLCB CAN-Ethernet adapters
 into a single Ethernet and have them find and configure themselves to
-interconnect. This doesn't require new NMRAnet-specific protocols;
+interconnect. This doesn't require new OpenLCB-specific protocols;
 it's much more likely that a robust solution could be created using
 e.g. Bonjour (a form of ZeroConf) and similar standard protocols.
 Some recommendations here would improve interoperability of
