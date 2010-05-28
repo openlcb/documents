@@ -3,10 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Example: CAN/TCP/CAN/TCP Communication</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20090127;19444600">
+	<META NAME="CHANGED" CONTENT="20100528;12500600">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<!-- $Id$ -->
 </HEAD>
@@ -31,56 +32,57 @@ on segment B.
 <H2>Transparent Case</H2>
 <P>Both segments come up, assign the numbers 1,2,3 as aliases to
 their local nodes, 10 to gateway 1 and 20 to gateway 2 on segment B.
-Assume that all this happened before the links came up, so the
-&quot;Initialization Complete&quot; messages didn't cross the TCP
-links. 
+The gateways have learned these for the nodes on their local segment,
+but don't know anything else. E.g. assume that all this happened
+before the links came up, so the &quot;Initialization Complete&quot;
+messages didn't cross either of the TCP links. 
 </P>
-<P>P wants to ensure B1 is reachable, so sends a packet with
-&quot;P&quot;,&quot;Verify&quot;,&quot;B1&quot; to GB2. 
+<P>P1 wants to ensure B1 is reachable, so sends a packet with
+&quot;P1&quot;,&quot;Verify&quot;,&quot;B1&quot; to GB2. 
 </P>
-<P>GB2 assigns &quot;50&quot; as the local alias for P. Since this is
-the first time that traffic from P/50 is being sent on the CAN
+<P>GB2 assigns &quot;50&quot; as the local alias for P1. Since this
+is the first time that traffic from P1/50 is being sent on the CAN
 segment, GB2 sends &quot;50&quot;, &quot;Initialization Complete&quot;,
-&quot;P&quot; and then sends &quot;50&quot;, &quot;Verify&quot;,&quot;B1&quot;
+&quot;P1&quot; and then sends &quot;50&quot;, &quot;Verify&quot;,&quot;B1&quot;
 on CAN B. 
 </P>
 <P>GB1 notices that &quot;50&quot; now exists from the
 &quot;Initialization Complete&quot;, marks it as locally present with
-global NID &quot;P&quot;. It forwards the message to GA1 and CAN
-segment A as &quot;P&quot;, &quot;Initialization Complete&quot;, &quot;P&quot;.
-GA1 assigns a local alias of &quot;61&quot; and forwards a
-&quot;61&quot;,&quot;Initialization Complete&quot;, &quot;P&quot;
+global NID &quot;P1&quot;. It forwards the message to GA1 and CAN
+segment A as &quot;P1&quot;, &quot;Initialization Complete&quot;,
+&quot;P1&quot;. GA1 assigns a local alias of &quot;61&quot; and
+forwards a &quot;61&quot;,&quot;Initialization Complete&quot;, &quot;P1&quot;
 message. Nothing reacts to that. 
 </P>
 <P>GB1 gets the Verify message, forwards it to GA1 and CAN segment A
-as &quot;P&quot;, &quot;Verify&quot;, &quot;B1&quot; where it
+as &quot;P1&quot;, &quot;Verify&quot;, &quot;B1&quot; where it
 transmitted but causes no reaction. 
 </P>
 <P>B1 sees the Verify message for &quot;B1&quot;, replies with a &quot;1&quot;,
 &quot;Verified&quot;, &quot;B1&quot; 
 </P>
 <P>GB2 maps &quot;1&quot; back to &quot;B1&quot; and forwards the
-message to P as &quot;B1&quot;, &quot;Verified&quot;, &quot;B1&quot; 
+message to P1 as &quot;B1&quot;, &quot;Verified&quot;, &quot;B1&quot;
 </P>
-<P>P receives the Verified message, and has located B1. 
+<P>P1 receives the Verified message, and has located B1. 
 </P>
 <P>GB1 sees the Verified message and updates its routing maps to
 indicate that B1 is present on this segment if that's not already
 known. It then forwards that to GA1, and hence on to CAN segment A. 
 </P>
-<P>P wants to ensure A2 is reachable, so sends a packet with
+<P>P1 wants to ensure A2 is reachable, so sends a packet with
 &quot;P&quot;,&quot;Verify&quot;,&quot;A2&quot; to GB2. 
 </P>
 <P>GB2 sends &quot;50&quot;, &quot;Verify&quot;,&quot;A2&quot; on CAN
 B. 
 </P>
-<P>GB1 gets the Verify message, forwards it to GA1 as &quot;P&quot;,
-&quot;Verify”, &quot;A2&quot;. (In this part of the example, P is
+<P>GB1 gets the Verify message, forwards it to GA1 as &quot;P1&quot;,
+&quot;Verify”, &quot;A2&quot;. (In this part of the example, P1 is
 already known on segment A, so no &quot;Initialization Complete&quot;
 is needed) 
 </P>
-<P>GA1 forwards the Verify message using the known alias for P: &quot;61&quot;,
-&quot;Verify&quot;, &quot;A2&quot;. 
+<P>GA1 forwards the Verify message using the known alias for P1:
+&quot;61&quot;, &quot;Verify&quot;, &quot;A2&quot;. 
 </P>
 <P>A2 sees the Verify message for &quot;A2&quot;, replies with a &quot;2&quot;,
 &quot;Verified&quot;, &quot;A2&quot; 
@@ -98,9 +100,46 @@ segment, GB1 sends &quot;51&quot;, &quot;Initialization Complete&quot;,
 tables for A2. 
 </P>
 <P>GB2 sees the Verified message as coming from this link, so
-translates it and sends it to P. 
+translates it and sends it to P1. 
 </P>
-<H2>Gated Case</H2>
+<H2>Gated Exchange of Events Case</H2>
+<P>Both segments come up, assign the numbers 1,2,3 as aliases to
+their local nodes, 10 to gateway 1 and 20 to gateway 2 on segment B.
+For simplicity, A1 produces event X, which A2 and B2 want to consume.
+</P>
+<H3>Case 1: All nodes initialized before link established, event X is
+sent</H3>
+<P>The A-B gateways initialize their internal tables.</P>
+<P>A1 sends X.  GA receives it. Because GA hasn't seen X before, X is
+forwarded across the link to GB, followed by an “Identify Consumers
+of X” message.</P>
+<P>GB puts the X message on the CAN segment, and B2 consumes it.</P>
+<P>GB puts the “Identify Consumers of X” message on the CAN
+segment.</P>
+<P>B2 responds with “Consumer of X Identified”</P>
+<P>GB receives “Consumer of X Identified”, forwards to GA, which
+marks its tables to continue forwarding these.  GA forwards that
+message on the CAN segment in case there are other listeners for it.</P>
+<H3>Case 2: Node B2 comes up, after event X has been sent</H3>
+<P>The gateways are up, but don't know about B2. GA has seen X sent
+by A1, but has marked it as “do not forward” because there was no
+consumer for it on B.</P>
+<P>B2 comes up, gets a NID alias assigned, sends “Initialization
+Complete”.</P>
+<P>B2 sends “Consumer of X Identified”. GB forwards that to GA.</P>
+<P>GA remembers that event X must be forwarded across this link if
+seen.</P>
+<P>A1 sends X, GA receives it, forwards it across link.</P>
+<H3>Case 3: Node A1 comes up, then event X is sent</H3>
+<P>The gateways are up, but don't know about A1 or X.</P>
+<P>A1 comes up, gets a NID alias assigned, sends “Initialization
+Complete”.</P>
+<P>A1 sends “Producer of X Identified”. GA forwards that to GB.</P>
+<P>GA notes that event X must be forwarded across this link if seen.</P>
+<P>A1 sends X.  GA receives it. Because GA hasn't seen X before, X is
+forwarded across the link to GB, followed by an “Identify Consumers
+of X” message.</P>
+<P>The rest of this proceed like case 1.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>

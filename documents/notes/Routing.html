@@ -3,14 +3,16 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Note: Routing</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;20142900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100528;12522400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -19,40 +21,131 @@
 message should be able to get from any source node to any destination
 node. 
 </P>
-<P>This note discusses some aspects of that. (<I>There's a lot more
-in the <A HREF="../binary/index.html">Binary Wire Protocol</A>
-discussion, and much of that should be moved here</I>)</P>
+<P>To reduce OpenLCB traffic on the individual OpenLCB segments, it's
+useful to forward messages only to segments where nodes are listening
+for them. The two ends of a gateway (or gateway-gateway link) can use
+OpenLCB messages to control which common messages should be forwarded
+over the link. 
+</P>
+<P>This note discusses some aspects of how this is done in a gateway,
+based on the common messages documented elsewhere. Many different
+methods are possible, and this note describes ways that things can be
+done, not how they must be done.</P>
+<H3>Addressed Messages</H3>
+<P>Each gateway maintains a list of nodes (NIDs) that it knows are
+present on the local connection, and a separate list of those NIDs
+that can be reached via the remote connection. (N.B.: The
+local/remote terminology is just to make the discussion easier to
+follow, and doesn't effect the protocol. The protocol is symmetric
+between the two sides)</P>
+<P>When a node is seen on the local connection: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The remote table is checked, and
+	the NID removed if present. 
+	</P>
+	<LI><P>The NID is placed in the local table if not present. 
+	</P>
+</UL>
+<P>When a node is seen on the remote connection: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The local table is checked, and
+	the NID removed if present. 
+	</P>
+	<LI><P>The NID is placed in the remote table if not present. 
+	</P>
+</UL>
+<P>Messages arriving from the remote connection are forwarded to the
+local connection. (Nodes bouncing back and forth between “assigned
+to local” and “assigned to remote” may indicate a routing loop;
+nodes that do that just once may have been physically moved)</P>
+<P>Addressed messages (with a destination Node ID) that are seen on
+the local connection are checked to see where the node is located. 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">If it's remote, the message must
+	be forwarded to the remote connection.</P>
+	<LI><P STYLE="margin-bottom: 0cm">If it's local, the message can
+	optionally be forwarded across the link or dropped. The local
+	connection, e.g. CAN link or Ethernet segment, will arrange delivery
+	without the involvement of the gateway.</P>
+	<LI><P>If it's neither, e.g. not known, the message is forwarded,
+	preceded by a &quot;Verify Node Serial Number (Addressed)&quot;
+	message addressed to the same NID. This will eventually return a
+	message from the node, resulting in routing table entries. Note that
+	this is an unusual occurrence, which should only happen when a
+	gateway comes up on an already operating OpenLCB. <I>(What's the
+	utility of this? You have to forward the original message anyway, so
+	that it's not lost, so what does this gain? Nothing for a
+	point-to-point link, but if there are multiple remote destinations,
+	e.g. a central scatter-gather, this allows the scatter to send later
+	message only to the addressed node, without having to send them on
+	unnecessary links)</I></P>
+</UL>
+<H3>Unaddressed Messages</H3>
+<P>Some unaddressed messages, such as &quot;Initialization Complete&quot;,
+are rare enough that there is little cost to universally routing
+them. That also provides operating nodes knowledge of all the other
+nodes present on the OpenLCB. 
+</P>
+<P>Producer/Consumer Event Reports can be numerous enough that
+complete routing would be excessive. The message itself doesn't show
+an destination, however. A gateway can filter PCER messages from
+outgoing transmission if it knows there is no node listening at the
+remote end. To determine this, when a previously-unseen P/C Event ID
+occurs, it can be routed over the other-side connection followed by a
+&quot;Identify Consumers&quot; message with the same P/C Event ID. If
+any &quot;Consumer Identity&quot; messages come back, this PCER must
+continue to be routed. If none have returned after an appropriate
+time, the messages need not be routed any longer. (This is needed to
+handle connecting two live networks via a gateway; adding a node to a
+live network emits the “Consumer Identity/Identified” message
+automatically)</P>
+<P>To allow live networks to be configured to use new P/C Event IDs,
+gateways need to be able to restart routing of a P/C Event ID at a
+later time. The &quot;Identified Consumer&quot; message triggers
+this, and node are therefore required to emit an &quot;Identify
+Consmer&quot; message when they first attach to the OpenLCB or if
+they are configured to consume a new Event Id. When an &quot;Identified
+Consumer&quot; is received from the remote side, PCER messages with
+that P/C Event ID must in the future be routed from the local side to
+the remote side. 
+</P>
+<H3>Issues to Resolve</H3>
+<P>There needs to be a standard way to command remote gateway
+configuration, e.g. to set a &quot;send everything, I want to see it
+all&quot;. That has to work on a IP-CAN-IP-CAN-IP multisegment link,
+so has to be done with common messages. Defined eventIDs would be one
+way to do this.</P>
 <H2>Ranges</H2>
-<P STYLE="margin-bottom: 0cm">Some devices might want to consume or
-produce a large number of Event IDs. For example, a real time or fast
-clock might advertise time as a range of EventIDs; a bridge to
-another network type (XpressNet, LocoNet, etc) might want to send a
-lot of events to represent net traffic, etc. These need to be routed,
-identified, etc. This could be done with numerous “Identify
-Consumer” and “Identify Producer” messages, but this would take
-a lot of them. 
+<P>Some devices might want to consume or produce a large number of
+Event IDs. For example, a real time or fast clock might advertise
+time as a range of EventIDs; a bridge to another network type
+(XpressNet, LocoNet, etc) might want to send a lot of events to
+represent net traffic, etc. These need to be routed, identified, etc.
+This could be done with numerous “Identify Consumer” and
+“Identify Producer” messages, but this would take a lot of them. 
 </P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">Solving this is the purpose for the
-“Identify Produced Range” and “Identify Consumed Range”
-messages. They define a range of EventIDs using a mask on the lower
-order bits of the EventID. (This is not a general purpose mask or
-range system, to simplify the necessary routing algorithms; there are
-well-known algorithms for routing when a variable number of low-order
-bits have “don't care values”, as this is essentially the
-Internet routing problem)</P>
+<P>Solving this is the purpose for the “Identify Produced Range”
+and “Identify Consumed Range” messages. They define a range of
+EventIDs using a mask on the lower order bits of the EventID. (This
+is not a general purpose mask or range system, to simplify the
+necessary routing algorithms; there are well-known algorithms for
+routing when a variable number of low-order bits have “don't care
+values”, as this is essentially the Internet routing problem)</P>
 <H2>Loops</H2>
 <P>Because multiple gateways can be connected to e.g. a single CAN
 segment, it's possible to create loops and other examples of
 multiple-path routing. These, in turn, can create multiple copies of
 OpenLCB messages unless gateways protect against this. 
 </P>
-<H3>Diagnostics</H3>
-<P>Multi-path routing can cause packets to traverse a link in both
-directions, which in turn can be detected by storing a direction for
-each NID address being routed. 
-</P>
+<H3>Remaining Issues</H3>
+<P>The routing discussion doesn't properly handle routing loops, e.g.
+a TCP/IP link with both ends on the same CAN segment. Most can be
+detected by seeing the same source Node ID coming from two different
+links or passing onto a segment that originates that same Node ID,
+but can all can be detected that way?</P>
 <P>True loops, where a packet circulates around a series of links,
 can't be detected this way. They require e.g. a &quot;steps taken&quot;
 or &quot;steps to live&quot; field so that a gateway can detect that
@@ -61,10 +154,32 @@ via different routes. Or they can be detected (always? usually?) by
 detecting the same unique source Node ID coming from two different
 directions. 
 </P>
-<P STYLE="margin-bottom: 0cm">Unfortunately, OpenLCB CAN links don't
-have lots of space available to carry routing information. This
-implies that the verification needs to be done with special messages,
-either for testing routing, or as part of node initialization. 
+<P>A time-to-live field would probably work for detecting routing
+problems. Unfortunately, OpenLCB CAN links don't have lots of space
+available to carry routing information. We need to keep the
+information in the CAN packets if CAN packets can come from one link,
+traverse CAN, and then go off through another gateway. How do we
+transfer time-to-live across e.g. intermediate CAN segments with very
+limited space? Is that required, or can we say that all CAN segments
+can only have one gateway to the outside world? 
+</P>
+<P STYLE="margin-bottom: 0cm">As an alternative to time-to-live, and
+as a way to detect and diagnose loops, each forwarding gateway using
+e.g. the binary link protocol across Ethernet could add a new
+messages header (instead of replacing the old one) of node, time and
+flags. One of the flags would be whether the content started with
+another header, so that this could be broken apart. This still
+doesn't detect loops that involve CAN segments, where these headers
+are lost, so maybe it's not worth it.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Alternately, verification done with
+special messages, either for testing routing, or as part of gateway
+initialization. We could define an “explore connection” message
+and protocol to do this.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
 <P>This is SVN $Revision$ 
