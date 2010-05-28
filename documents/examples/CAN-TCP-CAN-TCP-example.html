@@ -3,12 +3,10 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Example: CAN/TCP/CAN/TCP Communication</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100528;12500600">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20100528;14230100">
 	<!-- $Id$ -->
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -31,11 +29,11 @@ on segment B.
 </P>
 <H2>Transparent Case</H2>
 <P>Both segments come up, assign the numbers 1,2,3 as aliases to
-their local nodes, 10 to gateway 1 and 20 to gateway 2 on segment B.
-The gateways have learned these for the nodes on their local segment,
-but don't know anything else. E.g. assume that all this happened
-before the links came up, so the &quot;Initialization Complete&quot;
-messages didn't cross either of the TCP links. 
+their local nodes, 10 to gateway GA and 20 to gateway GB1 on segment
+B. The gateways have learned these for the nodes on their local
+segment, but don't know anything else. E.g. assume that all this
+happened before the links came up, so the &quot;Initialization
+Complete&quot; messages didn't cross either of the TCP links. 
 </P>
 <P>P1 wants to ensure B1 is reachable, so sends a packet with
 &quot;P1&quot;,&quot;Verify&quot;,&quot;B1&quot; to GB2. 
@@ -110,7 +108,7 @@ For simplicity, A1 produces event X, which A2 and B2 want to consume.
 <H3>Case 1: All nodes initialized before link established, event X is
 sent</H3>
 <P>The A-B gateways initialize their internal tables.</P>
-<P>A1 sends X.  GA receives it. Because GA hasn't seen X before, X is
+<P>A1 sends X. GA receives it. Because GA hasn't seen X before, X is
 forwarded across the link to GB, followed by an “Identify Consumers
 of X” message.</P>
 <P>GB puts the X message on the CAN segment, and B2 consumes it.</P>
@@ -118,7 +116,7 @@ of X” message.</P>
 segment.</P>
 <P>B2 responds with “Consumer of X Identified”</P>
 <P>GB receives “Consumer of X Identified”, forwards to GA, which
-marks its tables to continue forwarding these.  GA forwards that
+marks its tables to continue forwarding these. GA forwards that
 message on the CAN segment in case there are other listeners for it.</P>
 <H3>Case 2: Node B2 comes up, after event X has been sent</H3>
 <P>The gateways are up, but don't know about B2. GA has seen X sent
@@ -136,7 +134,7 @@ seen.</P>
 Complete”.</P>
 <P>A1 sends “Producer of X Identified”. GA forwards that to GB.</P>
 <P>GA notes that event X must be forwarded across this link if seen.</P>
-<P>A1 sends X.  GA receives it. Because GA hasn't seen X before, X is
+<P>A1 sends X. GA receives it. Because GA hasn't seen X before, X is
 forwarded across the link to GB, followed by an “Identify Consumers
 of X” message.</P>
 <P>The rest of this proceed like case 1.</P>
