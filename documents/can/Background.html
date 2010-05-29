@@ -3,10 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>CAN Background Information</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091119;7545800">
+	<META NAME="CHANGED" CONTENT="20100528;23123100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<!-- $Id$ -->
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -143,6 +144,22 @@ them with CAN. Otherwise, they're just nice 6-wire untwisted cables.</P>
 if they've been working.</P>
 <P>The breakout panels are probably not electrically compatible with
 high-speed CAN.</P>
+<H2>Rate, bandwidth and throttling</H2>
+<P>CAN is designed to run at 100% usage without problem, and it's
+routine for CAN segments in other contexts to run at 100% for
+extended times.  Therefore, the CAN network does not require any
+inter-frame spacing, limitations on bandwidth usage, etc; the segment
+can be allowed to run at 100%.</P>
+<P>The real limitation is whether the nodes themselves can handle the
+full rate of frame arrival.  There is (currently) no mechanism in
+OpenLCB to throttle the rate of frames arriving at a node, nor is it
+easy to create one in a CAN network.  The stream and datagram
+protocol have been designed to allow a node to efficiently use a very
+limited amount of buffer memory, but don't provide mechanisms to
+limit the arrival of frames.</P>
+<P>For long term reliability, a node <U>must</U> be able to
+completely process an entire CAN frame in the time it takes to
+receive the next one, which may be as little as 42 (?) bit times.</P>
 <H2>CIM/RIM message content and format</H2>
 <P>The CIM/RIM algorithm for finding aliases is designed to work
 without any CAN errors. Arbitration conflicts are OK, but deliberate
