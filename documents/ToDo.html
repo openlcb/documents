@@ -6,11 +6,15 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100530;9585800">
+	<META NAME="CHANGED" CONTENT="20100530;10452700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -67,7 +71,9 @@ from e.g. connections to LocoNet, XpressNet, etc</SPAN></P>
 ID&quot; so e.g. portable devices (WiFi throttles) can identify which
 of several layouts (e.g. at a show) should be joined. See <A HREF="notes/LayoutID.html">working
 note</A>. <I>(Does this indicate need for another OpenLCB spec, for
-WiFi connection and access? BobJ)</I></P>
+WiFi connection and access? BobJ) (one way to solve this is with
+Bonjour/ZeroConf names for access points, separate from anything
+OpenLCB-specific. BobJ)</I></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">14. MTI (Message Type Indicator)
@@ -81,12 +87,12 @@ be renamed in any case) really a transport-specific field?</P>
 layouts. Via XML naming? Via EventID conventions? Goal is to link
 next-neighbor modules easily. <BR>Node and Event spaces for modular
 clubs? Let them allocate it! This might be a place for a router
-(which changes ID numbers) Write some examples. <BR><I>DPH: NIDa and
-Eventa can be allocated locally and be made globally unique by an
-appropriate prefix. I had thought use of masks might allow a flexible
-mechanism, that is well understood, to let different subnets
-(segments) have varying numbers of nodes and events. </I>
-</P>
+(which changes ID numbers) Write some examples. <SPAN STYLE="font-style: normal">See
+examples/ModularClubs.html note</SPAN><BR><I>DPH: NIDa and Eventa can
+be allocated locally and be made globally unique by an appropriate
+prefix. I had thought use of masks might allow a flexible mechanism,
+that is well understood, to let different subnets (segments) have
+varying numbers of nodes and events. )</I></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P>18. We plan to define a (small number) of “globally known”
@@ -117,8 +123,9 @@ Signaling design note</A>. Needs work!</P>
 in on this one ;-) as he has some experience with X10 and JMRI. Do we
 need to do more than suggest some approaches? Maybe an application
 note, showing how it could be done? <I>(Define some recommended
-events for room intensity, e.g. how to code intensity in event space
-- BobJ)</I></P>
+events for room intensity, e.g. how to code intensity in event space;
+want a mechanism for events to drive specific pre-selected intensity;
+study Insteon solution - BobJ)</I></P>
 <P>25. Fast Clock DPH: Again, we only need to suggest some
 approaches. Bob had suggested EID=
 &quot;&lt;ManuID/Model&gt;&lt;time-of-day-in-minutes:24&gt;&quot; The
@@ -126,13 +133,15 @@ fast-clock generates one message per fast-minute. Nodes that do
 simple things just respond to the time-Event of interest, eg
 &quot;&lt;Alex/FastClock&gt;&lt;1PM&gt;&quot;. Other nodes might
 consume all of them to display a fast-clock, or a station-clock.
-Configuration would be manufacturer dependant. Need to include rate
+Configuration would be manufacturer dependent. Need to include rate
 indication, so devices can extrapolate between events? Simpler in
 remote nodes than figuring it out from spacing. Also, need to know
 running vs stopped? (Just slightly more than 2^16 seconds in a day,
 just less than 2^12 minutes. Are fast seconds needed, e.g. to
-synchronize automation? Lots of traffic) <I>(This should go in a note
-where we can really develop it – Bob J)</I></P>
+synchronize automation? Lots of traffic. If seconds sent, code so
+easy to separate minutes, e.g. 12 bits minutes, then 6 bits
+second-in-minute) <I>(This should go in a note where we can really
+develop it – Bob J)</I></P>
 <P>26. Streaming Media, specifically semi-real time delivery of
 content (not on CAN; see also 23)</P>
 <OL START=13>
@@ -177,40 +186,12 @@ logged error”, “Node has logged warning”; that in turn can e.g.
 trigger log retrieval. Others? Can define standard events as NodeID
 with low of 0xFFFF, etc. <A HREF="notes/Logging.html">This has
 started in the Logging note.</A> Are there other areas that should be
-considered? See item 18.</SPAN></P>
+considered? See also item 18.</SPAN></P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">47. Eventually,
 write some words about a recommended common log format (mechanism is
 being developed in Logging note, but not format of log records)</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">49. Re button
-configuration, Bob wrote in email:</P>
-<BLOCKQUOTE>When I consider a consumer or producer, I've been
-thinking of them as only knowing about <U>one</U> event. Instead of
-&quot;a consumer can listen for 2 events and then do X in response&quot;,
-I was thinking in terms of &quot;there are N consumers that listen
-for their event and do X&quot;. In that case, you don't have to worry
-about erasing/deleting/reprogramming a specific event in a producer
-or consumer; you deal with <U>the</U> event in the producer or
-consumer. Reading back through the docs, I see that we've talked
-about both approaches. For example, the <A HREF="notes/ProducerConsumerModel.html">producer
-consumer note</A> uses the &quot;one event per&quot; model. The
-little boxes at the ends of the event arrows are individual producers
-and consumers. Other places, e.g. the <A HREF="examples/BlueGoldConfig.html">original
-Blue/Gold example</A> don't really make the distinction clearly. On
-the other hand, the XML DTD I proposed to the NMRAnet group a while
-back allowed you to put N events inside a &quot;producer&quot; or
-&quot;consumer&quot; element.</BLOCKQUOTE>
-<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Action item here is
-to make a decision as to status of “one event per PorC, allow N
-PorCs” and/or “N events per PorC, only 1 PorC” models, and
-document as needed. Is this a basic architectural choice, e.g. part
-of a standard? Or just a conceptual convenience? Effects things like
-configuration, logging, etc, but not really the basic protocol;
-“Producer” and “Consumer” are not addressable objects in the
-current protocol.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <BLOCKQUOTE STYLE="margin-left: 0cm; margin-right: 0cm"><SPAN STYLE="background: #00ff00">50.
@@ -221,12 +202,6 @@ we make RIM higher priority than CIM to get them done and announced?
 In general, revisit all <SPAN STYLE="font-style: normal">CAN bit
 position and polarity assignments to ensure that priority is properly
 implied</SPAN></SPAN></BLOCKQUOTE>
-<BLOCKQUOTE STYLE="margin-left: 0cm; margin-right: 0cm; font-style: normal">
-<SPAN STYLE="background: #00ff00">51. If a CAN node receives a RIM
-with its alias during normal operation, in addition to going offline
-it should emit a “help me” frame that can be caught and logged.
-(Probably shouldn't resend in case of error, as collisions can happen
-in this case)</SPAN></BLOCKQUOTE>
 <P STYLE="margin-bottom: 0cm; font-style: normal">52. NodeId vs
 UniqueID terminology, esp. in the EventID allocation. Notional
 approach:</P>
@@ -251,26 +226,23 @@ approach:</P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm; font-style: normal">54. Need a
-boot-loader/IPL process definition. Also serves as a good streaming,
-datagram example.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal">54. Need a CAN
+boot-loader/IPL process definition. May serve as a good streaming,
+datagram example, but it's also possible that full OpenLCB
+implementation is too much to include in a bootloader program.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">55. (from the
 can/index.html To Do list) Need to do a lot of work on cabling,
 connectors, etc at the CAN physical layer. Can we reasonably <U>require</U>
-a cable implementation? Recommend one? Document one solution? Note
-that multi-conductor flat phone cable will not work; CAT5 will; most
-model railroaders don't know the difference.</P>
+a cable implementation? Recommend one? Document one solution? 
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">56. (from the
 can/index.html To Do list) Decide on CAN device termination
-requirements, as needed. <I>(Some things, like a built in terminator,
-should be “desirable but not required”; there's more than one way
-to do it: switch on board; ship a resistor in one of the CAN
-connectors on the board; etc. - BobJ)</I> Even if the decision is not
-to have a requirement, document that.</P>
+requirements, as needed. Even if the decision is not to have a
+requirement, document that.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">57. (from the
@@ -311,8 +283,6 @@ are:</SPAN></P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <P STYLE="margin-bottom: 0cm">64. Perhaps add a simple mark/reply
 out-of-band signal to Streams. Allow marking a byte as “this byte
 is marked” (or perhaps “last byte moved/provided is marked”).
@@ -345,15 +315,15 @@ specifics left in the examples/CrossingGateExample.html file.</P>
 </P>
 <P STYLE="margin-bottom: 0cm">72. David Harris expressed an interest
 in an early email in some standard x,y,z mapping for nodes,
-detectors, etc.  Global and/or local (module specific) reference
-frame? Make it easy to find a node in space from it's NodeID?  Is
-this more than just one aspect of a general system for storing
+detectors, etc. Global and/or local (module specific) reference
+frame? Make it easy to find a node in space from it's NodeID? Is this
+more than just one aspect of a general system for storing
 node-specific info?</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">73. LocoNet examples should be moved
 out of notes/ExternalConnections.html and into either a spec (if
-mature) or a spec of it's own.  This needs to be done before the
+mature) or a spec of it's own. This needs to be done before the
 implementations are finalized.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
