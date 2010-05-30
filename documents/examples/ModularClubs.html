@@ -3,12 +3,13 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Example: Modular Clubs and OpenLCB</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="AUTHOR" CONTENT="Bob Jacobsen">
 	<META NAME="CREATED" CONTENT="20090704;17462000">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20090707;8375600">
+	<META NAME="CHANGED" CONTENT="20100529;21190500">
 	<META NAME="KEYWORDS" CONTENT="OpenLCB, modules, Fremo">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 2cm }
@@ -63,32 +64,51 @@ uniqueness, no overlaps or collisions.
 perhaps establish subspaces by club, by region, etc, to do actual
 assignment.</P>
 <P STYLE="margin-bottom: 0cm">Events within modules can just be
-assigned.</P>
-<P STYLE="margin-bottom: 0cm">To connect modules, you need something
-like “Interface Events” to e.g. tell one module's signals that a
-train is approaching, or is occupying the next block ahead; to allow
-control from other locations.  Easy to document these interface
-events at the same time as mechanical dimensions, etc, for overall
-planning. Assign NodeIDs to modules, use those for EventID bases, and
-define some lower-bit specific-meaning events. Then you just have to
-name neighbors.</P>
+configured in the usual way, without worrying about ID collisions.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">To connect modules, a modular group
+could define standard “Interface Events” to e.g. tell one
+module's signals that a train is approaching, or is occupying the
+next block ahead; to allow control from other locations. Easy to
+document these interface events at the same time as mechanical
+dimensions, etc, for overall planning. For example, 0x1001 in the
+low-part of the EventID could mean “Track one occupied east end”,
+0x1002 could be “Track two occupied east”, with others for the
+west end of the module, conveying signals status for look-ahead, etc.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Must have a way to match up the events
-produced by one module with the events consumed in the next.</P>
-<P STYLE="margin-bottom: 0cm">Conversion via separate node. E.g.
-“last section occupied”, emitted as a specific event, gets
-remapped to another specific event. Could be small node that does
-this for just one interface, or large central PC; can be distributed
-as required by other constraints.</P>
+produced by one module with the events consumed in the next. There
+are a couple of ways that this could be done:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Redefine module configuration: As
+	the modules are set up, their Consumers can be configured with the
+	events produced by the adjacent module. Alternately, the Producers
+	of interface events can be reconfigured to produce the events
+	expected by the adjacent Consumers.  This is robust and requires
+	minimal communications in operation, but does require changing
+	configurations.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Reconfigure via special support:
+	Nodes for module interfaces could have a special configuration
+	facility that makes it easy to specify just the NodeID of the
+	adjacent module, automatically working out all the necessary Event
+	IDs.  Or this could be a special tool that knows how to do this:
+	Plug it in, ident the two nodes, and off it goes.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Conversion via separate node: E.g.
+	The “Track one occupied east” event gets remapped to the
+	specific event required as input in the adjacent node. Could be
+	small node that does this for just one interface, or large central
+	PC; can be distributed as required by other constraints.</P>
+</UL>
 <H3>Central monitoring</H3>
 <P STYLE="margin-bottom: 0cm">Use of e.g. Ethernet for backbone
-connecting all individual segments (as many as needed) to PCs.  This
+connecting all individual segments (as many as needed) to PCs. This
 removes distance limitations, etc.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Routing protocols have to make it
-possible to pull all traffic onto backbone.  Not really a bandwidth
+possible to pull all traffic onto backbone. Not really a bandwidth
 issue, Ethernet speed gets higher and higher all the time, more of a
 management issue.</P>
 <HR>
