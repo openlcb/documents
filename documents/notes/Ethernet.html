@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>The Role of Ethernet</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;19575800">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100529;22102600">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: The Role of Ethernet</H1>
@@ -45,6 +46,8 @@ implementing devices.</P>
 	<LI><P>Simple self-configuration is required</P>
 	<LI><P>Must interoperate with all common PC-like computer types:
 	Windows, Mac, Linux</P>
+	<LI><P>UDP/IP is not a sufficiently reliable protocol for use with
+	PCs.</P>
 </UL>
 <H3>Preferences</H3>
 <UL>
@@ -54,14 +57,41 @@ implementing devices.</P>
 </UL>
 <H3>Design Choices</H3>
 <UL>
-	<LI><P></P>
+	<LI><P>Use Bonjour/Zeroconf to provide DNS and IP address assignment
+	in the absence of any other network infrastructure, e.g. when
+	creating an ad-hoc network.</P>
+	<LI><P>Use Bonjour/Zeroconf to advertise and access services.</P>
+	<LI><P>Use TCP/IP instead of UDP/IP.</P>
 </UL>
 <H2>Discussion</H2>
-<P>...</P>
-<P><BR><BR>
-</P>
-<P><BR><BR>
-</P>
+<P>In the following, “node” means an OpenLCB node with a native
+Ethernet connection.  This node might be e.g. a gateway to an entire
+CAN segment, but that doesn't matter to this discussion.</P>
+<P>Two types of connections are provided:  “point-to-point” and
+“hub-and-spoke”.</P>
+<P>In “point-to-point”, two nodes are connected by a direct
+TCP/IP connection.  This works fine for e.g. two nodes, but using
+only point-to-point connections doesn't scale well.  If there are 10
+nodes present, each has to maintain 9 TCP/IP sessions, which is
+rapidly becoming impractical. On the other hand, it's the simplest
+possible TCP/IP code.</P>
+<P>In the “hub-and-spoke” connection, one node acts as a “hub”
+and all others connect to it as “spokes”.  Each spoke node sends
+traffic to the hub, and the hub then forwards it to the N-2 other
+nodes.</P>
+<H3>Protocol</H3>
+<P>When a node comes up, it enquires for a “_openlcb-hub._tcp.local.”
+service. If found, connect to it.</P>
+<P>If not found, and if the node can be a hub (it's not required that
+all nodes be able to do that), it configures itself to act as a hub
+and advertises the “_openlcb-hub._tcp.local.” service.  Since all
+that takes time, it then checks again for <U>another</U> node
+advertising to be a hub. If found, it drops back to connecting to
+that and removes its service if the connection succeeds.</P>
+<P>If all that fails, start advertising as
+“_openlcb-node._tcp.local.”. Then, check for any other node(s)
+advertising as “_openlcb-node._tcp.local.” and connect to as many
+as possible of the ones that are found.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
