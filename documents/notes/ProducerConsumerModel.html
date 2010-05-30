@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>On Using Producer/Consumer Events</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;20140000">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100529;20302500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
 		TH P { margin-bottom: 0cm }
@@ -19,53 +20,114 @@
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>On Using Producer/Consumer Events</H1>
-<P>Simple example</P>
+<P>This note discusses aspects of the Producer/Consumer model and its
+use of Events.</P>
+<P>It's possible to use a Producer/Consumer (P/C) system in many
+ways, which is one of it's main strengths, but it's based on some
+simple ideas which you should master first.</P>
+<P>A “Consumer” is a very simple thing that is notified that a
+particular “Event” has happened.  A “Producer” notifies
+Consumers, via the network, that an Event has happened.</P>
+<P>Neither a Producer or Consumer actually does anything other than
+that.  Rather, they're connected to something else, which does it.</P>
+<P>For example, consider using a P/C system to turn on a lamp when a
+button is pushed.  We can draw it schematically like this:</P>
 <P><A HREF="../drawings/SimplestPCExample.png"><IMG SRC="../drawings/SimplestPCExample.png" NAME="Simple Producer Consumer example" ALIGN=BOTTOM WIDTH=294 HEIGHT=146 BORDER=0></A>
 </P>
-<P>Events have the advantage that multiple devices (consumers) can
-listen for the same one:</P>
-<P><A HREF="../drawings/NConsumerExample.png"><IMG SRC="../drawings/NConsumerExample.png" NAME="graphics3" ALT="Multiple consumer example" ALIGN=BOTTOM WIDTH=290 HEIGHT=218 BORDER=0></A></P>
+<P>The large boxes represent the hardware that connects to a switch
+and a lamp, respectively.  These are parts of “Nodes”.  The small
+box in the upper-left is a single “Producer”, the small box in
+the lower-right is a single “Consumer”, and the line between them
+represents a specific “Event”.  
+</P>
+<P>By convention, little boxes on the right side of big boxes are
+Producers, sending information to the right, and little boxes on the
+left side of big boxes are Consumers, accepting information from the
+left. The “Pushed” label means that Producer sends its programmed
+Event when that node tells it that the button has been pushed.  The
+“Turn On” label means that when the Consumer sees its programmed
+Event, it tells the node “Event received to Turn On”, and
+presumably the node will turn the lamp on.</P>
+<P>Graphically, the Event that's exchanged doesn't have to be
+labelled.  The fact that it connects the boxes is enough to indicate
+that they are programmed to work with the same Event ID.  In a real
+system, you might want to label the Event with a name or numeric
+Event ID to make the diagrams easier to understand.</P>
+<P>Events have the advantage that separate Consumers in multiple
+devices can listen for the same one:</P>
+<P><A HREF="../drawings/NConsumerExample.png"><IMG SRC="../drawings/NConsumerExample.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=290 HEIGHT=218 BORDER=0></A></P>
 <P>The button doesn't have to be configured to talk to all the lamps,
 the lamps are individually configured, and they don't even have to be
 of the same type.</P>
-<P>It's also possible for multiple producers to cause the same
-actions by producing the same event:</P>
-<P><A HREF="../drawings/NProducerExample.png"><IMG SRC="../drawings/NProducerExample.png" NAME="graphics2" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=290 HEIGHT=214 BORDER=0></A></P>
-<P>None of the producers need to know about each other. A new one can
-be added without reconfiguring anything.</P>
-<P>Producers and consumers usually are grouped, e.g. with two
-separate events for switch flipped either way or for output on/off.</P>
-<P><A HREF="../drawings/OnOffExample.png"><IMG SRC="../drawings/OnOffExample.png" NAME="graphics1" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=284 HEIGHT=154 BORDER=0></A></P>
-<P>In that example, normal operation has the bulb following the
-on/off switch. The pushbutton can also command the light off at any
-time.</P>
-<P>Consumer multiplicity vs Producer multiplicity</P>
-<P>System generalizes well to separate, overlapping selections...</P>
-<P>Day/night/all-on/all-off example. Four events from N producers are
-interpreted by 2*M consumers. Two events per consumer (either day or
-night, and either on or off). Or teach producers to send two events,
-e.g. “on for on at night” and “on for on in daytime” to turn
-all on.</P>
-<P><A HREF="../drawings/DayNightExample.png"><IMG SRC="../drawings/DayNightExample.png" NAME="graphics4" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=356 HEIGHT=260 BORDER=0></A></P>
-<P><BR><BR>
+<P>It's also possible for multiple Producers to cause the same
+actions by producing the same Event:</P>
+<P><A HREF="../drawings/NProducerExample.png"><IMG SRC="../drawings/NProducerExample.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=290 HEIGHT=214 BORDER=0></A></P>
+<P>The “Turn on” operation of the lamp will happen if any of the
+controls is used, because their Producers all emit the same Event. 
+The Consumer associated with the lamp neither knows nor cares which
+one sent the Event ID. None of the Producers need to know about each
+other. A new one can be added without reconfiguring anything, by
+setting it to use an existing EventID. 
 </P>
-<P><A HREF="../drawings/DayNightExample2.png"><IMG SRC="../drawings/DayNightExample2.png" NAME="graphics5" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=355 HEIGHT=246 BORDER=0></A></P>
+<P>Sometimes a node will do several things, e.g. handle a switch
+flipped either way or set an output either on or off. To do that,
+each operation will have a separate Producer or Consumer attached to
+it.</P>
+<P><A HREF="../drawings/OnOffExample.png"><IMG SRC="../drawings/OnOffExample.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=284 HEIGHT=154 BORDER=0></A></P>
+<P>In that example, normal operation has the bulb following the
+on/off toggle switch. The pushbutton can also command the light off
+at any time.</P>
+<P>The toggle switch is connected to two Producers: One that will
+send an Event when “Set On” happens, and another that will send a
+different Event when “Set Off” happens.  The lamp has two
+Consumers, one that will “Turn On” when its Event is received and
+another that will “Turn Off”.</P>
+<H2>Consumer Multiplicity vs Producer Multiplicity</H2>
+<P>P/C systems can be made even more powerful by having multiple
+Producers and/or multiple Consumers available for each operation. 
+</P>
+<P>Consider an example where you want to have four buttons:</P>
+<UL>
+	<LI><P>All on</P>
+	<LI><P>Set “day mode”, with certain lights on</P>
+	<LI><P>Set “night mode”, with a different set of lights on</P>
+	<LI><P>All off</P>
+</UL>
+<P>In general, this can't be done with just one Producer per switch
+and one Consumer per lamp, because something has to be able to
+respond to two Events, while others have to respond to a different
+two.</P>
+<P>It can be done if you attach two Consumers (either day or night,
+and either on or off): 
+</P>
+<P><A HREF="../drawings/DayNightExample.png"><IMG SRC="../drawings/DayNightExample.png" NAME="graphics4" ALIGN=BOTTOM WIDTH=356 HEIGHT=260 BORDER=0></A></P>
+<P>It can also be done if you attach two Producers to each button, so
+you can send two Events when they are pushed, e.g. “on for on at
+night” and “on for on in daytime” to turn all on:</P>
+<P><A HREF="../drawings/DayNightExample2.png"><IMG SRC="../drawings/DayNightExample2.png" NAME="graphics5" ALIGN=BOTTOM WIDTH=355 HEIGHT=246 BORDER=0></A></P>
+<P>Because having multiple Producers and Consumers can make products
+more powerful, manufacturers may want to provide them in their
+products.  How many to provide is up to them, though.  A simple
+product might have just one, and a top-end product might have many.</P>
 <P>The situation gets more complicated when there are a large number
 of devices and a large number of inputs that make arbitrary
-combinations. Limiting case is N states and M outputs, where each of
-the outputs has to be set for each of the inputs. Somewhere, the
-mapping between those needs to be maintained. 
-</P>
+combinations. The limiting case is N states and M outputs, where each
+of the outputs has to be set for each of the inputs. Somewhere, the
+mapping between those needs to be maintained. At some point, you
+might have to add some element (e.g. a computer) that takes a
+specific Events from Producers and converts them into lots more that
+are aimed at specific Consumers, but P/C systems are powerful enough
+that this is rarely necessary.</P>
 <H2>Compound yard throat example</H2>
-<P><A HREF="../drawings/CompoundLadder.png"><IMG SRC="../drawings/CompoundLadder.png" NAME="graphics6" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=287 HEIGHT=198 BORDER=0></A></P>
-<P>Each digit is a turnout which consumes events to set “straight”
-and other events to set “diverging”. There are a total of 2*8 =
-16 consumers. The letters are 9 pushbuttons that can produce one or
-more events when pressed. The goal is to align the turnouts for the
+<P><A HREF="../drawings/CompoundLadder.png"><IMG SRC="../drawings/CompoundLadder.png" NAME="graphics6" ALIGN=BOTTOM WIDTH=287 HEIGHT=198 BORDER=0></A></P>
+<P>Each digit is a turnout which consumes Events to set “straight”
+and other Events to set “diverging”. There are a total of 2*8 =
+16 Consumers. The letters are 9 pushbuttons that can produce one or
+more Events when pressed. The goal is to align the turnouts for the
 pressed button.</P>
-<P>One way to do this is to have the buttons send a single event,
+<P>One way to do this is to have the buttons send a single Event,
 which we'll label with the name of the button, and have turnouts be
-able to receive all relevant events.</P>
+able to receive all relevant Events.</P>
 <TABLE WIDTH=80% BORDER=1 CELLPADDING=4 CELLSPACING=3>
 	<COL WIDTH=28*>
 	<COL WIDTH=28*>
@@ -81,28 +143,28 @@ able to receive all relevant events.</P>
 			<P ALIGN=CENTER><BR>
 			</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="1" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="1" SDNUM="1033;">
 			<P ALIGN=CENTER>1</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="2" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="2" SDNUM="1033;">
 			<P ALIGN=CENTER>2</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="3" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="3" SDNUM="1033;">
 			<P ALIGN=CENTER>3</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="4" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="4" SDNUM="1033;">
 			<P ALIGN=CENTER>4</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="5" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="5" SDNUM="1033;">
 			<P ALIGN=CENTER>5</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="6" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="6" SDNUM="1033;">
 			<P ALIGN=CENTER>6</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="7" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="7" SDNUM="1033;">
 			<P ALIGN=CENTER>7</P>
 		</TH>
-		<TH WIDTH=11% SDVAL="8" SDNUM="4105;">
+		<TH WIDTH=11% SDVAL="8" SDNUM="1033;">
 			<P ALIGN=CENTER>8</P>
 		</TH>
 	</TR>
@@ -417,35 +479,35 @@ able to receive all relevant events.</P>
 created manually using e.g. the blue/gold algorithm: Go to each
 turnout along the route to a specific track, set it as required and
 put it in acquisition mode, then press the button for that track.
-Repeat for each track. This works so long as enough events can be
-recognized by each consumer.</P>
+Repeat for each track. This works so long as enough Events can be
+recognized by each Consumer.</P>
 <P>In the worst case, turnout 1 must receive and respond to every
-event by either setting straight or diverging. (Look down column 1 to
-see this) Five events must be recognized to set Turnout 1 straight.
-Turnout 2 needs to respond to 5 total events, 2 for straight and 3
+Event by either setting straight or diverging. (Look down column 1 to
+see this) Five Events must be recognized to set Turnout 1 straight.
+Turnout 2 needs to respond to 5 total Events, 2 for straight and 3
 for diverging. The others need to respond to 1 or 2 for each of
 straight and diverging.</P>
 <P>In general, this approach will have a few turnouts at the start of
-the throat that must respond to many events, with turnouts later on
-needing to look for only a few events.</P>
-<P>There's another approach available: Note that no event sets more
+the throat that must respond to many Events, with turnouts later on
+needing to look for only a few Events.</P>
+<P>There's another approach available: Note that no Event sets more
 than four turnouts, and some set three. For this type of ladder,
-having the producers send multiple events can be simpler. 
+having the Producers send multiple Events can be simpler. 
 </P>
-<P>For example, if we define 2*8 events as individual “Set Turnout
+<P>For example, if we define 2*8 Events as individual “Set Turnout
 1 straight”, Set Turnout 1 diverging”, “Set Turnout 2
-straight”, etc, then each button producer needs to send only three
+straight”, etc, then each button Producer needs to send only three
 or four of these to set a route. This is very similar to the usual
 method of using turnout commands, and has the same drawback: All the
 buttons must be programmed in detail, and must be able to send lots
 of commands.</P>
-<P>The entire yard can be done with two-event producers and two-event
-consumers using a combination of these. Define three events, called
+<P>The entire yard can be done with two-Event Producers and two-Event
+Consumers using a combination of these. Define three Events, called
 i, ii and iii, which connect to tracks A,B,C; D,E; and F,G,H,I;
 respectively. Each button sends one of these in addition to the usual
-A though I events. The i-iii events are aimed at the start of the
+A though I Events. The i-iii Events are aimed at the start of the
 throat, routing to groups of turnouts that can be handled with just
-two consumers. See table below.</P>
+two Consumers. See table below.</P>
 <TABLE WIDTH=571 BORDER=1 CELLPADDING=4 CELLSPACING=3>
 	<COL WIDTH=45>
 	<COL WIDTH=46>
@@ -466,28 +528,28 @@ two consumers. See table below.</P>
 			<P ALIGN=CENTER><BR>
 			</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="1" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="1" SDNUM="1033;">
 			<P ALIGN=CENTER>1</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="2" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="2" SDNUM="1033;">
 			<P ALIGN=CENTER>2</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="3" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="3" SDNUM="1033;">
 			<P ALIGN=CENTER>3</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="4" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="4" SDNUM="1033;">
 			<P ALIGN=CENTER>4</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="5" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="5" SDNUM="1033;">
 			<P ALIGN=CENTER>5</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="6" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="6" SDNUM="1033;">
 			<P ALIGN=CENTER>6</P>
 		</TH>
-		<TH WIDTH=46 SDVAL="7" SDNUM="4105;">
+		<TH WIDTH=46 SDVAL="7" SDNUM="1033;">
 			<P ALIGN=CENTER>7</P>
 		</TH>
-		<TH WIDTH=42 SDVAL="8" SDNUM="4105;">
+		<TH WIDTH=42 SDVAL="8" SDNUM="1033;">
 			<P ALIGN=CENTER>8</P>
 		</TH>
 	</TR>
@@ -830,90 +892,107 @@ two consumers. See table below.</P>
 <P>Many yard throats are linear: To get to track M, you go through
 M-1 turnouts set straight, and then finally one set diverging. 
 </P>
-<P>If using “consumer multiplicity”, where the track buttons just
-create a single specific event for each of N tracks, all of which
+<P>If using “Consumer multiplicity”, where the track buttons just
+create a single specific Event for each of N tracks, all of which
 turnouts listen to when required, the first turnout has to listen for
-N-1 events that will set “straight”, and one that will set
+N-1 Events that will set “straight”, and one that will set
 “diverging”. For N large, the turnout might not be able to listen
-for that many events in one state. A similar approach can be used,
+for that many Events in one state. A similar approach can be used,
 where turnouts are assigned to groups, and early turnouts just listen
-for a few group events. 
+for a few group Events. 
 </P>
 <P>Clearly, tools to do this configuration will be helpful.</P>
+<P>Another approach is to provide a Producer on each turnout
+controller for “Positioned Straight” and “ Positioned
+Diverging”.  The turnout controller will emit those once the
+turnout has been set. Then, program each turnout controller's “
+Positioned Straight” and “Positioned Diverging” Producers to
+send the “Set Straight” for the upstream turnout.  Then, program
+each button to just emit “Set Diverging” for the last turnout. 
+It will move, and command the upstream one straight, which will
+command the upstream one straight, etc, all up the line.</P>
 <H2>Application to Signals</H2>
 <P>Signaling usually requires more logic than can be handled via raw
-events, e.g. occupancy, look ahead, etc. But a head device could
-listen to state via events. Need to still emit events for aspects so
-that e.g. a control panel can mirror.</P>
-<P>SE8c has cable (4 heads) as unit of multiplicity; vs single head
-in a signal decoder; vs individual LEDs.</P>
+Events, e.g. occupancy, look ahead, etc. But a signal controller
+could listen to state via Events. Note that it's still useful for a
+signal system to emit Events for each aspect change so that e.g. a
+control panel can mirror the appearance of the on-layout signals.</P>
+<P>For example, a Digitrax SE8c has the “cable” (4 heads) as unit
+of multiplicity for commands, as compared to a single head in a
+signal decoder, or individual LEDs.</P>
 <H3>Signals via single-lamp drivers</H3>
 <P>You can connect the lamps of a signal head to individual
-consumers:</P>
-<P><A HREF="../drawings/SignalViaLamps.png"><IMG SRC="../drawings/SignalViaLamps.png" NAME="graphics7" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=226 HEIGHT=255 BORDER=0></A></P>
+Consumers:</P>
+<P><A HREF="../drawings/SignalViaLamps.png"><IMG SRC="../drawings/SignalViaLamps.png" NAME="graphics7" ALIGN=BOTTOM WIDTH=226 HEIGHT=255 BORDER=0></A></P>
 <P>This is a powerful but complicated approach. 
 </P>
 <H3>Signals via single-head drivers</H3>
-<P><A HREF="../drawings/SignalViaHeads.png"><IMG SRC="../drawings/SignalViaHeads.png" NAME="graphics8" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=228 HEIGHT=158 BORDER=0></A></P>
+<P>You can also control signals with Events for specific colors of a
+single head.</P>
+<P><A HREF="../drawings/SignalViaHeads.png"><IMG SRC="../drawings/SignalViaHeads.png" NAME="graphics8" ALIGN=BOTTOM WIDTH=228 HEIGHT=158 BORDER=0></A></P>
 <H3>Signals via mast drivers</H3>
-<P><A HREF="../drawings/SignalViaMast.png"><IMG SRC="../drawings/SignalViaMast.png" NAME="graphics10" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=228 HEIGHT=194 BORDER=0></A></P>
+<P>You can control an entire signal mast via one Event for each
+high-level aspect of the signaling system.</P>
+<P><A HREF="../drawings/SignalViaMast.png"><IMG SRC="../drawings/SignalViaMast.png" NAME="graphics10" ALIGN=BOTTOM WIDTH=228 HEIGHT=194 BORDER=0></A></P>
 <H3>Signals via control-point drivers</H3>
-<P><A HREF="../drawings/SignalViaCP.png"><IMG SRC="../drawings/SignalViaCP.png" NAME="graphics9" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=230 HEIGHT=206 BORDER=0></A></P>
-<H2>Integrated Signals</H2>
+<P>You can build the entire signal logic into a single node,
+accepting input via Events that represent high-level information.</P>
+<P><A HREF="../drawings/SignalViaCP.png"><IMG SRC="../drawings/SignalViaCP.png" NAME="graphics9" ALIGN=BOTTOM WIDTH=230 HEIGHT=206 BORDER=0></A></P>
+<H3>Integrated Signals</H3>
 <P>In each of the examples above, the signal controller consumes
-events that directly control the appearance of the signals. It's also
-possible to build a signal controller that watches status events from
+Events that directly control the appearance of the signals. It's also
+possible to build a signal controller that watches status Events from
 the railroad and makes independent decisions about signal states and
 appearances.</P>
-<P><A HREF="../drawings/SignalViaCPAuto.png"><IMG SRC="../drawings/SignalViaCPAuto.png" NAME="graphics11" ALT="Multiple producer example" ALIGN=BOTTOM WIDTH=230 HEIGHT=206 BORDER=0></A></P>
+<P><A HREF="../drawings/SignalViaCPAuto.png"><IMG SRC="../drawings/SignalViaCPAuto.png" NAME="graphics11" ALIGN=BOTTOM WIDTH=230 HEIGHT=206 BORDER=0></A></P>
 <H2>Internal vs External configuration</H2>
-<P>How the events are stored and mapped to actions internally is not
+<P>How the Events are stored and mapped to actions internally is not
 something to be specified by OpenLCB. The configuration process just
-defines which event(s) are assigned to which producer(s) and
-consumer(s).</P>
+defines which Event(s) are assigned to which Producer(s) and
+Consumer(s).</P>
 <P>But it's important that implementation be possible, so in this
 section we describe a few approaches.</P>
 <P>Probably the hardest case is a single board that is controlling N
-consumers or producers, e.g. N/2 devices, each of which has 2
-consumers or producers for separate states, and each of which might
-have to deal with up to M events. The worst case is then that the
-board might have to store N*M events IDs and test whether each
-incoming event report contains any of them. This kind of quadratic
+Consumers or Producers, e.g. N/2 devices, each of which has 2
+Consumers or Producers for separate states, and each of which might
+have to deal with up to M Events. The worst case is then that the
+board might have to store N*M Events IDs and test whether each
+incoming Event report contains any of them. This kind of quadratic
 growth can get out of control quickly.</P>
-<P>In the yard example, we had 2*8 = 16 separate consumers. One
-consumer needed to listen for 6 events, so if we round that up to 8,
+<P>In the yard example, we had 2*8 = 16 separate Consumers. One
+Consumer needed to listen for 6 Events, so if we round that up to 8,
 if we wanted to create a general purpose 8-turnout controller without
 limitations, one might imagine needing to store and compare (2*8)*8 =
-128 event IDs.</P>
-<P>Note that there were only 9 unique events, however. The total
+128 Event IDs.</P>
+<P>Note that there were only 9 unique Events, however. The total
 number of <U>possible</U> settings of the yard throats isn't
 relevant, because once an early turnout has ensured that a train
 won't pass over some of the turnouts, their position doesn't matter.
-For N turnouts, instead of 2^N possible unique events to set all
+For N turnouts, instead of 2^N possible unique Events to set all
 possible states of the throat, there are really only N+1.</P>
-<P>This is an example of a set of events which set the state of a
+<P>This is an example of a set of Events which set the state of a
 number of outputs in an interconnected way. If there's sufficient
-interconnection, and hence a reasonable number of events, the best
-way to store it is a list of event IDs, each of which has associated
+interconnection, and hence a reasonable number of Events, the best
+way to store it is a list of Event IDs, each of which has associated
 set of bits that determines the output states. Our 8 output board
-might have 16 event slots, each of which has a byte to determine
+might have 16 Event slots, each of which has a byte to determine
 which turnouts will be position and a byte to say whether it's
 straight or diverging. Total storage, even with the growth from the 9
-events events needed to the larger 16 events, is still 16*(8+2) = 160
-bytes. Searching 16 events can be done linearly, but if not a simple
-binary search (for unique event IDs) or tree search (for masked event
-IDs) would speed it up.</P>
-<P>At the other end of the spectrum, imagine N outputs consumers (N/2
-devices with 2 consumers per device, or similar), each of which
-responds to 1 to M events. Naively, you might assign space to store
-N*M events, and have to ensure that all of those can be searched when
-each event arrives. For example, 8 turnouts is 16 consumers, and if
-you want to assign up 9 events to each (throat example above), you're
-up to 64 events. Not all of these might be needed, however. A
-controller might be limited to, say 32 total events. The compound
+Events needed to the larger 16 Events, is still 16*(8+2) = 160 bytes.
+Searching 16 Events can be done linearly, but if not a simple binary
+search (for unique Event IDs) or tree search (for masked Event IDs)
+would speed it up.</P>
+<P>At the other end of the spectrum, imagine N outputs Consumers (N/2
+devices with 2 Consumers per device, or similar), each of which
+responds to 1 to M Events. Naively, you might assign space to store
+N*M Events, and have to ensure that all of those can be searched when
+each Event arrives. For example, 8 turnouts is 16 Consumers, and if
+you want to assign up 9 Events to each (throat example above), you're
+up to 64 Events. Not all of these might be needed, however. A
+controller might be limited to, say 32 total Events. The compound
 ladder example above uses 30. Some outputs use 1, some 2, up to 6;
 that's not constrained, just the total. This could be implemented by
-a sorted list, each entry of which points to the associated consumer.
+a sorted list, each entry of which points to the associated Consumer.
 Storage is small, searching can be done via a binary sort or tree,
 and the list needs only to be reoptimized when the device is
 reconfigured.</P>
