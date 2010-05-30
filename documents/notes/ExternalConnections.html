@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Note: External Connections</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;19585900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100530;9552900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
 	<STYLE TYPE="text/css">
 	<!--
@@ -54,15 +55,18 @@ message boundaries. The last byte of each message is a check byte.</P>
 sensors are four bytes long. LocoNet defines two separate address
 spaces for turnouts, and at least two for sensors. Throttle (DCC)
 control is done via a mix of four-byte and much longer messages.</P>
-<P>LocoNet has provision for a one-byte “LocoNet ID” to separate
+<P>LocoNet has provision for a seven-bit “LocoNet ID” to separate
 multiple radio-operated LocoNets located close together. The vast
 majority of LocoNets use the default value, but modular layout groups
-are used to setting unique LocoNet IDs.</P>
+require the ability to set unique LocoNet IDs. The LocoNet ID should
+be carried so that LocoNets don't collide at big meets.</P>
 <H2 CLASS="heading-3">OpenLCB support</H2>
 <P>LocoNet layout control messages effectively already are P/C
 events, in that they are broadcast to a set of unknown listeners.
 Mapping a set of these to and from unique EventIDs would make the
-connection to OpenLCB straightforward.</P>
+connection to OpenLCB straightforward. Working at the level of
+“layout control messages” instead of separate “turnout
+messages” and “sensor messages” is a more general approach.</P>
 <P>LocoNet EventID format:</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=32*>
@@ -114,8 +118,11 @@ connection to OpenLCB straightforward.</P>
 <P><BR><BR>
 </P>
 <P>The unique ID is taken from (somebody's) assigned name space, so
-that it's guaranteed to remain unique. If there are ever multiple
-vendors of LocoNet gateways, they'd have separate Unique IDs.</P>
+that it's guaranteed to remain unique. The Digitrax
+manufacturer-assigned space starts in byte 3, for example, so there
+is plenty of space for this assignment. If there are ever multiple
+protocols for LocoNet gateways, they'd be distinguished by separate
+Unique IDs.</P>
 <P>Two ways of mapping LocoNet to and from OpenLCB have been
 proposed. In the “transformation” approach, the gateway parses
 incoming LocoNet messages to extract their type, device address, etc,
@@ -193,6 +200,22 @@ sufficient for reassembling a LocoNet message before transmitting it
 on the LocoNet link.</P>
 <P>This approach has the advantage that it is completely transparent
 to changes and additions to the LocoNet protocol itself.</P>
+<H3>Transponding and Lissy Messages</H3>
+<P>LocoNet also carries longer messages that report transponding and
+Lissy conditions. 
+</P>
+<P>A transponding message is 14 bits of locomotive address, 1 bit of
+arrived/departed, and 12 bits of transponder section address, for a
+total of 27 bits. Not all combinations are used, because the NMRA
+locomotive address doesn't fill the 14 bits of address, but it can't
+be fit in three bytes.</P>
+<P>A Lissy message is 14 bits of locomotive address, 1 bit of
+direction, and 7 bits of section address for a total of 22 bits.</P>
+<P>Like the coding for 3-byte LocoNet messages provided previously,
+these messages can be encoded in the low bytes of an EventID. With
+LocoNetID, 34 bits are required.</P>
+<P>(It may be useful to align the LocoNet ID in a common location,
+perhaps not bit-aligned, for all three message types)</P>
 <H2>C/MRI</H2>
 <P STYLE="margin-bottom: 0cm">Input/output to C/MRI nodes via mapping
 of addresses... 
