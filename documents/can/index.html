@@ -6,11 +6,12 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100528;23135800">
+	<META NAME="CHANGED" CONTENT="20100530;10394500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<!-- $Id$ -->
 </HEAD>
@@ -72,11 +73,20 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 		CANH/CANL, ground, and several different power voltages. A
 		recommendation is emerging to use the center pair of CAT5 cable
 		(blue for CANH, white/blue for CANL).</P>
+		<LI><P STYLE="margin-bottom: 0cm">CAT5e patch cables with RJ45 ends
+		are becoming cheaper than wire.  Five foot ones are now available
+		in single quantity for less than $1.50; 25 foot ones for less than
+		$5. The board connectors are about $0.70 each, which does add some
+		cost, but must be compared to cost of other connectors.  
+		</P>
 	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Termination provision requirements
-	(every node has to have option to terminate in some way? switch?
-	Queryable?) 
-	</P>
+	(Should every node have to have option to terminate in some way?
+	E.g. a switch that can be set? Queryable?)<SPAN STYLE="font-style: normal">
+	</SPAN><SPAN STYLE="font-style: normal">(Some things, like a built
+	in terminator, should be “desirable but not required”; there's
+	more than one way to do it: switch on board; ship a resistor in one
+	of the CAN connectors on the board; etc)</SPAN></P>
 	<LI><P STYLE="margin-bottom: 0cm">The rise/fall time of CAN signals
 	is a controllable parameter. The MCP2551 transceiver part used in
 	e.g. MERG CBUS controls this with an Rs external resistor, by
@@ -94,6 +104,11 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 		circuits much easier if there's an isolated power feed on the CAN
 		side, e.g. in the cable. Are there simple CAN isolator circuits? At
 		125kbps, without losing timing margin and hence length?</P>
+		<LI><P STYLE="margin-bottom: 0cm">CAT5e connectors are limited to
+		1.5A (some are 1A), but the 24ga wire is the bigger problem for
+		power distribution as it's 0.0480 ohms per foot, or 1 volt drop per
+		20 feet (one way) at 1A. Use three wires ground, three wires power
+		to reduce drop? On board power convertors from a higher AC voltage?</P>
 	</UL>
 </UL>
 <H2>Link Layer</H2>
@@ -150,7 +165,7 @@ about 300 (?) microseconds.</P>
 	requests to prevent message buffer overflow. 
 	</P>
 	<LI><P>Filtering recommendations: in particular, find a way to set
-	MTI bits to make filtering effective.</P>
+	MTI bits to make filtering hardware effective.</P>
 </UL>
 <P>Document header content and sizes (Nominal decisions shown, 29 bit
 header): 
@@ -338,8 +353,8 @@ carrying the full NID in the message content.
 </P>
 <P>Aliases for nodes on the local segment are only valid until an
 &quot;Initialization Complete&quot; is seen from that alias.
-Initialization Complete flags that a node has restarted, and may have
-another local alias. 
+Initialization Complete indicates that a node has restarted, and may
+have another local alias. 
 </P>
 <P>Gateways maintain the mapping between remote node's NID and local
 alias. If they need to break that mapping, e.g. because they need to
