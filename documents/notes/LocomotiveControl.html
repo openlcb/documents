@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Locomotive Control</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;20091400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100530;23544500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Note: Locomotive Control</H1>
@@ -82,7 +83,57 @@ hidden from the user - but not unfortunately, from us.
 </UL>
 <P><BR><BR>
 </P>
-<P><BR><BR>
+<H2>Email Threads</H2>
+<P>From DPH May 24, 2010:</P>
+<P>OpenLCB Train Messaging</P>
+<P>1. Messages are between a throttle and a train. In the future
+messages will likely be send directly from throttle to train, via RF.
+It is the job of  today's CS, perhaps with the help of a helper-node,
+to model a train as a fully functioning pseudo-node. Messaging will
+use directed messages, or Datagrams, but, could use bidirectional
+streams. This interchange is really between the throttle and the CS,
+but conceptually and in appearance to the user, it should appear to
+be between the throttle and the train. 
+</P>
+<P>2. In large layouts with more than one command station (CS), each
+CS will have a defined territory and associated DCC stream. When a
+train crosses two territories, there must be automatic hand-off of
+the train from one CS to the next. An block-occupation event will
+announce a train 'crossing the frontier'. The receiving CS will
+negotiate with the first for the train's NID, direction, speed,
+acceleration, functional state, etc.</P>
+<P>3. Two CSs cannot drive the same block, nor two adjacent blocks
+with an engine bridging them, with their differing DCC streams. This
+requires a special intervening block between the two CSs'
+territories, which is switched between the two DCC streams. To
+prevent more than one train entering the shared block, signaling and
+speed control is used. This may fail with the simultaneous arrival of
+two trains, and two additional short, protective, blocks may be
+necessary to this. These can use 'Bit-switch'-like techniques to halt
+oncoming trains.</P>
+<P>4. Despite the train's movement, its NID is fixed, just like any
+node. Each engine can be assigned a unique 48-bit NID by its
+manufacturer, a user, or perhaps constructed from a RFID tag number.
+Using the user's space would allow the lower 16-bits to equal the
+engine's road number, which would simplify display without
+translation tables. 
+</P>
+<P>5. Each train also has a NID. This can be assigned from the lead
+engines NID, but it would be nice if the bottom digits represented
+the train number as some of these have historical significance.
+Therefore, the NID prefix could be derived from the layout ID, the
+meet's range, or a fixed number denoting 'Train'. Train NIDs would
+then have the form TRAIN.x, where x is 0-65k, and TRAIN is a fixed
+48-bit number.</P>
+<P>6. Just as a train moves around the layout, so can a throttle. It
+can move between OpenLCB segments, but this should be easily handled
+since the throttle has intelligence, two-way communication, and can
+help to negotiate the move. OpenLCB's interest-based routing will may
+play an important role in both throttle and train movement. 
+</P>
+<P>7. Ideally, command stations will handle the above. Until this
+occurs, <FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">specific
+nodes can supplement the present CSs. </FONT></FONT></FONT>
 </P>
 <P><BR><BR>
 </P>
