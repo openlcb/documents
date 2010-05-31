@@ -1,8 +1,11 @@
                                               Executive Summary
 
    This document provides an overview of the NMRAnetTM layout control bus that is intended to control the
-   operation of accessories and trains on a model layout. Further details will be available in other
-   Standards and Recommended Practice documents in the 9.6 group.
+   operation of accessories and trains on a model layout.  Further details will be available in other
+   Standards and Recommended Practice documents in the 9.6 group.  The S-9.6 proposal is also known as
+   OpenLCB, and more information can be obtained at http://openlcb.com/ and
+   http://groups.yahoo.com/group/OpenLCB/ .  Please note that references below to NMRAnet refer to the
+   NMRAnet S-9,6 / OpenLCB proposal.  
 
    Guiding Principles and Design Philosophy:
 
@@ -133,7 +136,7 @@
             destination nodes.
 
           * Directed messages – These are used for configuration and other protocols that require messages
-            to be sent to specific nodes.  Usingwill likely include throttle and train control messages,  
+            to be sent to specific nodes.  Use will likely include throttle and train control messages,  
 
           * Streams - An efficient way to move a large, variable number of bytes from one node to another.
 
@@ -171,9 +174,9 @@
 
      * All NMRAnet nodes have the potential to see all NMRAnet messages. However, the protocol provides
        access to sufficient information about nodes and events to allow smart gateway nodes to dynamically
-       learn which nodes need are interested in specific events, and to then selectively forward events
-       seen on one segment, selectively, onto the other segments that have nodes that are interested in
-       those events. This is an effective way to reduce network traffic in large NMRAnets with many
+       learn which nodes  are interested in specific events, and to then selectively forward events one
+       segment onto the other segments that have nodes that are interested in those events. This is termed
+       interest-based routing and is an effective way to reduce network traffic in large NMRAnets with many
        interconnected network segments.
 
      * All NMRAnet nodes on all segments are uniquely identified by a Node ID number and use this Node ID
@@ -185,27 +188,32 @@
 
           * Event transfer for layout control
 
+          * Datagram transfer for small amounts of point-to-point data
+
+          * Stream transfer for large or continuous point-to-point data
+
           * Node configuration
 
           * Locomotive Control (although not currently part of the protocol specification)
 
                                            NMRAnet Network Topology
 
-   A layout with a NMRAnet will require at least one NMRAnet network segment with two Nodes as shown in the
-   diagram below.
+   A layout with a NMRAnet will require at least one NMRAnet network segment with two Nodes as in the
+   example shown in the diagram below.
 
-   CAN
+   graphics4
 
-   The diagram shows CAN but it could also be Wireless, Ethernet or WiFi and is likely a combination of
-   several technologies. A layout may have a lengthy CAN based NMRAnet segment with many nodes, running
-   around the entire layout and have a comparatively short Ethernet segment that provides a convenient
-   connection to a single PC. It is likely that entry level NMRAnet compatible DCC Command Stations will
-   just have a CAN NMRAnet interface and a USB PC interface. Medium level DCC Command Stations might add
-   Ethernet and Wireless interfaces whereas top end DCC Command Stations may also add WiFi. It is also
-   likely that manufacturers will provide various interface devices (repeaters, bridges or gateways) to
-   link each of the NMRAnet segment types like CAN to Ethernet, CAN to USB (for PC access), CAN to Wireless
-   and Ethernet to Wireless (for wireless throttles). WiFi interfaces are likely to use consumer grade
-   Ethernet to WiFi Access Points but some markets may opt for a WiFi interface in the DCC Command Station.
+   The diagram shows CAN as the transport, but it could also be Wireless, Ethernet ,WiFi and is likely to
+   be a combination of several technologies. A layout may have, for example, a lengthy CAN based NMRAnet
+   segment with many nodes, running around the entire layout and have a comparatively short Ethernet
+   segment that provides a convenient connection to a single PC. It is likely that entry level NMRAnet
+   compatible DCC Command Stations will just have a CAN NMRAnet interface and a USB PC interface. Medium
+   level DCC Command Stations might add Ethernet and Wireless interfaces whereas top end DCC Command
+   Stations may also add WiFi. It is also likely that manufacturers will provide various interface devices
+   (repeaters, bridges or gateways) to link each of the NMRAnet segment types like CAN to Ethernet and/or
+   CAN to USB (for PC access), and CAN to Wireless and/or Ethernet to Wireless (for wireless throttles).
+   WiFi interfaces are likely to use consumer grade Ethernet to WiFi Access Points but some markets may opt
+   for a WiFi interface in the DCC Command Station.
 
    Each segment of a NMRAnet is by default transparently connected to all other segments. A single CAN
    cable would be a NMRAnet segment, as would two CAN cables connected by a repeater or bridge. An Ethernet
@@ -215,43 +223,28 @@
 
    Two or more segments can be connected by repeater or bridge devices as shown in the diagram below.
 
-   CAN
-
-   CAN
-
-   All
-
-   traffic
+   graphics3
 
    Simple repeater or bridge devices do not filter any messages and all messages are forwarded to all other
    segments. More intelligent interconnection devices can reduce required bandwidth by filtering messages
    that are not needed on other segments, these are called gateways.
 
+   graphics2
+
    As an example, a CAN segment with a number of nodes can be connected via a CAN-USB or CAN-Ethernet
    bridge to a PC running several separate control programs. As another example, a CAN segment in a series
    of modules can be connected via a gateway to an Ethernet backbone, which in turn connects via several
    other gateways to other CAN segments in other collections of modules. Several PCs can be connected via
-   the Ethernet and interact with all the modules via the individual CAN segments.
+   the Ethernet and interact with all the modules via the individual CAN segments.  Producer/Consumer
+   Events
 
-   CAN
-
-   CAN
-
-   CAN
-
-   Ethernet
-
-   To the wider world
-
-                                           Producer/Consumer Events
-
-   The NMRAnet makes use of stateless messages called Events, which are part of a model  formally called
+   The NMRAnet makes use of stateless messages called Events, which are part of a model formally called
    “The Consumer-Producer Model”.  This is a relatively new and powerful concept that is well established
    in the industrial control industry.  In it a producer-node reacts to a change in its environment by
-    producing (sending) an Event-message.  Similarly, a consumer-node consumes (receives and processes)
-   this message and causes some Action to happen.  For example,  depressing a push-button would cause the
-   node to which it is connected to produce an Event, and, on receiving this message, a consumer-node would
-   cause its attached turnout to move to a new position.
+   producing (sending) an Event-message.  Similarly, a consumer-node consumes (receives and processes) this
+   message and causes some Action to happen.  For example, depressing a push-button would cause the node to
+   which it is connected to produce an Event, and, on receiving this message, a consumer-node would cause
+   its attached turnout to move to a new position.
 
    Events are used to allow multi-node to multi-node interactions.  One or more nodes can produce any
    particular Event, and none or more nodes can consume to that Event.  
@@ -260,8 +253,8 @@
    that a change has occurred, but do not carry state information --- no information as to what changed can
    be inferred from the Event.  Similarly, the eventual Action(s) cannot be inferred from the Event.  The
    Event represents an abstract concept, rather than carrying actual information.  For example, an Event
-   might represent “Night-time running”, and it could be produced by any one of: a push-button; a timer; or
-   a program in a computer, while it might be consumed by nodes that control: street-lights;
+   might represent “Night-time running”, and it could be produced by one or more of: a push-button; a
+   timer; or a program in a computer, while it might be consumed by nodes that control: street-lights;
    station-displays or even automated train-routers. While this might seem limiting, the abstract nature of
    Events allows them to be very flexible and powerful, as they can link any consumer to any producer.
      This means that users can pretty much do what they like and not be constrained by the conventional
@@ -291,9 +284,9 @@
 
    Because of the small CAN frame sizes it is not possible to fit a 48-bit Source Node Id (SID) into an
    11-byte Extended CAN 2.0 frame and have much space left for anything else. So to make NMRAnet work on
-   CAN we have used a shortened form of the NID called an Node Id Alias or NIDa. This is a 16-bit number
+   CAN we have used a shortened form of the NID called an Node Id Alias or NIDa. This is a 12bit number
    that is dynamically assigned at system start-up by each node using its NID as a seed to a pseudo random
-   number generator (PRNG) algorithm, and then using the PRNG to generate a sequence of potential 16-bit
+   number generator (PRNG) algorithm, and then using the PRNG to generate a sequence of potential 12-bit
    NIDa numbers, which it then uses in a special 29-bit CAN arbitration header only Remote Transmission
    Request (RTR) frame to probe the CAN network for other nodes using the same NIDa number. This probe is
    actually a sequence of 6 requests where the 29-bit RTR CAN frame contains 5-bits of protocol management,
@@ -466,8 +459,6 @@ CAN Wire Protocol Terms
    Key Features of the NMRAnet 9.6 Protocol Proposal
 
    NMRAnet Network Topology
-
-   Producer/Consumer Events
 
    XML Based Node Configuration Definitions
 
