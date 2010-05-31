@@ -2,16 +2,15 @@
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>On Using Producer/Consumer Events</TITLE>
+	<TITLE>OpenLCB Note: On Using Producer/Consumer Events</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100529;20302500">
+	<META NAME="CHANGED" CONTENT="20100530;22010100">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
 		TH P { margin-bottom: 0cm }
@@ -19,38 +18,39 @@
 	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1>On Using Producer/Consumer Events</H1>
+<H1>OpenLCB Note: <META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><META NAME="CHANGEDBY" CONTENT="David Harris">On
+Using Producer/Consumer Events</H1>
 <P>This note discusses aspects of the Producer/Consumer model and its
 use of Events.</P>
 <P>It's possible to use a Producer/Consumer (P/C) system in many
 ways, which is one of it's main strengths, but it's based on some
 simple ideas which you should master first.</P>
 <P>A “Consumer” is a very simple thing that is notified that a
-particular “Event” has happened.  A “Producer” notifies
+particular “Event” has happened. A “Producer” notifies
 Consumers, via the network, that an Event has happened.</P>
 <P>Neither a Producer or Consumer actually does anything other than
-that.  Rather, they're connected to something else, which does it.</P>
+that. Rather, they're connected to something else, which does it.</P>
 <P>For example, consider using a P/C system to turn on a lamp when a
-button is pushed.  We can draw it schematically like this:</P>
+button is pushed. We can draw it schematically like this:</P>
 <P><A HREF="../drawings/SimplestPCExample.png"><IMG SRC="../drawings/SimplestPCExample.png" NAME="Simple Producer Consumer example" ALIGN=BOTTOM WIDTH=294 HEIGHT=146 BORDER=0></A>
 </P>
 <P>The large boxes represent the hardware that connects to a switch
-and a lamp, respectively.  These are parts of “Nodes”.  The small
+and a lamp, respectively. These are parts of “Nodes”. The small
 box in the upper-left is a single “Producer”, the small box in
 the lower-right is a single “Consumer”, and the line between them
-represents a specific “Event”.  
+represents a specific “Event”. 
 </P>
 <P>By convention, little boxes on the right side of big boxes are
 Producers, sending information to the right, and little boxes on the
 left side of big boxes are Consumers, accepting information from the
 left. The “Pushed” label means that Producer sends its programmed
-Event when that node tells it that the button has been pushed.  The
+Event when that node tells it that the button has been pushed. The
 “Turn On” label means that when the Consumer sees its programmed
 Event, it tells the node “Event received to Turn On”, and
 presumably the node will turn the lamp on.</P>
 <P>Graphically, the Event that's exchanged doesn't have to be
-labelled.  The fact that it connects the boxes is enough to indicate
-that they are programmed to work with the same Event ID.  In a real
+labelled. The fact that it connects the boxes is enough to indicate
+that they are programmed to work with the same Event ID. In a real
 system, you might want to label the Event with a name or numeric
 Event ID to make the diagrams easier to understand.</P>
 <P>Events have the advantage that separate Consumers in multiple
@@ -63,7 +63,7 @@ of the same type.</P>
 actions by producing the same Event:</P>
 <P><A HREF="../drawings/NProducerExample.png"><IMG SRC="../drawings/NProducerExample.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=290 HEIGHT=214 BORDER=0></A></P>
 <P>The “Turn on” operation of the lamp will happen if any of the
-controls is used, because their Producers all emit the same Event. 
+controls is used, because their Producers all emit the same Event.
 The Consumer associated with the lamp neither knows nor cares which
 one sent the Event ID. None of the Producers need to know about each
 other. A new one can be added without reconfiguring anything, by
@@ -79,7 +79,7 @@ on/off toggle switch. The pushbutton can also command the light off
 at any time.</P>
 <P>The toggle switch is connected to two Producers: One that will
 send an Event when “Set On” happens, and another that will send a
-different Event when “Set Off” happens.  The lamp has two
+different Event when “Set Off” happens. The lamp has two
 Consumers, one that will “Turn On” when its Event is received and
 another that will “Turn Off”.</P>
 <H2>Consumer Multiplicity vs Producer Multiplicity</H2>
@@ -107,8 +107,8 @@ night” and “on for on in daytime” to turn all on:</P>
 <P><A HREF="../drawings/DayNightExample2.png"><IMG SRC="../drawings/DayNightExample2.png" NAME="graphics5" ALIGN=BOTTOM WIDTH=355 HEIGHT=246 BORDER=0></A></P>
 <P>Because having multiple Producers and Consumers can make products
 more powerful, manufacturers may want to provide them in their
-products.  How many to provide is up to them, though.  A simple
-product might have just one, and a top-end product might have many.</P>
+products. How many to provide is up to them, though. A simple product
+might have just one, and a top-end product might have many.</P>
 <P>The situation gets more complicated when there are a large number
 of devices and a large number of inputs that make arbitrary
 combinations. The limiting case is N states and M outputs, where each
@@ -904,13 +904,13 @@ for a few group Events.
 <P>Clearly, tools to do this configuration will be helpful.</P>
 <P>Another approach is to provide a Producer on each turnout
 controller for “Positioned Straight” and “ Positioned
-Diverging”.  The turnout controller will emit those once the
-turnout has been set. Then, program each turnout controller's “
-Positioned Straight” and “Positioned Diverging” Producers to
-send the “Set Straight” for the upstream turnout.  Then, program
-each button to just emit “Set Diverging” for the last turnout. 
-It will move, and command the upstream one straight, which will
-command the upstream one straight, etc, all up the line.</P>
+Diverging”. The turnout controller will emit those once the turnout
+has been set. Then, program each turnout controller's “ Positioned
+Straight” and “Positioned Diverging” Producers to send the “Set
+Straight” for the upstream turnout. Then, program each button to
+just emit “Set Diverging” for the last turnout. It will move, and
+command the upstream one straight, which will command the upstream
+one straight, etc, all up the line.</P>
 <H2>Application to Signals</H2>
 <P>Signaling usually requires more logic than can be handled via raw
 Events, e.g. occupancy, look ahead, etc. But a signal controller
