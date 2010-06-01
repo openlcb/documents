@@ -1,0 +1,244 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB Note: LocoNet Connections</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100531;19261700">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>OpenLCB Note: LocoNet Connections</H1>
+<P>OpenLCB should be able to both control devices via LocoNet and
+have LocoNet-attached devices create OpenLCB events. Layout events
+such as turnout throws, sensor changes, etc, should be mapped to and
+from OpenLCB P/C Event messages so they can be used without
+limitation.</P>
+<P>A LocoNet is a limited resource, so large modular meets already
+use multiple interconnected LocoNets. The OpenLCB support should
+allow these to interoperate with OpenLCB devices, if not with each
+other, transparently.</P>
+<P>Some messages could be carried via the low-order e.g. 4 or 6 bytes
+of events (routing would require “route range” support, not yet
+present), but some are long enough to require datagrams.</P>
+<H2>LocoNet Protocol Summary</H2>
+<P>LocoNet uses variable-length messages, with the length encoded in
+the first byte as part of an op-code. The MSB is used to indicate
+message boundaries. The last byte of each message is a check byte.</P>
+<P>The messages for controlling turnouts (accessory decoders) and
+sensors are four bytes long. LocoNet defines two separate address
+spaces for turnouts, and at least two for sensors. Throttle (DCC)
+control is done via a mix of four-byte and much longer messages.</P>
+<P>LocoNet has provision for a seven-bit “LocoNet ID” to separate
+multiple radio-operated LocoNets located close together. The vast
+majority of LocoNets use the default value, but modular layout groups
+require the ability to set unique LocoNet IDs. The LocoNet ID should
+be carried so that LocoNets don't collide at big meets.</P>
+<H2>Mapping LocoNet onto OpenLCB</H2>
+<P>This section describes connecting an existing LocoNet segment to
+an OpenLCB instance so that the LocoNet-attached hardware can be used
+from OpenLCB.</P>
+<P>LocoNet layout control messages effectively already are P/C
+events, in that they are broadcast to a set of unknown listeners.
+Mapping a set of these to and from unique EventIDs would make the
+connection to OpenLCB straightforward. Working at the level of
+“layout control messages” instead of separate “turnout
+messages” and “sensor messages” is a more general approach.</P>
+<P>LocoNet EventID format:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=13%>
+			<P>Byte 0</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 1</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 2</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 3</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 4</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 5</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 6</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 7</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD COLSPAN=4 WIDTH=50%>
+			<P ALIGN=CENTER>Unique ID</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P ALIGN=CENTER>Loconet ID</P>
+		</TD>
+		<TD COLSPAN=3 WIDTH=38%>
+			<P ALIGN=CENTER>LocoNet Message Content</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The unique ID is taken from (somebody's) assigned name space, so
+that it's guaranteed to remain unique. The Digitrax
+manufacturer-assigned space starts in byte 3, for example, so there
+is plenty of space for this assignment. If there are ever multiple
+protocols for LocoNet gateways, they'd be distinguished by separate
+Unique IDs.</P>
+<P>Two ways of mapping LocoNet to and from OpenLCB have been
+proposed. In the “transformation” approach, the gateway parses
+incoming LocoNet messages to extract their type, device address, etc,
+and then this is used to form the message-specific content of the
+event.</P>
+<P>Another approach, which simplifies the gateway code, is just send
+LocoNet messages as received. Short ones fit in a single OpenLCB
+event message. (To send a LocoNet packet on a LocoNet, the remote
+gateway has to look at the 1<SUP>st</SUP> byte to decide how many
+bytes are present to send; the check byte isn't sent over OpenLCB)</P>
+<P>For example, the LocoNet packet to throw turnout 12 is 0xB0 0x0B
+0x10 0x54</P>
+<P>The corresponding OpenLCB Event ID would be:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<COL WIDTH=32*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=13%>
+			<P>Byte 0</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 1</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 2</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 3</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 4</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 5</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 6</P>
+		</TH>
+		<TH WIDTH=13%>
+			<P>Byte 7</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD COLSPAN=4 WIDTH=50%>
+			<P ALIGN=CENTER>Unique ID</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P ALIGN=CENTER>Loconet ID</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P ALIGN=CENTER>0xB0</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P ALIGN=CENTER>0x0B</P>
+		</TD>
+		<TD WIDTH=13%>
+			<P ALIGN=CENTER>0x10</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Any OpenLCB device wanting throw LocoNet turnout 12 or be notified
+when LocoNet turnout 12 has been thrown could just use this Event ID.</P>
+<P>LocoNet messages longer than four bytes would be sent as multiple
+event messages. Since OpenLCB is a reliable ordered transport, the
+LocoNet MSB and length code in byte 4 of the first message is
+sufficient for reassembling a LocoNet message before transmitting it
+on the LocoNet link.</P>
+<P>This approach has the advantage that it is completely transparent
+to changes and additions to the LocoNet protocol itself.</P>
+<H3>Transponding and Lissy Messages</H3>
+<P>LocoNet also carries longer messages that report transponding and
+Lissy conditions. 
+</P>
+<P>A transponding message is 14 bits of locomotive address, 1 bit of
+arrived/departed, and 12 bits of transponder section address, for a
+total of 27 bits. Not all combinations are used, because the NMRA
+locomotive address doesn't fill the 14 bits of address, but it can't
+be fit in three bytes.</P>
+<P>A Lissy message is 14 bits of locomotive address, 1 bit of
+direction, and 7 bits of section address for a total of 22 bits.</P>
+<P>Like the coding for 3-byte LocoNet messages provided previously,
+these messages can be encoded in the low bytes of an EventID. With
+LocoNetID, 34 bits are required.</P>
+<H3>Technical Issues</H3>
+<P>It may be useful to align the LocoNet ID in a common location,
+perhaps not bit-aligned, in the formats for all three message types.</P>
+<P>Flow control and buffering in a bridge needs to be addressed. 
+LocoNet is much slower than even the CAN implementation of OpenLCB,
+so only minimal buffering is needed for LocoNet to OpenLCB
+tranformations.  That same speed mismatch makes the other direction,
+OpenLCB to LocoNet, more problematic.  Since only events targeted to
+the LocoNet need to be transferred, a large buffer is probably
+sufficient. 
+</P>
+<P>Synchronization:  The LocoNet protocol doesn't usually send
+synchronizing response messages.  Programs talking to LocoNet usually
+decode the echoed stream to see where in the command sequence their
+output messages appear, which they use to model that consistent state
+of the LocoNet attached devices.  OpenLCB events are not synchronized
+in this same way, and are not normally echoed. It would be easy for a
+gateway to re-emit back into the OpenLCB all the events that it
+places on the LocoNet, but it's still to be decided whether it
+should.  Maybe with an “echo” bit set in the format, to the
+meaning is not ambiguous?</P>
+<H2>Using OpenLCB over LocoNet</H2>
+<P>This section describes how OpenLCB nodes can send messages over
+LocoNet links.</P>
+<P>The approach under investigation is using the CAN frame protocol,
+encapsulating the 4-12 byte can frame into a LocoNet packet. 
+</P>
+<P>We still need to make sure that the node assignment algorithm will
+work on LocoNet instead of CAN. Once that works, the only real
+problem is bandwidth consumption. An OpenLCB event message is 4+8
+bytes, plus at least 6 bytes of LocoNet overhead (including the bytes
+of 8<SUP>th</SUP> bits), for roughly 18 bytes, as compared to 4 bytes
+in native LocoNet.</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
