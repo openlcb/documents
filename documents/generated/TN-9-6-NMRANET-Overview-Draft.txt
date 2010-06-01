@@ -1,11 +1,10 @@
                                               Executive Summary
 
-   This document provides an overview of the NMRAnetTM layout control bus that is intended to control the
-   operation of accessories and trains on a model layout.  Further details will be available in other
-   Standards and Recommended Practice documents in the 9.6 group.  The S-9.6 proposal is also known as
-   OpenLCB, and more information can be obtained at http://openlcb.com/ and
-   http://groups.yahoo.com/group/OpenLCB/ .  Please note that references below to NMRAnet refer to the
-   NMRAnet S-9,6 / OpenLCB proposal.  
+   This document provides an overview of the NMRAnetTM layout control bus. NMRAnet is intended to control
+   the operation of accessories and trains on a model layout.  Further details will be available in other
+   Standards and Recommended Practice documents in the 9.6 group. This proposal for NMRAnet S9.6 has been
+   developed by the OpenLCBTM group via their web site at http://openlcb.org/ and discussion group at
+   http://groups.yahoo.com/group/OpenLCB. References here to "NMRAnet" refer to this proposal.
 
    Guiding Principles and Design Philosophy:
 
@@ -30,28 +29,27 @@
 
     
 
-   NMRAnet defines a set of Common Messages that include: Consumer-Producer Events; Directed Configuration
-   messages; and Streams that are media and transport agnostic. In addition, NMRAnet  defines specific
-   application of these Common Messages to Media-Specific Messages on a variety of transports, including
-   but not exclusive to: CAN, Ethernet, and wireless.
+   NMRAnet defines a set of Common Messages that include: Consumer-Producer Events; Datagram  messages; and
+   Streams that are media and transport agnostic. In addition, NMRAnet  defines specific application of
+   these Common Messages to Media-Specific Messages on a variety of transports, including but not exclusive
+   to: CAN, Ethernet, and wireless.
 
     
 
-   In addition, NMRAnet is designed to use one or more net-segments which may involve one or more media.
-    NMRAnet allows the ease of use to implement a novice-layout involving only one segment, to very large
-   layouts involving many segments.  This is accomplished by defining both simple messaging for use on
-   small layouts, but also more sophisticated mechanisms such as  routing, which allow very large layouts
-   to function.
+   NMRAnet is designed to use one or more net-segments which may involve one or more media.  NMRAnet allows
+   the ease of use to implement a novice-layout involving only one segment, to very large layouts involving
+   many segments.  This is accomplished by defining both simple messaging for use on small layouts, but
+   also more sophisticated mechanisms such as  routing, which allow very large layouts to function.
 
                                                  Introduction
 
-   This document provides an overview of the NMRAnetTM layout control bus that is intended to control the
+   This document provides an overview of the NMRAnet layout control bus that is intended to control the
    operation of accessories and trains on a model layout. Other Standards and Recommended Practice
-   documents in the 9.6 group describe the NMRAnet in more detail. This document is intended to give the
-   reader a good appreciation of the main features and benefits of the NMRAnet 9.6 design. Please note that
-   NMRAnet is still in the design phase and prototyping phase, but it was considered important at this
-   stage to describe the NMRAnet design in sufficient detail for others to review and comment on and so
-   this document should be considered a draft.
+   documents in the 9.6 group describe NMRAnet in more detail. This document is intended to give the reader
+   a good appreciation of the main features and benefits of the NMRAnet 9.6 design. Please note that
+   NMRAnet is still in the design and prototyping phase. To assist in that, we describe the NMRAnet design
+   in sufficient detail for others to review and comment on the work to date. This document should be
+   considered a draft.
 
                                    Guiding Principles and Design Philosophy
 
@@ -61,7 +59,8 @@
      * The NMRAnet must be robust yet cost effective, easy to use, plug-n-play, provide means to to attach
        a network monitoring tool to analyze behavior and diagnose faults.
 
-     * A single system that is suitable for novices to aggregate meets and museum layouts.
+     * A single system that is suitable for novices, yet can work for large modular meets and museum
+       layouts.
 
      * The top-down design with bottom-up implementation reality checks.
 
@@ -75,24 +74,23 @@
 
      * Configuration and running must not require a PC or complicated tools for simple layouts. However as
        the layout expands and more complicated configuration choices are made, the system should be able to
-       simply expand, and not require starting over.  
+       simply expand, without requiring the user to reconfigure existing devices or even start over.
 
-     * Design for the future and do not focus solely on current technology choices. A good NMRAnet design
+     * Designed for the future and not focused solely on current technology choices. A good NMRAnet design
        should last many years despite changes in networking technologies over that time. The design needs
        to be adaptable to exploit new technologies as they develop.
 
-     * Standards conformance validation must require minimal effort.
+     * Validateio of standards conformance must require minimal effort, yet be comprehensive.
 
    When considering the choices commonly available for initial implementation we cannot ignore the CAN 2.0
    (ISO 11989-*) networking technology from Bosch, as it is a very robust and accessible technology in
-   8-bit microprocessors. However it has very limited frame sizes (only 11 bytes) and so it can't do
-   everything we may need. So, while the 9.6 NMRAnet will include features like streaming media and other
-   high bandwidth consuming features that are commonly available, only a subset will be available on the
-   CAN segments. However, to run a layout in the manner similarly to what  can be done now using DCC vendor
-   equipment, CAN is very adequate and can handle those duties fine.  But, we have deliberately not limited
-   ourselves to what can be done on CAN networks because, in the expected life of NMRAnet, other networking
-   technology choices (particularly wireless) will become commodities, and therefore good candidates for
-   NMRAnet.
+   8-bit microprocessors. NMRAnet defines how to use CAN as an effective low-cost interconnection. To run a
+   layout in the manner similarly to what  can be done now using DCC vendor equipment, CAN is very adequate
+   and can handle those duties fine.  However it has very limited frame sizes (only 11 bytes), bandwidth,
+   and maximum number of nodes, so it can't do everything needed by advanced model railroaders. We have
+   therefore deliberately not limited ourselves to what can be done on CAN networks because, in the
+   expected life of NMRAnet, other networking technology choices (particularly wireless) will become
+   commodities, and therefore good candidates for NMRAnet.
 
    Also, we have not tried to overly minimize the sizes of the data items in the NMRAnet messages. We have
    deliberately made Node Ids (48-bits) and Event Ids (64-bits) outrageously large. This choice was to
@@ -135,8 +133,8 @@
           * Events - Fixed length identifiers that can propagate from multiple source nodes to multiple
             destination nodes.
 
-          * Directed messages – These are used for configuration and other protocols that require messages
-            to be sent to specific nodes.  Use will likely include throttle and train control messages,  
+          * Datagrams– These are used for configuration and other protocols that require messages to be
+            sent to specific nodes.  Use will likely include throttle and train control messages,  
 
           * Streams - An efficient way to move a large, variable number of bytes from one node to another.
 
@@ -162,20 +160,19 @@
        unique. The method of allocating NID ranges is described in another document but they are
        distributed to manufactures, groups and individuals.  Each manufacturer that has a NMRA DCC
        Manufacturer Id will have a 24-bit address space allocated for their exclusive use. Large clubs or
-       societies like the NMRA, MERG, FREMO, NTRAK, oNeTRAK etc. can apply for a number range which the
-       group can then subdivide by a membership number, such that by simply being a member of one or more
-       of these groups you will automatically be allocated  NIDs for your personal DIY use, for each group
-       membership. A mechanism will also be available for individuals to request a range of NIDs for their
-       use.
+       societies like the NMRA, MERG, FREMO, NTRAK, oNeTRAK etc will also be issued a large number range
+       which the group can then subdivide by a membership number, such that by simply being a member of one
+       or more of these groups you will automatically be allocated  NIDs for use in DIY-built nodes, for
+       each group membership. Individuals may also request a range of NIDs for their own DIY use.
 
      * There is no hierarchy of nodes,  node aggregation,  tree structures, or segmentation that
-       necessarily filters NMRAnet traffic. The NMRAnet is a flat structure,, where all nodes are equally
+       necessarily filters NMRAnet traffic. The NMRAnet is a flat structure, where all nodes are equally
        accessible and addressable.
 
      * All NMRAnet nodes have the potential to see all NMRAnet messages. However, the protocol provides
        access to sufficient information about nodes and events to allow smart gateway nodes to dynamically
-       learn which nodes  are interested in specific events, and to then selectively forward events one
-       segment onto the other segments that have nodes that are interested in those events. This is termed
+       learn which nodes  are interested in specific events, and to then selectively filter events from
+       passing onto segments that have no nodes that are interested in those events. This is termed
        interest-based routing and is an effective way to reduce network traffic in large NMRAnets with many
        interconnected network segments.
 
@@ -268,78 +265,85 @@
 
    graphics1
 
-                                   XML Based Node Configuration Definitions
+                                   Node-Resident Configuration Definitions
 
-   All NMRAnet nodes will contain a compressed XML document that contains all the relevant information for
-   an external Configuration Tool (CT) to be able to to use to know how to configure the node. It is
-   expected that the CT will use the data in the XML file to render some form of suitable Graphical User
-   Interface to allow the user to easily and intuitively configure all aspects of the node's capabilities.
-   An important design choice was to embed this XML document into each node so that the system has all it
-   needs to configure the node without having to source the XML file externally to the NMRAnet from the
-   manufacturer or some other on-line repository via the Internet or a CD/DVD etc. While the CT is likely
-   to be a program running on a PC, it could be a hand-held device like mobile phone or PDA or even a
-   custom built CT.  
+   All NMRAnet nodes will contain a compressed document in standard form that contains all the relevant
+   information needed by an external Configuration Tool (CT) to know how to configure the node. CTs can use
+   that informatoin to provide some form of suitable Graphical User Interface to allow the user to easily
+   and intuitively configure all aspects of the node's capabilities. An important design choice was to
+   embed this information into each node so that the system has all it needs to configure the node without
+   having to source some file external to the NMRAnet from the manufacturer or some other on-line
+   repository via the Internet or a CD/DVD etc. While the CT is likely to be a program running on a PC, it
+   could be a hand-held device like mobile phone or PDA or even a custom built CT.  
 
                                       CAN Node Id Alias Self Assignment
 
    Because of the small CAN frame sizes it is not possible to fit a 48-bit Source Node Id (SID) into an
    11-byte Extended CAN 2.0 frame and have much space left for anything else. So to make NMRAnet work on
    CAN we have used a shortened form of the NID called an Node Id Alias or NIDa. This is a 12bit number
-   that is dynamically assigned at system start-up by each node using its NID as a seed to a pseudo random
-   number generator (PRNG) algorithm, and then using the PRNG to generate a sequence of potential 12-bit
-   NIDa numbers, which it then uses in a special 29-bit CAN arbitration header only Remote Transmission
-   Request (RTR) frame to probe the CAN network for other nodes using the same NIDa number. This probe is
-   actually a sequence of 6 requests where the 29-bit RTR CAN frame contains 5-bits of protocol management,
-   that is described elsewhere; the 16-bit NIDa; and 8-bits of the 48-bit NID taken in sequence such that
-   each of the 6 RTR probe messages will contain a part of the NID so that any other node trying to claim
-   the same NIDa will at some point in the 6 frame RTR sequence will send a RTR frame that contains a
-   different 8-bit NID portion and so CAN will only allow one of the nodes contending for the same NIDa to
-   send their RTR frame. The other nodes that were blocked by the CAN arbitration mechanism should receive
-   the RTR frame and detect that another node  is also trying claim the same NIDa and has won and so the
-   others should generate another potential 16-bit NIDa using their PRNG and repeat the process until it
-   finds an unchallenged NIDa. Once an unused NIDa is found that node will announce to the NMRAnet it's new
-   NIDa along with it's full NID.
+   that is dynamically assigned at system start-up by each node using its NID as a seed to create a
+   proposed 12-bit Node Id Alias.  The node then probes the CAN bus with a sequence of CAN frames to ensure
+   that no other node is using the same Node Id Alias.  In the common case of a collision, the involved
+   nodes back off and attempt the algorithm again with new Node Id Alias values.  Because nodes have unique
+   Node Id values, this algorithm is guaranteed to converge to non-conflicting aliases even when very large
+   networks are simultaneously powered-up.  This property has been confirmed by analysis, simulation and
+   prototyping.
 
                                                   Use Cases
 
    The table below describes the Use Cases that were and are being considered for the NMRAnet design.
 
                                 A model railroader wants to learn about NMRAnet. He buys two inexpensive    
-   Entry Level User             boards at his local hobby shop. He connects them on his layout to two       
-                                pushbuttons and a turnout motor, does a simple configuration, and is able   
-                                to control the turnout with the pushbutton.                                 
+                                boards at his local hobby shop. He connects them on his layout to two       
+   Entry Level User             pushbuttons and a turnout motor, does a simple configuration, and is able   
+                                to control the turnout with the pushbutton. No other boards or tools are    
+                                needed.                                                                     
                                 A user has four NMRAnet boards working on his layout. He buys one more      
-   Expanding A Small Layout     input board to provide extra pushbuttons to operate his yard ladder from    
-                                the other end of the layout. He's able to configure the new board and put   
-                                it into operation.                                                          
+                                input board to provide extra pushbuttons to operate his yard ladder from    
+   Expanding A Small Layout     the other end of the layout. He's able to configure the new board and put   
+                                it into operation. He doesn't have to reconfigure any of the existing       
+                                boards, nor does he need records of his configuration nor a configuration   
+                                tool.                                                                       
                                 A user has twelve NMRAnet boards operating. Something changes, and the      
                                 system is no longer reliable. Certain operations no longer work, and others 
-   Mid-size Layout Problem      only work sometimes. The user attempts some debugging steps using features  
-                                of the existing hardware, but is unable to locate the problem, so           
-                                buys/borrows diagnostic device(s).                                          
+                                only work sometimes. The user attempts some debugging steps using features  
+   Mid-size Layout Problem      of the existing hardware, but is unable to locate the problem, so           
+                                buys/borrows a diagnostic device. The device is able to track all traffic   
+                                on the network, interrogate each existing board, and in general indicate    
+                                where the problem lies.                                                     
                                 A model railroad has 40 NMRAnet boards controlling a large layout. To       
                                 upgrade a major yard, the user wants to replace 12 boards with new ones     
    Large Layout Upgrade         that offer new (non-NMRAnet) features. He captures the existing setup,      
                                 replaces old boards with new ones, configures the equipment and is back in  
-                                operation.                                                                  
+                                operation. No reconfiguration of non-replaced boards is required.           
                                 A model railroad has turnouts and signals controlled via NMRAnet. The owner 
-   Distant Control Panel        wants to put a physical control panel in his house, a separate building,    
-                                and operate it via NMRAnet.                                                 
+                                wants to put a physical control panel in his house, a separate building,    
+                                and operate it via NMRAnet. He adds a gateway board to his existing         
+   Distant Control Panel        NMRAnet, which communicates over his existing home wired or wireless        
+                                network with another gateway board in the other building.  That second      
+                                gateway drives a small CAN network attached to the nodes that drive the     
+                                control panel.                                                              
                                 A large model using CAN, but not any attached computers, grows enough that  
-   Large Layout Expands         it needs to have another CAN segment. This must be possible without         
-                                reconfiguring all the existing nodes, event IDs, etc.                       
+                                it needs to have another CAN segment. A new segment is added, connected by  
+   Large Layout Expands         a bridge to the first. It is not necessary to reconfiguring any the         
+                                existing nodes, nor is it necessary to check for address or event conflicts 
+                                in the new hardware.                                                        
                                 The user wants to run multiple programs from multiple vendors in his home   
    Connect Multiple Programs    computer that simultaneously connect to the layout NMRAnet and              
-                                control/monitor it.                                                         
+                                control/monitor it. The computer is connected to the NMRAnet via a USB or   
+                                Ethernet connection.                                                        
                                 A model railroad has turnouts and signals controlled via NMRAnet. NMRAnet   
    Remote Dispatcher            is used to install a CTC panel at a distant location. The panel could be    
                                 either a physical panel or on a computer screen.                            
-                                A modular club has fifty modules, each of which as a CAN NMRAnet with two   
-                                or three nodes controlling the module. These modules are separately built,  
-   Modular Layouts              with no central administration. They are brought to a central location for  
-                                a meet, where they are all connected together in some pre-planned           
-                                orientation. The NMRAnets are connected in some fashion, and used to        
-                                operate the entire layout from both central and distributed locations.      
+                                A modular club has fifty modules, each of which as a CAN NMRAnet with three 
+                                or four nodes controlling the module. These modules are separately built,   
+                                with no central administration. They are brought to a central location for  
+                                a meet, where they are all bolted together in some pre-planned orientation. 
+   Modular Layouts              Some NMRAnets are connected together electrically via CAN jumper cables,    
+                                and others are connected to a central Ethernet. The resulting single        
+                                NMRAnet instance can operate the entire layout from both central and        
+                                distributed locations. No conflicts between modules and/or nodes need to be 
+                                resolved.                                                                   
                                 A club layout is operated via NMRAnet. There's something not quite right    
    Remote Diagnostics           about the signaling, and one of the members wants to check the operation of 
                                 the signals. He makes a remote connection to the layout and checks the      
@@ -347,12 +351,10 @@
                                 Dozens of clubs put together dozens of NMRAnet segments and hundreds of     
                                 modules that have been separately configured. A large FREMO meet would be   
                                 an example. Collision avoidance: EventIds, NodeIds that are already         
-                                configured into the modules should already be unique. It must be possible   
-   Aggregation of Modular Clubs to build automated tools for translating, disambiguating Event IDs.         
-                                Conventions and/or tools for connecting across the boundaries are needed so 
-                                that e.g. signaling systems can work with adjacent modules they've never    
-                                met before. It must be possible to build automated tools for health         
-                                monitoring across the layout.                                               
+   Aggregation of Modular Clubs configured into the modules should already be unique. Conventions and/or    
+                                tools for connecting events across the boundaries are available so that     
+                                e.g. signaling systems can work with adjacent modules they've never met     
+                                before. Automated monitoring tools can see traffic on the entire network.   
 
                                               Typical Equipment
 
@@ -460,7 +462,7 @@ CAN Wire Protocol Terms
 
    NMRAnet Network Topology
 
-   XML Based Node Configuration Definitions
+   Node-Resident Configuration Definitions
 
    CAN Node Id Alias Self Assignment
 
