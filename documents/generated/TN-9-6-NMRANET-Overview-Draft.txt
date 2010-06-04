@@ -80,7 +80,7 @@
        should last many years despite changes in networking technologies over that time. The design needs
        to be adaptable to exploit new technologies as they develop.
 
-     * Validateio of standards conformance must require minimal effort, yet be comprehensive.
+     * Validation of standards conformance must require minimal effort, yet be comprehensive.
 
    When considering the choices commonly available for initial implementation we cannot ignore the CAN 2.0
    (ISO 11989-*) networking technology from Bosch, as it is a very robust and accessible technology in
@@ -95,13 +95,14 @@
    Also, we have not tried to overly minimize the sizes of the data items in the NMRAnet messages. We have
    deliberately made Node Ids (48-bits) and Event Ids (64-bits) outrageously large. This choice was to
    minimize the NMRA management overhead required to manage the allocation of globally unique node
-   addresses and also provide a way to then generate globally unique Event Ids. This  has the potential to
-   greatly simplify the way modular layout clubs configure their systems, as modules can be arranged in any
-   combination, and with purpose-built configuration tools, even that can be substantially automated. While
-   these choices do have a system resource impact, our design pushes the bulk of the additional resource
-   requirements into the gateway nodes as they are likely to be few in number (likely none for many
-   layouts) and are likely to be PCs or that class of device anyway, so the resource impact on small CAN
-   based should be minimal.  In addition, design decisions will allow reducing the overhead for CAN nodes.
+   addresses and also provide a way to then generate globally unique Event Ids. This  greatly simplifies
+   the way modular layout clubs configure their systems, as modules can be arranged in any combination,
+   and, with purpose-built configuration tools, even that can be substantially automated.
+
+   While these choices do have a system resource impact, our design pushes the bulk of the additional
+   resource requirements into the gateway nodes as they are likely to be few in number, and likely none for
+   many layouts.   Gateways will likely to be PCs, or that class of device, anyway so that the resource
+   impact on small CAN based nodes should be minimal, and design decisions reduce the overhead for these.
      
 
                                                What is NMRAnet?
@@ -114,11 +115,11 @@
    protocol on other network technologies like Ethernet, WiFi and other wireless networking technologies,
    and the global Internet.
 
-   This proposal is based on a series of use-cases (see the Use Cases section) that begin with  a beginning
-   modeler connecting up two boards and extend  to  huge modular layouts put together by several clubs. To
+   This proposal is based on a series of use-cases (see the Use Cases section) that start with a novice
+   modeler connecting up two boards and extend to huge modular layouts put together by several clubs. To
    achieve this range, and to allow for future technologies, NMRAnet is defined so that it can communicate
-   via various media.  These include  CAN, Ethernet and WiFi , but also  programs running in a computer as
-   these are considered NMRAnet nodes.
+   via multiple media.  These include CAN, Ethernet and WiFi.  In addition, NMRAnet software running in a
+   computer are considered valid, albeit virtual, NMRAnet nodes.
 
                               Key Features of the NMRAnet 9.6 Protocol Proposal
 
@@ -141,45 +142,37 @@
        This transport level also has provision for interconnection of independent NMRAnet segments and
        filtering of messages to reduce traffic.
 
-     * NMRAnet defines a global set of common message types and their content. NMRAnet specifies how the
-       common message types are to be used for standard interactions and optional interactions. All NMRAnet
-       nodes must be able to properly take part in standard interactions that are originated from outside
-       the node.
+     * NMRAnet defines a global set of common message types and their content, and specifies how the common
+       message types are to be used for standard and optional interactions.
 
      * The format of the common messages is separately specified for each of several wire protocols. The
        initial wire protocols are CAN and TCP/IP point-to-point; additional ones are envisaged. NMRAnet
        wire protocols may define additional interactions and messages for specific transport-level uses,
-       e.g. for housekeeping on the local connection. These interactions and messages will be divided into
-       standard forms, which all nodes must implement, and optional forms.
+       e.g. for housekeeping on the local connection.
 
-     * The NMRAnet as a whole is considered as being comprised of one or more NMRAnet segments
-       interconnected with repeater, bridge or gateway devices that ensure all nodes are able to
-       communicate equally with all other nodes on the NMRAnet.
+     * The NMRAnet as a whole is comprised of one or more segments interconnected with repeater, bridge or
+       gateway devices that ensure all nodes are able to communicate.  
 
-     * Every node has a 48-bit "Node ID number" (NID). The assignment of the NIDs assures they are globally
-       unique. The method of allocating NID ranges is described in another document but they are
-       distributed to manufactures, groups and individuals.  Each manufacturer that has a NMRA DCC
-       Manufacturer Id will have a 24-bit address space allocated for their exclusive use. Large clubs or
-       societies like the NMRA, MERG, FREMO, NTRAK, oNeTRAK etc will also be issued a large number range
-       which the group can then subdivide by a membership number, such that by simply being a member of one
-       or more of these groups you will automatically be allocated  NIDs for use in DIY-built nodes, for
-       each group membership. Individuals may also request a range of NIDs for their own DIY use.
+     * Every node has a 48-bit "Node ID number" (NID) which is assigned to assure that it is globally
+       unique.  NID ranges are assigned to distributed to manufactures, groups and individuals by a method
+       described in detail in another document.  Each manufacturer that has a NMRA DCC Manufacturer ID will
+       have a 24-bit address space allocated for their exclusive use. Large clubs or societies like the
+       NMRA, MERG, FREMO, NTRAK, oNeTRAK etc will be issued a large number range, which the group can then
+       subdivide, likely by a membership number.  Therefore,  each member of these groups will be
+       automatically allocated NIDs for their own use in DIY-built nodes. In addition, groups or
+       individuals may also request a additional ranges of NIDs, if these are required.
 
-     * There is no hierarchy of nodes,  node aggregation,  tree structures, or segmentation that
-       necessarily filters NMRAnet traffic. The NMRAnet is a flat structure, where all nodes are equally
-       accessible and addressable.
+     * The NMRAnet is a flat structure, where all nodes are equally accessible and addressable. There is no
+       hierarchy of nodes, node aggregation, tree structures, or segmentation that necessarily filters
+       NMRAnet traffic.
 
-     * All NMRAnet nodes have the potential to see all NMRAnet messages. However, the protocol provides
-       access to sufficient information about nodes and events to allow smart gateway nodes to dynamically
-       learn which nodes  are interested in specific events, and to then selectively filter events from
-       passing onto segments that have no nodes that are interested in those events. This is termed
-       interest-based routing and is an effective way to reduce network traffic in large NMRAnets with many
-       interconnected network segments.
+     * Athough all NMRAnet nodes have the potential to see all NMRAnet messages, the protocol uses
+       interest-based routing.   This is an effective way to reduce network traffic in large NMRAnets with
+       many interconnected network segments.  NMRAnet gateway nodes dynamically learn which nodes on which
+       segments are interested in specific events, and only send those events to these segments.
 
-     * All NMRAnet nodes on all segments are uniquely identified by a Node ID number and use this Node ID
-       in all NMRAnet messages as a Source Node ID.
-
-     * Any NMRAnet message can be traced back to the originator using the Source Node ID.
+     * The Source-node's ID is included in every NMRAnet message, and therefore each message can be traced
+       back to its the originator node.  
 
      * Above the basic transport level, NMRAnet defines methods for:
 
