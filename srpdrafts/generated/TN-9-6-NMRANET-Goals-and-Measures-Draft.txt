@@ -16,6 +16,8 @@
    be easy for manufacturers to build bridges to systems like DCC or Loconet which allows NMRAnet turnouts
    to be controlled from DCC throttles, and DCC engines/accessories to be controlled from NMRAnet.
 
+Reply
+
    The S9.6 protocols are being documented at a high level, such that any proper implementation will
    interoperate with any other. At the same time, proper functioning of low-level detail is being insured
    via test and example implementations.
@@ -24,7 +26,7 @@
    giving anybody an undue advantage. For example, the test and example implementations are available for
    manufacturers to study and, subject to licensing, use as the basis for their own products.
 
-   (Non-normative) examples of connections to DCC, LocoNet?, and eventually other systems, such as C\MRI,
+   Non-normative examples of connections to DCC, LocoNet, and eventually other systems, such as C/MRI,
    Xpressnet, S88, and NCE Cab Bus, are being created to demonstrate interoperability.
 
 Features
@@ -51,18 +53,16 @@ Issues
    Measure: Once a layout is set up, it should run perfectly and completely without a central processing
    system for basic and advanced functionality.
 
-    
+Features
 
    The S9.6 protocols provide both direct node-to-node communications (datagrams, streams), and broadcast
    notifications (events). No central facility is required for any of these.
 
-Features
-
     1. S9.6 does not mandate the existence of either a Network Manager nor Configuration Manager, although
        these can be used if desired.
 
-    2. On CAN, S9.6 node ID aliases are negotiated between the nodes present, and a NM is not required for
-       this.
+    2. On CAN, S9.6 node ID aliases are negotiated between the nodes present, and no central facility is
+       required for this.
 
 Issues
 
@@ -187,32 +187,34 @@ Features
        when joining multiple independent layouts and net segments into a cohesive whole. To this end, it
        has these features:
 
-          * 48-bit node IDs ensure there are no node conflicts.
+          * Use of 48-bit node IDs ensure there are no node conflicts.
 
-          * 64-bit event numbers with allocation criteria that eliminates event number conflicts and
-            re-programming tasks other than those required to integrate adjacent sub-layouts by configuring
-            their mutual edge events.
+          * Use of 64-bit event numbers with an associated allocation methodology eliminates event number
+            conflicts and re-programming tasks other than those required to integrate adjacent sub-layouts
+            by configuring their mutual edge events.
 
-          * Multiple integrated transports including, but not limited to Ethernet and CAN. This allows
-            local area CAN nets that can be linked by a higher-speed backbone bus.
+          * Multiple integrated transports including, but not limited to Ethernet and CAN, are available.
+            This allows local area CAN nets that can be linked by a higher-speed backbone bus.
 
-          * Intelligent bridges with automatic routing and traffic-limiting - messages are transferred to
-            the network segments containing nodes that need them, and they don't appear where not needed,
-            all automatically.
+          * Intelligent bridges with automatic routing and traffic-limiting are available. Messages are
+            transferred to the network segments containing nodes that need them, and they don't appear
+            where not needed, all automatically.
 
-          * The ability to have multiple computers running configurations tools simultaneously.
+          * Multiple computers can be running configurations tools simultaneously.
 
-          * The ability to define virtual nodes and run testing across the network.
+          * Virtual nodes can be defined and run testing across the network.
 
-     * S9.6 supports museum and other large layouts by having these features:
+     * S9.6 supports museum and other large layouts using these features:
 
-          * Use of off-the-shelf components, such as CAN-USB bridges, Ethernet routers and wireless
+          * It uses off-the-shelf components, such as CAN-USB bridges, Ethernet routers and wireless
             routers.
 
-          * Industrial strength noise resistant local network hardware, including Ethernet and CAN.
+          * It utilizes industrial-strength noise resistant local network hardware, including Ethernet and
+            CAN.
 
-          * Allows use of multiple hard-, firm-, and software solutions for the control and display of the
-            net. Multiple glass-panels, configuration tools, and testing tools can be used simultaneously.
+          * It enables use of multiple hard-, firm-, and software solutions for the control and display of
+            the net. Multiple glass-panels, configuration tools, and testing tools can be used
+            simultaneously.
 
 Issues
 
@@ -242,46 +244,20 @@ Features
 
      * Legacy Systems:
        S9.6 is able to connect to legacy systems through the use of intelligent gateways, which make the
-       legacy system look like a fully functional set of S9.6 devices. For example:
+       legacy system look like a functional set of S9.6 devices. For example:
 
           * MERG RPC is a serial bus that transfers raw data to and from a 'stack' of input/output modules.
             An intelligent gateway stores the RPC stack's state, and reports state changes as S9.6 events
             and responds to S9.6 events by transferring the changed state to the RPC stack.
 
-          * DCC commands are directly translated into S9.6 events by encapsulating the DCC command and
-            DCC-address into S9.6 64-bit event numbers. Similarly, S9.6 events are translated to their
-            corresponding DCC packet by extracting the command and DCC-address information from the S9.6
-            event number.
+          * DCC accessory decoder commands are directly translated into S9.6 events by encapsulating the
+            DCC command and DCC-address into S9.6 64-bit event numbers. Similarly, S9.6 events are
+            translated to their corresponding DCC packet by extracting the command and DCC-address
+            information from the S9.6 event number.
 
 Issues
 
      * S9.6 connections to legacy systems are in the demonstration-phase.
-
-    
-
-                                                  Extensible
-
-   Goal: Allow additional functionality to be added easily, whether by the NMRA, or manufacturers.
-
-   Measure: The NMRA can add Standards and/or RPs on top of the bus to define new capabilities.
-   Additionally, manufacturers can add their own proprietary functionally between their own devices.
-
-Features
-
-     * S9.6 provides three basic communications mechanisms (event notification; datagrams; stream transfer)
-       that provide a strong basis for higher-level functionality.
-
-     * The use of a pure Producer/Consumer Model for global notification in S9.6 provides excellent
-       opportunity to add functionality while maintaining compatibility.
-
-Issues
-
-   The S9.6 development team have had only preliminary discussions about adding proprietary protocols,
-   however, they see no technical impediment to this goal.
-
-   S9.6 defines how the Node and Event universal identifiers are allocated by a combination of delegation
-   and central (NMRA) record-keeping. A similar mechanism for future protocol identifiers is yet to be
-   defined.
 
     
 
@@ -408,11 +384,11 @@ Issues
 
    Goal: Support controlling trains when the network is connected to a train-control system.
 
-   Measure: The NMRANet should be able to connect, via bridge products, to any train control system, such
-   as DCC, DC, or PWM, to allow interaction with each other. A hand-held throttle on NMRANet can control a
+   Measure: The NMRAnet should be able to connect, via bridge products, to any train control system, such
+   as DCC, DC, or PWM, to allow interaction with each other. A hand-held throttle on NMRAnet can control a
    locomotive on DCC, DC, or PWM. Similarly, you can have a bridge between a DCC command station and the
-   NMRANet that will allow the DCC hand controller, for example, to throw a turnout motor attached to
-   NMRANet.
+   NMRAnet that will allow the DCC hand controller, for example, to throw a turnout motor attached to
+   NMRAnet.
 
 Features
 
@@ -452,7 +428,7 @@ Features
           * S9.6 has well defined protocol to retrieve P/C event use from nodes.
 
           * S9.6 nodes contain compressed XML containing a description of the device. This is sufficiently
-            complete that a de novo node can be added to a layout and then queried as to its
+            complete that a de-novo node can be added to a layout and then queried as to its
             characteristics such that it can be programmed/configured.
 
           * Collateral information will be obtainable via files or online, including test suites, manuals,
@@ -503,7 +479,7 @@ Features
      * S9.6 has well defined protocol to retrieve P/C event use from nodes.
 
      * S9.6 nodes contain compressed XML containing a description of the device. This is sufficiently
-       complete that a de novo node can be added to a layout and then queried as to its characteristics
+       complete that a de-novo node can be added to a layout and then queried as to its characteristics
        such that it can be programmed to some basic level.
 
      * Collateral information will be obtainable via files or online, including test suites, manuals, and
@@ -558,7 +534,7 @@ Issues
    being connected to a real layout or a “white-box” simulation of a layout and pass all designed tests.
    These tests would examine the products ability to keep up with bandwidth requirements as well as make
    100% compatible protocol exchange. Using standardized busses such as CAN, USB, Ethernet, ZigBee or
-   802.11 wireless would negate the need for a low level compliance test.
+   802.11 wireless negates the need for a low level compliance test.
 
 Features
 
@@ -576,7 +552,7 @@ Features
             relays are easily available.
 
      * S9.6 can also be applied to other buses, such as I2C, multi-drop RS232 and RS485, and to wireless,
-       such as 802.54.2 and WiFi?. By staying with standard communications links, additional capability can
+       such as 802.54.2 and WiFi. By staying with standard communications links, additional capability can
        be added without requiring the development of communications test suites.
 
    Above the level of the inter-node connections, NMRAnet S9.6 operates with the exchange of well-formatted
@@ -601,7 +577,7 @@ Issues
 
    Goal: A new user can buy a device and have it work.
 
-   Measure: A user new to NRMAnet can buy a single device, take it home and have it do something useful and
+   Measure: A user new to NMRAnet can buy a single device, take it home and have it do something useful and
    interesting without having to buy any other special hardware, or another device.
 
 Features
@@ -609,7 +585,7 @@ Features
      * S9.6 has world-wide unique node IDs, which means that new users do not need to worry about conflict
        between nodes, in fact they do not need to concern themselves with IDs at all.
 
-     * S9.6 will have a comprehensive push-button programming model*5, notionally called the "blue/gold
+     * S9.6 will have a comprehensive push-button programming model5, notionally called the "blue/gold
        algorithm" after the recommended color of the buttons, which allows new owners to connect two nodes
        out of the box and make them fully able to interact via event messages.
 
@@ -630,6 +606,8 @@ Issues
    NMRAnet Goals and Measures
 
    Interoperability
+
+   Reply
 
    Features
 
@@ -660,12 +638,6 @@ Issues
    Issues
 
    Flexible
-
-   Features
-
-   Issues
-
-   Extensible
 
    Features
 
