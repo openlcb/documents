@@ -12,20 +12,20 @@
 
      * Suitable from novice to aggregate and museum layouts.
 
-     * Top-down design with bottom-up implementation reality-checks.
+     * Top-down design tested with bottom-up implementations.
 
-     * Elegance and uniformity that can be applied across multiple networking technologies.
+     * Uniform and regular structure for use across multiple networking technologies.
 
-     * Maintain manufacturer choice of implementation, and for further development.
+     * Maintains manufacturer's choice of implementation, and eases further development.
 
-     * Use of existing standardized and commodity hardware/software
+     * Uses existing standardized and commodity hardware/software
 
-     * No requirement for a PC or complicated tools for simple layouts, but the ability to use these as the
+     * No requirement for a PC or dedicated tools for simple layouts, but the ability to use these as the
        layout expands.
 
-     * Design for the future and do not focus solely on current technology choices.
+     * Designed for the future and not focused solely on current technology choices.
 
-     * Standards conformance validation must require minimal effort.
+     * Standards conformance validation requires minimal effort.
 
     
 
@@ -59,8 +59,7 @@
      * The NMRAnet must be robust yet cost effective, easy to use, plug-n-play, provide means to to attach
        a network monitoring tool to analyze behavior and diagnose faults.
 
-     * A single system that is suitable for novices, yet can work for large modular meets and museum
-       layouts.
+     * A single system suitable for novices, yet works for large modular meets and museum layouts.
 
      * The top-down design with bottom-up implementation reality checks.
 
@@ -90,9 +89,9 @@
    and maximum number of nodes, so it can't do everything needed by advanced model railroaders. We have
    therefore deliberately not limited ourselves to what can be done on CAN networks because, in the
    expected life of NMRAnet, other networking technology choices (particularly wireless) will become
-   commodities, and therefore good candidates for NMRAnet.
+   commodities, and therefore good candidates for use by model railroaders via NMRAnet.
 
-   Also, we have not tried to overly minimize the sizes of the data items in the NMRAnet messages. We have
+   We have not tried to overly minimize the sizes of the data items in the NMRAnet messages. We have
    deliberately made Node Ids (48-bits) and Event Ids (64-bits) outrageously large. This choice was to
    minimize the NMRA management overhead required to manage the allocation of globally unique node
    addresses and also provide a way to then generate globally unique Event Ids. This  greatly simplifies
@@ -100,10 +99,9 @@
    and, with purpose-built configuration tools, even that can be substantially automated.
 
    While these choices do have a system resource impact, our design pushes the bulk of the additional
-   resource requirements into the gateway nodes as they are likely to be few in number, and likely none for
-   many layouts.   Gateways will likely to be PCs, or that class of device, anyway so that the resource
-   impact on small CAN based nodes should be minimal, and design decisions reduce the overhead for these.
-     
+   resource requirements into the gateway nodes as they are likely to be few in number; many layouts won't
+   even require one.   Gateways will likely to be PC-class devices, easily containing sufficient resources.
+   NMRAnet design decisions keep the resource impact on small CAN based nodes minimal.   
 
                                                What is NMRAnet?
 
@@ -119,7 +117,7 @@
    modeler connecting up two boards and extend to huge modular layouts put together by several clubs. To
    achieve this range, and to allow for future technologies, NMRAnet is defined so that it can communicate
    via multiple media.  These include CAN, Ethernet and WiFi.  In addition, NMRAnet software running in a
-   computer are considered valid, albeit virtual, NMRAnet nodes.
+   computer provide valid, albeit virtual, NMRAnet nodes.
 
                               Key Features of the NMRAnet 9.6 Protocol Proposal
 
@@ -129,26 +127,17 @@
        in a PC, or any other addressable item. A node may control any number of actual devices on a layout.
        Nodes exchange messages to control the layout.
 
-     * At it's basic level, NMRAnet defines a transport layer for several types of data:
+     * At it's basic level, NMRAnet defines a transport layer for reliable transport of data between
+       multiple nodes. This transport level also has provision for interconnection of independent NMRAnet
+       segments and filtering of messages to reduce traffic.
 
-          * Events - Fixed length identifiers that can propagate from multiple source nodes to multiple
-            destination nodes.
+     * Within that transport layer, NMRAnet defines a global set of common message types, and specifies how
+       the message types are to be used for standard and optional interactions.
 
-          * Datagrams– These are used for configuration and other protocols that require messages to be
-            sent to specific nodes.  Use will likely include throttle and train control messages,  
-
-          * Streams - An efficient way to move a large, variable number of bytes from one node to another.
-
-       This transport level also has provision for interconnection of independent NMRAnet segments and
-       filtering of messages to reduce traffic.
-
-     * NMRAnet defines a global set of common message types and their content, and specifies how the common
-       message types are to be used for standard and optional interactions.
-
-     * The format of the common messages is separately specified for each of several wire protocols. The
-       initial wire protocols are CAN and TCP/IP point-to-point; additional ones are envisaged. NMRAnet
-       wire protocols may define additional interactions and messages for specific transport-level uses,
-       e.g. for housekeeping on the local connection.
+     * The structure and format of the common messages is separately specified for each of several wire
+       protocols. The initial wire protocols are CAN and TCP/IP point-to-point; basic structure for
+       additional ones has been provided. NMRAnet wire protocols may define additional interactions and
+       messages for specific transport-level uses, e.g. for housekeeping on the local connection.
 
      * The NMRAnet as a whole is comprised of one or more segments interconnected with repeater, bridge or
        gateway devices that ensure all nodes are able to communicate.  
@@ -176,43 +165,60 @@
      * The Source-node's ID is included in every NMRAnet message, and allows each message to be traced back
        to its originator node.  
 
-     * Above the basic transport level, NMRAnet defines methods for:
+     * Above the basic transport level, NMRAnet defines a small number of basic types of communication:
 
-          * Event transfer for layout control
+          * Events - Fixed length identifiers that can propagate from multiple source nodes to multiple
+            destination nodes to provide Producer/Consumer communications.
 
-          * Datagram transfer for small amounts of point-to-point data
+          * Datagrams– Short messages that are transported to a specific destination node. These are used
+            for configuration and other protocols that require messages to be reliably delivered to
+            specific nodes.  Use will likely include throttle and train control messages,  
 
-          * Stream transfer for large or continuous point-to-point data
+          * Streams - An efficient way to move a large number of bytes from one node to another.
+
+   By limiting communications to a small number of orthogonal forms, NMRAnet simplifies communications code
+   in small nodes, yet still allows very powerful functions to be built with these communications methods.
+    This is a similar method to how the World Wide Web and other valuable communications tools were built
+   on top of the simple TCP/IP and UDP/IP protocols.
+
+     * Above the basic communications types, NMRAnet provides protocols for:
+
+          * Layout control operations
 
           * Node configuration
 
-          * Locomotive Control (although not currently part of the protocol specification)
+          * Function gateways to other layout control equipment, including DCC
+
+          * Error logging
+
+          * Locomotive control (although not currently part of the protocol specification)
+
+   Amble room is left in the specification for additional protocols to be added for new functionality, even
+   model railroad applications that haven't been thought of yet.
 
                                            NMRAnet Network Topology
 
-   A layout with a NMRAnet will require at least one NMRAnet network segment with two Nodes as in the
-   example shown in the diagram below.
+   A layout with a CAN-based NMRAnet will require at least one NMRAnet network segment with two Nodes as in
+   the example shown in the diagram below.
 
    graphics4
 
-   The diagram shows CAN as the transport, but it could also be Wireless, Ethernet ,WiFi and is likely to
-   be a combination of several technologies. A layout may have, for example, a lengthy CAN based NMRAnet
-   segment with many nodes, running around the entire layout and have a comparatively short Ethernet
-   segment that provides a convenient connection to a single PC. It is likely that entry level NMRAnet
-   compatible DCC Command Stations will just have a CAN NMRAnet interface and a USB PC interface. Medium
-   level DCC Command Stations might add Ethernet and Wireless interfaces, whereas top end DCC Command
-   Stations may also add WiFi. It is also likely that manufacturers will provide various interface devices
-   (repeaters, bridges or gateways) to link each of the NMRAnet segment types like CAN to Ethernet and/or
-   CAN to USB (for PC access), and CAN to Wireless and/or Ethernet to Wireless (for wireless throttles).
-   WiFi interfaces are likely to use consumer grade Ethernet to WiFi Access Points but some markets may opt
-   for a WiFi interface in the DCC Command Station.  This will allow use of Wifi enabled cellular phones to
-   access the NMRAnet directly without needing a PC.
+   The diagram shows CAN as the transport, but a layout could also Wireless, Ethernet ,WiFi or be a
+   combination of several technologies in the future. A layout may have, for example, a lengthy CAN based
+   NMRAnet segment with many nodes, running around the entire layout and have a comparatively short
+   Ethernet segment that provides a convenient connection to a single PC. It is likely that entry level
+   NMRAnet compatible DCC Command Stations will just have a CAN NMRAnet interface and perhaps a USB PC
+   interface. Medium level DCC Command Stations might add Ethernet and/or Wireless interfaces, whereas top
+   end DCC Command Stations may also add WiFi. It is also likely that manufacturers will provide various
+   interface devices (repeaters, bridges or gateways) to link each of the NMRAnet segment types like CAN to
+   Ethernet and/or CAN to USB (for PC access), and CAN to Wireless and/or Ethernet to Wireless (for
+   wireless throttles). WiFi interfaces are likely to use consumer grade Ethernet to WiFi Access Points but
+   some markets may opt for a WiFi interface in the DCC Command Station.  This will allow use of Wifi
+   enabled cellular phones to access the NMRAnet directly without needing a PC.
 
    Each segment of a NMRAnet is, by default, transparently connected to all other segments. A single CAN
    cable would be a NMRAnet segment, as would two CAN cables connected by a repeater or bridge. An Ethernet
-   link or TCP/IP network connection would also each be a segment.  
-
-    
+   link or TCP/IP network connection would also form an individual segment.  
 
    Two or more segments can be connected by repeater or bridge devices as shown in the diagram below.
 
@@ -220,17 +226,23 @@
 
    Simple repeater or bridge devices do not filter any messages and all messages are forwarded to all other
    segments. There is a limit to the number of these repeaters before bus latency and traffic become
-   limiting factors.  More intelligent interconnection devices can reduce required bandwidth by filtering
-   messages that are not needed on other segments, these are called gateways.
+   limiting factors.  More intelligent interconnection devices, called gateways, can reduce required
+   bandwidth by automatically filtering messages that are not needed on other segments. NMRAnet provides
+   the information that the gateways need to configure their own operations, with no knowledge required
+   from the user.
 
    graphics2
 
-   As an example, a CAN segment with a number of nodes can be connected via a CAN-USB, or CAN-Ethernet
-   bridge, to a PC running several separate control programs. As another example, a CAN segment consisting
-   of a  series of modules can be connected via a gateway to an Ethernet backbone, which in turn is
-   connected, via several other gateways, to other CAN segments made from  other collections of modules.
-   Several PCs could then be connected via the Ethernet, and interact with all the modules via the
-   individual CAN segments.  
+   On a more complex layout, a CAN segment with a number of nodes can be connected via a CAN-USB, or
+   CAN-Ethernet bridge, to a PC running several separate control programs. For a modular layout, CAN
+   segments consisting of a  series of modules can be connected  to an Ethernet backbone, which in turn is
+   connected to other CAN segments made from  other collections of modules. Several PCs could then be
+   connected via the Ethernet, and interact with all the modules via the individual CAN segments.  
+
+   The large Node IDs and Event ID of NMRAnet enable layouts to grow incrementally to as large as desired
+   without ever having to reconfigure nodes due to addressing conflicts. Two modular clubs can interconnect
+   their entire operating layouts and only have to configure the small number of messages that need to
+   cross between them.
 
                                            Producer/Consumer Events
 
@@ -243,35 +255,46 @@
    its attached turnout to move to a new position.
 
    Events are used to allow multi-node to multi-node interactions.  One or more nodes can produce any
-   particular Event, and none or more nodes can consume to that Event.  
+   particular Event, and none or more nodes can consume that Event.  
+
+   The Producer-Consumer model has some specific details that need to be stressed1.  Events indicate only
+   that a change has occurred, but do not carry state information --- no information as to what changed can
+   be inferred from the Event.  A user could have buttons in several locations that issue a “Set yard
+   throat to track 4” event, and the throat turnouts respond to that event regardless of which location
+   issued it.
+
+   Similarly, the eventual Action(s) cannot always be inferred from the Event.  In the yard throat example,
+   some turnouts will move one way, others will move the other, and some won't move at all. The Event
+   represents an abstract concept, rather than carrying actual specification of what occurred or has to
+   change.  For example, an Event might represent “Night-time running”, and it could be produced by one or
+   more of: a push-button; a timer; or a program in a computer, while it might be consumed by nodes that
+   control: street-lights; station-displays or even automated train-routers.
+
+   Although it may take a little getting used to, the abstract nature of Events allows them to be very
+   flexible and powerful, as they can link any consumer to any producer.   This means that users can pretty
+   much do what they like and not be constrained by the conventional control expectations like controlling
+   a turnout position only from a toggle switch. For instance you could control a turnout position from the
+   time of day clock that produces different Events at different times, and also use those same events to
+   control room and layout lighting.  At the same time, Events are still usable for simple commands
+   commonly used on model railroads, such as “Turn on output 3”.
 
    graphics1
 
-   The Producer-Consumer model has some specific details that need to be stressed.  Events indicate only
-   that a change has occurred, but do not carry state information --- no information as to what changed can
-   be inferred from the Event.  Similarly, the eventual Action(s) cannot be inferred from the Event.  The
-   Event represents an abstract concept, rather than carrying actual information.  For example, an Event
-   might represent “Night-time running”, and it could be produced by one or more of: a push-button; a
-   timer; or a program in a computer, while it might be consumed by nodes that control: street-lights;
-   station-displays or even automated train-routers. While this might seem limiting, the abstract nature of
-   Events allows them to be very flexible and powerful, as they can link any consumer to any producer.
-     This means that users can pretty much do what they like and not be constrained by the conventional
-   control expectations like controlling a turnout position only from a toggle switch. For instance you
-   could control a turnout position from the time of day clock that produces different Events at different
-   times, and also use those same events to control room and layout lighting.  The diagram below shows how
-   Events from various push buttons and turnout controllers are able to be configured to Produce and
-   Consume different Events to effect a route selector complete with route and button locking.
+   The diagram below shows how Events from various push buttons and turnout controllers are able to be
+   configured to Produce and Consume different Events to effect a route selector complete with route and
+   button locking.
 
                                    Node-Resident Configuration Definitions
 
    All NMRAnet nodes will contain a compressed document in standard form that contains all the relevant
-   information needed by an external Configuration Tool (CT) to know how to configure the node. CTs can use
-   that information to provide some form of suitable Graphical User Interface to allow the user to easily
-   and intuitively configure all aspects of the node's capabilities. An important design choice was to
-   embed this information into each node so that the system has all it needs to configure the node without
-   having to source some file external to the NMRAnet from the manufacturer or some other on-line
-   repository via the Internet or a CD/DVD etc. While the CT is likely to be a program running on a PC, it
-   could be a hand-held device like mobile phone or PDA or even a custom built CT.  
+   information needed by an external configuration tool to know how to configure the node. Configuration
+   tools can use that information to provide some form of suitable Graphical User Interface to allow the
+   user to easily and intuitively configure all aspects of the node's capabilities. An important design
+   choice was to embed this information into each node so that the system has all it needs to configure the
+   node without having to source some file external to the NMRAnet from the manufacturer or some other
+   on-line repository via the Internet or a CD/DVD etc. While configuration tools are likely to be programs
+   running on a PC, they could also be a hand-held device like mobile phone or PDA or even a custom built
+   configuration tool unit.  NMRAnet provides the structure for all of these to interoperate.
 
                                       CAN Node Id Alias Self Assignment
 
@@ -288,8 +311,7 @@
 
                                                   Use Cases
 
-   The table below describes the Use Cases (see separate User Cases document) that were and are being
-   considered for the NMRAnet design.
+   The table below describes the Use Cases2 that were and are being considered for the NMRAnet design.
 
                                 A model railroader wants to learn about NMRAnet. He buys two inexpensive    
                                 boards at his local hobby shop. He connects them on his layout to two       
@@ -483,3 +505,10 @@ CAN Wire Protocol Terms
    CAN Wire Protocol Terms
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 More information on using the Producer-Consumer model for model railroad applications is available in
+   a separate note.
+
+   2 See also the separate note on use cases.
