@@ -156,11 +156,13 @@
      * Every node has a 48-bit "Node ID number" (NID) which is assigned to assure that it is globally
        unique.  NID ranges are assigned to distributed to manufactures, groups and individuals by a method
        described in detail in another document.  Each manufacturer that has a NMRA DCC Manufacturer ID will
-       have a 24-bit address space allocated for their exclusive use. Large clubs or societies like the
-       NMRA, MERG, FREMO, NTRAK, oNeTRAK etc will be issued a large number range, which the group can then
-       subdivide, likely by a membership number.  Therefore,  each member of these groups will be
-       automatically allocated NIDs for their own use in DIY-built nodes. In addition, groups or
-       individuals may also request a additional ranges of NIDs, if these are required.
+       have a 24-bit address space allocated for their exclusive use. In most cases, users would buy nodes
+       with IDs preassigned by the manufacturer.  However, some users will want IDs for locally developed
+       nodes, and therefore, large clubs or societies like the NMRA, MERG, FREMO, NTRAK, oNeTRAK etc. will
+       each be issued a large number range.  The group can then subdivide, possibly by a membership number.
+        Each member of these groups will be automatically allocated NIDs for their own use for DIY-built
+       nodes. In addition, groups or individuals may also request a additional ranges of NIDs, if these are
+       required.
 
      * The NMRAnet is a flat structure, where all nodes are equally accessible and addressable. There is no
        hierarchy of nodes, node aggregation, tree structures, or segmentation that necessarily filters
@@ -169,10 +171,10 @@
      * Athough all NMRAnet nodes have the potential to see all NMRAnet messages, the protocol uses
        interest-based routing.   This is an effective way to reduce network traffic in large NMRAnets with
        many interconnected network segments.  NMRAnet gateway nodes dynamically learn which nodes on which
-       segments are interested in specific events, and only send those events to these segments.
+       segments are interested in specific events, and only send those events to those segments.
 
-     * The Source-node's ID is included in every NMRAnet message, and therefore each message can be traced
-       back to its the originator node.  
+     * The Source-node's ID is included in every NMRAnet message, and allows each message to be traced back
+       to its originator node.  
 
      * Above the basic transport level, NMRAnet defines methods for:
 
@@ -198,16 +200,17 @@
    segment with many nodes, running around the entire layout and have a comparatively short Ethernet
    segment that provides a convenient connection to a single PC. It is likely that entry level NMRAnet
    compatible DCC Command Stations will just have a CAN NMRAnet interface and a USB PC interface. Medium
-   level DCC Command Stations might add Ethernet and Wireless interfaces whereas top end DCC Command
+   level DCC Command Stations might add Ethernet and Wireless interfaces, whereas top end DCC Command
    Stations may also add WiFi. It is also likely that manufacturers will provide various interface devices
    (repeaters, bridges or gateways) to link each of the NMRAnet segment types like CAN to Ethernet and/or
    CAN to USB (for PC access), and CAN to Wireless and/or Ethernet to Wireless (for wireless throttles).
    WiFi interfaces are likely to use consumer grade Ethernet to WiFi Access Points but some markets may opt
-   for a WiFi interface in the DCC Command Station.
+   for a WiFi interface in the DCC Command Station.  This will allow use of Wifi enabled cellular phones to
+   access the NMRAnet directly without needing a PC.
 
-   Each segment of a NMRAnet is by default transparently connected to all other segments. A single CAN
+   Each segment of a NMRAnet is, by default, transparently connected to all other segments. A single CAN
    cable would be a NMRAnet segment, as would two CAN cables connected by a repeater or bridge. An Ethernet
-   link would also be a segment, as would TCP/IP network connections.
+   link or TCP/IP network connection would also each be a segment.  
 
     
 
@@ -216,17 +219,20 @@
    graphics3
 
    Simple repeater or bridge devices do not filter any messages and all messages are forwarded to all other
-   segments. More intelligent interconnection devices can reduce required bandwidth by filtering messages
-   that are not needed on other segments, these are called gateways.
+   segments. There is a limit to the number of these repeaters before bus latency and traffic become
+   limiting factors.  More intelligent interconnection devices can reduce required bandwidth by filtering
+   messages that are not needed on other segments, these are called gateways.
 
    graphics2
 
-   As an example, a CAN segment with a number of nodes can be connected via a CAN-USB or CAN-Ethernet
-   bridge to a PC running several separate control programs. As another example, a CAN segment in a series
-   of modules can be connected via a gateway to an Ethernet backbone, which in turn connects via several
-   other gateways to other CAN segments in other collections of modules. Several PCs can be connected via
-   the Ethernet and interact with all the modules via the individual CAN segments.  Producer/Consumer
-   Events
+   As an example, a CAN segment with a number of nodes can be connected via a CAN-USB, or CAN-Ethernet
+   bridge, to a PC running several separate control programs. As another example, a CAN segment consisting
+   of a  series of modules can be connected via a gateway to an Ethernet backbone, which in turn is
+   connected, via several other gateways, to other CAN segments made from  other collections of modules.
+   Several PCs could then be connected via the Ethernet, and interact with all the modules via the
+   individual CAN segments.  
+
+                                           Producer/Consumer Events
 
    The NMRAnet makes use of stateless messages called Events, which are part of a model formally called
    “The Consumer-Producer Model”.  This is a relatively new and powerful concept that is well established
@@ -239,6 +245,8 @@
    Events are used to allow multi-node to multi-node interactions.  One or more nodes can produce any
    particular Event, and none or more nodes can consume to that Event.  
 
+   graphics1
+
    The Producer-Consumer model has some specific details that need to be stressed.  Events indicate only
    that a change has occurred, but do not carry state information --- no information as to what changed can
    be inferred from the Event.  Similarly, the eventual Action(s) cannot be inferred from the Event.  The
@@ -250,19 +258,15 @@
      This means that users can pretty much do what they like and not be constrained by the conventional
    control expectations like controlling a turnout position only from a toggle switch. For instance you
    could control a turnout position from the time of day clock that produces different Events at different
-   times, and also use those same events to control room and layout lighting.
-
-   The diagram below shows how Events from various push buttons and turnout controllers are able to be
-   configured to Produce and Consume different Events to effect a route selector complete with route and
-   button locking.
-
-   graphics1
+   times, and also use those same events to control room and layout lighting.  The diagram below shows how
+   Events from various push buttons and turnout controllers are able to be configured to Produce and
+   Consume different Events to effect a route selector complete with route and button locking.
 
                                    Node-Resident Configuration Definitions
 
    All NMRAnet nodes will contain a compressed document in standard form that contains all the relevant
    information needed by an external Configuration Tool (CT) to know how to configure the node. CTs can use
-   that informatoin to provide some form of suitable Graphical User Interface to allow the user to easily
+   that information to provide some form of suitable Graphical User Interface to allow the user to easily
    and intuitively configure all aspects of the node's capabilities. An important design choice was to
    embed this information into each node so that the system has all it needs to configure the node without
    having to source some file external to the NMRAnet from the manufacturer or some other on-line
@@ -284,7 +288,8 @@
 
                                                   Use Cases
 
-   The table below describes the Use Cases that were and are being considered for the NMRAnet design.
+   The table below describes the Use Cases (see separate User Cases document) that were and are being
+   considered for the NMRAnet design.
 
                                 A model railroader wants to learn about NMRAnet. He buys two inexpensive    
                                 boards at his local hobby shop. He connects them on his layout to two       
@@ -406,6 +411,8 @@ Common Terms
                              multiple programs running may contain several nodes.                           
    Node ID (NID)             A 48-bit number identifying a specific node. NMRAnet node IDs must be globally 
                              unique, so they form a one-to-one mapping to the nodes themselves.             
+   Node ID Alias (NIDa)      A 12-bit number identifying a specific node on a CAN network.  There is a      
+                             one-to-one mapping from a NID to a NIDa.                                       
    Message                   The basic unit of NMRAnet communication.                                       
    MTI                       Message Type Indicator - identifies a common message type. (This term is still 
                              under discussion)                                                              
@@ -441,6 +448,8 @@ CAN Wire Protocol Terms
 
     
 
+    
+
    Table of Contents
 
    Executive Summary
@@ -454,6 +463,8 @@ CAN Wire Protocol Terms
    Key Features of the NMRAnet 9.6 Protocol Proposal
 
    NMRAnet Network Topology
+
+   Producer/Consumer Events
 
    Node-Resident Configuration Definitions
 
