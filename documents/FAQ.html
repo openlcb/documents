@@ -3,19 +3,16 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB FAQ</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091107;21202700">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100607;23324800">
 	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 2cm }
 		P { margin-bottom: 0.21cm }
-		H2 { margin-bottom: 0.21cm }
-		H2.western { font-family: "Arial", sans-serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-size: 14pt; font-style: italic }
-		H2.ctl { font-size: 14pt; font-style: italic }
 	-->
 	</STYLE>
 </HEAD>
@@ -25,23 +22,101 @@
 frequently asked questions about OpenLCB.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm"><I>(draft: Please reorder, add,
-subtract as discussions go on)</I></P>
-<H2 CLASS="western">Does a OpenLCB network need any central nodes
-such as a network manager, configuration manager, etc?</H2>
-<P STYLE="margin-bottom: 0cm">No. You certainly can add those if you
-want, but the full capability of OpenLCB is available without them.</P>
-<H2 CLASS="western">Can any OpenLCB node be configured to send any
-event? In other words, can multiple nodes produce the same event
-message?</H2>
-<P STYLE="margin-bottom: 0cm">The message will be slightly different,
-so you can tell where it comes from when debugging, but two nodes can
-produce the same eventID. In that case, consumers will treat the two
-messages identically.</P>
+<H3>Some have said that the size of S-9.6 node IDs and event ids is
+too large, how do you see that?</H3>
+<P STYLE="margin-bottom: 0cm">We specifically are designing a bus for
+the present and future. We therefore believe in 'thinking big but
+developing small', which means we plan for the more general case, but
+implement with simpler hardware. The large IDs are designed to let us
+simplify the experience for both novice and expert users by making
+IDs something they do not need to worry about – they do not need to
+assign them, or worry that they will conflict with someone else's
+assignment. They are designed to let one operate really large layouts
+without concern that you will run out of IDs. And finally they let us
+fold other identifiers into our IDs, which let's us bridge to other
+legacy buses more easily.</P>
+<H3>But they take up too much room, and will make simple nodes too
+expensive. 
+</H3>
+<P STYLE="margin-bottom: 0cm">Firstly, simple nodes only need a few
+events, so the space taken, even at 8-bytes per event is not onerous.
+We have shown nodes that function fine on boards that cost about $30
+each retail, including USB and several layout interfaces. It
+surprised to see that even though S9.5 claims our proposal makes
+simple nodes too expensive, they have not demonstrated any simple
+nodes, but rather very complicated nodes. In addition, we feel that
+the whole argument is rather moot – microprocessors are advancing
+along Moore's Law, and some costing about $4 each per 100 contain 32k
+of flash and 8k of RAM with USB – so resources are hardly limited.</P>
+<H3>Why do you make such a big deal about bridging, isn't it easy? 
+</H3>
+<P STYLE="margin-bottom: 0cm">No, it is not easy, and it is even
+harder to do it right. A bunch of hand waving about 'just bridging to
+other systems' is not engineering. As everyone knows, “the devil is
+in the details”, and we have taken the time to think though
+problems, and to solve them. We have chosen solutions that scale
+gracefully, and that can take advantage of commodity equipment such
+as routers.</P>
+<H3>Why are your answers to the NMRAnet mandate questions so much
+more complicated than the other proposals? 
+</H3>
+<P STYLE="margin-bottom: 0cm">Stating something does not make it
+true. Whether a proposal fulfills a mandate or criterion is up to the
+committee, not the proposal. We believe in giving enough details that
+the committee can make an informed decision, not one of faith. We
+have made every effort to document and detail each of the S9.6
+features. We are proposing a network that spans multiple segments on
+multiple transports. As far as we can tell, S9.5 basically duplicates
+the capabilities of Loconet, albeit at a slightly faster bit-rate.
+Similarly, S9.5 only demonstrates a partial solution to the problems
+facing modular groups and museum layouts.</P>
+<H3>Why include Ethernet in your proposal, isn't CAN sufficient for
+large layouts? 
+</H3>
+<P STYLE="margin-bottom: 0cm">CAN is sufficient for many layouts, but
+by no means all.  CAN segments have quite strict limits on both node
+counts and cable length due to bus loading, bus latency, bus
+contention and ID wastage. Each segment is restricted to less than
+100 nodes based on theoretical hardware drive secondary to network
+capacitance. Connecting CAN segments together requires at least
+active repeaters which have only limited ability to resolve bus
+contention and collisions due to added latency to the network.
+Un-resolved bus collisions on CAN segments are non-recoverable
+errors, and active repeaters cannot prevent them. S9.5 has not
+outlined ways around these problems. OpenLCB uses automatic filtering
+gateways and fully-unique NodeIDs to completely prevent collisions,
+but even with that there will be layouts that cannot be served only
+by CAN.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H2 CLASS="western">How can two nodes send the same eventID if the
-top four bytes of the eventID are required to be a valid nodeID?</H2>
+<P STYLE="margin-bottom: 0cm">By using a fast 'backbone' bus segment,
+we can support multiple CAN segments, while at the same time limiting
+their required bandwidth. By using the backbone, multiple software
+running on PCs can interact and control the resulting network.</P>
+<H3>Why do you use 29-bit headers and place the event IDs into the
+data portion of the CAN packet, isn't that awfully wasteful of the
+limited CAN bandwidth? 
+</H3>
+<P STYLE="margin-bottom: 0cm">We use a 29-bit header because we
+include the unique originating node ID to achieve the CAN condition
+that its headers be unique. S9.5 does not do this, and therefore
+cannot guarantee than their event packets will not collide and cause
+a bus error. In addition, CAN traffic will be limited by the
+capability of the nodes to generate the traffic, and that the S9.6
+packet-size will not make a significant impact on the maximum
+throughput.</P>
+<H3>Does a OpenLCB network need any central nodes such as a network
+manager, configuration manager, etc?</H3>
+<P STYLE="margin-bottom: 0cm">No. You certainly can add those if you
+want, but the full capability of OpenLCB is available without them.</P>
+<H3>Can any OpenLCB node be configured to send any event? In other
+words, can multiple nodes produce the same event message?</H3>
+<P STYLE="margin-bottom: 0cm">The origin field in the message will be
+different, so you can tell where it comes from when debugging, but
+two nodes can produce the same eventID. In that case, consumers will
+treat the two messages identically.</P>
+<H3>How can two nodes send the same eventID if the top four bytes of
+the eventID are required to be a valid nodeID?</H3>
 <P STYLE="margin-bottom: 0cm">Those four bytes are the nodeID of the
 node that <U>defines</U> the event, not the node that's currently
 <U>producing</U><SPAN STYLE="text-decoration: none"> it. The first
