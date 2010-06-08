@@ -3,12 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB FAQ</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100607;23324800">
-	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20100608;1185500">
+	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 2cm }
@@ -22,32 +21,35 @@
 frequently asked questions about OpenLCB.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H3>Some have said that the size of S-9.6 node IDs and event ids is
+<H3>Some have said that the size of S-9.6 node IDs and event IDs is
 too large, how do you see that?</H3>
-<P STYLE="margin-bottom: 0cm">We specifically are designing a bus for
-the present and future. We therefore believe in 'thinking big but
-developing small', which means we plan for the more general case, but
-implement with simpler hardware. The large IDs are designed to let us
-simplify the experience for both novice and expert users by making
-IDs something they do not need to worry about – they do not need to
-assign them, or worry that they will conflict with someone else's
-assignment. They are designed to let one operate really large layouts
-without concern that you will run out of IDs. And finally they let us
-fold other identifiers into our IDs, which let's us bridge to other
-legacy buses more easily.</P>
+<P STYLE="margin-bottom: 0cm">We are specifically designing a bus for
+both the present and future. We therefore believe in 'thinking big
+but developing small', which means we plan for the more general case,
+but implement with simpler hardware. The large IDs are designed to
+let us simplify the experience for both novice and expert users by
+making IDs something they do not need to worry about – they do not
+need to assign them, or worry that they will conflict with someone
+else's assignment. They are designed to let you operate really large
+layouts without concern that you will run out of IDs.  And finally, a
+large event ID lets us to fold other information into it, such as
+time-stamps or other buses IDs, allowing us to bridge to them more
+easily.  
+</P>
 <H3>But they take up too much room, and will make simple nodes too
 expensive. 
 </H3>
-<P STYLE="margin-bottom: 0cm">Firstly, simple nodes only need a few
-events, so the space taken, even at 8-bytes per event is not onerous.
-We have shown nodes that function fine on boards that cost about $30
-each retail, including USB and several layout interfaces. It
-surprised to see that even though S9.5 claims our proposal makes
-simple nodes too expensive, they have not demonstrated any simple
-nodes, but rather very complicated nodes. In addition, we feel that
+<P STYLE="margin-bottom: 0cm">Firstly, simple nodes need only a few
+events, so the space taken, even at 8-bytes per event, is not
+onerous. We have shown nodes that function fine on boards that cost
+about $30 each retail, including USB and several layout interfaces.
+It surprised us to see that even though S9.5 claims that our proposal
+makes simple nodes too expensive, they have not demonstrated any
+simple nodes, but rather complicated nodes. In addition, we feel that
 the whole argument is rather moot – microprocessors are advancing
-along Moore's Law, and some costing about $4 each per 100 contain 32k
-of flash and 8k of RAM with USB – so resources are hardly limited.</P>
+along Moore's Law, and already some, costing about $4 each per 100,
+contain 32k of flash and 8k of RAM – so resources are hardly
+limited.</P>
 <H3>Why do you make such a big deal about bridging, isn't it easy? 
 </H3>
 <P STYLE="margin-bottom: 0cm">No, it is not easy, and it is even
@@ -74,7 +76,7 @@ facing modular groups and museum layouts.</P>
 large layouts? 
 </H3>
 <P STYLE="margin-bottom: 0cm">CAN is sufficient for many layouts, but
-by no means all.  CAN segments have quite strict limits on both node
+by no means all. CAN segments have quite strict limits on both node
 counts and cable length due to bus loading, bus latency, bus
 contention and ID wastage. Each segment is restricted to less than
 100 nodes based on theoretical hardware drive secondary to network
@@ -86,45 +88,47 @@ errors, and active repeaters cannot prevent them. S9.5 has not
 outlined ways around these problems. OpenLCB uses automatic filtering
 gateways and fully-unique NodeIDs to completely prevent collisions,
 but even with that there will be layouts that cannot be served only
-by CAN.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">By using a fast 'backbone' bus segment,
-we can support multiple CAN segments, while at the same time limiting
-their required bandwidth. By using the backbone, multiple software
-running on PCs can interact and control the resulting network.</P>
+by CAN.  By using a fast 'backbone' bus segment, S9.6 can support
+multiple CAN segments, while at the same time reducing their required
+bandwidth. In addition, multiple software running on PCs, and
+connected to the backbone, can interact and control the resulting
+network.</P>
 <H3>Why do you use 29-bit headers and place the event IDs into the
 data portion of the CAN packet, isn't that awfully wasteful of the
 limited CAN bandwidth? 
 </H3>
 <P STYLE="margin-bottom: 0cm">We use a 29-bit header because we
-include the unique originating node ID to achieve the CAN condition
-that its headers be unique. S9.5 does not do this, and therefore
-cannot guarantee than their event packets will not collide and cause
-a bus error. In addition, CAN traffic will be limited by the
-capability of the nodes to generate the traffic, and that the S9.6
-packet-size will not make a significant impact on the maximum
-throughput.</P>
+include the originating unique node ID in it to achieve the CAN
+requirement that its headers be unique. S9.5 does not do this, and
+therefore cannot guarantee than their event packets will not collide
+and cause a bus error. In addition, CAN traffic is limited by the
+capability of nodes to generate that traffic, and our group feels
+that the S9.6 packet-size will not make a significant impact on the
+maximum throughput of the CAN.</P>
 <H3>Does a OpenLCB network need any central nodes such as a network
 manager, configuration manager, etc?</H3>
-<P STYLE="margin-bottom: 0cm">No. You certainly can add those if you
-want, but the full capability of OpenLCB is available without them.</P>
+<P STYLE="margin-bottom: 0cm">No, the full capability of OpenLCB is
+available without them.  However, you certainly can add those if you
+want, and for larger networks they will be very helpful.   
+</P>
 <H3>Can any OpenLCB node be configured to send any event? In other
 words, can multiple nodes produce the same event message?</H3>
-<P STYLE="margin-bottom: 0cm">The origin field in the message will be
-different, so you can tell where it comes from when debugging, but
-two nodes can produce the same eventID. In that case, consumers will
-treat the two messages identically.</P>
-<H3>How can two nodes send the same eventID if the top four bytes of
-the eventID are required to be a valid nodeID?</H3>
-<P STYLE="margin-bottom: 0cm">Those four bytes are the nodeID of the
-node that <U>defines</U> the event, not the node that's currently
+<P STYLE="margin-bottom: 0cm">Yes, two nodes can produce the same
+event ID.  The packets will not be identical, as the originating node
+field in the message will be different and you can tell where it came
+from when debugging, but consumers will treat the two messages
+identically.</P>
+<H3>How can two nodes send the same event ID if the top six bytes of
+the event ID are required to be a valid node ID?</H3>
+<P STYLE="margin-bottom: 0cm">Those six bytes are the node ID of the
+node that <U>defines</U> the event, not the node that is currently
 <U>producing</U><SPAN STYLE="text-decoration: none"> it. The first
-node to use an eventID (produce or consume) defines what it means.
-Other nodes can use it without trouble. That defining node is then
-reponsible for making sure that any other events it defines don't use
-the same eventID. That ensures that eventIDs are always unique, and
-so no reconfigurations to avoid collisions are required.</SPAN></P>
+node to use an event ID (to produce or consume it) defines what it
+means. Other nodes can use it without trouble, but the defining node
+is responsible for making sure that every other event it defines
+doesn't use the same event ID.  This ensures that event IDs are
+always unique, and therefore no reconfiguration is necessary to avoid
+collisions.</SPAN></P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
