@@ -7,8 +7,9 @@
 	<META NAME="AUTHOR" CONTENT="Bob Jacobsen">
 	<META NAME="CREATED" CONTENT="20090704;17462000">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100529;21190500">
+	<META NAME="CHANGED" CONTENT="20100607;21094300">
 	<META NAME="KEYWORDS" CONTENT="OpenLCB, modules, Fremo">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<STYLE TYPE="text/css">
 	<!--
@@ -86,15 +87,15 @@ are a couple of ways that this could be done:</P>
 	the modules are set up, their Consumers can be configured with the
 	events produced by the adjacent module. Alternately, the Producers
 	of interface events can be reconfigured to produce the events
-	expected by the adjacent Consumers.  This is robust and requires
+	expected by the adjacent Consumers. This is robust and requires
 	minimal communications in operation, but does require changing
 	configurations.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Reconfigure via special support:
 	Nodes for module interfaces could have a special configuration
 	facility that makes it easy to specify just the NodeID of the
 	adjacent module, automatically working out all the necessary Event
-	IDs.  Or this could be a special tool that knows how to do this:
-	Plug it in, ident the two nodes, and off it goes.</P>
+	IDs. Or this could be a special tool that knows how to do this: Plug
+	it in, ident the two nodes, and off it goes.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Conversion via separate node: E.g.
 	The “Track one occupied east” event gets remapped to the
 	specific event required as input in the adjacent node. Could be
@@ -111,6 +112,24 @@ removes distance limitations, etc.</P>
 possible to pull all traffic onto backbone. Not really a bandwidth
 issue, Ethernet speed gets higher and higher all the time, more of a
 management issue.</P>
+<H3>Local Configuration</H3>
+<P>Consider a modular meet at which N clubs bring together their
+sections of layout.  Further, consider that each section is
+configured with a common CAN OpenLCB segment.  They would like to
+connect the segments into a single OpenLCB CAN segment, configure the
+interface eventIDs, and operate. Central PC tools can do the
+configuration, but how about doing local (button-based)
+configuration? Blue/Gold and similar global message methods can only
+be used one-at-a-time on the connected layout.</P>
+<P>One way to fix this is to put a 4PDT switch in the middle of each
+CAN segment.  This could be in the middle of each module, or only one
+per segment. Set one way, the CAN network is continuous. Set the
+other way, it's divided into two segments, each with a terminating
+resistor. 
+</P>
+<P>Now, connect two segments, each split in the middle by setting the
+switch.  Those can be configured using e.g. blue/gold, then the
+switch set back to normal operation.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
