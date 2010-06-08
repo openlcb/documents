@@ -3,10 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Example: Event Configuration Protocol</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100607;21002900">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20100526;10333900">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Event Configuration Protocol</H1>
@@ -15,18 +16,27 @@ and configure them to do something useful with only the pushbutton(s)
 and LED(s) on them, without requiring a separate configuration tool,
 computer, etc. 
 </P>
-<P>This document outlines the protocol for doing this. 
-</P>
-<P>This protocol does not mandate how a node defines its local UI. 
-</P>
-<P><BR><BR>
-</P>
+<P>This document outlines the OpenLCB protocol for doing this. It
+works without any central configuration mechanism, nor even any
+global knowledge of which producers and consumers are being
+configured.</P>
+<P>This protocol does not mandate how a node defines its local UI.
+See the separate document in “Blue-Gold Protocol” for that.</P>
+<P>Nodes may also be configured using other mechanisms, including
+direct loading of configuration. Techniques for that are described
+elsewhere.</P>
 <H2>Simplified Description</H2>
 <P>Producer-nodes (ones that implement buttons, toggle switches,
 BODs, etc) and consumers-nodes (signals, leds, displays, layout
-lighting, etc) can be linked, such that activating a producer will
+lighting, etc) need to be configured to use a common EventID, such
+that activating a producer will send the common EventID, which will
 cause one or more consumers to activate. 
 </P>
+<P>The protocol uses external mechanisms, e.g. walking around and
+pushing buttons, to select producers and consumers which will learn
+the common EventID.  A single producer or consumer then provides the
+EventID that is to be learned in a “teach EventID” message.
+Specifically:</P>
 <OL>
 	<LI><P>On one or more 'learner'-nodes, select a number of
 	producers/consumers (p/c's).</P>
