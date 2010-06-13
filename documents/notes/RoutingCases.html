@@ -1,0 +1,162 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Routing Cases</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Routing Cases</H1>
+<P>Not quite use cases, the following are things we considered when
+designing routing, etc, for large modular layouts. 
+</P>
+<P>(Sent to NMRAnet_Applications 6/13/2010)</P>
+<P STYLE="margin-bottom: 0cm">The following are some of the issues
+that arise when using &quot;gateways&quot; (really, routers if they
+transform the addressing of node numbers, events or similar) between
+LCB CAN segments. There are several ways to handle these, of course.
+One can solve them many ways: technically within the LCB design, or
+by administratively requiring certain configurations, or by
+reconfiguration when layouts are assembled, or just say that a
+particular system doesn't do that. The various issues overlap with
+each other, so they have to be solved coherently.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">It would be good to know how S9.5 and
+CBUS handle these. I'll post something later on about the details of
+the OpenLCB/S9.6 approach.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">People might also want to add things to
+the list that they'd like to be sure can be handled, or are concerned
+about details of the solutions. This list comes from the use cases we
+considered for OpenLCB/S9.6, but it's quite possible we've overlooked
+important things. It would be good to add those to the list.</P>
+<H2>Interconnection types</H2>
+<P STYLE="margin-bottom: 0cm">Modular layouts are interconnected at
+various levels. An individual modeler will build one or more modules
+that are mechanically separate, but always work together. A few
+modelers in a club will put together a run of maybe a dozen or two
+modules that generally operate together in a group. Those groups are
+put together into larger layouts at the club, meet, national and even
+international level. Reasonable numbers are 1-5 modules in a person's
+collection, 10-15 such grouped together, and 5 to 7 of those groups
+for seasonal modular meet, for a total of 50-100 modules. Large
+layouts are already 4 times that, and likely to grow.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Because there are lots of connections
+between small groupings, it's desirable to have those very low cost.
+Ideally, the individual modules and groups can be interconnected at
+just the cost of wire by interconnecting CAN segments when they are
+joined. At a higher level, modules groups of e.g. 20-30 modules could
+have low-cost units doing interconnection; a large organization might
+need to have 20 of these. At the highest level, units to connect the
+largest segments together could be more expensive, but only a
+half-dozen might be needed.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">As an example, FREMO modules
+daisy-chain a LocoNet connection from module to module, and then use
+custom modules between separate segments of the large layouts. They
+also use multiple computer connections to each LocoNet segment and
+inter-computer networking to move traffic around.</P>
+<H2>Interface events</H2>
+<P STYLE="margin-bottom: 0cm">Typically, joining modules will want to
+exchange some fraction of P/C events at their interface. For example,
+a signal system wants to know about adjacent track occupancy or the
+aspect of a signal at the connection; buttons on one module might
+want to align turnouts on the next one so the operator doesn't have
+to move; etc. There may be a few of these for each connected module.
+They need to be configured, either in advance or on the day of the
+meet both in the nodes using them, and in any gateways or routers
+connecting those nodes.</P>
+<H2>Regional and/or overall visibility</H2>
+<P STYLE="margin-bottom: 0cm">To run a display or control panel for a
+large number of modules, perhaps even the entire layout, the LCB has
+to bring a few events per module to a common point. (There are also
+issues with knowing what to display, but that's a separate issue;
+there are multiple ways of configuring and building displays &amp;
+panels). The LCB also has to take events produced at that point and
+deliver them to all the interested consumers across the layout, for
+example a &quot;configure for mainline running&quot; event which
+might be consumed by most of the modules.</P>
+<H2>Traffic localization</H2>
+<P STYLE="margin-bottom: 0cm">In a big modular meet, the total
+traffic is likely to be large compared to what any individual segment
+can handle responsively. Much of that traffic is only of interest to
+small parts of the layout: The event from a button push to align a
+turnout might only be interesting on that module, or might also be
+interesting to a central status panel, but there are certainly parts
+of the overall LCB where it's not needed; a configuration message
+from computer A to node B doesn't have to appear on segments that
+aren't related to A, B or their interconnect. The LCB either has to
+provide enough bandwidth to carry all traffic to every point, or
+provide a way of only delivering messages where they are desired.</P>
+<H2>Distributed start</H2>
+<P STYLE="margin-bottom: 0cm">Modular layouts are independently
+powered: Different parts come up at different times. The remaining
+system must function when parts are off, and must be able to operate
+through some part being powered back on. It's undesirable to have to
+reset the entire connected LCB to e.g. add a new gateway or remove
+one; it's particularly undesirable to have to change configuration to
+run with parts turned off.</P>
+<H2>Cross-segment configuration &amp; monitoring.</H2>
+<P STYLE="margin-bottom: 0cm">It's desirable for a computer connected
+to any one segment be able to e.g. work with configuration or state
+information from nodes on any other segment. One could imagine
+systems that provide complete access just to the connected segment,
+or that segment and it's neighbors, or any segment; the wider the
+access the better. Wider connections e.g. makes it unnecessary to
+move a laptop around to connect it in different places while
+debugging a problem.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">As a specific example, consider four
+segments A, B, C, D. The segments have been interconnected in some
+way. A computer on A should be able to interact with nodes on B, C,
+or D without any limitations due to being on a different segment.
+This may put limitations on how the segments are connected if e.g.
+only adjacent segments can be addressed (the system doesn't preserve
+address mapping through multiple gateways). Or it might require that
+the computer know about the interconnection so as to make allowances
+for it. Or some other adaptation might be needed.</P>
+<H2>Gateway and router configuration</H2>
+<P STYLE="margin-bottom: 0cm">The less that gateways and routers need
+to be configured, the better. Ideally, they shouldn't require any
+user configuration at all; just plug them together and off you go,
+subject only to debugging of bad connections, etc. Only marginally
+worse is doing local configuration: Telling the gateway or router
+something about the segment that was just connected, e.g. a number
+you want it called. Significantly more burdensome is having to
+configure specific translations between event and/or node numbers;
+there are many, many more of these.</P>
+<H2>Trouble localization</H2>
+<P STYLE="margin-bottom: 0cm">Wiring fails or is misconnected. That
+just happens. While debugging, it's helpful to be able to split the
+LCB at some point, e.g. by disconnecting a cable and adding
+terminators, and have both segments still be able to operate locally
+the same as before. This lets you connect a diagnostic tool to the
+two sides, check ability to communicate, and then do a binary search
+for the problem. The less configuration that tool needs before
+connecting, the better. Being able to discover all nodes that are
+currently reachable is helpful. Being able to find all the events
+those nodes produce and consume is helpful. Being able to check error
+information from those nodes is helpful. If a single segment is
+split, being able to move a gateway from one half to the other is
+helpful, as is being able to easily add a gateway to the half without
+one.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
