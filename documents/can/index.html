@@ -6,11 +6,15 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100530;10394500">
+	<META NAME="CHANGED" CONTENT="20100612;15365900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<!-- $Id$ -->
@@ -74,19 +78,18 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 		recommendation is emerging to use the center pair of CAT5 cable
 		(blue for CANH, white/blue for CANL).</P>
 		<LI><P STYLE="margin-bottom: 0cm">CAT5e patch cables with RJ45 ends
-		are becoming cheaper than wire.  Five foot ones are now available
-		in single quantity for less than $1.50; 25 foot ones for less than
-		$5. The board connectors are about $0.70 each, which does add some
-		cost, but must be compared to cost of other connectors.  
+		are becoming cheaper than wire. Five foot ones are now available in
+		single quantity for less than $1.50; 25 foot ones for less than $5.
+		The board connectors are about $0.70 each, which does add some
+		cost, but must be compared to cost of other connectors. 
 		</P>
 	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Termination provision requirements
 	(Should every node have to have option to terminate in some way?
-	E.g. a switch that can be set? Queryable?)<SPAN STYLE="font-style: normal">
-	</SPAN><SPAN STYLE="font-style: normal">(Some things, like a built
-	in terminator, should be “desirable but not required”; there's
-	more than one way to do it: switch on board; ship a resistor in one
-	of the CAN connectors on the board; etc)</SPAN></P>
+	E.g. a switch that can be set? Queryable?) <SPAN STYLE="font-style: normal">(Some
+	things, like a built in terminator, should be “desirable but not
+	required”; there's more than one way to do it: switch on board;
+	ship a resistor in one of the CAN connectors on the board; etc)</SPAN></P>
 	<LI><P STYLE="margin-bottom: 0cm">The rise/fall time of CAN signals
 	is a controllable parameter. The MCP2551 transceiver part used in
 	e.g. MERG CBUS controls this with an Rs external resistor, by
@@ -115,10 +118,6 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 <P>OpenLCB common messages are converted, to the extent possible, to
 single CAN frames via a one-to-one mapping. 
 </P>
-<P>For long term reliability, a node <U>must</U> be able to
-completely process an entire CAN frame in the time it takes to
-receive the next one, which may be as little as 42 (?) bit times, or
-about 300 (?) microseconds.</P>
 <P>The translations include: 
 </P>
 <UL>
@@ -141,18 +140,26 @@ about 300 (?) microseconds.</P>
 	which format is carried. 
 	</P>
 </UL>
-<P>Decisions to document: 
-</P>
+<P>Design decisions:</P>
 <UL>
-	<LI><P STYLE="margin-bottom: 0cm">How to truncate/map the MTI to a
-	smaller size. Common form is 16 bits to have lots of space to grow
-	at the high end, but only 8 are really needed so far. Try to
-	allocate on nibble boundaries to make dumps easy to read.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The CAN format has been allocated
+	on nibble boundaries to make it easier to e.g. read dumps of
+	packets. The header is considered to be right (LSB) aligned.</P>
+	<LI><P STYLE="margin-bottom: 0cm">A specific mapping from the common
+	16-bit MTI format to a shorter CAN format is documented in a
+	<A HREF="../MtiAllocations.ods">separate worksheet</A> (<A HREF="../MtiAllocations.pdf">PDF
+	version</A>). The common form is 16 bits to have lots of space to
+	grow at the high end, but it can be mapped into a 8 bit field for
+	efficient CAN transfer. 
+	</P>
 	<LI><P STYLE="margin-bottom: 0cm">Nodes must handle full rate
 	messages, specifically including messages not addressed to them.
 	(The datagram and stream protocols provide ways for nodes to
 	indicate whether or not they have sufficient buffering for the next
-	transmission, triggering retries as needed)</P>
+	transmission, triggering retries as needed) For long term
+	reliability, a node <U>must</U> be able to completely process an
+	entire CAN frame in the time it takes to receive the next one, which
+	may be as little as 64 bit times, or about 500 microseconds.</P>
 	<LI><P>A 1-bit field priority field coarsely specifies the priority
 	of the message in terms of CAN arbitration to be high (pri=0) or low
 	(pri=1). By default, all messages are to be emitted with low
@@ -162,13 +169,14 @@ about 300 (?) microseconds.</P>
 	from time to time experience high traffic loads and need the ability
 	to pre-empt other nodes to forward messages from a busy segment or
 	preempt the sending of responses to nodes over receiving new
-	requests to prevent message buffer overflow. 
-	</P>
-	<LI><P>Filtering recommendations: in particular, find a way to set
-	MTI bits to make filtering hardware effective.</P>
+	requests to prevent message buffer overflow. This field is separate
+	from the static priority field in the MTI format specification.</P>
+	<LI><P>Designers may wish to use CAN hardware filtering, but it
+	can't be assumed to be present. We assign a single bit to indicate
+	“simple node protocol” messages to make simple filtering
+	possible.</P>
 </UL>
-<P>Document header content and sizes (Nominal decisions shown, 29 bit
-header): 
+<P>Header content and sizes (Nominal decisions shown, 29 bit header):
 </P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Priority bit (Always sent as 1
@@ -183,7 +191,7 @@ header):
 	<LI><P>Source NID alias (12 bits) 
 	</P>
 </UL>
-<P>(The order of these fields is chosen to get proper priority and
+<P>The order of these fields is chosen to get proper priority and
 access disambiguation via CAN's standard mechanisms.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=64*>
@@ -220,6 +228,20 @@ access disambiguation via CAN's standard mechanisms.</P>
 			<P>Source NID Alias</P>
 		</TD>
 	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Solo top bit</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Top bit of 6<SUP>th</SUP> nibble from right</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>3 bits lower bits, then three nibbles</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Right-most three nibbles</P>
+		</TD>
+	</TR>
 </TABLE>
 <P><BR><BR>
 </P>
@@ -229,8 +251,8 @@ control messages are identified with a Frame Type bit of 0, to ensure
 high priority.</P>
 <P><BR><BR>
 </P>
-<P><I>Document no-seven-1-bits-in-top-N limitation.</I> 
-</P>
+<P><I>Document no-seven-1-bits-in-top-11 limitation to ensure future
+selections don't violate it.</I></P>
 <H2>CAN-specific Control Messages and Interactions</H2>
 <P>These are identified by the Frame Type bit being 0. They are
 formatted as shown in the following table:</P>
@@ -252,9 +274,9 @@ formatted as shown in the following table:</P>
 			<P>Check ID (CIM) message</P>
 		</TD>
 		<TD WIDTH=423>
-			<P>MMMNNNNNNNNNNNN where MMM is 0-5</P>
+			<P>MMM,NNNN,NNNN,NNNN where MMM is 0-5</P>
 			<P>MMM is the message sequence number</P>
-			<P>NNNNNNNNNNNN is the 12-bit Node ID section being checked</P>
+			<P>NNNN,NNNN,NNNN is the 12-bit Node ID section being checked</P>
 		</TD>
 	</TR>
 	<TR>
@@ -424,16 +446,25 @@ field is used in three forms:</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=38%>
-			<P ALIGN=CENTER>0 x x</P>
+			<P ALIGN=CENTER>0 0 1</P>
 		</TD>
 		<TD WIDTH=62%>
 			<P ALIGN=CENTER>MTI &amp; additional information for unaddressed
-			messages</P>
+			messages other than “simple node” forms</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=38%>
-			<P ALIGN=CENTER>1 1 0</P>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER>MTI &amp; additional information for “simple
+			node” unaddressed messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER>1 0 0</P>
 		</TD>
 		<TD WIDTH=62%>
 			<P ALIGN=CENTER>Destination Alias for addressed messages</P>
@@ -441,10 +472,28 @@ field is used in three forms:</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=38%>
-			<P ALIGN=CENTER>1 1 1</P>
+			<P ALIGN=CENTER>1 1 0</P>
 		</TD>
 		<TD WIDTH=62%>
-			<P ALIGN=CENTER>Stream ID</P>
+			<P ALIGN=CENTER>Destination Alias for Stream Data Send messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER><BR>
+			</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER>(Four others)</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER>Reserved, must not be sent or recognized</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -454,12 +503,13 @@ field is used in three forms:</P>
 with common CAN hardware. Putting the Stream ID in the header also
 allows filtering, and preserves the full 8-byte CAN payload for
 stream data.</P>
-<P STYLE="font-style: normal">The specific MTI values are being
-allocated in a separate spread sheet.</P>
+<P><SPAN STYLE="font-style: normal">The specific MTI values are being
+allocated in a <A HREF="../MtiAllocations.ods">separate worksheet</A>
+(<A HREF="../MtiAllocations.pdf">PDF version</A>).</SPAN></P>
 <P STYLE="font-style: normal">Some MTIs have additional status bits
-defined. For example, there are two status bits associated with
-“Consumer Identified” which must be kept in the header since
-there is no room in the CAN data field.</P>
+defined as part of the 2<SUP>nd</SUP> field. For example, there are
+two status bits associated with “Consumer Identified” which must
+be kept in the header since there is no room in the CAN data field.</P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">Note that messages
 with Destinations IDs actually occur in two forms: with an alias in
 the header and the MTI in the message; and with a full address in the
