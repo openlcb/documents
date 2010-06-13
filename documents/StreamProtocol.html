@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Streaming</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091111;10353100">
+	<META NAME="CHANGED" CONTENT="20100612;15540500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Streaming Protocol</H1>
@@ -75,16 +76,16 @@ across a OpenLCB implementation.
 	<LI><P STYLE="margin-bottom: 0cm">The source sends an &quot;Stream
 	Initiate Request (Addressed)&quot; to the destination. It carries a
 	&quot;Max Buffer Size&quot; value (2 bytes), a “Tagged” boolean
-	flag (1 bit) and a &quot;Source Stream ID&quot; (1 byte) in the data
-	section. The combination of source, destination, and Source Stream
-	ID must uniquely identify this stream transmission. The Source
-	Stream ID has no meaning to the destination. <I>(Requires the
-	alias-addressed form of CAN frame, which uses two bytes for the
-	address, leaving six bytes free for payload)</I></P>
+	flag (1 bit in a byte) and a &quot;Source Stream ID&quot; (1 byte)
+	in the data section. The combination of source, destination, and
+	Source Stream ID must uniquely identify this stream transmission.
+	The Source Stream ID has no meaning to the destination. 
+	</P>
 	<LI><P>The destination returns a &quot;Stream Initiate Reply
 	(Addressed)&quot; with a &quot;Max Buffer Size&quot; value (2
-	bytes), &quot;Source Stream ID&quot; (1 byte) and &quot;Destination
-	Stream ID&quot; (1 byte). 
+	bytes), the “Tagged” boolean flag (1 bit in a byte), &quot;Source
+	Stream ID&quot; (1 byte) and &quot;Destination Stream ID&quot; (1
+	byte). 
 	</P>
 	<P>The &quot;Max Buffer Size&quot; is less than or equal to the
 	value in the Initiate Stream Request, and is the negotiated buffer
@@ -110,7 +111,7 @@ across a OpenLCB implementation.
 		<LI><P STYLE="margin-bottom: 0cm">If the “Tagged” flag was true
 		during initialization, the first 6 bytes of the data are a unique
 		data-type indicator. These are allocated the same way that Node
-		IDs, etc, are allocated, but form a separate name space. If that
+		IDs, etc, are allocated, but from a separate name space. If that
 		“Tagged” flag is false, some higher-level protocol must
 		identify the data-type of the stream data.</P>
 	</UL>
@@ -122,32 +123,32 @@ across a OpenLCB implementation.
 	bytes can be sent.</P>
 	<LI><P>When the last data has been sent, the source sends a Stream
 	Data Complete message carrying the Source Stream ID and Destination
-	Stream ID to indicate that all data has been sent. When this is
-	received by the destination, the transfer is complete. 
+	Stream ID to indicate that all data has been sent. Optionally, this
+	can carry a four-byte length of the stream data transferred for
+	checking. A zero value, if present, means the length is unknown.
+	When this message is received by the destination, the transfer is
+	complete. 
 	</P>
 </UL>
+<H3>CAN protocol</H3>
+<P>On a CAN segment, the data limit is 8 bytes. This requires us to
+use as little control information as possible, so that as many of
+those eight bytes can be used for data as possible.</P>
+<P>OpenLCB/S9.6 CAN frames can hold the source and destination
+aliases in the header.  A dedicated “stream data transfer” format
+can also be coded entirely in the header.  This then allows 8 bytes
+of data per transfer if the Source Stream ID and Destination Stream
+ID need not be carried.  By specifying that only one stream can be
+transferred on a CAN link between any two nodes, no Stream ID would
+be needed.  This is our chosen solution.  Since a node knows that
+it's originating the stream, this can be checked in advance for
+point-to-point connections.  Gateways might have to reject a stream
+transfer in some cases, or use a virtual node ID.</P>
+<P>If there's a need for more than two streams, another format could
+be defined that puts a source or destination stream ID in the data
+portion, transferring six bytes at a time.  The sender could then use
+that form if a 2<SUP>nd</SUP> stream is required.</P>
 <H3>Comments</H3>
-<P>On a CAN segment, the data limit is 8 bytes. (There are also a few
-bits in the header that can be used if need be) Two will be used for
-the destination address, one for the stream ID, leaving five for
-payload. 
-</P>
-<P>If the stream ID was a property of the link, not of the
-end-points, the CAN stream data payload could be raised to 7 bytes or
-perhaps even 8 bytes per frame, but at the cost of significantly
-increased complexity because the stream ID would have to be
-negotiated across all nodes on the link so that multiple streams
-could be in flight at once; limiting to only one stream on a CAN link
-at once would also require negotiation across all nodes, again a
-complex operation.</P>
-<P STYLE="font-style: normal">The best way to get the CAN payload
-size, and hence bit efficiency up, is to get more into the CAN
-header. If we were to limit to only one stream between a given source
-and destination on a CAN link, hence not needing the stream ID byte,
-and if we were to use 12-bit node ID aliases instead of 16 (hence
-only 4095 accessible off-link node IDs instead of 64k), we could fit
-everything into a special format CAN header. That would give 8 byte
-payloads, and about a 50% bit efficiency for transfer.</P>
 <P>The &quot;Stream Data Proceed&quot; from the destination is
 clearance to send another buffer-size-worth of data. To achieve
 better performance, the destination can send it before receiving the
