@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100607;22112900">
+	<META NAME="CHANGED" CONTENT="20100612;16030900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -69,15 +70,14 @@ needs to be an “received OK, acknowledged” reply. In this case,
 'reliable transport' just refers to a lack of content and order
 errors, not that messages always end up effective at the remote
 destination.</P>
-<P>On CAN links, the datagram protocol is constrained by the need to
-limit space used for addresses. Datagrams must be broken into
-multiple frames, but there's just not enough space in a CAN frame to
-include the destination address in every frame. The protocol must
-allow for the possibility that datagrams to a particular node can be
-interleaved if several nodes are transmitting at the same time. Note
-that a node can control what it sends, so it is possible to ensure
-that only one datagram is being sent from a node at one time, just
-not that only one is being received.</P>
+<P>On CAN links, the datagram protocol is constrained by the need the
+limited frame size. Datagrams must be broken into multiple frames for
+transfer. The protocol must allow for the possibility that datagrams
+to a particular node can be interleaved if several nodes are
+transmitting at the same time. Note that a node can control what it
+sends, so it is possible to ensure that only one datagram is being
+sent from a node at one time, just not that only one is being
+received.</P>
 <P>We're relying on CAN not reordering messages, even in the presence
 of error recovery. That's needed in any case for streams, which are
 so large that complete internal buffering cannot be assumed.</P>
@@ -113,6 +113,10 @@ one of several conditions:</P>
 	<LI><P STYLE="margin-bottom: 0cm">“Buffer shortage, resend” -
 	The node wasn't able to receive the datagram because of a shortage
 	of buffers. The sending node should resend at its convenience.</P>
+	<LI><P STYLE="margin-bottom: 0cm">“Datagram rejected, out of
+	order” - Should not happen, but an internal inconsistency was
+	found in the CAN frames making up a datagram. Sender can try again
+	if desired.</P>
 </UL>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -121,23 +125,25 @@ one of several conditions:</P>
 base protocol, except for the need to split the message into frames.</P>
 <P>Only one datagram may be sent from a specific source node ID to a
 specific destination ID at a time. The sender breaks the datagram
-content into one or more frames. The first frame contains the 2-byte
-destination NodeID alias in the data content, plus up to six data
-bytes. The source NodeID alias is contained in the header as usual.</P>
-<P>If there are more than six bytes to the datagram, the rest are
+content into one or more frames. The source NodeID alias and
+destination NodeID alias are contained in the header as usual. The
+data portion starts with a byte that identifies the transfer as a
+datagram, along with “datagram start” and “datagram complete”
+flags.</P>
+<P>If there are more than seven bytes to the datagram, the rest are
 send as consecutive frames. Because CAN transmission retains frame
 order, no order information is added to the frames to simplify
 packing and unpacking. The last frame is marked with a “datagram
-complete” bit. A ode may only send one datagram at a time to any
+complete” bit. A node may only send one datagram at a time to any
 given destination node. A node may interleave transmission of
 datagrams to separate nodes, but this is not recommended because it
-increases the probability of buffer collisions.</P>
+increases the probability of buffer collisions in recipient nodes.</P>
 <P>The receiving node receives the frames into a buffer. The frames
 from more than one datagram may arrive in interleaved order, in which
 case the receiving node can tell them apart using their source NodeID
 alias and store them in separate buffers. Once the “datagram
 complete bit” is received for a datagram, the node replies to the
-original source node with a “Datagram Acknowledged” message.</P>
+original source node with a “Datagram Received OK” message.</P>
 <P>An interface or gateway onto a CAN link must do the datagram
 fragmentation locally. Buffer retries may be either done locally by
 the gateway, or by reflecting the response back to the original
@@ -210,33 +216,33 @@ approaches:</P>
 	This takes significantly more space, particularly on CAN, but is
 	simple to maintain.</P>
 </UL>
-<P>The plan is to use both.  There will be a one-byte field, with
+<P>The plan is to use both. There will be a one-byte field, with
 certain values to escape to a two-byte field, and to a six-byte
 fully-unique field.</P>
 <H3>Numerology</H3>
 <P>This section discusses how big the maximum datagram payload can
-be.  This is a decision that must balance buffer size versus utility
+be. This is a decision that must balance buffer size versus utility
 of the protocol. Memory is scarce in a small node. Although it's
 possible to incrementally process parts of a datagram as they arrive,
 in general it will be necessary to have a buffer of the maximum
-possible size available when a datagram is arriving.  (That same
+possible size available when a datagram is arriving. (That same
 buffer can be used to send datagrams, if needed) At the same time,
 datagrams that are too small to contain a useful atomic message cause
 a lot of extra coding work.</P>
 <P>If one byte is used for the datagram format field, the first
-CAN-link datagram contains 5 payload bytes (the following datagrams
-can contain 8). That counts as part of the information that the
+CAN-link datagram contains 6 payload bytes (the following datagrams
+can contain 7). That counts as part of the information that the
 datagram is transporting, though. Perhaps we should make the maximum
-datagram size (8*8+6) = 70 bytes, to ensure that even with a little
+datagram size (10*7) = 70 bytes, to ensure that even with a little
 bit of higher protocol, say up to 6 bytes, 64 bytes of actual data
 can be delivered at a shot?</P>
 <P>Because of the binary nature of addressing, a 64-byte size might
 be move convenient that a 70-byte one, even at the cost of some lost
-possible capacity in the last frame. A 62 data-byte datagram will fit
-in 8 CAN frames, if that's a simplification.</P>
+possible capacity in the last frame. A 63 data-byte datagram will fit
+in 9 CAN frames, if that's a simplification.</P>
 <P>If we use a few codes in the first data byte to select various
-configuration operations, the remaining 5 bytes could do 16 bit
-writes in a 24 bit space in a single-frame datagram, or similarly
+configuration operations, the remaining 6 bytes could do 16 bit
+writes in a 32 bit space in a single-frame datagram, or similarly
 read back a full-word (four bytes). For configuration writes, maybe
 it's just an address followed by N bytes for the value. Is a 3-byte
 address too short if e.g. sound data appears in the configuration
@@ -253,7 +259,8 @@ decode.</P>
 etc, it's a great simplification if the datagrams can carry <U>any</U>
 basic message of the external protocol in a single datagram. Is 64
 data bytes then enough? NMRA DCC is up to 5 bytes, including
-addressing, so it's clearly OK. Others?</P>
+addressing, so it's clearly OK even in a 1<SUP>st</SUP> CAN frame.
+Others?</P>
 <P>Our notional decision is 70 bytes, but developers should code this
 as a constant to the extent possible.</P>
 <H2>Extensions</H2>

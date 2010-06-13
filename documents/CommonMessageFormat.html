@@ -3,16 +3,16 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Common Message Format</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100612;12030900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091107;20114100">
 	<!-- $Id$ -->
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Common Message Format</H1>
-<P>(Talk about link level vs application level separation) 
-</P>
 <P>A common message consists of several parts: 
 </P>
 <UL>
@@ -55,29 +55,12 @@ to individuals or organizations upon request, and maintain a public
 list of assignments. A detailed mechanism for kinds of delegation has
 been <A HREF="NidUniqueAssignment.html">separately proposed</A>. 
 </P>
-<H2>Message Type Indicator</H2>
+<H2>Message Type Indicator (MTI)</H2>
 <P>The common Message Type Indicator (MTI) is a 16 bit quantity. 
 </P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">The most-significant 8 bits are
-	reserved. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">The next 5 bits are used to
-	indicate the message type. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">The following two bits are
-	reserved. 
-	</P>
-	<LI><P>The least-significant bit indicates whether this message
-	carries a destination node ID (DID). If a Destination Node ID is
-	present, it is located at the start of the message content. The form
-	of a Destination Node ID is defined by the particular wire protocol,
-	but must be mappable to the full Node ID of the intended
-	destination. 
-	</P>
-</UL>
-<P>Each specific MTI has a specific defined content, but there are a
-few general points. 
+<P>Each specific MTI has a specific defined content 
+<a href="CommonMessageDefinitions.html">documented elsewhere</a>, 
+but there are a few general points. 
 </P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Messages are variable length. The
@@ -90,15 +73,56 @@ few general points.
 	Node ID is defined by the particular wire protocol, but must be
 	mappable to the full Node ID of the intended destination. 
 	</P>
-	<LI><P>To make decoding and filtering easier, MTI values are
-	assigned to create a &quot;simple protocol bit&quot;, which
-	indicates which messages all (even simple) nodes must examine and
-	which can be ignored by simple nodes. 
+</UL>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>The common Message Type Indicator (MTI) is a 16 bit quantity. Note
+that specific wire protocols may remap this.</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The most-significant 5 bits are
+	reserved as 00110; nodes must send and check that value.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next 7 bits are used to
+	indicate the message type. 
 	</P>
-	<P><I>DPH: Needs discussion. Was this discussed and agreed to? Is it
-	possible and worth the effort? </I>
+	<LI><P STYLE="margin-bottom: 0cm">The top two of these are used to
+	form static priority groups. A 0 bit is considered to have more
+	priority (can be processed first), a 1 bit less priority (can be
+	processed later). The MSB makes a larger statement about priority
+	than the LSB of these two. Priority processing is permitted but not
+	required. The priority group bits are part of the overall message
+	type.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next bit is reserved as 0;
+	nodes must send and check that value.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The lower four bits indicate a
+	specific type. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">The following two bits are
+	reserved as 00; nodes much send and check that value.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The next-to-least-significant bit
+	indicates that this message carries a destination node address (DID)
+	when set to 1. Setting 0 means that the message is globally
+	addressed. If a Destination Node ID (DID) is present, it is located
+	at the start of the message content. The form of a Destination Node
+	ID is defined by the particular wire protocol, but must be mappable
+	to the full NID of the intended destination. 
+	</P>
+	<LI><P>The least-significant bit indicates this message carries a
+	P/C Event ID field when set to 1. Setting 0 means that the message
+	does not carry a P/C event ID. If a P/C Event ID is present, it's at
+	the start of the message, except after the Destination Node ID, if
+	present. 
 	</P>
 </UL>
+<P>We've chosen to allocate bit fields to make decoding simpler; if
+possible, aligned on nibble boundaries to make it easy to read as
+hexadecimal numbers. Note that, as a special dispensation for CAN,
+higher priority messages (MTIs with lower numerical values) may pass
+lower priority ones; this must be taken into account when designing
+protocols.</P>
+<P STYLE="margin-bottom: 0cm">Specific values are allocated and
+documented in a <A HREF="MtiAllocations.ods">separate worksheet</A>
+(<A HREF="MtiAllocations.pdf">PDF version</A>). We keep them in just
+that one place to avoid conflicting updates.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
