@@ -6,7 +6,12 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100612;16030900">
+	<META NAME="CHANGED" CONTENT="20100615;16042100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
@@ -98,6 +103,7 @@ one of several conditions:</P>
 	source, or for some other reason will not ever be able to accept
 	this datagram. The datagram should not be retransmitted. Optionally,
 	the node can mark the reply with one or more of several conditions:</P>
+	<UL>
 	<LI><P STYLE="margin-bottom: 0cm">“Information Logged” - the
 	node supports the logging protocol and information was logged for
 	later retrieval.</P>
@@ -108,8 +114,9 @@ one of several conditions:</P>
 	datagrams from this source will never be accepted</P>
 	<LI><P STYLE="margin-bottom: 0cm">“Datagrams not accepted” -
 	this node will not accept datagrams under any circumstance. A node
-	can also reject the interaction instead of sending Datagram Rejected
-	with this code.</P>
+	can also <A HREF="tandardInteractions.html">reject the interaction</A>
+	instead of sending Datagram Rejected with this code.</P>
+    </UL>
 	<LI><P STYLE="margin-bottom: 0cm">“Buffer shortage, resend” -
 	The node wasn't able to receive the datagram because of a shortage
 	of buffers. The sending node should resend at its convenience.</P>
@@ -295,12 +302,34 @@ that again&quot; it needs to still have the content to resend it. The
 data loss on a link, but about buffer management in tiny nodes. A
 one-to-many protocol could also do something like that, because the
 transmitter still knows how many &quot;many&quot; is. Global
-broadcast, like events, is hard because the <U>transmitters</U>
+broadcast, like events, is hard because the <U>transmitter's</U>
 buffer management gets complicated unless it knows how many nodes are
-listening for it's reply. Perhaps the solution is a &quot;not
-available on CAN links&quot; protocol for &quot;global datagrams&quot;.
-This would allow broadcast to non-CAN nodes, but not directly to
-nodes on CAN links.</P>
+listening for it's reply. 
+</P>
+<H2>Implementation Notes</H2>
+<P>A resource-constrained node can get along with a single datagram
+buffer for both sending and receiving, but this may require that the
+node be able to abandon and recreate a datagram that it is trying to
+transmit. This can happen when e.g.</P>
+<UL>
+	<LI><P>Node A creates a datagram for node B in its buffer and starts
+	to send it.</P>
+	<LI><P>Before starting to receive the datagram from A, node B
+	creates a datagram for Node A in its buffer and starts to send it.</P>
+</UL>
+<P>Both datagrams now need a place to put the incoming datagram, but
+only have one buffer in this example. They can both send “Datagram
+rejected; buffer shortage”, but then their peer will just repeat
+the attempt to send. At least one has to drop the content from its
+datagram buffer and receive the datagram to avoid deadly embrace.
+This can also happen in other contexts too, but only when sharing a
+buffer between transmit and reception. It's therefore easiest for an
+implementation to provide for two buffers if it's likely to send and
+receive datagrams asynchronously.</P>
+<P>The datagram protocol allows all nodes to reject a datagram when
+it's been totally received. CAN and other wire protocols also allow
+an early rejection to help keep buffers clear. It's not required that
+CAN implementations use that, though.</P>
 <HR>
 <P>This is SVN $Revision$ 
 </P>
