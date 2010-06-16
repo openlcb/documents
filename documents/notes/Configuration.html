@@ -3,18 +3,20 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Node Configuration</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;19571600">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100613;13465100">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Note: Node Configuration</H1>
-<P>For now, just a place to put stuff.</P>
+<P>Working draft as we develop the protocol.</P>
 <H2>Environment of Proposal</H2>
 <H3>Requirements</H3>
 <UL>
@@ -38,7 +40,7 @@
 <H3>Design Points</H3>
 <P>Basically done with datagrams. Want to pack an atomic read or
 write into a short CAN datagram, which we can do if we reserve a few
-datagram types so we can use the next five bytes for a 24-bit address
+datagram types so we can use the next six bytes for a 32-bit address
 and 16bit of write data or a 16-bit read count.</P>
 <P>Byte addressing or CV equivalents? Picking one makes datagram
 formats easy.</P>
@@ -54,9 +56,63 @@ datagram.</P>
 	dump/restore), etc</P>
 </UL>
 <P>And don't forget to reserve a few!</P>
-<P><BR><BR>
+<H2>CAN Aspects</H2>
+<P>CAN datagrams have seven payload bytes in the 1<SUP>st</SUP> frame
+(the 8<SUP>th</SUP> is an MTI byte). See the “<A HREF="../DatagramProtocol.html">Datagram
+Protocol</A>” document for more info. These could be allocated:</P>
+<P>1 byte “config command”, 2 bytes address, 4 bytes write data:
+Two address bytes is a failure of imagination.</P>
+<P>2 byte “config command” &amp; subcommand, 3 bytes address, 2
+bytes write data: Is three bytes address enough? 2<SUP>24</SUP> is
+about 16MB; maybe not! In that case, use long-datagram or stream to
+get better bandwidth.</P>
+<P>That first byte has to identify that this is a “configuration
+short datagram”, or we can put that in the MTI?  How much space is
+there for that? 
 </P>
-<H2>Discussion</H2>
+<P>One can imagine lots of different configuration commands (write
+byte, write byte under mask, write dual-byte, plus reads, stream
+operation inits, and various address spaces:  Access memory location.
+Access variable number.  Access config tree location.  Etc) Reserving
+room seems good, but not all nodes will implement all methods:  Need
+a query operation too. There can also be configuration long-datagrams
+that use more than one frame, but can efficiently move e.g. 32 bytes
+of data or more. Add a bit requiring a verify reply, e.g. for
+throttling.</P>
+<P>Configuration access must be stateless, because more than one
+access can happen interleaved.</P>
+<P>Use of stream buffer size matched to non-volatile memory write
+size for e.g. write delay management.</P>
+<P>Tentative plan:  Reserve an MTI on CAN for a specific type of
+Datagram:</P>
+<UL>
+	<LI><P>“config short command” - Datagram type known to be
+	configuration, 1<SUP>st</SUP> byte not needed for that, used for
+	configuration command instead.</P>
+</UL>
+<P>Command is 8 bits:</P>
+<UL>
+	<LI><P>Read/Write</P>
+	<LI><P>length (2 bits): 1,2,4,stream?  How fit in long datagrams? Or
+	does datagram provide length itself (only on write)?  In that case,
+	how about a length for address?</P>
+	<LI><P>Address space (2 bits): numeric, variable, tree, description;
+	“enquire status” for e.g. what's available.</P>
+	<LI><P>Under mask for write/ ?? for read (this and next could be
+	length fields for read?)</P>
+	<LI><P>Verify reply on write/ ?? for read (this and above could be
+	length fields for read?)</P>
+	<LI><P>Expansion (1 bit, MSB) – reserved to indicate 2<SUP>nd</SUP>
+	header format.</P>
+</UL>
+<P>Datagrams are variable-but-known length, so could just be a
+sequence of bytes to be written of any length.  Think of it as a
+buffer transfer.</P>
+<P>What does a read reply look like?  Same datagram format as a write
+to the same place, but with data present and read bit set?  Have a
+separate “reply” bit set, so you know it's not a read to the
+receiving node from somebody else?</P>
+<H2>Past Discussion</H2>
 <P>Text from initial report to NMRAn<FONT FACE="Times New Roman, serif">et
 WG (</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>TN-9-6-NMRANET-Overview-Draft)</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="LucidaGrande"><FONT SIZE=3>:</FONT></FONT></FONT></P>
 <P STYLE="margin-bottom: 0cm">“All NMRAnet nodes will contain a
