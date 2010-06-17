@@ -1,0 +1,64 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB Example: Fast Clock</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100617;13384700">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Example: Fast Clocks and OpenLCB</H1>
+<P>This note suggests methods for using OpenLCB to provide “fast
+clock” features for a layout.</P>
+<H2>Background</H2>
+<P>A layout control bus could do a number of useful things for
+fast-time information:</P>
+<UL>
+	<LI><P>Connect a number of clock displays to keep them synchronized.</P>
+	<LI><P>Provide time information to plug in devices, e.g. throttles.</P>
+	<LI><P>Provide  cueing for time-based occurrences, such as lights
+	coming on and off, etc.</P>
+</UL>
+<P>Generally, fast clock systems have one unit that generates time
+information, and one or more units that consume it. Some fast clock
+systems track a day/date, in addition to time.</P>
+<P>Fast clocks run at various rates, and can be controlled by the
+user either at the generator or from other locations. Some fast clock
+systems broadcast run/stop and rate information, which can also be
+useful when interpolating within a fast-minute.</P>
+<P>There are slightly <U>more</U> than 2<SUP>16</SUP> seconds in a
+day, and just <U>less</U> than 2<SUP>11</SUP> minutes.</P>
+<H2>Time as Event</H2>
+<P STYLE="font-style: normal">One solution is to define a range of
+events that will carry time as part of the 8-byte EventID.  If
+sending minutes is sufficient granularity (its a fast clock, not a
+clock clock; fast seconds are a lot of event transmissions), the 12
+bits can be used for that in the 16-bit lower part of the EventID. 
+The upper 6-bytes are assigned in the usual way.  
+</P>
+<P STYLE="font-style: normal">To make a more user-friendly format,
+it's also possible to use 5 bits for hour and 6 bits for minute
+separately, or arranged in bytes.</P>
+<P STYLE="font-style: normal">Simple nodes can then use specific
+EventIDs to trigger their actions at specific times. For example,
+lights in buildings in a model town can be sequenced to come on at
+various times by using a standard 8-output node and configuring its
+consumers to different time events.</P>
+<P STYLE="font-style: normal">Blue and Gold configuration can be done
+by putting a programming button on the master time generator that
+sends the learn message for the current clock time.</P>
+<P STYLE="font-style: normal">Changes to the run/stop state and clock
+rate can be broadcast as separate events.  That's better than coding
+them in the time events themselves, because if e.g. rate was separate
+bits in the event, simple nodes could not be configured to recognize
+specific times.</P>
+<P STYLE="font-style: normal"><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
