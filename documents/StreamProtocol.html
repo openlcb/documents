@@ -6,11 +6,15 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100615;16061400">
+	<META NAME="CHANGED" CONTENT="20100617;14204700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
@@ -76,49 +80,51 @@ across a OpenLCB implementation.
 	not discussed here, e.g. Datagram messages.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The source sends an &quot;Stream
 	Initiate Request (Addressed)&quot; to the destination. It carries a
-	&quot;Max Buffer Size&quot; value (2 bytes), a “Tagged” boolean
-	flag (1 bit in a byte) and a &quot;Source Stream ID&quot; (1 byte)
-	in the data section. The combination of source, destination, and
-	Source Stream ID must uniquely identify this stream transmission.
-	The Source Stream ID has no meaning to the destination. 
+	&quot;Max Buffer Size&quot; value (2 bytes), a “Type Included”
+	boolean flag (1 bit in a byte; see below for meaning) and a &quot;Source
+	Stream ID&quot; (1 byte) in the data section. The combination of
+	source, destination, and Source Stream ID must uniquely identify
+	this stream transmission. 
 	</P>
 	<LI><P>If the destination node does not wish to receive the stream,
 	it returns a &quot;Stream Initiate Reply (Addressed)&quot; marked
-	“reject” and tagged to represent exactly one of several
+	“reject” and with flags set to represent exactly one of several
 	conditions:</P>
 	<UL>
-	<LI><P STYLE="margin-bottom: 0cm">“Permanent error” - This node
-	does not process streams, will not accept a stream from this
-	source, or for some other reason will not ever be able to accept
-	this stream. The Stream Initiate Request should not be retransmitted.
-	Optionally,
-	the node can mark the reply with one or more of several conditions:</P>
-	<UL>
-		<LI><P STYLE="margin-bottom: 0cm">“Information Logged” - the
-		node supports the logging protocol and information was logged for
-		later retrieval.</P>
-		<LI><P STYLE="margin-bottom: 0cm">“Invalid Stream Request” -
-		something made the stream request improper, such as longer than the max
-		permitted length. Proper requests might be acceptable.</P>
-		<LI><P STYLE="margin-bottom: 0cm">“Source not permitted” -
-		streams from this source will never be accepted</P>
-		<LI><P STYLE="margin-bottom: 0cm">“Streams not accepted” -
-		this node will not accept stream requests under any circumstance. A node
-		can also <A HREF="tandardInteractions.html">reject the interaction</A>
-		instead of sending Stream Initiate Reply with this code.</P>
-	</UL>
-	<LI><P STYLE="margin-bottom: 0cm">“Buffer shortage, resend” -
-	The node isn't able to receive the stream because of a shortage
-	of buffers. The sending node should resend at its convenience.</P>
-	<LI><P>“Stream rejected, out of order” - Should not happen,
-	but an internal inconsistency was found in the CAN frames making up
-	a stream. Sender can try again if desired.</P>
+		<LI><P STYLE="margin-bottom: 0cm">“Permanent error” - This node
+		does not process streams, will not accept a stream from this
+		source, or for some other reason will not ever be able to accept
+		this stream. The Stream Initiate Request should not be
+		retransmitted. Optionally, the node can mark the reply with one or
+		more of several conditions:</P>
+		<UL>
+			<LI><P STYLE="margin-bottom: 0cm">“Information Logged” - the
+			node supports the logging protocol and information was logged for
+			later retrieval.</P>
+			<LI><P STYLE="margin-bottom: 0cm">“Invalid Stream Request” -
+			something made the stream request improper, such as longer than
+			the max permitted length. Proper requests might be acceptable.</P>
+			<LI><P STYLE="margin-bottom: 0cm">“Source not permitted” -
+			streams from this source will never be accepted</P>
+			<LI><P STYLE="margin-bottom: 0cm">“Streams not accepted” -
+			this node will not accept stream requests under any circumstance.
+			A node can also <A HREF="tandardInteractions.html">reject the
+			interaction</A> instead of sending Stream Initiate Reply with this
+			code.</P>
+		</UL>
+		<LI><P STYLE="margin-bottom: 0cm">“Buffer shortage, resend” -
+		The node isn't able to receive the stream because of a shortage of
+		buffers. The sending node should resend at its convenience.</P>
+		<LI><P>“Stream rejected, out of order” - Should not happen, but
+		an internal inconsistency was found in the CAN frames making up a
+		stream. Sender can try again if desired.</P>
 	</UL>
 	<LI><P>If the destination node wishes to receive the stream, it
 	returns a &quot;Stream Initiate Reply (Addressed)&quot; marked
 	“accept”, with a &quot;Max Buffer Size&quot; value (2 bytes),
-	the “Tagged” boolean flag (1 bit in a byte), &quot;Source Stream
-	ID&quot; (1 byte) and &quot;Destination Stream ID&quot; (1 byte). 
+	the “Type Included” boolean flag (1 bit in a byte), &quot;Source
+	Stream ID&quot; (1 byte) and &quot;Destination Stream ID&quot; (1
+	byte). 
 	</P>
 	<P>The &quot;Max Buffer Size&quot; is less than or equal to the
 	value in the Initiate Stream Request, and is the negotiated buffer
@@ -126,27 +132,29 @@ across a OpenLCB implementation.
 	stream has been rejected, and the exchange is over. The source can
 	try again later.</P>
 	<P>The Source Stream ID is the same as the value in the Initiate
-	Stream Request, and is returned for the convenience of the source.
-	The destination doesn't do anything with it except return it. The
-	source can use it to match up multiple operations, as a way of
-	identifying buffers, or for any other purpose.</P>
+	Stream Request, and is returned for identification and the
+	convenience of the source. The destination doesn't do anything with
+	it except return it. The source can use it to match up multiple
+	operations, as a way of identifying buffers, or for any other
+	purpose.</P>
 	<P STYLE="margin-bottom: 0cm">The Destination Stream ID is used to
 	tag the data sent to the destination. It has no meaning to the
 	source. The destination can, but need not, use it to associate the
-	stream data with a particular buffer or usage.</P>
+	stream data with a particular buffer or usage. Multiple simultanous
+	streams can use the same Destination Stream ID value.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The source starts sending bytes
 	using Stream Data Send (Addressed) messages, each carrying up to the
 	message size limit on the particular wire protocol and the
-	Destination Stream ID. After sending Max Buffer Size bytes in one or
-	more messages, the source pauses. 
+	Destination Stream ID. After sending exactly Max Buffer Size bytes
+	in one or more messages, the source pauses. 
 	</P>
 	<UL>
-		<LI><P STYLE="margin-bottom: 0cm">If the “Tagged” flag was true
-		during initialization, the first 6 bytes of the data are a unique
-		data-type indicator. These are allocated the same way that Node
-		IDs, etc, are allocated, but from a separate name space. If that
-		“Tagged” flag is false, some higher-level protocol must
-		identify the data-type of the stream data.</P>
+		<LI><P STYLE="margin-bottom: 0cm">If the “Type Included” flag
+		was true during initialization, the first 6 bytes of the data are a
+		unique data-type indicator. These are allocated the same way that
+		Node IDs, etc, are allocated, but from a separate name space. If
+		that “Type Included” flag is false, some higher-level protocol
+		must identify the data-type of the stream data.</P>
 	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Upon receiving Max Buffer Size
 	bytes via one or more messages, the destination sends a Stream Data
@@ -160,27 +168,39 @@ across a OpenLCB implementation.
 	can carry a four-byte length of the stream data transferred for
 	checking. A zero value, if present, means the length is unknown.
 	When this message is received by the destination, the transfer is
-	complete. 
-	</P>
+	complete.</P>
 </UL>
-<H3>CAN protocol</H3>
-<P>On a CAN segment, the data limit is 8 bytes. This requires us to
-use as little control information as possible, so that as many of
-those eight bytes can be used for data as possible.</P>
+<H3>Stream Content Type Identification</H3>
+<P>Stream senders can, but don't have to, identify the content type
+(format, meaning, etc) of the data stream at the front. As part of
+their private protocol, they can use whatever structure they'd like
+for the data.</P>
+<P>General content types can be defined using unique identifiers. The
+“Type Included” flag identifies that the first eight bytes of
+stream data are to be interpreted as stream content type information.
+These can be allocated via the same mechanisms as EventIDs. 
+Well-known ones will be published by OpenLCB. These identifiers are
+recorded in a separate worksheet. 
+</P>
+<H3>CAN Discussion</H3>
+<P>On a CAN segment, the data limit is 8 bytes. This requires use of
+as little control information as possible, so that as many of those
+eight bytes can be used for data as possible.</P>
 <P>OpenLCB/S9.6 CAN frames can hold the source and destination
 aliases in the header. A dedicated “stream data transfer” format
 can also be coded entirely in the header. This then allows 8 bytes of
 data per transfer if the Source Stream ID and Destination Stream ID
 need not be carried. By specifying that only one stream can be
-transferred on a CAN link between any two nodes, no Stream ID would
-be needed. This is our chosen solution. Since a node knows that it's
-originating the stream, this can be checked in advance for
+transferred on a CAN link between any two nodes at a time, no Stream
+ID would be needed. This is our chosen solution. Since a node knows
+that it's originating the stream, this can be checked in advance for
 point-to-point connections. Gateways might have to reject a stream
 transfer in some cases, or use a virtual node ID.</P>
 <P>If there's a need for more than two streams, another format could
 be defined that puts a source or destination stream ID in the data
 portion, transferring six bytes at a time. The sender could then use
-that form if a 2<SUP>nd</SUP> stream is required.</P>
+that form if a 2<SUP>nd</SUP> stream is required. That is left for a
+future option.</P>
 <H3>Implementation Notes</H3>
 <P>The &quot;Stream Data Proceed&quot; from the destination is
 clearance to send another buffer-size-worth of data. To achieve
