@@ -6,11 +6,14 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100617;14204700">
+	<META NAME="CHANGED" CONTENT="20100617;19392900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -40,6 +43,8 @@ across a OpenLCB implementation.
 	</P>
 	<LI><P>Needs to be effective over CAN, with acceptable bit
 	efficiency.</P>
+	<LI><P>Streams are not required to provide real-time transfer, e.g.
+	to move live sound.</P>
 </UL>
 <H3>Preferences</H3>
 <UL>
@@ -62,14 +67,15 @@ across a OpenLCB implementation.
 	end, and some number of bytes transferred in between. All other
 	structures are implemented by higher-level protocols outside the
 	streaming protocol or data fields within the streamed data itself.
-	For example, the streaming protocol doesn't have tools for telling
-	what type of data is involved, or define a format for sound files
-	send over streams, etc. The stream has no intrinsic block, or record
-	structure.</P>
+	For example, the streaming protocol doesn't specify the format for
+	sound files sent over streams.</P>
+	<LI><P STYLE="margin-bottom: 0cm">A stream has no intrinsic block,
+	or record structure.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Streaming is not needed for short
 	transfers, so a certain amount of overhead is acceptable<SPAN STYLE="font-style: normal">.
 	(This implies a Datagram protocol to cover the gap between Events
-	and Streams in size, see separate document)</SPAN></P>
+	and Streams in size, see <A HREF="DatagramProtocol.html">separate
+	document</A>)</SPAN></P>
 	<LI><P>We assume that routes don't change dynamically in ways that
 	effect e.g. buffer allocation.</P>
 </UL>
@@ -88,8 +94,11 @@ across a OpenLCB implementation.
 	</P>
 	<LI><P>If the destination node does not wish to receive the stream,
 	it returns a &quot;Stream Initiate Reply (Addressed)&quot; marked
-	“reject” and with flags set to represent exactly one of several
-	conditions:</P>
+	“reject”, with a &quot;Max Buffer Size&quot; value (2 bytes) of
+	zero, the “Type Included” boolean flag (1 bit in a flag byte),
+	&quot;Source Stream ID&quot; (1 byte) and &quot;Destination Stream
+	ID&quot; (1 byte). The message includes flags set to represent
+	exactly one of several conditions:</P>
 	<UL>
 		<LI><P STYLE="margin-bottom: 0cm">“Permanent error” - This node
 		does not process streams, will not accept a stream from this
@@ -144,9 +153,9 @@ across a OpenLCB implementation.
 	streams can use the same Destination Stream ID value.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The source starts sending bytes
 	using Stream Data Send (Addressed) messages, each carrying up to the
-	message size limit on the particular wire protocol and the
-	Destination Stream ID. After sending exactly Max Buffer Size bytes
-	in one or more messages, the source pauses. 
+	message size limit on the particular wire protocol and the Source
+	and Destination Stream ID. After sending exactly Max Buffer Size
+	bytes in one or more messages, the source pauses. 
 	</P>
 	<UL>
 		<LI><P STYLE="margin-bottom: 0cm">If the “Type Included” flag
@@ -155,6 +164,13 @@ across a OpenLCB implementation.
 		Node IDs, etc, are allocated, but from a separate name space. If
 		that “Type Included” flag is false, some higher-level protocol
 		must identify the data-type of the stream data.</P>
+		<LI><P STYLE="margin-bottom: 0cm">On CAN, the Stream Data Send
+		message does not carry the Source and Destination Stream ID fields.
+		Messages to CAN get split into frames and forwarded without the
+		fields. Messages from CAN have to have it inserted by the gateway
+		as part of the translation process. The gateway can do this as part
+		of the (optional) buffer accumulation from frames into larger
+		transfers.</P>
 	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Upon receiving Max Buffer Size
 	bytes via one or more messages, the destination sends a Stream Data
@@ -178,10 +194,20 @@ for the data.</P>
 <P>General content types can be defined using unique identifiers. The
 “Type Included” flag identifies that the first eight bytes of
 stream data are to be interpreted as stream content type information.
-These can be allocated via the same mechanisms as EventIDs. 
+These can be allocated via the same mechanisms as EventIDs.
 Well-known ones will be published by OpenLCB. These identifiers are
 recorded in a separate worksheet. 
 </P>
+<H3>Buffer Size</H3>
+<P>The buffer size can be up to 2<SUP>16</SUP>-1 bytes = 64KB-1. This
+is driven by the size of the initiate messages, which we want to keep
+in a single CAN frame. Although some transport mechanisms might be
+able to profitably use larger buffers, it seems unlikely that a
+layout control bus will need to have a higher message efficiency or
+lower latency than this size will allow. Should that turn out to be
+necessary in the future, an alternate form for the stream
+initialization messages can be defined for those large-message nodes.
+(It's unlikely they're running over CAN)</P>
 <H3>CAN Discussion</H3>
 <P>On a CAN segment, the data limit is 8 bytes. This requires use of
 as little control information as possible, so that as many of those
