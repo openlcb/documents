@@ -6,11 +6,13 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100612;15365900">
+	<META NAME="CHANGED" CONTENT="20100618;6153400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -76,13 +78,17 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 		cards use a captive-screw connector, allowing connection of
 		CANH/CANL, ground, and several different power voltages. A
 		recommendation is emerging to use the center pair of CAT5 cable
-		(blue for CANH, white/blue for CANL).</P>
+		(blue for CANH, white/blue for CANL). Ground?</P>
 		<LI><P STYLE="margin-bottom: 0cm">CAT5e patch cables with RJ45 ends
 		are becoming cheaper than wire. Five foot ones are now available in
 		single quantity for less than $1.50; 25 foot ones for less than $5.
 		The board connectors are about $0.70 each, which does add some
 		cost, but must be compared to cost of other connectors. 
 		</P>
+		<LI><P STYLE="margin-bottom: 0cm">To allow interconnection with
+		CAT5 connectors, we should specify a pair convention. People using
+		e.g. screw connectors can follow or not as they wish, but this
+		would let boards with RJ45 connectors interconnect reliably.</P>
 	</UL>
 	<LI><P STYLE="margin-bottom: 0cm">Termination provision requirements
 	(Should every node have to have option to terminate in some way?
@@ -505,14 +511,18 @@ allows filtering, and preserves the full 8-byte CAN payload for
 stream data.</P>
 <P><SPAN STYLE="font-style: normal">The specific MTI values are being
 allocated in a <A HREF="../MtiAllocations.ods">separate worksheet</A>
-(<A HREF="../MtiAllocations.pdf">PDF version</A>).</SPAN></P>
+(<A HREF="../MtiAllocations.pdf">PDF version</A>). In general, the
+MTI selection is done on the top 8 bits of the variable field. This
+is mapped to the low MTI byte in a standard format message.</SPAN></P>
 <P STYLE="font-style: normal">Some MTIs have additional status bits
 defined as part of the 2<SUP>nd</SUP> field. For example, there are
 two status bits associated with “Consumer Identified” which must
-be kept in the header since there is no room in the CAN data field.</P>
+be kept in the header since there is no room in the CAN data field.
+To simplify translation between formats, these are the low bits of
+the first byte after the MTI in a standard-form message.</P>
 <P STYLE="margin-bottom: 0cm; font-style: normal">Note that messages
-with Destinations IDs actually occur in two forms: with an alias in
-the header and the MTI in the message; and with a full address in the
+with Destinations IDs may occur in two forms: with an alias in the
+header and the MTI in the message; and with a full address in the
 data field and the MTI in the header.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
