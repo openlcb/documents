@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100612;12030900">
+	<META NAME="CHANGED" CONTENT="20100617;20042000">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
@@ -39,8 +41,9 @@ message to a complete common message using only locally available
 information. 
 </P>
 <P>By convention, multi-byte quantities in OpenLCB are represented in
-big-endian order (This is the same as Ethernet and the common
-internet protocols, but not the same as the Intel x86 architecture). 
+big-endian order. The most significant byte is sent first, and stored
+at the lowest address. This is the same as Ethernet and the common
+internet protocols, but not the same as the Intel x86 architecture. 
 </P>
 <P>Reserved quantities must be created with a zero value unless
 otherwise specified. When processing a message, any reserved
@@ -58,9 +61,8 @@ been <A HREF="NidUniqueAssignment.html">separately proposed</A>.
 <H2>Message Type Indicator (MTI)</H2>
 <P>The common Message Type Indicator (MTI) is a 16 bit quantity. 
 </P>
-<P>Each specific MTI has a specific defined content 
-<a href="CommonMessageDefinitions.html">documented elsewhere</a>, 
-but there are a few general points. 
+<P>Each specific MTI has a specific defined content <A HREF="CommonMessageDefinitions.html">documented
+elsewhere</A>, but there are a few general points. 
 </P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Messages are variable length. The
@@ -96,22 +98,26 @@ that specific wire protocols may remap this.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The lower four bits indicate a
 	specific type. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">The following two bits are
-	reserved as 00; nodes much send and check that value.</P>
-	<LI><P STYLE="margin-bottom: 0cm">The next-to-least-significant bit
-	indicates that this message carries a destination node address (DID)
-	when set to 1. Setting 0 means that the message is globally
-	addressed. If a Destination Node ID (DID) is present, it is located
-	at the start of the message content. The form of a Destination Node
-	ID is defined by the particular wire protocol, but must be mappable
-	to the full NID of the intended destination. 
+	<LI><P STYLE="margin-bottom: 0cm">The following bit is reserved as
+	0; nodes much send and check that value.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The 2<SUP>nd</SUP>
+	from-least-significant bit indicates that this message carries a
+	destination node address (DID) when set to 1. Setting 0 means that
+	the message is globally addressed. If a Destination Node ID (DID) is
+	present, it is located at the start of the message content. The form
+	of a Destination Node ID is defined by the particular wire protocol,
+	but must be mappable to the full NID of the intended destination. 
 	</P>
-	<LI><P>The least-significant bit indicates this message carries a
-	P/C Event ID field when set to 1. Setting 0 means that the message
-	does not carry a P/C event ID. If a P/C Event ID is present, it's at
-	the start of the message, except after the Destination Node ID, if
-	present. 
+	<LI><P>The next-to-least-significant bit indicates this message
+	carries a P/C Event ID field when set to 1. Setting 0 means that the
+	message does not carry a P/C event ID. If a P/C Event ID is present,
+	it's at the start of the message, except after the Destination Node
+	ID, if present. 
 	</P>
+	<LI><P>The least-significant bit when set to 1 indicates this
+	message carries a flag byte after the DID and/or EID determined by
+	the above bits. The low bits of that byte can be relocated in CAN
+	messages, see the definition of the CAN wire protocol.</P>
 </UL>
 <P>We've chosen to allocate bit fields to make decoding simpler; if
 possible, aligned on nibble boundaries to make it easy to read as
