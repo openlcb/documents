@@ -1,0 +1,81 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Ident Method(s)</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100621;9583400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Ident Method(s)</H1>
+<P>Users may want to be able to identify a specific board (node) to a
+configuration tool.</P>
+<P>This note is a working draft proposal.</P>
+<H2>Use Cases</H2>
+<P>A user wants to use a configuration tool to configure a new input
+on node A, located under the far end of the layout. He presses button
+on the node, and the tool learns which node (specifically, the Node
+ID).</P>
+<P>A user walks from module to module on a modular layout, pressing
+buttons. A configuration tool sees the sequence of button presses and
+checks it against the expected module-to-module connections.</P>
+<H2>Discussion</H2>
+<P>There are (at least) three ways of doing this, each with
+advantages and disadvantages.</P>
+<H3>Dedicated Event</H3>
+<P>One way to provide an “ident” capability would be to define a
+specific EventID that nodes produce to identify themselves. For
+example, reserving 0xFF,FF in the lower bytes, with the NodeID in the
+upper bytes, would give a unique indication that an ident button was
+pressed.</P>
+<H4>Advantages</H4>
+<P>The identification messages need to propagate across the entire
+LCB. P/C Events are the OpenLCB general mechanism for doing this. 
+</P>
+<H4>Disadvantages</H4>
+<P>Makes the event address space a lot less orthogonal.</P>
+<P>Don't want every node to emit a “produces” or “consumes”
+message for general event IDs, so would have to build that in as a
+special case (this is an issue just beyond this use of generic
+EventID signaling, but more significant here because this eventID has
+to have the NodeID in the top 6 bytes, so it's space is small)</P>
+<P><BR><BR>
+</P>
+<H3>Configuration Message</H3>
+<P>A specific form of configuration message within the 
+<a href="ConfigurationProtocol.html">configuration protocol</a> 
+can be reserved for this.</P>
+<P>The configuration protocol already has a “confirm” mechanism
+to signal the proper board by e.g. lighting a light. Being able to
+send a message back via button push, so that the configuration tool
+can get positive confirmation of the right board, would be useful.</P>
+<H4>Advantages</H4>
+<P>The configuration protocol already has a “confirm” mechanism
+to signal the proper board by e.g. lighting a light. Being able to
+send a message back via button push, so that the configuration tool
+can get positive confirmation of the right board, would be useful.</P>
+<H4>Disadvantages</H4>
+<P>Since the configuration protocol is point-to-point, the node with
+the button press needs to find out where to send the message.  It's
+not all clear how to solve this. It's not practical to “write all
+nodes so they know you want to hear when their button is pressed”.</P>
+<H3>Dedicated Message Type</H3>
+<P>A specific OpenLCB message type could be defined for this, with a
+specific MTI. This could then be specified to propogate as needed.</P>
+<H4>Advantages</H4>
+<P>Can specify it exactly, without compromise.</P>
+<H4>Disadvantages</H4>
+<P>MTIs are eventually a scarce resource.</P>
+<P>Another special case in code. This is not an incredibly large
+issue, as simple nodes need only emit a fixed message, and routing
+nodes just pass it through.</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
