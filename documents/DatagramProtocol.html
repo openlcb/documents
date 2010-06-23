@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100620;23355600">
+	<META NAME="CHANGED" CONTENT="20100622;10191600">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -86,7 +87,9 @@ of error recovery. That's needed in any case for streams, which are
 so large that complete internal buffering cannot be assumed.</P>
 <H2>Base Protocol Proposal</H2>
 <P>In the base protocol a datagram is just a single short message
-containing the Datagram MTI and the data byte(s).</P>
+containing the Datagram MTI and the data byte(s). There is a
+convention for a data format indicator at the start of the data
+bytes, see below.</P>
 <P>Once the datagram has been successfully received, the receiving
 node replies to the original source node with a “Datagram
 Acknowledged” message. Note that the node is not required to
@@ -128,47 +131,45 @@ one of several conditions:</P>
 <H2>CAN protocol proposal</H2>
 <P>The datagram protocol on CAN links uses the same structure as the
 base protocol, except for the need to split the message into frames.</P>
-<P>Only one datagram may be sent from a specific source node ID to a
-specific destination ID at a time. The sender breaks the datagram
-content into one or more frames. The source NodeID alias and
-destination NodeID alias are contained in the header as usual, along
-with bits indicating that this frame is part of a datagram and
-“datagram start” and “datagram complete” flags. The data part
-of the CAN frame can carry from zero to eight data bytes.</P>
+<P>A node may only send one datagram at a time to any given
+destination node. A node may interleave transmission of datagrams to
+separate nodes, but this is not recommended because the longer
+transmission window increases the probability of buffer collisions in
+recipient nodes.</P>
+<P>The sender breaks the datagram content into one or more frames.
+The source NodeID alias and destination NodeID alias are contained in
+the header as usual. Two format indicators are used to mark non-final
+and final frames. The data part of the CAN frame can carry from zero
+to eight data bytes.</P>
 <P>If there are more than eight bytes to the datagram, the rest are
 send as consecutive frames. Because CAN transmission retains frame
-order, no order information is added to the frames to simplify
-packing and unpacking. The last frame is marked by a set “datagram
-complete” bit. A node may only send one datagram at a time to any
-given destination node. A node may interleave transmission of
-datagrams to separate nodes, but this is not recommended because it
-increases the probability of buffer collisions in recipient nodes.</P>
+order between sender and receiver, no order information is added to
+the frames. The last frame is marked by a “datagram complete”
+format indicator. 
+</P>
 <P>The receiving node receives the frames into a buffer. The frames
 from more than one datagram may arrive in interleaved order, in which
 case the receiving node can tell them apart using their source NodeID
-alias and store them in separate buffers. Once the “datagram
-complete bit” is received for a datagram, the node replies to the
-original source node with a “Datagram Received OK” message.</P>
+alias and store them in separate buffers. If sufficient buffers are
+not available, the receiving node rejects the datagram and it will be
+resent. Once the “datagram complete” indicator is received for a
+datagram, the node replies to the original source node with a
+“Datagram Received OK” or “Datagram Rejected” message.</P>
 <P>An interface or gateway onto a CAN link must do the datagram
 fragmentation and defragmentation locally. Buffer retries may be
 either done locally by the gateway, or by reflecting the response
 back to the original sender.</P>
-<P>In addition to the response codes in the base protocol, a CAN node
-can reply with “Datagram Rejected, Out of Order” if an improper
-sequence of CAN frames is observed. The interface or gateway charged
-with fragmentation may reattempt transmission. Since this is not ever
-supposed to happen, it is recommended that it be logged.</P>
 <H2>CAN Examples</H2>
 <H4>Normal CAN case</H4>
-<P STYLE="margin-bottom: 0cm">Start Datagram →</P>
-<P STYLE="margin-bottom: 0cm">Mid Datagram →</P>
-<P STYLE="margin-bottom: 0cm">Mid Datagram →</P>
-<P STYLE="margin-bottom: 0cm">End Datagram →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment  →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment  →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) →</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged</P>
 <H4>Short CAN datagram case</H4>
-<P STYLE="margin-bottom: 0cm">Start&amp;End Datagram →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) →</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -178,7 +179,7 @@ with a “Temporarily unable to receive” if there's e.g. a shortage
 of buffers:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">Start&amp;End Datagram →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) →</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Rejected, Buffer shortage,
 Resend</P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -188,20 +189,16 @@ Resend</P>
 can't handle that:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">Start Datagram from A →</P>
-<P STYLE="margin-bottom: 0cm">Start Datagram from B →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment from A →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment  from B →</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Rejected, Buffer shortage,
 Resend to B</P>
-<P STYLE="margin-bottom: 0cm">Mid Datagram from A →</P>
-<P STYLE="margin-bottom: 0cm">End Datagram from A-&gt;</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment  from A →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) from A-&gt;</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to A</P>
-<P STYLE="margin-bottom: 0cm">Start Datagram from B →</P>
-<P STYLE="margin-bottom: 0cm">End Datagram from B-&gt;</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment from B →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) from B-&gt;</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to B</P>
-<H4>Invalid CAN protocol case:</H4>
-<P STYLE="margin-bottom: 0cm">End Datagram → (without start
-datagram from this source)</P>
-<P STYLE="margin-bottom: 0cm">← Datagram Rejected, Out of Order</P>
 <H2>Datagram Content</H2>
 <P>There needs to be a method for identifying the content of a
 general datagram. Although it's possible for two nodes to negotiate a
@@ -211,18 +208,18 @@ exchange commands and responses between general nodes.</P>
 unambiguous, easily assigned, etc. To do that, there are two basic
 approaches:</P>
 <UL>
-	<LI><P>Have a one-byte or two-byte ID field, and have some central
-	sequential method of assignment. This is small, so doesn't use much
-	space on CAN, but requires central recording of IDs.</P>
+	<LI><P>Have a small (one-byte or two-byte) ID field, and have some
+	central sequential method of assignment. This is small, so doesn't
+	use much space on CAN, but requires central recording of IDs.</P>
 	<LI><P>Use a 6 byte field assigned the same way that node unique
 	identifiers are. The NMRA-reserved space could be used for common
 	formats, and the manufacturer space can be used for custom formats.
 	This takes significantly more space, particularly on CAN, but is
 	simple to maintain.</P>
 </UL>
-<P>The plan is to use both. There will be a one-byte field, with
-certain values to escape to a two-byte field, and to a six-byte
-fully-unique field.</P>
+<P>The plan is to use both. There will be a one-byte field which can
+be combined with flags on CAN, with certain values to escape to a
+two-byte field, and to a six-byte fully-unique field.</P>
 <H3>Numerology</H3>
 <P>This section discusses how big the maximum datagram payload can
 be. This is a decision that must balance buffer size versus utility
@@ -236,13 +233,13 @@ a lot of extra coding work.</P>
 <P>If one byte is used for the datagram format field, the first
 CAN-link datagram contains 7 payload bytes (the following datagrams
 can contain 8). The datagram format field counts as part of the
-information that the datagram is transporting, though. Perhaps we
-should make the maximum datagram size (9*8) = 72 bytes, to ensure
-that even with a little bit of higher protocol, say up to 6 bytes, 64
-bytes of actual data can be delivered at a shot?</P>
-<P>Because of the binary nature of addressing, a 64-byte buffer size
-might be more convenient that a 72-byte one, even at the cost of some
-lost possible capacity in the last frame. 
+information that the datagram is transporting, though. We could make
+the maximum datagram size nine segments, (9*8) = 72-1 data bytes, to
+ensure that even with a little bit of higher protocol, say up to 6
+bytes, 64 bytes of actual data can be delivered at a shot.</P>
+<P>Alternately, because of the binary nature of addressing, a 64-byte
+buffer size might be more convenient that a 72-byte one, even at the
+cost of some lost possible capacity in the last frame. 
 </P>
 <P>For external protocols, e.g. support for LocoNet, XpressNet, DCC,
 etc, it's a great simplification if the datagrams can carry <U>any</U>
@@ -250,8 +247,8 @@ basic message of the external protocol in a single datagram. Is 64
 data bytes then enough? NMRA DCC is up to 5 bytes, including
 addressing, so it's clearly OK even in a 1<SUP>st</SUP> CAN frame.
 Others?</P>
-<P>Our notional decision is 72 bytes, but developers should code this
-as a constant to the extent possible.</P>
+<P>Our notional decision is nine segments, 72 bytes, but developers
+should code this as a constant to the extent possible.</P>
 <H2>Extensions</H2>
 <P>In this version of the datagram protocol, there is no provision
 for multiple recipients of a single message. Transmission is strictly

@@ -6,11 +6,14 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100620;23471200">
+	<META NAME="CHANGED" CONTENT="20100622;10250700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -105,7 +108,8 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 	datasheet, this corresponds to a slope of above 25V/usec. Mike
 	Bolton recommended in September 2009 that future designs use a 100k
 	resistor instead to give a better waveform shape at 125kbps by
-	limiting the slope to just under 5V/usec.</P>
+	limiting the slope to just under 5V/usec. This effects the maximum
+	possible stub connection length, see SLLA270 page 9.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Ground and possibly power
 	provision(s) 
 	</P>
@@ -470,6 +474,15 @@ field is used in three forms:</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=38%>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER>MTI &amp; additional information for “simple
+			node” unaddressed messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
 			<P ALIGN=CENTER>0 0 1</P>
 		</TD>
 		<TD WIDTH=62%>
@@ -482,8 +495,16 @@ field is used in three forms:</P>
 			<P ALIGN=CENTER>0 0 0</P>
 		</TD>
 		<TD WIDTH=62%>
-			<P ALIGN=CENTER>MTI &amp; additional information for “simple
-			node” unaddressed messages</P>
+			<P ALIGN=CENTER>(Reserved, must not be sent or accepted)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER>0 1 1</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER>(Reserved for long-form MTIs in data area, <BR>must
+			not be sent or accepted)</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
@@ -491,7 +512,17 @@ field is used in three forms:</P>
 			<P ALIGN=CENTER>1 0 0</P>
 		</TD>
 		<TD WIDTH=62%>
-			<P ALIGN=CENTER>Destination Alias for addressed messages</P>
+			<P ALIGN=CENTER>Destination Alias for datagram message non-last
+			fragment</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER>1 0 1</P>
+		</TD>
+		<TD WIDTH=62%>
+			<P ALIGN=CENTER>Destination Alias for datagram message last
+			fragment</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
@@ -499,25 +530,16 @@ field is used in three forms:</P>
 			<P ALIGN=CENTER>1 1 0</P>
 		</TD>
 		<TD WIDTH=62%>
+			<P ALIGN=CENTER>Destination Alias for non-datagram addressed
+			messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=38%>
+			<P ALIGN=CENTER>1 1 1</P>
+		</TD>
+		<TD WIDTH=62%>
 			<P ALIGN=CENTER>Destination Alias for Stream Data Send messages</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=38%>
-			<P ALIGN=CENTER><BR>
-			</P>
-		</TD>
-		<TD WIDTH=62%>
-			<P ALIGN=CENTER><BR>
-			</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=38%>
-			<P ALIGN=CENTER>(Four others)</P>
-		</TD>
-		<TD WIDTH=62%>
-			<P ALIGN=CENTER>Reserved, must not be sent or recognized</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -576,7 +598,7 @@ frames that are of interest to them.</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=33%>
-			<P ALIGN=CENTER>OpenLCB format addressed here</P>
+			<P ALIGN=CENTER>OpenLCB format addressed to this node</P>
 		</TD>
 		<TD WIDTH=33%>
 			<P ALIGN=CENTER>0x0C00,0FFF</P>
