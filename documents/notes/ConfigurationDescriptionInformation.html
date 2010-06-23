@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100620;23510300">
+	<META NAME="CHANGED" CONTENT="20100621;16212400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -48,19 +50,30 @@ mobile phone or PDA or even a custom built CT.”</P>
 	to simplify software at both ends.</P>
 	<LI><P>Multiple independent configuration operations can proceed at
 	the same time. Specifically, multiple devices should be able to
-	configure nodes at the same time.</P>
+	retrieve correct configuration description information at the same
+	time.</P>
 </UL>
 <H3>Design Points</H3>
 <P>Basic configuration is done with the <A HREF="Configuration.html">configuration
 protocol</A> defined elsewhere. 
+</P>
+<P STYLE="margin-bottom: 0cm">The “Variables” described here are
+not exactly the same thing as “Configuration Variables” (CVs) or
+“Node Variables” (NVs) that are discussed elsewhere. Those are
+aimed at storage, and so are grouped by address. The “Variables”
+here are grouped by function. “Long address” might be several
+CVs, but would be one variable to this proposal. Similarly, CV29 has
+lots of variables within it, each stored as bits. Perhaps it would be
+better to use a different name here, such as “Setting” or
+“Option”?</P>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <H2>Proposal</H2>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P>Some of the following is taken from Bob's note to the NMRAnet
 Working Group list.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
+<H3>Definition</H3>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">1) &quot;Configuration description
@@ -150,12 +163,7 @@ no required &quot;device&quot;, &quot;channel&quot; or other grouping
 within a node. Those may be present in some node types, and CDI must
 be able to represent them, but may not require any specific
 organization.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
+<H3>Storage</H3>
 <P STYLE="margin-bottom: 0cm">The configuration definition is stored
 in a hierarchical manner.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -173,9 +181,7 @@ UTF-16.</P>
 if no sign, it's taken as positive.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">I) At the top, root level is the
+<P STYLE="margin-bottom: 0cm">II) At the top, root level is the
 information for a &quot;node&quot;. This includes:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -198,8 +204,8 @@ URL. If desired, that can be dealt with in a different specification.</P>
 be grouped below this node as desired; see below.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">II) Within the node information is zero
-or more &quot;groups&quot;. Each group contains:</P>
+<P STYLE="margin-bottom: 0cm">III) Within the node information is
+zero or more &quot;groups&quot;. Each group contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Name: String, required to be unique
@@ -227,11 +233,11 @@ groups, with the same representation. This may continue to any
 desired level.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">III) Groups may contain &quot;variable&quot;,
+<P STYLE="margin-bottom: 0cm">IV) Groups may contain &quot;variable&quot;,
 &quot;producer&quot; and/or &quot;consumer&quot; descriptions.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">III-a) A &quot;variable&quot;
+<P STYLE="margin-bottom: 0cm">IV-a) A &quot;variable&quot;
 description contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -274,7 +280,7 @@ is not restricted; this requirement is about access to the
 information)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">III-b) A &quot;map&quot; description
+<P STYLE="margin-bottom: 0cm">IV-b) A &quot;map&quot; description
 contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -297,7 +303,7 @@ duplication. Having the possibility of a “Name” is meant to ease
 that future effort.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">III-c) A &quot;producer&quot;
+<P STYLE="margin-bottom: 0cm">IV-c) A &quot;producer&quot;
 description contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -315,7 +321,7 @@ details of the producer's function.
 </P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">III-d) A &quot;consumer&quot;
+<P STYLE="margin-bottom: 0cm">IV-d) A &quot;consumer&quot;
 description contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -331,17 +337,15 @@ parent item)</P>
 or more variable descriptions for any variables that configure
 details of the consumer function. This may include e.g. variables
 that define how any content in incoming messages will be used.</P>
-<H2>Serialization</H2>
+<H3>Serialization</H3>
 <P>The logical layout in the previous section has to be converted to
 some serial set of bytes for transfer and storage.</P>
-<P>One format is straight-forward XML. (Point to schema)</P>
+<P>The primary format is straight-forward XML. (Link to schema)</P>
 <P>Another is compressed binary information. Either an aggressive
 compression algorithm, or some context-aware compression, can be
 used. Size an ease of expansion are the key criteria; ease of
 creation is much less important.</P>
 <H2>Example</H2>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <P STYLE="margin-bottom: 0cm">The following is not meant to show <U>how</U>
 configuration definition information would be stored, but <U>what
 kinds</U> of information would be stored. It's a description of a
@@ -403,7 +407,6 @@ String): Each Channel has two inputs, called &quot;Switch&quot; and
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Producer start:</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Name: Switch Input
 Active</P>
-<P STYLE="margin-left: 4cm; margin-bottom: 0cm">Number of Events: 9</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Description: Driven
 by the 1st input wire for this channel. The variables control ....</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm"><BR>
@@ -452,9 +455,8 @@ output change&quot;</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Producer start:</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Name: Aux Input
 Active</P>
-<P STYLE="margin-left: 4cm; margin-bottom: 0cm">Number of Events: 9</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm">Description: Driven
-by the wnd input wire for this channel. The variables control ....</P>
+by the 2nd input wire for this channel. The variables control ....</P>
 <P STYLE="margin-left: 4cm; margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Variable:</P>
@@ -517,7 +519,6 @@ Determines what the output leads do in response to events ....</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer start:</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Name: Turnout Active
 Thrown</P>
-<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Number of Events: 1</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Description: Set the
 thrown output lead active and closed lead inactive.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer end:</P>
@@ -526,7 +527,6 @@ thrown output lead active and closed lead inactive.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer start:</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Name: Turnout Active
 Closed</P>
-<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Number of Events: 1</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Description: Set the
 closed output lead active and thrown lead inactive.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer end:</P>
@@ -535,7 +535,6 @@ closed output lead active and thrown lead inactive.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer start:</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Name: Turnout Active
 Both</P>
-<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Number of Events: 1</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Description: Sets
 both output leads active.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer end:</P>
@@ -544,7 +543,6 @@ both output leads active.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer start:</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Name: Turnout
 Inactive</P>
-<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Number of Events: 1</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Description: Sets
 both output leads inactive.</P>
 <P STYLE="margin-left: 2cm; margin-bottom: 0cm">Consumer end:</P>
@@ -564,15 +562,16 @@ end of the &quot;Channel&quot; group)</P>
 example together:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">1) In a real DS54, there's are subtle
-differences between the Switch and Aux configuration choices. I
-blurred those here by documenting them identically via replication.
-For a real device, they could either be separately specified or (more
-likely) the differences wouldn't matter in a P/C-based device.</P>
+<P STYLE="margin-bottom: 0cm">1) In a real DS54, there are subtle
+differences between the Switch and Aux configuration choices on the
+various channels. I blurred those here by documenting them
+identically via replication. For a real device, they could either be
+separately specified or (more likely) the differences wouldn't matter
+in a P/C-based device.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">2) A DS54 can receive messages that put
-it's output into four states: One side on, the other side on, both
+its output into four states: One side on, the other side on, both
 sides on, and neither side on. These four interacts with the &quot;Output
 Type&quot; setting in weird and wonderful ways. This was represented
 as four consumers. This seems a much more logical way to configure
@@ -580,15 +579,13 @@ the device, as it gives more flexibility to the rest of the layout
 that's originating the requests.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">The DS54 inputs also generate messages.
-They are specified as two producers (for the active and inactive
-messages). 
+<P STYLE="margin-bottom: 0cm">3) The DS54 inputs also generate
+messages. They are specified as two producers (for the active and
+inactive messages). 
 </P>
 <H2>Implementation Notes</H2>
 <P>This section is non-normative notes and suggestions for
 implementors.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
