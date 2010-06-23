@@ -6,17 +6,19 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100613;13465100">
-	<META NAME="Info 1" CONTENT="">
-	<META NAME="Info 2" CONTENT="">
-	<META NAME="Info 3" CONTENT="">
-	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGED" CONTENT="20100622;21164700">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Note: Node Configuration</H1>
-<P>Working draft as we develop the protocol.</P>
+<P>This is a working document in which we are developing a protocol
+for configuring OpenLCB nodes.</P>
+<P>See also the separate notes on a definition of <A HREF="ConfigurationDescriptionInformation.html">Configuration
+Definition Information</A> and on a <A HREF="IdentMethod.html">facility
+for identifying nodes</A>.</P>
 <H2>Environment of Proposal</H2>
 <H3>Requirements</H3>
 <UL>
@@ -26,8 +28,8 @@
 	download to handle a new node type.</P>
 	<LI><P>It must be possible to configure a node entirely over the
 	OpenLCB, without physical interactions, e.g. pushing buttons.</P>
-	<LI><P>It must be possible to configure one node while the rest of
-	the OpenLCB is operating normally.</P>
+	<LI><P>It must be possible to configure one or more nodes while the
+	rest of the OpenLCB is operating normally.</P>
 	<LI><P>It must be possible to read, store, and reload the
 	configuration of a node.</P>
 </UL>
@@ -36,399 +38,923 @@
 	<LI><P>Small nodes shouldn't need a lot of processing power, e.g. to
 	compress or decompress data in real time. Memory usage should also
 	be limited, but is a second priority.</P>
+	<LI><P>Configuration operations should be state-less and idempotent
+	to simplify software at both ends.</P>
+	<LI><P>Multiple independent configuration operations can proceed at
+	the same time. Specifically, multiple devices should be able to
+	configure nodes at the same time.</P>
+	<LI><P>For efficiency, atomic reads or writes of small amounts of
+	data should fit into a single-frame CAN datagram. Single-bit writes
+	also add efficiency. 
+	</P>
+	<LI><P>Multiple address spaces make it easier to handle multiple
+	types of data.</P>
+	<LI><P>For large transfers, it's desirable to be able to use
+	streams. Not all nodes support them, though, so it must be possible
+	to enquire about capabilities.</P>
+	<LI><P>Addresses should be four bytes. Two address bytes is a
+	failure of imagination.</P>
 </UL>
 <H3>Design Points</H3>
-<P>Basically done with datagrams. Want to pack an atomic read or
-write into a short CAN datagram, which we can do if we reserve a few
-datagram types so we can use the next six bytes for a 32-bit address
-and 16bit of write data or a 16-bit read count.</P>
-<P>Byte addressing or CV equivalents? Picking one makes datagram
-formats easy.</P>
-<P>For larger transfers, want to go over to streams. But not all
-nodes support those; need a reliable way to ask about that via a
-datagram.</P>
-<P>Some datagram op code possibilities:</P>
-<UL>
-	<LI><P>Read N bytes</P>
-	<LI><P>Write 1 byte</P>
-	<LI><P>Write 2 bytes</P>
-	<LI><P>Enquire status e.g. stream available, memory size (for
-	dump/restore), etc</P>
-</UL>
-<P>And don't forget to reserve a few!</P>
-<H2>CAN Aspects</H2>
-<P>CAN datagrams have seven payload bytes in the 1<SUP>st</SUP> frame
-(the 8<SUP>th</SUP> is an MTI byte). See the “<A HREF="../DatagramProtocol.html">Datagram
-Protocol</A>” document for more info. These could be allocated:</P>
-<P>1 byte “config command”, 2 bytes address, 4 bytes write data:
-Two address bytes is a failure of imagination.</P>
-<P>2 byte “config command” &amp; subcommand, 3 bytes address, 2
-bytes write data: Is three bytes address enough? 2<SUP>24</SUP> is
-about 16MB; maybe not! In that case, use long-datagram or stream to
-get better bandwidth.</P>
-<P>That first byte has to identify that this is a “configuration
-short datagram”, or we can put that in the MTI?  How much space is
-there for that? 
-</P>
+<P>Basic configuration is done with datagrams. Writes don't get any
+reply except the datagram ack. By sending that only after the write
+is complete, including non-volatile memory delays, the written node
+can control the transfer rate. Read replies carry the address, etc,
+so that the operation is idempotent.</P>
 <P>One can imagine lots of different configuration commands (write
 byte, write byte under mask, write dual-byte, plus reads, stream
-operation inits, and various address spaces:  Access memory location.
-Access variable number.  Access config tree location.  Etc) Reserving
-room seems good, but not all nodes will implement all methods:  Need
-a query operation too. There can also be configuration long-datagrams
+operation inits, and various address spaces: Access memory location.
+Access variable number. Access config tree location. Etc) Reserving
+room seems good, but not all nodes will implement all methods: Need a
+query operation too. There can also be configuration long-datagrams
 that use more than one frame, but can efficiently move e.g. 32 bytes
-of data or more. Add a bit requiring a verify reply, e.g. for
-throttling.</P>
+of data or more. Datagram protocol defines a reply which is useful
+for e.g. throttling.</P>
 <P>Configuration access must be stateless, because more than one
-access can happen interleaved.</P>
-<P>Use of stream buffer size matched to non-volatile memory write
-size for e.g. write delay management.</P>
-<P>Tentative plan:  Reserve an MTI on CAN for a specific type of
-Datagram:</P>
+access can happen interleaved. But how does this work with stream
+read, write? How match those up? Does the stream request need to
+carry some token that makes it work? Use of stream buffer size
+matched to non-volatile memory write size for e.g. write delay
+management.</P>
+<H3>CAN Aspects</H3>
+<P>CAN configuration datagrams have seven payload bytes in the 1<SUP>st</SUP>
+frame (the first byte identifies that it's a configuration transfer).
+See the “<A HREF="../DatagramProtocol.html">Datagram Protocol</A>”
+document for more info. Read operations and 2-byte (or
+1-byte-under-mask) writes can be done with a single CAN frame.</P>
+<P>Read-Stream and Write-Stream need to rendezvous on the stream IDs
+to know which stream is carrying the data. It's not yet clear how to
+do that.</P>
+<H3>Operations</H3>
+<P>Available configuration operation formats. All others reserved,
+must not be skipped during identification. Items in {} are optional.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=43*>
+	<COL WIDTH=24*>
+	<COL WIDTH=25*>
+	<COL WIDTH=41*>
+	<COL WIDTH=30*>
+	<COL WIDTH=31*>
+	<COL WIDTH=26*>
+	<COL WIDTH=20*>
+	<COL WIDTH=16*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=17%>
+			<P>Name</P>
+		</TH>
+		<TH WIDTH=9%>
+			<P>Flag Byte<BR>Command Type Field</P>
+		</TH>
+		<TH WIDTH=10%>
+			<P>Flag Byte<BR>Operation Type Field</P>
+		</TH>
+		<TH WIDTH=16%>
+			<P>Lower Bits</P>
+		</TH>
+		<TH WIDTH=12%>
+			<P><BR>
+			</P>
+		</TH>
+		<TH WIDTH=12%>
+			<P><BR>
+			</P>
+		</TH>
+		<TH WIDTH=10%>
+			<P><BR>
+			</P>
+		</TH>
+		<TH WIDTH=8%>
+			<P><BR>
+			</P>
+		</TH>
+		<TH WIDTH=6%>
+			<P><BR>
+			</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Write</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x0</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Datagram/Stream=1<BR>ReadReply/Write=0<BR>Under Mask (1
+			bit)<BR>Reserved (1 bit)<BR>Address Space (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>{Space}(1)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Data (1-N)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Write Stream</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x0</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Datagram/Stream=0<BR>ReadReply/Write=0<BR>Under Mask (1
+			bit)<BR>Reserved (1 bit)<BR>Address Space (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>{Space} (1 bytes)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Stream information</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Read</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x1</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Datagram/Stream=1<BR>Reserved (5 bits)<BR>Address Space (2
+			bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>{Space} (1 bytes)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Count (1 byte)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Read Stream</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x1</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Datagram/Stream=0<BR>Reserved (5 bits)<BR>Address Space (2
+			bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>{Space} (1 bytes)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Count (4 bytes)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P>Stream information</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Read-Reply</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x0</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Datagram/Stream=1<BR>ReadReply/Write=1<BR>Reserved (2
+			bits)<BR>Address Space (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>{Space} (1 bytes)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Data (1-N bytes)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Configuration Options</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x0</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=0<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Configuration Options Reply</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x0</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=1<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Available commands <BR>(2 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Write lengths (5 bits)<BR>Under Mask Available <BR>(1 bit)<BR>Read
+			Stream Supported <BR>(1 bit)<BR>Write Stream Supported <BR>(1 bit)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Highest Space <BR>(1 byte)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P>Lowest Space <BR>(1 byte)</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P>{Name}</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Address Space Info</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x1</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=0<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Space ID (1 byte)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Address Space Info Reply</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x1</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=1<BR>Present/Absent (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Space ID (1 byte)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Largest Address (4 bytes)</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>Requires Alignment<BR>(4 bits)<BR>Read-Only (1 bit)</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P>{Lowest Address} (4 bytes)</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P>{Desc}</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Lock/Reserve</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=0<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>NodeID <BR>(6 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Lock/Reserve Reply</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=1<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>NodeID <BR>(6 bytes)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Unique ID</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x3</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=0<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Number to reserve (3 bits, 1-7)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Get Unique ID Reply</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x3</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reply=1<BR>Reserved (1 bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>New Unique EventID <BR>(8 bytes, 1-7 times)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Reserved</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x4-0x7</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Freeze/Unfreeze</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x8</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (1 bit)<BR>Freeze/Unfreeze (1bit)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Indicate</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0x9</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (2 bits)<BR><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>(somehow identify outputs, LEDs, etc to drive?)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Reset/Reboot</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0xA</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Factory Reset</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0xB</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P>Reserved</P>
+		</TD>
+		<TD WIDTH=9%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P>0xC-0xF</P>
+		</TD>
+		<TD WIDTH=16%>
+			<P>Reserved (2 bits)</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=10%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=6%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H3>Get Configuration Options Reply</H3>
+<P>To make it possible to make simple/cheap nodes, not every
+configuration operation &amp; option needs to be provide. The reply
+to “Get Configuration Options” provides information that a
+configuring device can use to control how it communicates with the
+node so that it only uses available modes.</P>
 <UL>
-	<LI><P>“config short command” - Datagram type known to be
-	configuration, 1<SUP>st</SUP> byte not needed for that, used for
-	configuration command instead.</P>
+	<LI><P>Available operations mask (2 bytes, bit coded): Indicate
+	which operations are available.</P>
+	<LI><P>Write lengths supported (5 bits, bit coded): 1,2,4,64 bytes;
+	stream.</P>
+	<LI><P>Write under mask supported</P>
+	<LI><P>Address spaces (byte): Highest number space available. Not
+	all up to that need be available, but sparse allocation will slow
+	down the process as “Get Address Space Information” is needed to
+	determine whether they are present.</P>
 </UL>
-<P>Command is 8 bits:</P>
+<H3>Get Address Space Information Reply</H3>
+<P>To ease automated access, a configuring node can enquire about the
+address spaces in the being-configured node.</P>
 <UL>
-	<LI><P>Read/Write</P>
-	<LI><P>length (2 bits): 1,2,4,stream?  How fit in long datagrams? Or
-	does datagram provide length itself (only on write)?  In that case,
-	how about a length for address?</P>
-	<LI><P>Address space (2 bits): numeric, variable, tree, description;
-	“enquire status” for e.g. what's available.</P>
-	<LI><P>Under mask for write/ ?? for read (this and next could be
-	length fields for read?)</P>
-	<LI><P>Verify reply on write/ ?? for read (this and above could be
-	length fields for read?)</P>
-	<LI><P>Expansion (1 bit, MSB) – reserved to indicate 2<SUP>nd</SUP>
-	header format.</P>
+	<LI><P>Flags (byte) – Present.</P>
+	<LI><P>Space ID – provided to identify request this is in response
+	to</P>
+	<LI><P>Highest Address (4 bytes)</P>
+	<LI><P>Flags 2 (byte) – Write alignment required at 2<SUP>N</SUP>
+	bytes, with N=0 to 16; Read-Only</P>
+	<LI><P>Lowest Address (4 bytes) – optional, omit if zero, as that
+	will let reply fit in single CAN frame.</P>
+	<LI><P>Description (variable length) - optional</P>
 </UL>
-<P>Datagrams are variable-but-known length, so could just be a
-sequence of bytes to be written of any length.  Think of it as a
-buffer transfer.</P>
-<P>What does a read reply look like?  Same datagram format as a write
-to the same place, but with data present and read bit set?  Have a
-separate “reply” bit set, so you know it's not a read to the
-receiving node from somebody else?</P>
-<H2>Past Discussion</H2>
-<P>Text from initial report to NMRAn<FONT FACE="Times New Roman, serif">et
-WG (</FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>TN-9-6-NMRANET-Overview-Draft)</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="LucidaGrande"><FONT SIZE=3>:</FONT></FONT></FONT></P>
-<P STYLE="margin-bottom: 0cm">“All NMRAnet nodes will contain a
-compressed XML document that contains all the relevant information
-for an external Configuration Tool (CT) to be able to to use to know
-how to configure the node. It is expected that the CT will use the
-data in the XML file to render some form of suitable Graphical User
-Interface to allow the user to easily and intuitively configure all
-aspects of the node's capabilities. An important design choice was to
-embed this XML document into each node so that the system has all it
-needs to configure the node without having to source the XML file
-externally to the NMRAnet from the manufacturer or some other on-line
-repository via the Internet or a CD/DVD etc. While the CT is likely
-to be a program running on a PC, it could be a hand-held device like
-mobile phone or PDA or even a custom built CT.”</P>
-<P><BR><BR>
+<H3>Address Space Size</H3>
+<P>Configuration addresses are 32 bits. The addressable quantity is
+the byte. This allows directly addressing 4GB of data. The use of
+address spaces (see below) allows direct access to 1TBi.</P>
+<P>The large address range removes the need for address registers and
+other non-idempotent accesses when accessing e.g. sound information
+in a large memory.</P>
+<H3>Address Space Selection</H3>
+<P>Although a 32-bit address space is large enough to cover combined
+uses of memory, it can be more convenient to consider separate
+address spaces in the node. (This can also be considered to be a top
+digit in a global address space, if you want to, but note that the
+separate address spaces may cover the same memory objects, e.g. “all
+memory” and “Event ID configuration” spaces may reference the
+same configuration memory)</P>
+<P>Required space definitions (these may or may not have content on a
+particular node); these address space numbers can only be used for
+this, and if the information is available, it must be accessable by
+these numbers (in addition to any others the designer might provide):</P>
+<UL>
+	<LI><P>(0xFF, flag=11) Configuration definition – reading this is
+	how you get the configuration definition</P>
+	<LI><P>(0xFE, flag=10) All memory – provides access to “all”
+	memory in the device, where “all” is defined by the designer.
+	Single, flat address space for access. Can be used for e.g. dynamic
+	access to RAM for monitoring &amp; debugging.</P>
+	<LI><P>(0xFD, flag=01) Configuration - basic configuration space,
+	with the structure of the 32-bit space defined by the designer.</P>
+</UL>
+<P>These three spaces, inclusive, can be addressed without an extra
+byte in the datagram using control bits in the flag byte. All others
+need to be specified as a byte value. The high addresses (0xFD
+through 0xFF) were chosen for the dedicated spaces so that space
+numbers 00, 01, 02 could be used as a 5<SUP>th</SUP> bytes in a
+contiguous address if desired.</P>
+<H3>Lock/Reserve and Freeze</H3>
+<P>An OpenLCB node can, in general, be configured while the network
+and even the node itself is operating. 
 </P>
-<P>Use of DataGram protocol for initiation of process?</P>
-<P><BR><BR>
+<P>Code can be simplified by disabling operation of a node while it's
+being configured, so that there's no concern about it trying to react
+to transient incomplete information. The Freeze/Unfreeze command, if
+supported, can be used to tell a node that it should “freeze”
+operation, ignoring inputs, while the configuration is being updated.
+A reset of the node releases the freeze option, if set.</P>
+<P>Although nodes can be configured by multiple other nodes, this can
+also lead to inconsistencies. The optional Lock/Release command can
+be used to avoid this. At the start of configuration, a configuring
+node sends a Lock message with its NodeID. If no node has locked this
+node, indicated by zero content in the lock memory, the incoming
+NodeID is placed in the lock memory. If a node has locked this node,
+the non-zero NodeID in the lock memory is not changed. In either
+case, the content of the lock memory is returned in the reply. This
+acts as a test&amp;set operation, and informs the requesting node
+whether it successfully reserved the node. To release the node,
+repeat the lock operation with a zero NodeID. The lock memory is set
+to zero when the node is reset. Note that this is a voluntary
+protocol in the configuring nodes only; the node being configured
+does not change it's response to configuration operations when locked
+or unlocked.</P>
+<H3>Get Unique EventID</H3>
+<P>Nodes maintain a list of unique EventIDs for use in configuration.
+These are allocated based on the node's unique NodeID. This command
+allows a configuration tool to get new unique EventIDs from the
+node's pool, for example to interact with the Blue/Gold configuration
+process. Each request must provide a different EventID, without
+repeat, even through node resets and factory resets.</P>
+<H2>Implementation Notes</H2>
+<P>This section is non-normative notes and suggestions for
+implementors.</P>
+<H3>Example Operations</H3>
+<P>These are over CAN and includes some information from the datagram
+protocol to make traffic clearer. [d] is a single datagram;
+[ds][dm][de] is a datagram that's in multiple frames; [dr] is the
+datagram reply.</P>
+<H4>Get initial information</H4>
+<P>Get Configuration Info →</P>
+<P>← datagram reply</P>
+<P>← Get Configuration Info Reply</P>
+<P>datagram reply →</P>
+<H4>Write byte</H4>
+<P>Write →</P>
+<P>← datagram reply</P>
+<H4>Write 64 bytes</H4>
+<P>Write →</P>
+<P>Write →</P>
+<P>Write →</P>
+<P>← datagram reply</P>
+<H4>Read byte</H4>
+<P>Read →</P>
+<P>← datagram reply</P>
+<P>← Read Reply</P>
+<P>datagram reply →</P>
+<H4>Read 64 bytes</H4>
+<P>Read →</P>
+<P>← datagram reply</P>
+<P>← Read Reply</P>
+<P>← Read Reply (8 bytes)</P>
+<P>← Read Reply</P>
+<P>← Read Reply</P>
+<P>datagram reply →</P>
+<H4>Large read via stream</H4>
+<P>Read → (with a proposed stream ID)</P>
+<P>← datagram reply</P>
+<P>← Stream Initiate Request (carries a buffer size equal to memory
+write line size)(stream ID from above; what do if not available?)</P>
+<P>→ Stream Initiate Reply</P>
+<P>← Stream Data Send (N times; broken down to frames, 8 bytes
+each)</P>
+<P>Stream Data Proceed →</P>
+<P>(repeats until done, then)</P>
+<P>← Stream Data Complete</P>
+<H4>Large write via stream</H4>
+<P>Write →</P>
+<P>← datagram reply</P>
+<P>Stream Initiate Request →</P>
+<P>← Stream Initiate Reply</P>
+<P>Stream Data Send (N times; broken down to frames, 8 bytes each) →</P>
+<P>← Stream Data Proceed (after write to memory complete)</P>
+<P>(repeats until done, then)</P>
+<P>Stream Data Complete →</P>
+<H3>Delays Due to Non-Volatile Memory</H3>
+<P>Some microcontrollers can't continue to operate while writing
+configuration information to non-volatile memory.</P>
+<P>If the CAN buffering is sufficient (at about 1usec per buffer) for
+the node to become active at the end of the memory operation and
+process buffered frames at the full rate, there's no issue. 
 </P>
-<P>Background</P>
-<P>Bob's note to the NMRAnet WG on configuration information:</P>
-<PRE>This is the third step in defining &quot;Configuration definition information&quot; (CDI).  
-The part at the front remains the same, except for some clarification in item 1B and 4F.  
-This is followed by new material describing a proposed structure for the CDI.  
-After discussion and modification, this will be used to create a recommendation for 
-the specific format.  That will in turn be followed by discussion and definition of
-compression/decompression method(s), etc.
-
-
-
-
-1) &quot;Configuration definition information&quot; in this context refers to _fixed_ information available from a NMRAnet device, via NMRAnet, so that other devices can properly and correctly configure it.
-
-1A) The information is fixed, so that it can be pre-compressed, stored in the device, and just supplied when needed with minimal work on the part of the device and the device's developers.
-
-1B) This means that e.g. the actual current configuration contents are not available as part of the CDI, as that is variable information. Similarly, the CDI cannot contain e.g. a serial number as that would require different CDI contents in each node of a single type.
-
-1C) Other information may be available via e.g. manuals or the Internet, and there may be pointers to that information in the CDI, but the format of that information is not under specification here.
-
-
-2) The primary design constraints are complexity and size in the NMRAnet device providing CDI, and complexity and size in the device consuming the CDI.
-
-2A) Size and complexity in the providing device is the more important constraint.  There are more of those devices, they are cost sensitive, and they may not be upgradable once delivered.
-
-2B) Size and complexity in the CDI-consuming device should also be considered. In particular, code complexity is an issue which must be addressed.
-
-
-3) Secondary constraints are testability of the provided information,  scalability of the format, and the convenience and availability of a suitable toolchain.
-
-
-4) There is a physical/logical structure to the configuration which the CDI can and should reflect:
-
-4A) The basic NMRAnet unit is a &quot;Node&quot;. Nodes provide CDI for their needed configuration information. The protocol for that will be defined elsewhere/elsewhen.
-
-4B) A Node can contain zero or more &quot;Producers&quot;.  Each Producer is independently configured. There is no ordering between separate Producers.
-
-4C) A Node can contain zero or more &quot;Consumers&quot;.  Each Consumer is independently configured. There is no ordering between separate Consumers, or between individual Consumers and Producers.
-
-4D) Each Producer or Consumer can be configured with zero or more Events.
-
-4E) Each Event has an Identifier which uniquely defines it. An event may optionally carry additional data.
-
-4F) To ensure future growth, there is no required &quot;device&quot;, &quot;channel&quot; or other grouping within a node. Those may be present in some node types, and CDI must be able to represent them, but may not require any specific organization.
-
-
-
-The configuration definition is stored in a hierarchical manner.
-
-I) In what follows:
-
-A &quot;String&quot; must be present; an &quot;Optional String&quot; does not have to be.  Strings can be either in ASCII (8-bit) or, to allow international use, UTF-8 or UTF-16.
-
-An &quot;Integer&quot; may be signed; if no sign, it's taken as positive.
-
-
-I) At the top, root level is the information for a &quot;node&quot;.  This includes:
-
-  Manufacturer: String
-  ManufacturerID: Integer
-  Model:  String
-  ModelNumber: Integer
-  Version: String
-  Description: Optional String
-  URL: Optional String
-
-The ManufacturerID and ModelNumber are assigned unique numeric values. The process for assigning those, ensuring them unique, and making those assignments available to the community are beyond the scope of the CDI specification.
-
-No specific content is expected at the URL. If desired, that can be dealt with in a different specification.
-
-Additional descriptive information can be grouped below this node as desired; see below.
-
-II) Within the node information is zero or more &quot;groups&quot;. Each group contains:
-
-   Name: String, required to be unique within enclosing group or node
-   Description: Optional String
-   Replication count: Integer &gt;= 1 (number of times this group is replicated within the parent item)
-
-A group with a replication count &gt; 1 (called a replicated group) can be used to represent a type of replicated device.  For example, a node with 4 identical input devices and 6 identical output devices can be compactly described by two groups, with replication counts of 4 and 6 respectively.
-
-Individual groups within replicated groups are numbered from 1 to the replication count. If more than one replicated group is present, the numbering for each starts again with 1.
-
-Groups may contain one or more inner groups, with the same representation. This may continue to any desired level.
-
-III) Groups may contain &quot;variable&quot;, &quot;map&quot;, &quot;producer&quot; and/or &quot;consumer&quot; descriptions.
-
-III-a) A &quot;variable&quot; description contains:
-
-   Name: String, required to be unique within enclosing group or node
-   Type: Exactly one of &quot;boolean&quot;, &quot;digit&quot; (an unsigned binary-coded-decimal value), &quot;signed&quot; (a binary value with a sign), &quot;unsigned&quot; (a binary value without a sign), &quot;string&quot; (an ASCII string, not-null terminated), or &quot;blob&quot; (arbitrary byte vector).
-   Max: Integer - For string and blob variables, the maximum number of bytes that can be stored. For digit, signed and unsigned types, the maximum value allowed.
-   Min: Integer - For digit, signed and unsigned values, the minimum value allowed.
-   Description: Optional String
-   Default: value of this Type, required
-
-A variable may contain one or more map descriptions.  Each map represents a mapping between possible values (the &quot;Key&quot; part of the map's pairs) and convenient names for them (the &quot;Value&quot; part of the map's pairs). If more than one map is present, their Name and/or Description fields can be used to distinguish which is to be used.
-
-Note that the current value of a variable is not considered configuration definition information (see item 1A and 1B in the introduction).
-
-Configuration information must not be packed into variables; each variable must represent one type of information. In particular, the use of individual bits within larger values to pack multiple pieces of information is forbidden; those must be represented as individual variables.  (How the information is stored internally is up to the designer of the specific device, and is not restricted)
-
-III-b) A &quot;map&quot; description contains:
-
-   Name: String, required to be unique within enclosing group or node
-   Description: Optional String
-   1  or more &quot;Key&quot;, &quot;Value&quot; pairs.  Each element of the pair can be of
-            any supported type, depending only on how it is to be used.
-            
-Map elements provide a mapping between the pairs they contain.  For example, a map can relate numeric values for a variable to description strings.
-
-III-c) A &quot;producer&quot; description contains:
-
-   Name: String, required to be unique within enclosing group or node
-   Number of Events: Integer - the number of event ties that can be associated with this producer
-   Container: yes/no - whether the emitted events can carry content beyond the configured value
-   Description: Optional String
-
-A producer description may contain zero or more variable descriptions for any variables that configure details of the producer's function. If Container == yes, there must be specific variables (TBD) for configuring and/or obtaining information about the content in the emitted events.
-
-
-III-d) A &quot;consumer&quot; description contains:
-
-   Name: String, required to be unique within enclosing group or node
-   Number of Events: Integer - the number of event ties that can be associated with this consumer
-   Description: Optional String
-
-A consumer description may contain zero or more variable descriptions for any variables that configure details of the consumer function. This may include e.g. variables that define how any content in incoming messages will be used.
-
-
-
-
-
------
-The following is not meant to show _how_ configuration definition information would be stored, but _what_ kinds of information would be stored.  It's a description of a complex accessory decoder, the Digitrax DS54, modified for use in a Producer-Consumer model.
-
-Hopefully the syntax will be self-explanatory.  In any case, it's just for this example, not a proposal of any kind.
-
-Manufacturer (String): Digitrax
-Model (String): DS54
-Version (String): 2.33
-Description (Optional String): For more information, see 
-http://digitrax.com/asdf/123
-
-Group start:
-Name (String): Decoder
-Description (Optional String): These variables describe the entire board
-Replication count (integer): 1
-
-Variable:
-    Name: Address
-    Type: Integer
-    Max:  2044
-    Min: 0
-    Description: This is the board address, in DCC space originally
-
-
-Group start: (Note this is nested in &quot;Decoder&quot;)
-    Name (String): Channel
-    Description (Optional String): Each Channel is one pair of output wires and contains two inputs
-    Replication count (integer): 4
-
-Group start: (Note this is nested in &quot;Channel&quot;)
-    Name (String): Input
-    Description (Optional String): Each Channel has two inputs, called &quot;Switch&quot; and &quot;Aux&quot;
-    Replication count (integer): 2
-
-Producer start:
-   Name: Switch Input
-   Number of Events: 9
-   Container: Yes
-   Description: Driven by the 1st input wire for this channel.  Messages carry a single bit of data, the state of the input. The variables control ....
-
-   Variable:
-       Name: Input Type
-       Type: Integer
-       Max: 10
-       Min: 0
-       Default: 0
-       Description: Specify the type of signal expected on this input
-        
-       Map:
-          Name: Values
-          &quot;0&quot;, &quot;0.125sec retriggerable pulse&quot;
-          &quot;1&quot;, &quot;0.25sec retriggerable pulse&quot;
-          &quot;2&quot;, &quot;0.35sec retriggerable pulse&quot;
-          ...
-       Map End
- 
-      
-   Variable:
- Name:  Input Task
-       Type: Integer
- Max: 8
-       Min: 0
- Default: 0
-       Description: Specify the local action when this input is active
-
-       Map:
- Name: Values
-          &quot;0&quot;, &quot;Output toggle&quot;
- &quot;1&quot;, &quot;No output change&quot;
-          &quot;2&quot;, &quot;Output thrown&quot;
- ...
-       Map End
- 
-Producer end:
-
-Group end: (This is the end of the input group)
-
-   Variable:
- Name: Output Type
-        Type: Integer
- Max: 40
-        Min: 0
- Default: 0
-        Description: Determines what the output leads do in response to events ....
-
-Consumer start:
- Name: Turnout Active Thrown
-   Number of Events: 1
- Description: Set the thrown output lead active and closed lead inactive.
-Consumer end:
-
-Consumer start:
- Name: Turnout Active Closed
-   Number of Events: 1
- Description: Set the closed output lead active and thrown lead inactive.
-Consumer end:
-
-Consumer start:
- Name: Turnout Active Both
-   Number of Events: 1
- Description: Sets both output leads active.
-Consumer end:
-
-Consumer start:
- Name: Turnout Inactive
-   Number of Events: 1
- Description: Sets both output leads inactive.
-Consumer end:
-
-Group end: (This is end of the &quot;Channel&quot; group)
-
-Group end: (This is end of the &quot;Decoder&quot; group)
-
-
-Some thoughts based on putting this together:
-
-1) In a real DS54, there's are subtle differences between the Switch 
-and Aux configuration choices. I blurred those here by documenting 
-them identically via replication. For a real device, they could 
-either be separately specified or (more likley) the differences 
-wouldn't matter in a P/C-based device.
-
-2) A DS54 can receive messages that put it's output into four states: 
-One side on, the other side on, both sides on, and neither side on. 
-These four interacts with the &quot;Output Type&quot; setting in weird and 
-wonderful ways.  Rather than have this be one consumer with data, I 
-specified four consumers without data.  These seems a much more 
-logical way to configure the device, as it gives more flexibility to 
-the _rest_ of the layout that's originating the requests.
-
-The DS54 inputs also generate messages. They could either be 
-specified as two producers (for the active and inactive messages) or 
-one with data.  To be fully consistent and interoperable, those 
-should probably be two separately configurable producers per input, 
-but for the purposes of the example I made it just a single one that 
-puts data in the message.
-
-============================
-
-This proposal is for fully structured data, while allowing the structure to adapt to the structure of future devices. 
-
-Don Voss has proposed an alternative:
-
- I see a Node supporting from 0 to 255 devices. A device's address is Node_Address:Device_Offset where the device_offset is 8 bits. The compressed XML file carries the needed information on the organization:
-    1. Device Group 1 offsets; 1-16
- 2. Device Group 2 offsets; 17-37
-    3. Device Group 3 offsets; 28-45
- 4. Group 1 definitions:
-    5. Group 2 definitions:
- 6. Group 3 definitions:
-
-This results in simpler parsing, but builds in a very specific structure without nesting, etc.
-
-...
-
-For the modules I have programmed, I would require the following:
-1. A Device is the operational element and is addressed with a Device_Offset:8
-2. The definition of a capability is defined for a group of devices; 1st device_Offset:last device_Offset of the group. Note 1st and last may be the same.
-3. There may be multiple groups with different capabilities within the module.
-4. Variables within the Device are addressed as Var_Offset:8. Each variable is defined by the XML file as to function and Length(bit, nibble,1-4 bytes) within the Device Group.
-5. A functional description of an Event Tie Table which supports all Consumer devices within the module. The ability to read this table ( transfer through file-str! eaming). Erase Table entry. Insert Table Entry. I see this Event_Tie_ Table as a part of the minimum required set.</PRE><P>
-<BR><BR>
+<P>If a node has missed one or more frames, it's possible that some
+state interaction has started and the node is inconsistent. For
+example, a RIM/CIM sequence could have started or even finished.</P>
+<P>If the node misses one or more frames, the CAN controller needs to
+flag that and bring it to the attention of the microcontroller. The
+microcontroller then needs to emit an “Initialization Complete”
+message so that other nodes realize that this node may not have
+complete state information.</P>
+<P>The node should also defer the reply to a write datagram until
+after the write is complete, to make it less likely the
+next-in-sequence operation arrives during dead time. Nodes doing the
+configuring should limit the amount of traffic they send to the
+node-under-configuration to reduce the need for e.g. datagram
+retransmission.</P>
+<P>The transfer size for stream access is negotiated. By requiring a
+transfer size equal to or smaller than the memory write size, the
+node can ensure that the stream will pause during a write operation.</P>
+<H3>Large Volume Operations</H3>
+<P STYLE="margin-bottom: 0cm">The stream protocol is meant for large
+reads and writes, but the datagram protocol can also work well on a
+single CAN segment. The difference in performance comes from the
+(potential) larger datagram buffer size. 
 </P>
-<P><BR><BR>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">All nodes support datagrams for
+configuration; not all support streams. So a least-common-denominator
+configuration tool would use datagrams for even large transfers.
+Because the need for reply, short datagrams are not particularly
+efficient. In the limiting case, you can only write two bytes per
+frame exchange. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
 <P>This is SVN $Revision$ 
