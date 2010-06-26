@@ -6,11 +6,15 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100623;9165900">
+	<META NAME="CHANGED" CONTENT="20100625;19354400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -99,9 +103,9 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 		e.g. screw connectors can follow or not as they wish, but this
 		would let boards with RJ45 connectors interconnect reliably.</P>
 	</UL>
-	<LI><P STYLE="margin-bottom: 0cm"><SPAN STYLE="font-style: normal">Can
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Can
 	termination is required, but OpenLCB nodes are not required to
-	provide it in any particular manner.</SPAN></P>
+	provide it in any particular manner.</P>
 	<LI><P STYLE="margin-bottom: 0cm">The rise/fall time of CAN signals
 	is a controllable parameter. The MCP2551 transceiver part used in
 	e.g. MERG CBUS controls this with an Rs external resistor, by
@@ -110,7 +114,7 @@ the <A HREF="Background.html">CAN background document</A>)</P>
 	Bolton recommended in September 2009 that future designs use a 100k
 	resistor instead to give a better waveform shape at 125kbps by
 	limiting the slope to just under 5V/usec. This effects the maximum
-	possible stub connection length, see SLLA270 page 9.  We agree with
+	possible stub connection length, see SLLA270 page 9. We agree with
 	this decision. That should be part of the final OpenLCB-CAN
 	specification, along with suitable +/- limits on the quantity.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Ground and possibly power
@@ -272,16 +276,12 @@ access disambiguation via CAN's standard mechanisms.</P>
 		</TD>
 	</TR>
 </TABLE>
-<P><BR><BR>
-</P>
 <P STYLE="margin-bottom: 0cm">The &quot;Variable field&quot; has
 different meanings depending on the &quot;Frame Type&quot; field. CAN
 control messages are identified with a Frame Type bit of 0, to ensure
 high priority.</P>
-<P><BR><BR>
-</P>
-<P><I>Document no-seven-1-bits-in-top-11 limitation to ensure future
-selections don't violate it.</I></P>
+<P STYLE="margin-bottom: 0cm"><I>Document no-seven-1-bits-in-top-11
+limitation to ensure future selections don't violate it.</I></P>
 <H2>CAN-specific Control Messages and Interactions</H2>
 <P>These are identified by the Frame Type bit being 0. They are
 formatted as shown in the following table:</P>
@@ -303,9 +303,11 @@ formatted as shown in the following table:</P>
 			<P>Check ID (CIM) message</P>
 		</TD>
 		<TD WIDTH=423>
-			<P>MMM,NNNN,NNNN,NNNN where MMM is 0-5</P>
-			<P>MMM is the message sequence number</P>
-			<P>NNNN,NNNN,NNNN is the 12-bit Node ID section being checked</P>
+			<P>MMM,NNNN,NNNN,NNNN 
+			</P>
+			<P>where MMM is the message sequence number, 0x7 to 0x4 (to give
+			priority to messages later in the process)</P>
+			<P>and NNNN,NNNN,NNNN is the 12-bit Node ID section being checked</P>
 		</TD>
 	</TR>
 	<TR>
@@ -313,7 +315,7 @@ formatted as shown in the following table:</P>
 			<P>Reserved ID (RIM) Message</P>
 		</TD>
 		<TD WIDTH=423>
-			<P>0x7FFF</P>
+			<P>0x0700</P>
 		</TD>
 	</TR>
 	<TR>
@@ -321,7 +323,7 @@ formatted as shown in the following table:</P>
 			<P>Mapping Reset (MR) Message</P>
 		</TD>
 		<TD WIDTH=423>
-			<P>0x7FFE</P>
+			<P>0x0701</P>
 		</TD>
 	</TR>
 	<TR>
@@ -329,7 +331,7 @@ formatted as shown in the following table:</P>
 			<P>Reserved</P>
 		</TD>
 		<TD WIDTH=423>
-			<P>0x6xxx and 0x7xxx up to 0x7FFE</P>
+			<P>All others</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -437,8 +439,6 @@ message.
 Frame Type field. They contain message type information and/or
 address information in the 15-bit variable field, and zero to eight
 CAN data bytes.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <P STYLE="font-style: normal">For OpenLCB messages, the variable
 field is used in three forms:</P>
 <UL>
@@ -546,8 +546,6 @@ field is used in three forms:</P>
 		</TD>
 	</TR>
 </TABLE>
-<P><BR><BR>
-</P>
 <P>Putting the destination alias in the header allows filtering on it
 with common CAN hardware. Putting the Stream ID in the header also
 allows filtering, and preserves the full 8-byte CAN payload for
@@ -567,8 +565,6 @@ the first byte after the MTI in a standard-form message.</P>
 with Destinations IDs may occur in two forms: with an alias in the
 header and the MTI in the message; and with a full address in the
 data field and the MTI in the header.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <H2>CAN Controller Filters</H2>
 <P STYLE="margin-bottom: 0cm">This coding has been generated such
 that simple nodes can use three hardware filters to select only
@@ -622,8 +618,6 @@ frames that are of interest to them.</P>
 		</TD>
 	</TR>
 </TABLE>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
 <P STYLE="margin-bottom: 0cm">Note that whether or not filters are
 used, nodes must be able to handle all combinations of sucessive
 frames that the full CAN rate. There is no guarantee that a node will
