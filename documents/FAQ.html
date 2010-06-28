@@ -3,11 +3,12 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB FAQ</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20100628;7434300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100628;8492500">
 	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 2cm }
@@ -34,9 +35,9 @@ else's assignment. They are designed to let you operate really large
 layouts without concern that you will run out of IDs. And finally, a
 large event ID lets us to fold other information into it, such as
 time-stamps or other buses' IDs, allowing us to bridge to them more
-easily.  For example, a fast-clock-node would produce events with the
-fast-time embedded.  Even simple nodes can use these to automate and
-activate actions, without any additional code.  
+easily. For example, a fast-clock-node would produce events with the
+fast-time embedded. Even simple nodes can use these to automate and
+activate actions, without any additional code. 
 </P>
 <H3>But they take up too much room, and will make simple nodes too
 expensive. 
@@ -51,19 +52,19 @@ simple nodes, but rather complicated nodes. In addition, we feel that
 the whole argument is rather moot – microprocessors are advancing
 along Moore's Law, and already some, costing about $4 each per 100,
 contain 32k of flash and 8k of RAM – so resources are hardly
-limited.  In many ways, having large event numbers simplifies, and
+limited. In many ways, having large event numbers simplifies, and
 therefore reduces, the firmware required in nodes, see the fast-clock
-example above.  
+example above. 
 </P>
 <H3>Why do you make such a big deal about bridging, isn't it easy? 
 </H3>
-<P STYLE="margin-bottom: 0cm">No, it is not easy, and it is even
-harder to do it right. A bunch of hand waving about 'just bridging to
-other systems' is not engineering. As everyone knows, “the devil is
-in the details”, and we have taken the time to think though
-problems, and to solve them. We have chosen solutions that scale
-gracefully, and that can take advantage of commodity equipment such
-as Ethernet routers.</P>
+<P STYLE="margin-bottom: 0cm">No, it is not easy, it's hard to do
+right and even harder to do it automatically. A bunch of hand waving
+about 'just bridging to other systems' is not engineering. As
+everyone knows, the devil is in the details, and we have taken the
+time to think though problems, and to solve them. We have chosen
+solutions that scale gracefully, and that can take advantage of
+commodity equipment such as Ethernet routers.</P>
 <H3>Why are your answers to the NMRAnet mandate questions so much
 more complicated than the other proposals? 
 </H3>
@@ -90,7 +91,7 @@ capacitance. Connecting CAN segments together requires at least
 active repeaters which have only limited ability to resolve bus
 contention and collisions due to added latency to the network.
 Un-resolved bus collisions on CAN segments are non-recoverable
-errors, and active repeaters cannot prevent them.  S9.6/OpenLCB uses
+errors, and active repeaters cannot prevent them. S9.6/OpenLCB uses
 automatic filtering gateways and fully-unique NodeIDs to completely
 prevent collisions, but even with that there will be layouts that
 cannot be served only by CAN. By using a fast 'backbone' bus segment
@@ -103,9 +104,11 @@ resulting network.</P>
 data portion of the CAN packet, isn't that awfully wasteful of the
 limited CAN bandwidth? 
 </H3>
-<P STYLE="margin-bottom: 0cm">We use a 29-bit header because we
-include the originating unique node ID in it to achieve the CAN
-requirement that its headers be unique.  In addition, CAN traffic is
+<P STYLE="margin-bottom: 0cm">For reliable operation, the CAN bus
+arbitration mechanism requires that the message headers be unique;
+overlapping messages cannot be reliably delivered unless they differ
+in the header. OpenLCB  includes the originating unique node ID in a
+29-bit CAN header to achieve this. In addition, CAN traffic is
 limited by the capability of nodes to generate that traffic, and
 therefore our group feels that the S9.6/OpenLCB packet-size will not
 make a significant impact on the real throughput of the CAN bus.</P>
@@ -121,7 +124,7 @@ words, can multiple nodes produce the same event message?</H3>
 event ID. The packets will not be identical, as the originating node
 field in the message will be different, and therefore you can tell
 where it came from when debugging, but event-consumers will treat the
-two messages identically.   
+two messages identically. 
 </P>
 <H3>How can two nodes send the same event ID if the top six bytes of
 the event ID are required to be a valid node ID?</H3>
@@ -133,12 +136,12 @@ means. Other nodes can use it without trouble, but the defining node
 is responsible for making sure that every other event it defines
 doesn't use the same event ID. This ensures that event IDs are always
 unique, and therefore no reconfiguration is necessary to avoid
-collisions.  We should note that using the node ID is only one of the
-ways to define an event ID.  </SPAN>
+collisions. We should note that using the node ID is only one of the
+ways to define an event ID. </SPAN>
 </P>
 <HR>
-<P>Site hosted by 
-<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALT="Get Open Model Railroad Layout Control Bus at SourceForge.net. Fast, secure and Free Open Source software downloads" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
 </P>
 <P>This is SVN $Revision$ 
 </P>
