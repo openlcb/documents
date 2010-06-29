@@ -6,11 +6,13 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100530;23544500">
+	<META NAME="CHANGED" CONTENT="20100629;10154700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -20,48 +22,247 @@ OpenLCB will likely need to eventually take part, and this note is a
 place to put some of the discussion now taking place.</P>
 <H2>Environment of Proposal</H2>
 <H3>Requirements</H3>
-<P STYLE="margin-bottom: 0cm">Self contained</P>
-<P STYLE="margin-bottom: 0cm">Updatable</P>
-<P STYLE="margin-bottom: 0cm">More then one type of configuration
-device, separately implementatable</P>
+<P>Not just DCC, but also other existing and future systems.</P>
+<P>Provide large address space for locating locomotives.</P>
+<P>Simple “big knob” throttles through full-capability iPhones.</P>
+<P STYLE="margin-bottom: 0cm">A throttle attached to any segment
+should be able to control a train anywhere. 
+</P>
 <H3>Preferences</H3>
+<P>Efficient on CAN.</P>
+<P>Must be able to query throttle capabilities, e.g. ability to
+display information.</P>
+<P>Must work well with multiple forms of wireless.</P>
+<P>Nodes may have little compute power; simple nodes must be able to
+use pre-formatted messages for most things.</P>
+<P>Cleanly handle the need for multiple command stations.</P>
+<P>It should be possible to hand a running train off from one
+throttle to another.</P>
+<P>A throttle node can control more than one locomotive at a time via
+some form of “sub-throttle”, e.g. “right knob” and “left
+knob”. Might be physical, might be just virtual e.g. switch back
+and forth via button.</P>
 <H3>Design Points</H3>
-<P>Use XML as a lingua franca.</P>
-<P>Nodes may have little compute power; mustn't need to
-compress/decompress on the fly.</P>
-<P>“The map is not the territory” in configuration information.</P>
-<H2>Discussion</H2>
-<P>“All OpenLCB nodes will contain a compressed XML document that
-contains all the relevant information for an external Configuration
-Tool (CT) to be able to to use to know how to configure the node. It
-is expected that the CT will use the data in the XML file to render
-some form of suitable Graphical User Interface to allow the user to
-easily and intuitively configure all aspects of the node's
-capabilities. An important design choice was to embed this XML
-document into each node so that the system has all it needs to
-configure the node without having to source the XML file externally
-to the OpenLCB from the manufacturer or some other on-line repository
-via the Internet or a CD/DVD etc. While the CT is likely to be a
-program running on a PC, it could be a hand-held device like mobile
-phone or PDA or even a custom built CT.”</P>
+<P>Use events for global communication, but mostly exchange
+point-to-point datagrams.</P>
+<P>Use “throttle” and “command station” metaphors, at least
+for start.</P>
+<P>Throttles could be either a physical handheld or computer program.</P>
+<P>The separate 
+<a href="DisplayProtocol.html">display protocol</a>
+can be used to drive displays on the
+throttle once it's identified.  Need to have a way to identify a
+specific “sub-throttle” with a specific display.</P>
+<H2>Proposed Protocol</H2>
+<P>Throttles locate the command station (controllers) currently
+servicing a locomotive (or other addressable unit) by emitting an
+event in the OpenLCB-reserved space. Four bytes are reserved to
+identify which one, which could be e.g. two bytes of system prefix
+and two bytes of DCC address, or something else; see below. All
+command stations (controllers) receive this, as it's a true global
+message. The one(s) controlling the locomotive reply to the throttle
+via datagram with identification and status information. The
+point-to-point connection has then been made.</P>
+<P>Datagrams flow between the throttle node and CS node to control
+the train. Because both throttles and CSs can control multiple
+trains, the datagrams contain a “session ID” that was negotiated
+at the start. This doesn't have to have any meaning, though of course
+the two ends can use it for their own internal purposes. 
+</P>
+<H3>Examples</H3>
+<H4>Simple Acquisition</H4>
+<P>Throttle T sends event message with (OpenLCB Prefix – 3
+bytes)(Locate Controller – 1 byte)(Locomotive ID – 4 bytes)</P>
+<P>Command station C sends datagram to Throttle T with (throttle
+command – 1 byte)(Op: Located – 1 byte) (Status …)</P>
+<P>(Reservation; make sure neither deadlock nor allocation holes by
+using test-and-set operations; results in a one-byte ID assigned to
+this communication by CS; could be slot number or anything else,
+throttle&amp;CS just use for rendezvous during interchange)</P>
+<P>Throttle T sends single-frame datagrams with speed, functions as
+needed; 6 byte payload in 1<SUP>st</SUP> frame if Type, ID present,
+allowing a single node to handle 255 locos/decoders at a time.</P>
+<P>Command station C returns status datagrams as needed</P>
+<H4>Transfer command station</H4>
+<P>A train is being controlled by Throttle T with command station C1.
+The train is about to leave C1's control. Assume that C1 is aware of
+this, and knows that C2 will be able to control it. (Does T need to
+send speed commands to both C1 and C2 for a while? e.g. do they
+really know where the edge is?)</P>
+<P>C1 sends a “transfer” datagram to T informing T of this, which
+carries C2's address. 
+</P>
+<P>Alternately, C1 sends a “please reacquire” datagram to T,
+telling T that control is about to be lost. T goes through the simple
+acquisition operation, this time getting communications from C2.</P>
+<H3>Datagram Format</H3>
+<P>Basic format is datagram-ID-byte, one byte session ID, then a
+command byte for throttle-CS communication, then arguments. Five
+bytes of arguments fit in the first CAN frame.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=23*>
+	<COL WIDTH=31*>
+	<COL WIDTH=138*>
+	<COL WIDTH=64*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=9%>
+			<P>CS to<BR>Throttle</P>
+		</TH>
+		<TH WIDTH=12%>
+			<P>Throttle<BR>to CS</P>
+		</TH>
+		<TH WIDTH=54%>
+			<P>Command</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Arguments</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Release (End)</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+</TABLE>
 <P><BR><BR>
 </P>
-<P>Items from To Do list, needing sorting and formatting:</P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Handling throttle off from one
-	command station / booster to another.</P>
-	<LI><P STYLE="margin-bottom: 0cm">A throttle attached to any segment
-	should be able to control a train anywhere. 
-	</P>
-	<LI><P>It should be possible to hand a running train off from one
-	throttle to another.</P>
-	<LI><P>Throttles could be either a physical handheld or computer
-	program.</P>
-	<LI><P>What is the unit of addressability? A “locomotive”, a
-	“decoder”, a “consist” or what?</P>
-</UL>
-<P STYLE="margin-left: 2cm">Clearly, we need to start writing some
-thottle documents, just to make sure capabilities are in place.</P>
+<H4>Throttle to Command Station</H4>
+<P>Commands:</P>
+<P>Set speed – what's the appropriate range? 0-255 enough steps for
+the long run? Fit a couple more bits in?</P>
+<P>Set functions/outputs – There are multiple function spaces
+available, e.g. DCC 1-28-??, plus the very large option address
+space, plus others. Bit mask is convenient for some things, but most
+option operations are just one change. Include a duration code for
+precise timing?</P>
+<P>Allocation commands – release, allow dual use, etc.</P>
+<P>Get status: Read back everything the command station knows.</P>
+<P>Get info: For e.g. roster information</P>
+<H4>Command Station to Throttle</H4>
+<P>Commands:</P>
+<P>Must transfer</P>
+<P>Get throttle properties: enquire about display, etc.</P>
+<H2>Remaining Points</H2>
+<P>What is the unit of addressability? A “locomotive”, a
+“decoder”, a “consist” or what?</P>
 <P STYLE="margin-left: 2cm">Alex, via email: Although explicitly
 excluded from our initial work I think we should have some place
 holders for this at a high level. Needs to include: - DCC - DC -
@@ -77,18 +278,25 @@ CS-service &lt;--&gt; aBooster ---&gt; Track --&gt; Loco-decoder
 Loco-RF-decoder ; GPS&lt;--&gt;Throttle All the in-between bits are
 hidden from the user - but not unfortunately, from us. 
 </P>
+<P>Should users have to know what they're addressing in detail, e.g.
+“Locomotive 12345 on the TCS system”? Or just “Locomotive
+12345” and have system locate? (Note number of digits; four is not
+enough!)</P>
+<P>Can a command station attach a specific locomotive to a throttle?
+To a control point within a throttle (“left knob”)? Very useful
+in some applications.</P>
+<H3>Control Systems:</H3>
+<P>A list, to try to remember the options, in no particular order:</P>
 <UL>
-	<LI><P>Clearly, need to have a larger document to hold some
-	discussion on this</P>
+	<LI><P>DCC</P>
+	<LI><P>DC (controlled in various ways, e.g. MERG system)</P>
+	<LI><P>DCS from Mike's Train House (MTH)</P>
+	<LI><P>Marklin – multiple systems?</P>
 </UL>
-<P><BR><BR>
-</P>
-<H2>Email Threads</H2>
-<P>From DPH May 24, 2010:</P>
-<P>OpenLCB Train Messaging</P>
+<H3>Items from DPH email May 24, 2010:</H3>
 <P>1. Messages are between a throttle and a train. In the future
 messages will likely be send directly from throttle to train, via RF.
-It is the job of  today's CS, perhaps with the help of a helper-node,
+It is the job of today's CS, perhaps with the help of a helper-node,
 to model a train as a fully functioning pseudo-node. Messaging will
 use directed messages, or Datagrams, but, could use bidirectional
 streams. This interchange is really between the throttle and the CS,
@@ -125,16 +333,6 @@ Therefore, the NID prefix could be derived from the layout ID, the
 meet's range, or a fixed number denoting 'Train'. Train NIDs would
 then have the form TRAIN.x, where x is 0-65k, and TRAIN is a fixed
 48-bit number.</P>
-<P>6. Just as a train moves around the layout, so can a throttle. It
-can move between OpenLCB segments, but this should be easily handled
-since the throttle has intelligence, two-way communication, and can
-help to negotiate the move. OpenLCB's interest-based routing will may
-play an important role in both throttle and train movement. 
-</P>
-<P>7. Ideally, command stations will handle the above. Until this
-occurs, <FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">specific
-nodes can supplement the present CSs. </FONT></FONT></FONT>
-</P>
 <P><BR><BR>
 </P>
 <HR>
