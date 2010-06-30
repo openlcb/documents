@@ -6,11 +6,12 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100625;19354400">
+	<META NAME="CHANGED" CONTENT="20100629;21112800">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -282,6 +283,26 @@ control messages are identified with a Frame Type bit of 0, to ensure
 high priority.</P>
 <P STYLE="margin-bottom: 0cm"><I>Document no-seven-1-bits-in-top-11
 limitation to ensure future selections don't violate it.</I></P>
+<H3>Throughput and Temporarily Deaf Nodes</H3>
+<P>OpenLCB requires that CAN-attached nodes be able to handle the
+full frame rate on the CAN bus. There is no guarantee that frames for
+a given node will arrive with non-zero time between then.  
+</P>
+<P>Some nodes are not always able to process frames. For example, the
+node may cease processing for a short time while writing non-volatile
+memory. Higher-level protocols, e.g. configuration write datagrams,
+have mechanisms built in to prevent overrun while writing
+configuration memory, but there could be multiple activities going on
+in parallel that will result in frames arriving while the node is not
+processing.</P>
+<P>Short outages can be covered by CAN hardware buffering, so long as
+the node will eventually catch up even at full arrival rate. Outages
+long enough that frames are lost due to e.g. buffer overflow require
+node to broadcast that it's back up if hardware detected frame lost.
+This is because tehre could have been frames of some form that
+modified the OpenLCB node state, which are now lost (e.g. drop alias,
+CIM/RIM in absence, or even higher level events) 
+</P>
 <H2>CAN-specific Control Messages and Interactions</H2>
 <P>These are identified by the Frame Type bit being 0. They are
 formatted as shown in the following table:</P>
@@ -625,7 +646,9 @@ have time for processing between frames that it must handle.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
-Site hosted by <a href="http://sourceforge.net/projects/openlcb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" width="120" height="30" alt="Get Open Model Railroad Layout Control Bus at SourceForge.net. Fast, secure and Free Open Source software downloads" ALIGN="ABSMIDDLE"/></a>
+<P>Site hosted by 
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A>
+</P>
 <P>This is SVN $Revision$ 
 </P>
 </BODY>
