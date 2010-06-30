@@ -3,19 +3,153 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Note: Discovering Topology</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20091130;1390400">
+	<META NAME="CHANGED" CONTENT="20100629;21333500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: Discovering Topology</H1>
-<P>Notes from an email discussion in October 2009 about discovering
-the topology of a large modular layout.</P>
+<P>On how OpenLCB can help a large modular layout discover (or
+confirm) how the modules are connected.</P>
+<H2>June 2010 David Harris Proposal</H2>
+<P>Modular clubs, and larger modular-meets need a way of configuring
+modules into a cohesive whole that is time and effort efficient. This
+proposal suggests some approaches to this. Essentially, an
+organization would set some standards and define some standard Events
+to implement that standard. 
+</P>
+<P>(See also the separate figure in a <A HREF="images/images/ATC2.pdf">PDF
+file</A>) 
+</P>
+<P>Each modular organization, eg NTrak, defines a protocol and a set
+of *fixed* events representing edge-messages for intra-module
+communication. They would also assign a range of &quot;Module IDs&quot;
+to clubs and individuals. So, I might be assigned: (symbolically)
+NTrak.dpharris.xx, based on my membership number (01.00.34.02.54.xx,
+say), where xx is my modules' numbers. 
+</P>
+<P>In this proposal the module ID represents a virtual-node, and it
+can represent a single NTrak module, or a set of NTrak modules, which
+comprise one or more nodes. 
+</P>
+<P>In addition, the organization defines fixed events, eg: 
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">0001 Start auto-topography
+	configuration 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0002 Stop ATC 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0003 Track 1 East block is
+	occupied 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0004 Track 1 East block is
+	unoccupied 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0005 Track 1 East signal is stop 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0006 Track 1 East signal is
+	caution 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">0007 Track 1 East signal is
+	proceed 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">... 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">001D Track 3 West block is
+	occupied 
+	</P>
+	<LI><P>.... 
+	</P>
+</OL>
+<P>Each NTrak module(s) would be required to implement these fixed
+events. This can be done with a dedicated node, possibly obtained
+from the organizing committee, or implemented across a number of
+nodes, one at each end of teh module(s), say. To ease set-up, a
+special configuration tool might be provided that knows the event
+numbers, and can program the appropriate event slots in the nodes. 
+</P>
+<H3>How it works: 
+</H3>
+<P>Consider two modules A and B. 
+</P>
+<PRE STYLE="margin-bottom: 0.5cm">east signal ---&gt; ======loco&gt;== ============== &gt; &gt; &lt;--- west-signal</PRE><P>
+Option 1 - creating the layout by taking a loco for a spin: 
+</P>
+<P>When a loco is transitions from module-A to module-B from west to
+east, module- B will report east-block-occupied and east-signal-state
+events. In the case of my module, it would send:
+NTrak.dpharris.01.0003 and NTrak.dpharris.01.0005. Since, module-A
+knows the loco is present on it, and that it is exiting to the east,
+it will be expecting to receive some events from its adjacent block.
+It will insert these into into the appropriate event-slots:
+West-block-occupied and West-signal-stop. In addition, it will learn
+the module-id of the adjacent module, as it is embedded in the
+module-event#s. Similarly, when the loco leaves module-A, module-B
+will learn about module-A. In addition, if a module remembers the
+last protocol events it sees, then as soon as it becomes occupied, it
+can insert these events into the appropriate event-slots. 
+</P>
+<P>Option 2 - creating the layout centrally: 
+</P>
+<P>Each track has a one wire electrical bidirectional connection
+between modules. A central meet-network manager gathers all the
+module IDs, and then tells each one in succession to report while it
+simultaneously activates each inter-module line. It repeats this with
+each module in succession. In more detail, the manager tells node-A
+to report. Node-A activates its Track 1 East intra-module line and
+sends the associated East messages. The next node reports
+'West-intra-module-line-activated' and fills its slots with node-A's
+events. This process quickly establishes the topology of the layout.
+The intra-module messages can either be learned by the modules at
+this time, as the above, or the network manager can set them
+explicitly at a later time. 
+</P>
+<H3>Discussion: 
+</H3>
+<H4>Advantages: 
+</H4>
+<P>This should speed up connecting modules. Additional central
+functions of a 'meet-network manager' could be to draw a scale plan
+of the layout, if dimensions of each module is available in an
+electronic form , either from the module-nodes or on separate media. 
+</P>
+<H4>Disadvantages: 
+</H4>
+<P>This requires some coordination, although not that much. Different
+organizations, even down to the individual level can have differing
+standards and protocols. This can be a good or bad thing. 
+</P>
+<H3>Comments: 
+</H3>
+<P>Can tumble-down be automatically configured, if the appropriate
+nodes are told to do tumble-down? Similarly, a module that goes from
+a single to double track via a turnout could manage its assignments
+based on the setting of its turnout. 
+</P>
+<P STYLE="margin-bottom: 0cm">Note the nodes in these modules still
+have their own node IDs and events. 
+</P>
+<H2>May 2010 Discussion</H2>
+<P>Using CAN would work better if only one end was connected at a
+time.  How about a switch in the middle of every module, which can
+disconnect the ends from each other? Open the switch, have the end of
+module A communicate to the end of module B ot figure out what's
+going on, then close the switch and have everybody communicate their
+results.</P>
+<P>Alternately, have that be a module in the center that can control
+the switch too, and do it remotely.  Each module closes its switch,
+and then tells the newly combined network to close the next switches,
+and pretty soon it's all connected up again (does that work when
+opening the switches?  Must ensure that everybody hears before
+opening up)</P>
+<H2>October 2009 Discussion</H2>
 <H3>David Harris</H3>
 <P>MERG list has been batting ideas around about how to do signalling
 and other control using local links between control points.</P>
@@ -313,7 +447,7 @@ been turned off for a second)
 <H3>Alan Robinson</H3>
 <P>Some more thoughts........ 
 </P>
-<OL>
+<OL START=11>
 	<LI><P>Pertti's first idea of track control nodes was as physical
 	entities. But the same entities (same code, even) could run on a PC.
 	A mixture of both could work together. They could run on more than
