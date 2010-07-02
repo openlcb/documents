@@ -6,7 +6,11 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100623;9085100">
+	<META NAME="CHANGED" CONTENT="20100702;7584300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -81,6 +85,10 @@ more may be developed in the future: Reset, identify, etc. Not all
 nodes will implement all methods, so a query operation is needed so
 that tools can know what they can do. 
 </P>
+<P>Can't require that nodes do anything in particular to put changes
+into effect. Some will do it right away, some will require a reset,
+etc.  Need flexibility for node developer, yet consistency for
+configuration tool builder.</P>
 <H3>CAN Aspects</H3>
 <P>CAN configuration datagrams have seven payload bytes in the 1<SUP>st</SUP>
 frame (the first byte identifies that it's a configuration transfer).
@@ -93,9 +101,9 @@ below.</P>
 <H2>Proposal</H2>
 <P>Configuration messages use a specific datagram format consisting
 of a single byte combining the operation “Command Type” field and
-flags.  This is followed by data in an operation-specific format. 
-When present, the four-byte memory address follows first, then the
-address space byte if present, then other data.</P>
+flags. This is followed by data in an operation-specific format. When
+present, the four-byte memory address follows first, then the address
+space byte if present, then other data.</P>
 <H3>Address Space Size</H3>
 <P>Configuration addresses are 32 bits. The addressable quantity is
 the byte. This allows directly addressing 4GB of data. The use of
@@ -138,26 +146,26 @@ identification. Items in {} are optional.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
-	<COL WIDTH=39*>
-	<COL WIDTH=26*>
+	<COL WIDTH=37*>
 	<COL WIDTH=27*>
-	<COL WIDTH=35*>
-	<COL WIDTH=29*>
-	<COL WIDTH=29*>
+	<COL WIDTH=27*>
+	<COL WIDTH=32*>
 	<COL WIDTH=28*>
-	<COL WIDTH=25*>
-	<COL WIDTH=19*>
+	<COL WIDTH=28*>
+	<COL WIDTH=29*>
+	<COL WIDTH=27*>
+	<COL WIDTH=20*>
 	<TR VALIGN=TOP>
-		<TH WIDTH=15%>
+		<TH WIDTH=14%>
 			<P>Name</P>
 		</TH>
-		<TH WIDTH=10%>
+		<TH WIDTH=11%>
 			<P>Flag Byte<BR>Command Type Field</P>
 		</TH>
-		<TH WIDTH=10%>
+		<TH WIDTH=11%>
 			<P>Flag Byte<BR>Operation Type Field</P>
 		</TH>
-		<TH WIDTH=14%>
+		<TH WIDTH=12%>
 			<P>Lower Bits</P>
 		</TH>
 		<TH WIDTH=11%>
@@ -172,27 +180,27 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TH>
-		<TH WIDTH=10%>
+		<TH WIDTH=11%>
 			<P><BR>
 			</P>
 		</TH>
-		<TH WIDTH=7%>
+		<TH WIDTH=8%>
 			<P><BR>
 			</P>
 		</TH>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Write</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x0</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Datagram/Stream=1<BR>ReadReply/Write=0<BR>Under Mask (1
 			bit)<BR>Reserved (1 bit)<BR>Address Space (2 bits)</P>
 		</TD>
@@ -205,27 +213,27 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Data (1-N)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Write Stream</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x0</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Datagram/Stream=0<BR>ReadReply/Write=0<BR>Under Mask (1
 			bit)<BR>Reserved (1 bit)<BR>Address Space (2 bits)</P>
 		</TD>
@@ -238,27 +246,27 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Stream information</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Read-Reply</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x0</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Datagram/Stream=1<BR>ReadReply/Write=1<BR>Reserved (2
 			bits)<BR>Address Space (2 bits)</P>
 		</TD>
@@ -271,27 +279,27 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Data (1-N bytes)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Read</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x1</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Datagram/Stream=1<BR>Reserved (5 bits)<BR>Address Space (2
 			bits)</P>
 		</TD>
@@ -304,27 +312,27 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Count (1 byte)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Read Stream</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x1</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Datagram/Stream=0<BR>Reserved (5 bits)<BR>Address Space (2
 			bits)</P>
 		</TD>
@@ -337,25 +345,25 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Count (4 bytes)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>Stream information</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Configuration Options</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x0</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=0<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -370,26 +378,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Configuration Options Reply</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x0</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=1<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -402,24 +410,24 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Highest Space <BR>(1 byte)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>Lowest Space <BR>(1 byte)</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P>{Name}</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Address Space Info</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x1</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=0<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -433,26 +441,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Address Space Info Reply</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x1</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=1<BR>Present/Absent (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -464,24 +472,24 @@ identification. Items in {} are optional.</P>
 		<TD WIDTH=11%>
 			<P>Requires Alignment<BR>(4 bits)<BR>Read-Only (1 bit)</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>{Lowest Address} (4 bytes)</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P>{Desc}</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Lock/Reserve</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=0<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -495,26 +503,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Lock/Reserve Reply</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=1<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -528,26 +536,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Unique ID</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x3</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=0<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -561,26 +569,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Get Unique ID Reply</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x3</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reply=1<BR>Reserved (1 bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -594,26 +602,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Reserved</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x4-0x7</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reserved (2 bits)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -628,26 +636,26 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Freeze/Unfreeze</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x8</P>
 		</TD>
-		<TD WIDTH=14%>
+		<TD WIDTH=12%>
 			<P>Reserved (1 bit)<BR>Freeze/Unfreeze (1bit)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -662,27 +670,27 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Indicate</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x9</P>
 		</TD>
-		<TD WIDTH=14%>
-			<P>Reserved (2 bits)</P>
+		<TD WIDTH=12%>
+			<P>Reserved (1 bit)<BR>Start/Stop</P>
 		</TD>
 		<TD WIDTH=11%>
 			<P>(somehow identify outputs, LEDs, etc to drive?)</P>
@@ -695,27 +703,27 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
-			<P>Reset/Reboot</P>
+		<TD WIDTH=14%>
+			<P>Update Complete</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0xA</P>
 		</TD>
-		<TD WIDTH=14%>
-			<P>Reserved (2 bits)</P>
+		<TD WIDTH=12%>
+			<P>0x0</P>
 		</TD>
 		<TD WIDTH=11%>
 			<P><BR>
@@ -729,27 +737,61 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
-			<P>Factory Reset</P>
+		<TD WIDTH=14%>
+			<P>Reset/Reboot</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
-			<P>0xB</P>
+		<TD WIDTH=11%>
+			<P>0xA</P>
 		</TD>
+		<TD WIDTH=12%>
+			<P>0x1</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
 		<TD WIDTH=14%>
-			<P>Reserved (2 bits)</P>
+			<P>Reinitialize/<BR>Factory Reset</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P>0xA</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>0x2</P>
 		</TD>
 		<TD WIDTH=11%>
 			<P>Target NodeID (6 bytes)</P>
@@ -762,26 +804,60 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
-		<TD WIDTH=15%>
+		<TD WIDTH=14%>
 			<P>Reserved</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P>0x2</P>
 		</TD>
-		<TD WIDTH=10%>
-			<P>0xC-0xF</P>
+		<TD WIDTH=11%>
+			<P>0xA</P>
 		</TD>
+		<TD WIDTH=12%>
+			<P>0x3</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=8%>
+			<P><BR>
+			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
 		<TD WIDTH=14%>
+			<P>Reserved</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P>0x2</P>
+		</TD>
+		<TD WIDTH=11%>
+			<P>0xB-0xF</P>
+		</TD>
+		<TD WIDTH=12%>
 			<P>Reserved (2 bits)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -796,11 +872,11 @@ identification. Items in {} are optional.</P>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=10%>
+		<TD WIDTH=11%>
 			<P><BR>
 			</P>
 		</TD>
-		<TD WIDTH=7%>
+		<TD WIDTH=8%>
 			<P><BR>
 			</P>
 		</TD>
@@ -872,29 +948,48 @@ allows a configuration tool to get new unique EventIDs from the
 node's pool, for example to interact with the Blue/Gold configuration
 process. Each request must provide a different EventID, without
 repeat, even through node resets and factory resets.</P>
-<H4>Reset and Factory Reset</H4>
-<P>The reset command is meant to reinitialize a node, equivalent to
-powering it up.  Nodes should finish any pending operations, e.g.
-non-volatile memory writes, before doing the initialization.  It's
-expected that the datagram reply will be sent before the reset, but
-this might not be entirely reliable.  The configuring node will
-receive a “Node Initialization Complete” when the node is back
-up.</P>
-<P>Factory Reset is similar, but includes restoring the node's
-configuration as if factory reset.  (This may require creating new
-unique EventIDs, see other note)  This is a heavy-weight operation
-which may require some form of interlock, e.g. the user pressing a
-button, to prevent inadvertent data loss. As a small safety
-precaution, the NodeID of the note being reset is redundantly carried
-in the data part of the datagram.</P>
+<H4>Update Complete/Reset/Reboot/Reinitialize</H4>
+<P>This is a collection of three operations, distinguished by what
+are normally the flag bits.</P>
+<P>The configuration protocol does not specify the meaning of the
+transferred data. In particular, it doesn't specify <U>when</U> new
+configuration information takes effect. Depending on how the node is
+constructed, this might be immediately upon transfer (although this
+raises issues of write boundaries), or when an entire sequence of
+transfers is complete. “Update Complete” is the command that
+indicates that a series of configuration writes is consistent and
+complete, and the node can put it into effect. Nodes do not have to
+require this operation, but receiving it must be permitted.
+Configuration tools should send it at the end of operations. Nodes
+may, but are not required to, reset after sending the reply to this
+message.</P>
+<P>The “Reboot/Reset” command is meant to reinitialize a node,
+equivalent to powering it up. Nodes should finish any pending
+operations, e.g. non-volatile memory writes, before doing the
+initialization. It's expected that the datagram reply will be sent
+before the reset, but this might not be entirely reliable.
+Configuration tools should not count on the reply. The configuring
+node will receive a “Node Initialization Complete” when the node
+is back up. This operation must not reset any configuration
+information to default contents.</P>
+<P>“Reinitialize/Factory Reset” is similar, but includes
+restoring the node's configuration as if factory reset. (This may
+require creating new unique EventIDs, see other note) This is a
+heavy-weight operation which may require some form of interlock, e.g.
+the user pressing a button, to prevent inadvertent data loss. As a
+small safety precaution, the NodeID of the note being reset is
+redundantly carried in the data part of the datagram.</P>
 <H4>Indicate</H4>
 <P>This command tells the board to somehow identify itself to the
 user, for example by flashing a LED or operating it's outputs. This
 allows the user to be absolutely sure that he's configuring the
-correct board.  The data portion carries information that lets the
-board know what kind of indication to do. It's not always appropriate
-to operation outputs if they're e.g. driving large mechanical systems
-like doors.</P>
+correct board. “Start” (bit 0 = 1) means that the board should
+start indicating, and “Stop” (bit 0 = 0) means that the board
+should stop indicating. The data portion carries information that
+lets the board know what kind of indication to do. It's not always
+appropriate to operate outputs if they're e.g. driving large
+mechanical systems like doors. (This needs to be specified more
+precisely)</P>
 <H2>Implementation Notes</H2>
 <P>This section is non-normative notes and suggestions for
 implementors.</P>
@@ -989,7 +1084,7 @@ sending node should look at the Get Configuration reply and use the
 largest available size.</P>
 <P>On the other hand, if non-volatile memory timing requires that
 write operations to a node use a 64-byte or smaller stream buffer
-size, then datagrams are a more efficient method than streams.  In
+size, then datagrams are a more efficient method than streams. In
 that case, the node should indicate that stream-write operations are
 not supported in its reply to Get Configuration. Since read
 operations don't have the same timing issues, they may still be
