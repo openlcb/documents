@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100702;7584300">
+	<META NAME="CHANGED" CONTENT="20100705;21553500">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -87,7 +88,7 @@ that tools can know what they can do.
 </P>
 <P>Can't require that nodes do anything in particular to put changes
 into effect. Some will do it right away, some will require a reset,
-etc.  Need flexibility for node developer, yet consistency for
+etc. Need flexibility for node developer, yet consistency for
 configuration tool builder.</P>
 <H3>CAN Aspects</H3>
 <P>CAN configuration datagrams have seven payload bytes in the 1<SUP>st</SUP>
@@ -126,11 +127,11 @@ these numbers (in addition to any others the designer might provide):</P>
 <UL>
 	<LI><P>(0xFF, flag=11) Configuration definition – reading this is
 	how you get the configuration definition</P>
-	<LI><P>(0xFE, flag=10) All memory – provides access to “all”
+	<LI><P>(0xFE, flag=01) All memory – provides access to “all”
 	memory in the device, where “all” is defined by the designer.
 	Single, flat address space for access. Can be used for e.g. dynamic
 	access to RAM for monitoring &amp; debugging.</P>
-	<LI><P>(0xFD, flag=01) Configuration - basic configuration space,
+	<LI><P>(0xFD, flag=10) Configuration - basic configuration space,
 	with the structure of the 32-bit space defined by the designer.</P>
 </UL>
 <P>These three spaces, inclusive, can be addressed without an extra
@@ -160,10 +161,10 @@ identification. Items in {} are optional.</P>
 			<P>Name</P>
 		</TH>
 		<TH WIDTH=11%>
-			<P>Flag Byte<BR>Command Type Field</P>
+			<P>Flag Byte<BR>Command Type Field<BR>(2 bits)</P>
 		</TH>
 		<TH WIDTH=11%>
-			<P>Flag Byte<BR>Operation Type Field</P>
+			<P>Flag Byte<BR>Operation Type Field<BR>(4 bits)</P>
 		</TH>
 		<TH WIDTH=12%>
 			<P>Lower Bits</P>
@@ -885,8 +886,7 @@ identification. Items in {} are optional.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <H3>Operations</H3>
-<A NAME="discovery">
-<H4>Get Configuration Options Reply</H4>
+<H4><A NAME="discovery"></A>Get Configuration Options Reply</H4>
 <P>To make it possible to make simple/cheap nodes, not every
 configuration operation &amp; option needs to be provide. The reply
 to “Get Configuration Options” provides information that a
