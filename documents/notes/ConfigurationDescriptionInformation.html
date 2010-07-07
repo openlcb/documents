@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100621;16212400">
+	<META NAME="CHANGED" CONTENT="20100706;22151400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -181,36 +182,60 @@ UTF-16.</P>
 if no sign, it's taken as positive.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
+<P STYLE="margin-bottom: 0cm">A &quot;Map&quot; provides a set of
+named descriptive values. It contains:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Name: Optional
+String, if present required to be unique within enclosing group or
+node</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">Description: Optional
+String</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">1 or more &quot;Key&quot;,
+&quot;Value&quot; pairs. Each element of the pair can be of any
+supported type, depending only on how it is to be used.</P>
+<P STYLE="margin-bottom: 0cm">Map elements provide a mapping between
+the pairs they contain. For example, a map can relate numeric values
+for a variable to description strings. A map can also be used to
+provide free-form documentation when neither the key nor the value
+are specified in advance. It may be useful in the future to specify
+how maps can be defined at the group level to reduce duplication.
+Having the possibility of a “Name” is meant to ease that future
+effort.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <P STYLE="margin-bottom: 0cm">II) At the top, root level is the
 information for a &quot;node&quot;. This includes:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Manufacturer: String</P>
-<P STYLE="margin-bottom: 0cm">Model: String</P>
-<P STYLE="margin-bottom: 0cm">Version: String</P>
+<P STYLE="margin-bottom: 0cm">Descriptive Map: May contain “Model”,
+“Version”, “URL” and “Description” keys, along with any
+others desired.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Model: If present, the human-readable
+model name the manufacturer gives to this node.</P>
+<P STYLE="margin-bottom: 0cm">Version: If present, the human-readable
+version string for the current board.</P>
 <P STYLE="margin-bottom: 0cm">Description: Optional String</P>
-<P STYLE="margin-bottom: 0cm">URL: Optional String</P>
+<P STYLE="margin-bottom: 0cm">URL: If present, a URL for more
+information. No specific content is expected at the URL; If desired,
+that can be dealt with in a different specification.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">The NodeID contains other numerical
-identification, and is traceable to the node's builder.</P>
+<P STYLE="margin-bottom: 0cm">Any other information desired can be
+added via additional keys.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">No specific content is expected at the
-URL. If desired, that can be dealt with in a different specification.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">Additional descriptive information can
-be grouped below this node as desired; see below.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">III) Within the node information is
-zero or more &quot;groups&quot;. Each group contains:</P>
+<P STYLE="margin-bottom: 0cm">III) Within the node is zero or more
+&quot;groups&quot;. Each group contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Name: String, required to be unique
 within enclosing group or node</P>
-<P STYLE="margin-bottom: 0cm">Description: Optional String</P>
+<P STYLE="margin-bottom: 0cm">Descriptive Map:  Map of documentation
+information; the “Description” key is the basic item.</P>
 <P STYLE="margin-bottom: 0cm">Replication count: Integer &gt;= 1
 (number of times this group is replicated within the parent item)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
@@ -255,6 +280,9 @@ signed and unsigned types, the maximum value allowed.</P>
 unsigned values, the minimum value allowed.</P>
 <P STYLE="margin-bottom: 0cm">Description: Optional String</P>
 <P STYLE="margin-bottom: 0cm">Default: value of this Type, required</P>
+<P STYLE="margin-bottom: 0cm">Offset: Optional integer offset with in
+the configuration address space for this item; if not present, data
+is laid out by length in depth-first order.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">A variable may contain zero or one map
@@ -277,33 +305,10 @@ values to pack multiple pieces of information is forbidden; those
 must be represented as individual variables. (How the information is
 stored internally is up to the designer of the specific device, and
 is not restricted; this requirement is about access to the
-information)</P>
+information, not about how it's laid out in physical memory)</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">IV-b) A &quot;map&quot; description
-contains:</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">Name: Optional String, if present
-required to be unique within enclosing group or node</P>
-<P STYLE="margin-bottom: 0cm">Description: Optional String</P>
-<P STYLE="margin-bottom: 0cm">1 or more &quot;Key&quot;, &quot;Value&quot;
-pairs. Each element of the pair can be of</P>
-<P STYLE="margin-bottom: 0cm">any supported type, depending only on
-how it is to be used.</P>
-<P STYLE="margin-bottom: 0cm">Map elements provide a mapping between
-the pairs they contain. For example, a map can relate numeric values
-for a variable to description strings. 
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">It may be useful in the future to
-specify how maps can be defined at the group level to reduce
-duplication. Having the possibility of a “Name” is meant to ease
-that future effort.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">IV-c) A &quot;producer&quot;
+<P STYLE="margin-bottom: 0cm">IV-b) A &quot;producer&quot;
 description contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -313,6 +318,9 @@ within enclosing group or node</P>
 <P STYLE="margin-bottom: 0cm">Replication count: Integer &gt;= 1
 (number of times this producer definition is replicated within the
 parent item)</P>
+<P STYLE="margin-bottom: 0cm">Offset: Optional integer offset with in
+the configuration address space for this item; if not present, data
+is laid out by length in depth-first order.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">A producer description may contain zero
@@ -321,7 +329,7 @@ details of the producer's function.
 </P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">IV-d) A &quot;consumer&quot;
+<P STYLE="margin-bottom: 0cm">IV-c) A &quot;consumer&quot;
 description contains:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -331,6 +339,9 @@ within enclosing group or node</P>
 <P STYLE="margin-bottom: 0cm">Replication count: Integer &gt;= 1
 (number of times this consumer definition is replicated within the
 parent item)</P>
+<P STYLE="margin-bottom: 0cm">Offset: Optional integer offset with in
+the configuration address space for this item; if not present, data
+is laid out by length in depth-first order.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">A consumer description may contain zero
@@ -343,8 +354,10 @@ some serial set of bytes for transfer and storage.</P>
 <P>The primary format is straight-forward XML. (Link to schema)</P>
 <P>Another is compressed binary information. Either an aggressive
 compression algorithm, or some context-aware compression, can be
-used. Size an ease of expansion are the key criteria; ease of
-creation is much less important.</P>
+used. Size and ease of expansion are the key criteria; ease of
+compression is much less important. XSLT can do some of the
+reformatting between compact and readable form</P>
+<P>We need to pick <U>one</U> format for a lingua franca.</P>
 <H2>Example</H2>
 <P STYLE="margin-bottom: 0cm">The following is not meant to show <U>how</U>
 configuration definition information would be stored, but <U>what
@@ -422,11 +435,11 @@ the type of signal expected on this input</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Map:</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Name: Values</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;0&quot;,
-&quot;0.125sec retriggerable pulse&quot;</P>
+&quot;positive edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;1&quot;,
-&quot;0.25sec retriggerable pulse&quot;</P>
+&quot;negative edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;2&quot;,
-&quot;0.35sec retriggerable pulse&quot;</P>
+&quot;either edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">...</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Map End</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Variable End</P>
@@ -470,11 +483,11 @@ the type of signal expected on this input</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Map:</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Name: Values</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;0&quot;,
-&quot;0.125sec retriggerable pulse&quot;</P>
+&quot;positive edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;1&quot;,
-&quot;0.25sec retriggerable pulse&quot;</P>
+&quot;neither edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">&quot;2&quot;,
-&quot;0.35sec retriggerable pulse&quot;</P>
+&quot;either edge&quot;</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">...</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Map End</P>
 <P STYLE="margin-left: 6cm; margin-bottom: 0cm">Variable End</P>
