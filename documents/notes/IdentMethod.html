@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100621;9583400">
+	<META NAME="CHANGED" CONTENT="20100706;10511300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -23,9 +24,9 @@ ID).</P>
 buttons. A configuration tool sees the sequence of button presses and
 checks it against the expected module-to-module connections.</P>
 <H2>Discussion</H2>
-<P>There are (at least) three ways of doing this, each with
-advantages and disadvantages.</P>
-<H3>Dedicated Event</H3>
+<P>There are (at least) four ways of doing this, each with advantages
+and disadvantages.</P>
+<H3>Dedicated Node-Specific Event</H3>
 <P>One way to provide an “ident” capability would be to define a
 specific EventID that nodes produce to identify themselves. For
 example, reserving 0xFF,FF in the lower bytes, with the NodeID in the
@@ -42,12 +43,20 @@ message for general event IDs, so would have to build that in as a
 special case (this is an issue just beyond this use of generic
 EventID signaling, but more significant here because this eventID has
 to have the NodeID in the top 6 bytes, so it's space is small)</P>
-<P><BR><BR>
-</P>
+<H3>Dedicated Global Event</H3>
+<P>We could define a global eventID that indicates “ident”; the
+source ID would then provide the information needed to track down the
+source.</P>
+<H4>Advantages</H4>
+<P>Small footprint, stays orthogonal.</P>
+<H4>Disadvantages</H4>
+<P>Requires the global eventID space be implemented, specifically in
+routers and gateways.</P>
+<P>Requires central allocation of the EventID, but this only needs to
+be done once.</P>
 <H3>Configuration Message</H3>
-<P>A specific form of configuration message within the 
-<a href="ConfigurationProtocol.html">configuration protocol</a> 
-can be reserved for this.</P>
+<P>A specific form of configuration message within the <A HREF="ConfigurationProtocol.html">configuration
+protocol</A> can be reserved for this.</P>
 <P>The configuration protocol already has a “confirm” mechanism
 to signal the proper board by e.g. lighting a light. Being able to
 send a message back via button push, so that the configuration tool
@@ -59,7 +68,7 @@ send a message back via button push, so that the configuration tool
 can get positive confirmation of the right board, would be useful.</P>
 <H4>Disadvantages</H4>
 <P>Since the configuration protocol is point-to-point, the node with
-the button press needs to find out where to send the message.  It's
+the button press needs to find out where to send the message. It's
 not all clear how to solve this. It's not practical to “write all
 nodes so they know you want to hear when their button is pressed”.</P>
 <H3>Dedicated Message Type</H3>
