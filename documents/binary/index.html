@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100528;12233200">
+	<META NAME="CHANGED" CONTENT="20100709;7071300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -67,28 +68,47 @@ between nodes via this protocol are also permitted.
 	<LI><P STYLE="margin-bottom: 0cm">Flags - 16 bit quantity, the
 	most-significant 15 bits are reserved. The least significant bit
 	indicates whether the remaining message is a common OpenLCB message
-	or a gateway-gateway communication. 
-	</P>
+	or some other message.</P>
 	<LI><P>Remaining message length in bytes</P>
 </UL>
-<H2>Gateway-Gateway Messages</H2>
+<H2>Format and protocol for other messages</H2>
+<H3>Monitoring of other protocols</H3>
+<P>There's a need to be able to pass non-common OpenLCB messages over
+binary links.  For example, a CAN-Ethernet bridge may want to pass
+CAN frames through to the Ethernet unchanged for monitoring purposes.
+This includes both the CAN frame(s) that correspond to OpenLCB common
+messages, and also other frames that are used for alias reservation,
+etc.</P>
+<H3>Gateway-Gateway Messages</H3>
 <P>The TCP/IP gateway to gateway links effectively partition the
-overall OpenLCB into smaller &quot;islands&quot; or &quot;subnets&quot;.
-OpenLCB nodes in any of these must be able to communicate with each
-other, including over intermediate wire-protocols that differ. 
+overall OpenLCB into smaller &quot;segments&quot;. OpenLCB nodes in
+any of these must be able to communicate with each other via any
+OpenLCB common message, including over intermediate wire-protocols
+that differ. 
 </P>
-<P>Gateway-to-gateway messages (will be) defined to control
-operation.  Note that these are not available on e.g. CAN links.</P>
+<P>Gateway-to-gateway messages (will be) defined for control
+operations to make this communication transparent. These messages are
+used to carry information between gateways on a link, and do not
+propagate beyond that. 
+</P>
+<P>Control of gateway nodes is done via direct messages to those
+nodes.</P>
+<P>Note that these are not available on e.g. CAN links. 
+</P>
 <P>Possible uses: 
 </P>
 <UL>
-	<LI><P>Turning filtering on and off in gateways so that messages can
-	be forwarded for logging.  
-	</P>
-	<LI><P>Turning logging on and off.</P>
 	<LI><P>Redirecting point-to-point links: “I'm going offline now,
-	you should connection to him”</P>
+	you should connect to him”</P>
 	<LI><P>Negotiating buffer sizes and traffic levels; flow control.</P>
+</UL>
+<P>Control messages to individual nodes, not gateway-gateway
+communication, will be used for:</P>
+<UL>
+	<LI><P>Turning filtering on and off in gateways so that all messages
+	can be forwarded</P>
+	<LI><P>Turning gateway message logging on and off</P>
+	<LI><P>Retrieving status and history information</P>
 </UL>
 <P STYLE="margin-bottom: 0cm">(<I>More needed here, most likely</I>) 
 </P>
@@ -106,10 +126,11 @@ segments, wide area links, etc.</P>
 <P>The Ethernet-protocol solution seems somewhat simpler (though
 getting a protocol certified is a lot of work), but can't get traffic
 off the local Ethernet segment. It spans hubs, but not switches, and
-would require OpenLCB-specific devices to connect to the larger
-Internet. So although an Ethernet-specific protocol seems simpler to
-create, in practice you'd still need to create Ethernet to Internet
-routers, resulting in an overall increase in engineering effort.</P>
+would require another protocol for OpenLCB-specific devices to
+connect to the larger Internet. So although an Ethernet-specific
+protocol seems simpler to create, in practice you'd still need to
+create Ethernet to Internet routers, resulting in an overall increase
+in engineering effort.</P>
 <P>Where Ethernet-specific protocol might be useful is in reducing
 the configuration load for single-segment implementations. It would
 be nice if people could plug e.g. five OpenLCB CAN-Ethernet adapters
@@ -122,7 +143,9 @@ implementing devices.</P>
 <P>These ideas are being developed in <A HREF="../notes/Ethernet.html">another
 document</A>.</P>
 <HR>
-Site hosted by <a href="http://sourceforge.net/projects/openlcb"><img src="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" width="120" height="30" alt="Get Open Model Railroad Layout Control Bus at SourceForge.net. Fast, secure and Free Open Source software downloads" ALIGN="ABSMIDDLE"/></a>
+<P>Site hosted by 
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A>
+</P>
 <P>This is SVN $Revision$ 
 </P>
 </BODY>
