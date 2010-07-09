@@ -5,12 +5,13 @@
 	<TITLE>OpenLCB Note: Locomotive Control</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20100629;23420200">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100708;22494000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -45,6 +46,9 @@ throttle to another.</P>
 some form of “sub-throttle”, e.g. “right knob” and “left
 knob”. Might be physical, might be just virtual e.g. switch back
 and forth via button.</P>
+<P>Throttles need to be able to retrieve roster information (name,
+perhaps description and picture?) in addition to talking to control
+system.  Might not come from the same place!</P>
 <H3>Design Points</H3>
 <P>Use events for global communication, but mostly exchange
 point-to-point datagrams. A large series of unique node IDs has been
@@ -53,9 +57,12 @@ reserved for each control system for this purpose.</P>
 for start.</P>
 <P>Throttles could be either a physical handheld or computer program.</P>
 <P>The separate <A HREF="DisplayProtocol.html">display protocol</A>
-can be used to drive displays on the throttle once it's identified.
-Need to have a way to identify a specific “sub-throttle” with a
-specific display.</P>
+can be used to drive displays on the throttle once it's identified. 
+</P>
+<P>A node may have multiple “throttles” in it, e.g. two in a
+hand-held.  Need to be able to specify which when talking to and from
+the throttle, e.g. need to have a way to identify a specific
+“throttle” in the node with a specific display.</P>
 <H2>Proposed Protocol</H2>
 <P>Throttles locate the command station (controllers) currently
 servicing a locomotive (or other addressable unit) by emitting an
@@ -63,9 +70,14 @@ event in the OpenLCB-reserved space. Four bytes are reserved to
 identify which one, which could be e.g. two bytes of system prefix
 and two bytes of DCC address, or something else; see below. All
 command stations (controllers) receive this, as it's a true global
-message. The one(s) controlling the locomotive reply to the throttle
-via datagram with identification and status information. The
-point-to-point connection has then been made.</P>
+message. The node making the request is identified by the source of
+the message. (Note that the throttle within the node is not, and
+there will have to be enough information in replies to match up
+returning information with the request) The one(s) controlling the
+locomotive reply to the throttle via datagram with identification and
+status information. Nodes with roster information also proffer
+information via datagram. The point-to-point connection has then been
+made.</P>
 <P>Datagrams flow between the throttle node and CS node to control
 the train. Because both throttles and CSs can control multiple
 trains, the datagrams contain a “session ID” that was negotiated
@@ -74,17 +86,22 @@ the two ends can use it for their own internal purposes.
 </P>
 <H3>Examples</H3>
 <H4>Simple Acquisition</H4>
-<P>Throttle T sends event message with (OpenLCB Prefix – 3
-bytes)(Locate Controller – 1 byte)(Locomotive ID – 4 bytes)</P>
+<P>Node T wishes to open throttle connection, sends event message
+with (OpenLCB Prefix – 3 bytes)(Locate Controller – 1
+byte)(Locomotive ID – 4 bytes)</P>
 <P>Command station C sends datagram to Throttle T with (throttle
-command – 1 byte)(Op: Located – 1 byte) (Status …)</P>
-<P>(Reservation; make sure neither deadlock nor allocation holes by
-using test-and-set operations; results in a one-byte ID assigned to
-this communication by CS; could be slot number or anything else,
-throttle&amp;CS just use for rendezvous during interchange)</P>
+command – 1 byte)(Locomotive ID – 4 bytes)(Op: Located – 1
+byte) (Status, nominally two bytes)</P>
+<P>Note T sends reservation request to C, which prevents deadlock and
+allocation holes by using test-and-set operations; results in a
+two-byte ID assigned to this communication by CS; could be slot
+number or anything else, throttle&amp;CS just use for rendezvous
+during interchange. 
+</P>
 <P>Throttle T sends single-frame datagrams with speed, functions as
-needed; 6 byte payload in 1<SUP>st</SUP> frame if Type, ID present,
-allowing a single node to handle 255 locos/decoders at a time.</P>
+needed; 5 byte payload in 1<SUP>st</SUP> frame if Type, ID present,
+allowing a command byte and speed, with some functions.  Might still
+want to separate speed and function.</P>
 <P>Command station C returns status datagrams as needed</P>
 <H4>Transfer command station</H4>
 <P>A train is being controlled by Throttle T with command station C1.
@@ -123,16 +140,14 @@ bytes of arguments fit in the first CAN frame.</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=9%>
-			<P><BR>
-			</P>
+			<P>Y</P>
 		</TD>
 		<TD WIDTH=12%>
 			<P><BR>
 			</P>
 		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Have Information</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -145,12 +160,25 @@ bytes of arguments fit in the first CAN frame.</P>
 			</P>
 		</TD>
 		<TD WIDTH=12%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Allocate<BR>(and also Assign?)</P>
+		</TD>
+		<TD WIDTH=25%>
 			<P><BR>
 			</P>
 		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Y</P>
+		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Get roster information</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -163,12 +191,10 @@ bytes of arguments fit in the first CAN frame.</P>
 			</P>
 		</TD>
 		<TD WIDTH=12%>
-			<P><BR>
-			</P>
+			<P>Y</P>
 		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Set speed</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -181,12 +207,10 @@ bytes of arguments fit in the first CAN frame.</P>
 			</P>
 		</TD>
 		<TD WIDTH=12%>
-			<P><BR>
-			</P>
+			<P>Y</P>
 		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Set function</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -195,16 +219,29 @@ bytes of arguments fit in the first CAN frame.</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=9%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P>Y</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Get speed and function information<BR>(and reply)</P>
+		</TD>
+		<TD WIDTH=25%>
 			<P><BR>
 			</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P>Y</P>
 		</TD>
 		<TD WIDTH=12%>
 			<P><BR>
 			</P>
 		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Get throttle properties</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -249,23 +286,35 @@ bytes of arguments fit in the first CAN frame.</P>
 </P>
 <H4>Throttle to Command Station</H4>
 <P>Commands:</P>
-<P>Set speed – what's the appropriate range? 0-255 enough steps for
-the long run? Fit a couple more bits in?</P>
+<P>Set speed – what's the appropriate range? 0-255 probably not
+enough steps for the long run. Fit a couple more bits in? 16 bits too
+large? 15, using one for sign?</P>
 <P>Set functions/outputs – There are multiple function spaces
-available, e.g. DCC 1-28-??, plus the very large option address
-space, plus others. Bit mask is convenient for some things, but most
-option operations are just one change. Include a duration code for
-precise timing?</P>
-<P>Allocation commands – release, allow dual use, etc.</P>
+available, e.g. DCC NMRA now has <U>three</U> overlapping function
+address spaces, perhaps more if you count consisting. Bit mask is
+convenient for some things, but most option operations are just one
+change. Include a duration code for precise timing? Then sequences
+for sounds? Then what? If use bit mask, how many?  0-28 fits in four
+bytes, which is available. Any systems have more than that?  Is CAN
+fast enough that two consecutive commands to change two things at the
+same time doesn't introduce too much skew?</P>
+<P>Allocation commands – release, allow dual use, etc.  
+</P>
 <P>Get status: Read back everything the command station knows.</P>
-<P>Get info: For e.g. roster information</P>
+<P>Get info: For e.g. roster information. Might have to go to some
+other node than CS, e.g. a separate computer.</P>
+<P>Need protocol for handing off to next command station, which can
+be initiated either by new CS or old one. Is that a CS-CS
+communication, with the throttle being told at the end, or does the
+throttle initiate it when told “I can't control this any more, find
+somebody who can”?</P>
 <H4>Command Station to Throttle</H4>
 <P>Commands:</P>
-<P>Must transfer</P>
+<P>Must transfer to another; Transfer to CS node N</P>
 <P>Get throttle properties: enquire about display, etc.</P>
 <H2>Remaining Points</H2>
 <P>What is the unit of addressability? A “locomotive”, a
-“decoder”, a “consist” or what?</P>
+“decoder”, a “consist” or what? Does that vary per system?</P>
 <P STYLE="margin-left: 2cm">Alex, via email: Although explicitly
 excluded from our initial work I think we should have some place
 holders for this at a high level. Needs to include: - DCC - DC -
@@ -285,9 +334,10 @@ hidden from the user - but not unfortunately, from us.
 “Locomotive 12345 on the TCS system”? Or just “Locomotive
 12345” and have system locate? (Note number of digits; four is not
 enough!)</P>
-<P>Can a command station attach a specific locomotive to a throttle?
-To a control point within a throttle (“left knob”)? Very useful
-in some applications.</P>
+<P>How can a command station attach a specific locomotive to a
+throttle? To a control point within a throttle (“left knob”)?
+Very useful in some applications to be able to do that centrally.</P>
+<P>To what extent does consisting need to be explicitly handled?</P>
 <H3>Control Systems:</H3>
 <P>A list, to try to remember the options, in no particular order:</P>
 <UL>
@@ -297,6 +347,7 @@ in some applications.</P>
 	<LI><P>TMCC (Lionel)</P>
 	<LI><P>Maerklin/Motorola (multiple systems?)</P>
 	<LI><P>DCS from Mike's Train House (MTH)</P>
+	<LI><P>(Future) Direct communications e.g. RF link to locomotive</P>
 </UL>
 <H3>Items from DPH email May 24, 2010:</H3>
 <P>1. Messages are between a throttle and a train. In the future
@@ -323,7 +374,7 @@ prevent more than one train entering the shared block, signaling and
 speed control is used. This may fail with the simultaneous arrival of
 two trains, and two additional short, protective, blocks may be
 necessary to this. These can use 'Bit-switch'-like techniques to halt
-oncoming trains.  This has been done by the Freemo group in Europe,
+oncoming trains. This has been done by the Freemo group in Europe,
 see: <A HREF="http://dcc-mueller.de/switch/loconete.htm">http://dcc-mueller.de/switch/loconete.htm</A></P>
 <P>4. Despite the train's movement, its NID is fixed, just like any
 node. Each engine can be assigned a unique 48-bit NID by its
