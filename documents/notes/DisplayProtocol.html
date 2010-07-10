@@ -6,7 +6,10 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100629;10210300">
+	<META NAME="CHANGED" CONTENT="20100710;11121000">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
@@ -16,9 +19,8 @@
 using many small, general, common protocols to provide larger control
 functions. This note describes a common protocol for driving small
 information displays around a layout. These might include small
-screens in 
-<a href="LocomotiveControl.html">throttles</a>, 
-fixed displays at stations, and similar.</P>
+screens in <A HREF="LocomotiveControl.html">throttles</A>, fixed
+displays at stations, and similar.</P>
 <H2>Environment of Proposal</H2>
 <H3>Requirements</H3>
 <P>Provide character-oriented multi-line displays.</P>
@@ -26,26 +28,41 @@ fixed displays at stations, and similar.</P>
 <P>Must support multiple displays on a single node.</P>
 <P>Multiple formats (fonts, sizes, colors) desirable.</P>
 <P>Graphical display as a future extension.</P>
+<P>Nodes with displays should be able to advertise them globally.</P>
+<P>Display users should be able to enquire about display
+capabilities.</P>
+<P>Stream access for large display transfers should be available, but
+not required.</P>
 <H3>Design Points</H3>
 <P>Single directional, point-to-point datagram protocol, where the
 sender knows the node ID of the receiver, works well in OpenLCB.</P>
-<P>Must be able to query capabilities so the sender can adapt to
-them.</P>
+<P>Node provides single-point-of-contact for all attached displays,
+similar to X11 display vs display manager addressing.</P>
+<P>Uses global event to advertise that this node has one or more
+displays.</P>
 <P>Minimal capability should be assumed, but if more is needed, the
 sender has more resources than the receiver.</P>
 <P>HTML provides a useful lingua franca for formatted text, but adds
-length to messages. Goes beyond single datagram? E.g. provide stream
-option for formated text.</P>
+length to messages. Can be too large for single datagram, so must
+provide stream option for formated text.</P>
 <P>Reservation capability needed? Optional?</P>
+<P>Other than reservation, want protocol to be stateless and
+idempotent, so that multiple users can share a display by e.g.
+writing to different lines.</P>
 <P>Operations besides load text: Clear? Address to a specific
-character? Single datagrams too small for even a single line.</P>
+character? Single frames too small for even a single line, but
+datagrams are a good size.</P>
+<P>Writing character data is conceptually different from writing
+HTML. Characters has e.g. locations, while HTML is just “content”.
+Not clear how you e.g. specify a starting location for HTML text.</P>
+<P>Eventually, want support for definable characters (LED style), bit
+map displays, etc. HTML forms a good example of this.</P>
 <H2>Proposed Protocol</H2>
-<H3>Examples</H3>
-<P>It might be interesting to show how this works for a throttle, or
-for a fast clock repeater, or for giving train orders at a remote
-station.</P>
 <H3>Datagram Format</H3>
-<P>Basic format is datagram-ID-byte, ...</P>
+<P>Basic format is datagram-ID-byte, display-protocol-command-byte,
+then variable arguments. Arguments are usually one byte display, two
+bytes character address, leaving 64+ bytes in the datagram for writes
+&amp; reads.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=23*>
 	<COL WIDTH=31*>
@@ -77,8 +94,41 @@ station.</P>
 			</P>
 		</TD>
 		<TD WIDTH=54%>
+			<P>Enquire Node; Enquire Display</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Node: 2 bytes flags, Low display number, high display number,
+			number of displays</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
 			<P><BR>
 			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Node Capability;Display Capability</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Display, Flags (2 bytes), lines, characters</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Formatting: Clear, Clear Line, Set Character Address, Set Line
+			Address</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -95,8 +145,23 @@ station.</P>
 			</P>
 		</TD>
 		<TD WIDTH=54%>
+			<P>Write Text; Write HTML</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>(Display)(line)(character)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=9%>
 			<P><BR>
 			</P>
+		</TD>
+		<TD WIDTH=12%>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=54%>
+			<P>Read (same format as Write Text, with just 1 bit changed)</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -113,62 +178,7 @@ station.</P>
 			</P>
 		</TD>
 		<TD WIDTH=54%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=25%>
-			<P><BR>
-			</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=9%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=12%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=54%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=25%>
-			<P><BR>
-			</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=9%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=12%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=54%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=25%>
-			<P><BR>
-			</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=9%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=12%>
-			<P><BR>
-			</P>
-		</TD>
-		<TD WIDTH=54%>
-			<P><BR>
-			</P>
+			<P>Reserve, Reserve Reply, Release</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P><BR>
@@ -196,6 +206,71 @@ station.</P>
 </TABLE>
 <P><BR><BR>
 </P>
+<H3>Display Addresses</H3>
+<P>Each node can have one or more displays. Each display is separate,
+and may have different characteristics. The details of this are found
+using the “Enquire/Capability” part of the protocol, which can be
+done with canned messages.</P>
+<P>Once that's done, addressing is via a single 8-bit number in each
+message. The numbers are assigned by the display node, and don't have
+to be consecutive, but it's easier for users of the protocol if they
+are. The convention is that the first display is 0.</P>
+<H3>Character Addresses</H3>
+<P>256x256 is perhaps too small for an addressable character screen,
+but it's not a clearly too small in total characters, just in each
+dimension. Anything bigger than that might be e.g. 2048x1. Use 12
+bits for each? Use 2 bytes total, with movable rows vs column divide?
+That's just too complicated. 
+</P>
+<P>Do we need a way to say “whatever is next”? E.g. not require
+the sender control character location if not desired?</P>
+<H3>Capability Flags</H3>
+<P>Streams Available – node can accept stream writes</P>
+<P>Read Available – node can return content of display</P>
+<P>Read Stream Available – node can return content of display via
+stream</P>
+<P>HTML Available – (basic) HTML will be accepted, but not
+necessary all features will be displayed</P>
+<P>Clear Available; Clear Line Available</P>
+<P>Character Direct Addressing Available; Line Direct Addressing
+Available</P>
+<P>Reserve Available</P>
+<H3>Reserve Protocol</H3>
+<P>Reserve/release is a simple flagging protocol, it doesn't require
+the display node to modify it's behavior.</P>
+<P>If the node is not reserved, a request to reserve it will put the
+requesting node and key in the “reserved by field”. If it is
+reserved, the field won't be changed. In either case, the reserve
+field is returned.</P>
+<P>If the requester finds the requested node and key in the reply,
+the reserve request succeeded. If not, it didn't.</P>
+<H2>Examples</H2>
+<P>It would be useful to show how this works for a throttle, or for a
+fast clock repeater, or for giving train orders at a remote station.</P>
+<H3>Simple Write</H3>
+<P>A node locates the display, perhaps via a global event, and wants
+to make it display “Hello World”. Datagram segmentation and
+replies omitted.</P>
+<P>Enquire Node →</P>
+<P>← Reply (low display = 0)</P>
+<P>Display 0: Clear → (might or might not work, but doesn't hurt)</P>
+<P>Display 0: Write at 0,0 “Hello World” → 
+</P>
+<H3>Reserve Specific Display</H3>
+<P>Enquire Node →</P>
+<P>← Reply (low display = 0, high display = 4)</P>
+<P>Display 3: Enquire: → 
+</P>
+<P>← Display 3: Reply (Display 0: Reserve available; “East
+Entrance”)</P>
+<P>Display 3: Reserve for Node NN with key KK→ 
+</P>
+<P>← Display 3: Reserved by Node NN with key KK</P>
+<P>Display 3: Clear → (might or might not work, but doesn't hurt)</P>
+<P>Display 3: Write at 0,0 “East Entrance Closed” → 
+</P>
+<P>…</P>
+<P>Display 3: Release →</P>
 <H2>Remaining Points</H2>
 <P><BR><BR>
 </P>
