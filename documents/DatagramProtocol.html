@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100622;10191600">
+	<META NAME="CHANGED" CONTENT="20100711;8545500">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -43,10 +45,9 @@ one-to-one to listeners, but there's also a need for one-to-many or
 broadcast which is not addressed here.</P>
 <P>RFID tags carry 40 (vs 64, and need to plan for future growth)
 bits of payload. Adding in some status and location information,
-reporting a RFID tag requires a 8-16 byte payload. RFID tags as
-broadcast might be valuable, but given payload size might not be easy
-(but consider N smaller events carrying part of it?). In that case, a
-datagram report might be the best approach.</P>
+reporting a RFID tag requires a 8-16 byte payload, and that's likely
+to grow in the future. 
+</P>
 <H2>Discussion</H2>
 <P>Datagrams are a one-to-one connection between nodes. They have a
 source address and a single destination address, and only have to be
@@ -59,8 +60,9 @@ which it makes sense to move to a stream? The stream startup overhead
 is small, so that streams can be used for even small amounts of data.
 The maximum datagram size must be short enough that nodes can afford
 to have a fixed receive-and-process buffer for datagrams allocated,
-unlike streams that can be too large to buffer as a whole. A datagram
-of roughly 64 bytes seems a reasonable cross-over point.</P>
+unlike streams that can be too large to buffer as a whole. As a
+balance between these, and to optimize certain layouts on CAN links,
+a size of 72 bytes has been selected.</P>
 <P>At the low end, datagrams should go all the way down to zero
 bytes, because they are distinct from Events. 
 </P>
@@ -162,8 +164,8 @@ back to the original sender.</P>
 <H2>CAN Examples</H2>
 <H4>Normal CAN case</H4>
 <P STYLE="margin-bottom: 0cm">Datagram Segment →</P>
-<P STYLE="margin-bottom: 0cm">Datagram Segment  →</P>
-<P STYLE="margin-bottom: 0cm">Datagram Segment  →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment →</P>
 <P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) →</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
@@ -190,10 +192,10 @@ can't handle that:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Datagram Segment from A →</P>
-<P STYLE="margin-bottom: 0cm">Datagram Segment  from B →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment from B →</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Rejected, Buffer shortage,
 Resend to B</P>
-<P STYLE="margin-bottom: 0cm">Datagram Segment  from A →</P>
+<P STYLE="margin-bottom: 0cm">Datagram Segment from A →</P>
 <P STYLE="margin-bottom: 0cm">Datagram Segment (Complete) from A-&gt;</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to A</P>
 <P STYLE="margin-bottom: 0cm">Datagram Segment from B →</P>
@@ -201,10 +203,17 @@ Resend to B</P>
 <P STYLE="margin-bottom: 0cm">← Datagram Acknowledged to B</P>
 <H2>Datagram Content</H2>
 <P>There needs to be a method for identifying the content of a
-general datagram. Although it's possible for two nodes to negotiate a
-particular use of datagrams, but more often then will be used to
-exchange commands and responses between general nodes.</P>
-<P>We also want those “datagram content IDs” to be unique,
+general datagram. OpenLCB is meant to be used with both very simple,
+low-end nodes, and high-end computers with multiple programs.  In
+both those environments, it's inconvenient to have constraints like
+“the next datagram will carry ….” because there might be more
+than one thing going on, and it's hard to write code that knows about
+lots of global state information.  It must be possible to interleave
+e.g. configuration datagrams (messages) with datagrams that are
+displaying messages. Therefore, most datagrams must carry information
+about which conversation they are part of. We call that “datagram
+content identification”.</P>
+<P>We also want those “datagram content IDs” to be small, unique,
 unambiguous, easily assigned, etc. To do that, there are two basic
 approaches:</P>
 <UL>
