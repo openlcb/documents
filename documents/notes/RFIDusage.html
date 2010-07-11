@@ -3,20 +3,54 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>RFID usage with OpenLCB</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091130;3034900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100710;19494900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: RFID and OpenLCB</H1>
+<P>More and more model railroaders are becoming interested in using
+RFID techniques on their railroads, typically to identify rolling
+stock. The <A HREF="http://groups.yahoo.com/group/RFID4MRR/">RFID4MRR
+Yahoo group</A> contains ongoing work on this.</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<P>Must be extensible to multiple kinds of RFID tags, including ones
+with large amounts of information. Implementation must not require a
+specific kind of reader.</P>
+<P>Must allow more than one RFID reader on a node.</P>
+<H3>Preferences</H3>
+<P>Efficient protocol for multiple consumers of RFID information.</P>
+<P>Some way of keying standard consumers that an RFID read has
+occurred, so they can e.g. show a light or trigger some other
+process.</P>
+<P>More than one reader on the layout implies that location
+information is needed with the results of the read. Messages contain
+their source <U>node</U>, but that's not the entire identification of
+their source <U>reader</U>.</P>
+<H3>Design Points</H3>
+<P>Uses global event to advertise that a node will be providing
+information from one or more RFID units.</P>
+<P>Use a node-specific event to indicate that a reader has read
+information.  One such event per attached reader.  Interested
+consumers could then act, either on that or by doing a datagram read
+for the RFID information itself.</P>
+<P>Need to signal failed reads?</P>
+<P>Provide a way to register to receive datagrams of RFID information
+when reads occur.</P>
+<H2>Further information</H2>
+<H3>A discussion</H3>
 <P>Notes from an email discussion in November 2009 about use of RFID
 tags with OpenLCB.</P>
-<H3>Mike Johnson</H3>
+<H4>Mike Johnson</H4>
 <P>My next question is about RFID tags, the 64 bit tags have 40 bits
 of data. The EM4102 spec seems to have a 32 bit global unique number
 plus an 8 bit version/user code. So it seems that a minimum size for
@@ -32,24 +66,24 @@ header needing to be translated to a full NID by a consumer. Perhaps
 translating an RFID tag event to a normal event needs to be done by a
 larger node or PC. Have RFID tags been considered ? 
 </P>
-<H3>David Harris</H3>
+<H4>David Harris</H4>
 <P>Well, we could allocate a unique Event# range to EM4102 tags, by
 assigning the top three bytes a unique number, and leaving the bottom
-5-bytes for the EM4102 40-bit GUID.   Then the event# derived from
-each tag would be guaranteed to be globally unique within OpenLCB. 
-Even better, if we only need 32-bits from the<BR>tag-GUID.  
+5-bytes for the EM4102 40-bit GUID. Then the event# derived from each
+tag would be guaranteed to be globally unique within OpenLCB. Even
+better, if we only need 32-bits from the<BR>tag-GUID. 
 </P>
-<P>[ Event#s are required to be globally unique.  Constructing an
+<P>[ Event#s are required to be globally unique. Constructing an
 Event# from a (globally unique) NID is only one way to ensure global
 uniqueness. ]<BR><BR>I expect other tags will need other prefix bytes
-to make them unique.  (We may not be able to support a large number
-of different tags.) 
+to make them unique. (We may not be able to support a large number of
+different tags.) 
 </P>
 <P>Using a tag-id as an event is useful for the blue/gold
 programming, too, as a tag could be directly associated with some
-consumer actions.  
+consumer actions. 
 </P>
-<H3>Bob Jacobsen</H3>
+<H4>Bob Jacobsen</H4>
 <P>There's a brief mention of them in the Datagram doc:
 &lt;<A HREF="http://openlcb.sourceforge.net/trunk/documents/DatagramProtocol.html">http://openlcb.sourceforge.net/trunk/documents/DatagramProtocol.html</A>&gt;
 </P>
