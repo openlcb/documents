@@ -6,28 +6,11 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100629;21112800">
+	<META NAME="CHANGED" CONTENT="20100718;21264500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<!-- $Id$ -->
@@ -64,76 +47,13 @@ specific timing, deliberate creation of error cases or specific error
 handling. 
 </P>
 <H2>Physical Layer</H2>
-<P>Reference e.g. ISO 11898-2:2003 
-</P>
-<P>Rate is chosen to be 125kbps to balance length and loading (See
-the <A HREF="Background.html">CAN background document</A>)</P>
-<P>Decisions to document (both decision and rationale): 
-</P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Connector(s) &amp; cabling? 
-	</P>
-</UL>
-<UL>
-	<UL>
-		<LI><P STYLE="margin-bottom: 0cm">Full-length runs require twisted
-		pairs. Polarity matters.</P>
-		<LI><P STYLE="margin-bottom: 0cm">Flat telephone cable isn't
-		twisted, and can be either cross-over or straight-through (much
-		confusion due to different requirements of different DCC vendors);
-		not a good idea to use it, nor the RJ25/RJ14/RJ11 plugs that make
-		it too easy to use that kind of cable. (But note that RJ45 is
-		mechanically compatible)</P>
-		<LI><P STYLE="margin-bottom: 0cm">LEDuino has a 4 pin header,
-		carrying +5V, CanH, CanL, Ground (later versions might change this)</P>
-		<LI><P STYLE="margin-bottom: 0cm">CBUS uses a wiring
-		recommendation, instead of specifying a connector. The 2009 CBUS
-		cards use a captive-screw connector, allowing connection of
-		CANH/CANL, ground, and several different power voltages. A
-		recommendation is emerging to use the center pair of CAT5 cable
-		(blue for CANH, white/blue for CANL). Ground is generally needed to
-		avoid excessive common-mode voltage.</P>
-		<LI><P STYLE="margin-bottom: 0cm">CAT5e patch cables with RJ45 ends
-		are becoming cheaper than wire. Five foot ones are now available in
-		single quantity for less than $1.50; 25 foot ones for less than $5.
-		The board connectors are about $0.70 each, which does add some
-		cost, but must be compared to cost of other connectors. 
-		</P>
-		<LI><P STYLE="margin-bottom: 0cm">To allow interconnection with
-		CAT5 connectors, we should specify a pair convention. People using
-		e.g. screw connectors can follow or not as they wish, but this
-		would let boards with RJ45 connectors interconnect reliably.</P>
-	</UL>
-	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Can
-	termination is required, but OpenLCB nodes are not required to
-	provide it in any particular manner.</P>
-	<LI><P STYLE="margin-bottom: 0cm">The rise/fall time of CAN signals
-	is a controllable parameter. The MCP2551 transceiver part used in
-	e.g. MERG CBUS controls this with an Rs external resistor, by
-	default a zero-Ohm jumper. According to Figure 1-1 of the MCP2551
-	datasheet, this corresponds to a slope of above 25V/usec. Mike
-	Bolton recommended in September 2009 that future designs use a 100k
-	resistor instead to give a better waveform shape at 125kbps by
-	limiting the slope to just under 5V/usec. This effects the maximum
-	possible stub connection length, see SLLA270 page 9. We agree with
-	this decision. That should be part of the final OpenLCB-CAN
-	specification, along with suitable +/- limits on the quantity.</P>
-	<LI><P STYLE="margin-bottom: 0cm">Ground and possibly power
-	provision(s) 
-	</P>
-	<UL>
-		<P STYLE="margin-bottom: 0cm">Have to either require a common
-		system ground, or provide for isolation of some sort. Isolation
-		circuits much easier if there's an isolated power feed on the CAN
-		side, e.g. in the cable. Are there simple CAN isolator circuits? At
-		125kbps, without losing timing margin and hence length?</P>
-		<LI><P STYLE="margin-bottom: 0cm">CAT5e connectors are limited to
-		1.5A (some are 1A), but the 24ga wire is the bigger problem for
-		power distribution as it's 0.0480 ohms per foot, or 1 volt drop per
-		20 feet (one way) at 1A. Use three wires ground, three wires power
-		to reduce drop? On board power convertors from a higher AC voltage?</P>
-	</UL>
-</UL>
+<P>The physical layer of OpenLCB-CAN is 125kbps CAN over twisted pair
+wiring.  The NMRA is attempting to define a common physical layer for
+use across multiple implementations, and that may in turn define the
+physical layer of OpenLCB-CAN.</P>
+<P>For more information, see the separate 
+<a href="CommonPlatform.html">Common CAN Platform</a>
+document.</P>
 <H2>Link Layer</H2>
 <P>OpenLCB common messages are converted, to the extent possible, to
 single CAN frames via a one-to-one mapping. 
@@ -286,7 +206,7 @@ limitation to ensure future selections don't violate it.</I></P>
 <H3>Throughput and Temporarily Deaf Nodes</H3>
 <P>OpenLCB requires that CAN-attached nodes be able to handle the
 full frame rate on the CAN bus. There is no guarantee that frames for
-a given node will arrive with non-zero time between then.  
+a given node will arrive with non-zero time between then. 
 </P>
 <P>Some nodes are not always able to process frames. For example, the
 node may cease processing for a short time while writing non-volatile
@@ -646,8 +566,8 @@ have time for processing between frames that it must handle.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
-<P>Site hosted by 
-<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
 </P>
 <P>This is SVN $Revision$ 
 </P>

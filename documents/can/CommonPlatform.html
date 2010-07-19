@@ -1,0 +1,120 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB: CAN Wire Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100718;21303100">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Common CAN Platform</H1>
+<P>At the NMRA 2010 meeting in Milwaukee, it was tentatively agreed
+to work toward a “common platform” definition that manufacturers
+could use to create boards with reduced uncertainty as to whether
+they'd be usable in the future. This document is the OpenLCB part of
+that effort.</P>
+<H2>Physical Layer</H2>
+<P>Reference e.g. ISO 11898-2:2003 
+</P>
+<P>Rate is chosen to be 125kbps to balance length and loading (See
+the <A HREF="Background.html">CAN background document</A>)</P>
+<P>Decisions to document (both decision and rationale): 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Connector(s) &amp; cabling? 
+	</P>
+</UL>
+<UL>
+	<UL>
+		<LI><P STYLE="margin-bottom: 0cm">Full-length runs require twisted
+		pairs. Polarity matters.</P>
+		<LI><P STYLE="margin-bottom: 0cm">Flat telephone cable isn't
+		twisted, and can be either cross-over or straight-through (much
+		confusion due to different requirements of different DCC vendors);
+		not a good idea to use it, nor the RJ25/RJ14/RJ11 plugs that make
+		it too easy to use that kind of cable. (But note that RJ45 is
+		mechanically compatible)</P>
+		<LI><P STYLE="margin-bottom: 0cm">LEDuino rev B/C has a 4 pin
+		header, carrying +5V, CanH, CanL, Ground (later versions might
+		change this)</P>
+		<LI><P STYLE="margin-bottom: 0cm">CBUS uses a wiring
+		recommendation, instead of specifying a connector. The 2009 CBUS
+		cards use a captive-screw connector, allowing connection of
+		CANH/CANL, ground, and several different power voltages. A
+		recommendation is emerging to use the center pair of CAT5 cable
+		(blue for CANH, white/blue for CANL). Ground is generally needed to
+		avoid excessive common-mode voltage.</P>
+		<LI><P STYLE="margin-bottom: 0cm">CAT5e patch cables with RJ45 ends
+		are becoming cheaper than wire. Five foot ones are now available in
+		single quantity for less than $1.50; 25 foot ones for less than $5.
+		The board connectors are about $0.70 each, which does add some
+		cost, but must be compared to cost of other connectors. Note that
+		cheap cables only include the two pairs used for 10BaseT/100BaseT
+		Ethernet (1,2:3,6; typically the green and orange pairs), so
+		OpenLCB-CAN must be limited to those.</P>
+		<LI><P STYLE="margin-bottom: 0cm">To allow interconnection with
+		CAT5 connectors, we should specify a pair convention. People using
+		e.g. screw connectors can follow or not as they wish, but this
+		would let boards with RJ45 connectors interconnect reliably.</P>
+	</UL>
+	<LI><P STYLE="margin-bottom: 0cm; font-style: normal">Can
+	termination is required, but OpenLCB nodes are not required to
+	provide it in any particular manner. A terminator plug can be put in
+	a second connector.</P>
+	<LI><P STYLE="margin-bottom: 0cm">The rise/fall time of CAN signals
+	is a controllable parameter. The MCP2551 transceiver part used in
+	e.g. MERG CBUS controls this with an Rs external resistor, by
+	default a zero-Ohm jumper. According to Figure 1-1 of the MCP2551
+	datasheet, this corresponds to a slope of above 25V/usec. Mike
+	Bolton recommended in September 2009 that future designs use a 100k
+	resistor instead to give a better waveform shape at 125kbps by
+	limiting the slope to just under 5V/usec. This effects the maximum
+	possible stub connection length, see SLLA270 page 9. We agree with
+	this decision. That should be part of the final OpenLCB-CAN
+	specification, along with suitable +/- limits on the quantity.</P>
+	<LI><P STYLE="margin-bottom: 0cm">Ground and possibly power
+	provision(s) 
+	</P>
+	<UL>
+		<P STYLE="margin-bottom: 0cm">Have to either require a common
+		system ground, or provide for isolation of some sort. Isolation
+		circuits much easier if there's an isolated power feed on the CAN
+		side, e.g. in the cable. Are there simple CAN isolator circuits? At
+		125kbps, without losing timing margin and hence length?</P>
+		<LI><P STYLE="margin-bottom: 0cm">CAT5e connectors are limited to
+		1.5A (some are 1A), but the 24ga wire is the bigger problem for
+		power distribution as it's 0.0480 ohms per foot, or 1 volt drop per
+		20 feet (one way) at 1A. Use three wires ground, three wires power
+		to reduce drop? On board power convertors from a higher AC voltage?</P>
+	</UL>
+</UL>
+<H2>Board Characteristics</H2>
+<P>Boards should have a bootloader so that users can load new code
+without custom hardware tools.  This might be either over a USB
+connection (if the board has one; it's not required that the board
+does) or over CAN.  Since different CPU vendors are likely to provide
+different boot-loaders, there's little point in trying to define a
+common one.  It would be good if CAN-based boot-loaders could be used
+without uncabling the board, either by use of jumpers or some form of
+addressing (button push?) and non-interfering CAN frames (standard
+header?).</P>
+<P>There are too many CPU families and specific chips out there to
+say anything specific about memory sizes and CPU speeds. It wouldn't
+hurt to remind manufacturers that a few pennies spent on either a CPU
+socket or extra flash/RAM/EEPROM may extend the useful live of the
+product.</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
