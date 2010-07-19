@@ -3,14 +3,15 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Using OpenLCB with DCC</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091108;20164600">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100712;15482400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Note: Using OpenLCB with DCC</H1>
@@ -28,14 +29,45 @@ station). This might be desirable, for example, to put a two-wire bus
 around the layout that just drives existing signals and turnouts,
 etc.</P>
 <P>(figure)</P>
-<P>Similar bidirectional operation for throttles (although throttles
-are explicitly not a part of the NMRAnet WG charge...)</P>
 <P>Adapters to DCC system control busses will also be wanted, e.g. to
 XpressNet or LocoNet. The only new complexity these add is “sensor”
 messages, inputs from the OpenLCB to the DCC control bus. These are
 conceptually similar to moving DCC accessory commands from OpenLCB to
-the DCC control bus, and similar methods should work.</P>
+the DCC control bus, and similar methods should work. (See other
+notes)</P>
 <P>(figure)</P>
+<H2>Simple Prototocol</H2>
+<P>Packets in the DCC track signal are turned into OpenLCB event
+messages directory.  The format of the resulting Event ID is</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P>Byte 1<BR><BR>1</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Byte 2<BR><BR>238</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Byte 3</P>
+			<P>5 bits – reserved for connection number<BR>3 bits – packet
+			length</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Byte 4-8 (optional)</P>
+			<P>Original DCC frame, without error.</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Events: top two bytes are 1,238.  The next byte is 5 high bits is
+“system ID”, for marking multiple DCC connections to OpenLCB. The
+low 3 bits in that byte are the length of the packet.  The last 5
+bytes are 0-5 bytes of DCC packet.</P>
 <H2>Configuration</H2>
 <P>Simple configuration is needed, but we believe it's possible to
 build an adapter that doesn't require a computer tool for
