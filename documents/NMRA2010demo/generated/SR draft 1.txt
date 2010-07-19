@@ -1,0 +1,189 @@
+   Scale Rail Article
+
+    
+
+   Introduction:
+
+   The advantages of a bus: reduced wiring, ease of automation, adding a computer.  A PD solution would be
+   good, and get everyone onto the same page.  
+
+    
+
+   History:
+
+   DIDMetaDCC --> MRLCB --> NMRAnet
+
+   --> CBUS -->Atbus, -->S9.5, -->S9.6
+
+   Thanks to the many contributors: ...
+
+    
+
+   Similarities:
+
+   CAN
+
+   Producer-consumer
+
+    
+
+   How S9.6 is different:
+
+   We have thought about the difficult problems:
+
+      how to make it easy for the novice
+
+      generalizing the p/c model
+
+      simplifying the simple nodes
+
+      supporting the very large layouts
+
+    
+
+   Simplicity for the novice, and the expert alike
+
+     * no need to learn Ids, channels, etc
+
+     * push button programming
+
+     * useful things: automating a station's tracks
+
+     * automating a yard throat
+
+    
+
+   Generalizing the P/C model-
+
+     * any node that shares an event# responds to the event
+
+     * any node can be taught the event from any other node
+
+    
+
+   Large Ids simplify things:
+
+     * allows us to fold other information into the events
+
+     * this lets any 'dumb' node respond to the event
+
+       eg: fast clock.  n S9.5, this would be a new set of messages, to use them, each node woul dhave to
+       have code added to handle the new set of messages.  With S9.6, because of the big-events, the time
+       is folded into the events.  A dumb node can respond to the time code, just like any other event.  It
+       doesn't need reprogramming.  
+
+    
+
+   Support for very large layouts:
+
+     * If your bus gets full, either too many nodes, or too much traffic – just split it in two.
+
+     * A large layout can be a number of segments joined by a fast bus.  
+
+     * Traffic is reduced by gateway filtering, messages only go where they are wanted.  
+
+     * This is called “scaling gracefully”.  
+
+        
+
+   Introduction
+
+    
+
+   Although NMRA has had great success with the standardization of DCC, the rapid advance of electronics
+   has meant that the control of accessories, animation and ... on the layout is much easier.  However, the
+   wiring of all these accessories leads to a spider-web under the layout.   Unfortunately, one solution
+   that many groups  have tried, that of using DCC as an accessory bus, has lead to DCC congestion.
+    Alternate methods include using one of the proprietary CAB or throttle-buses, such as Loconet,
+   Xpressnet ar NCEs Cab-bus.  The NMRA decided that a new public domain accessory bus should be developed.
+      [picture of ad hoc wiring vs bus]
+
+    
+
+   History:
+
+    
+
+   Numerous people have taken part in a series of internet egroups, some predating the NMRAs interest in
+   the bus.  The first group was started by xxx, DIYMetaDIY.  The discussion soon moved to MRRLCB, and
+   eventually moved to NMRAnet, when he NMRA got involved.  Some progress was made: CAN was recognized as
+   an ideal bus for MRR, haivng been used in automobiles anf truck – robust, error strong.  The pc model
+   was introduced to the group by xxx, and was recognize as a powerful method of buoth simplifying and
+   making a bus protocol more powerful.  The severe space limitations of Can packets lead to disagreements
+   on how to fit the messages.  Two members became eager to build a bus, and developed CBUS at MERG, base
+   on 11-bit headers.  Subsequently, another MERG member modified the protocol and develope AT-bus.  
+
+    
+
+   The group continued to discuss the use of CAN, focusing on 29-bit headers.  This group eventually split
+   into the S9.5 effort, lead by Don Voss, and the S9.6 effort comprising John Day. David Harris, Bob
+   Jacobsen, Alex Shepherd, and Alan Robinson.  This article concentrates of the S9.6 effort, since the
+   S9.5 effort has been well described in the article in the June 2010 issue of Scale Rails.   
+
+    
+
+    
+
+   How S9.6 Differs:
+
+    
+
+   The S9.6 group wanted to design a bus standard that added significant function to the existing buses,
+   and one that will reach into the future.  For this reason the S9.6 design team has spent a lot of time
+   thinking about the hard problems: how to make it simple for the novice, while letting it serve very
+   large layouts, letting it have the capability to take advantage of future technology, while simplifying
+   the implementation of individual nodes.  
+
+    
+
+   Big Events
+
+    
+
+   A major difference from previous buses, and the other proposals, is the use of 'big events'.   The
+   decision was not taken lightly.  It simplifies simple nodes but allows increased flexibility.  
+
+    
+
+   An example of adding function: consider adding a fast clock with an alarm function.  S9.5 would define a
+   new set of messages, and to respond to these, a node would need to have code added.  However, big-events
+   lets us include the time code inside teh event – now a node just has to respond to the alarm event just
+   like any other event – no extra code.  
+
+    
+
+   Unique Ids equals no Ids
+
+    
+
+   Since we have big-events, we can afford to assign one to every node at manufacture.  The user doesn't
+   need to set a number.  Since every node is different, you don't have to worry about any two nodes
+   conflicting.  You can set-up your node and take them to your friend;s house and don't have to worry
+   about conflicting node.  Similarly, S9.6 guarantees unique event #.  
+
+    
+
+   For large layouts, they no longer have to keep detailed lists of node numbers.  A computer can easily
+   query the layout to retrieve all the node numbers – but you can refer to the nodes by name.  
+
+    
+
+   Running out of things
+
+    
+
+   One of the big problems with buses is that you eventually run out of things: id-numbers and bandwidth.
+    Big events obviously takes care of the first, but S9.6 has also addressesthe second.   If you have too
+   many nodes or too much traffic, then you can break your layout into two bus-segments.  This solves teh
+   problem of too many nodes on a segment, but not the traffic.  S9.6 solves this by by running over fast
+   transports, such as Ethernet.  But this doesn't solve the problem if all the messages go everywhere.
+    Partial solutions involve limiting traffic on a message by message basis, but S9.6 automatically limtes
+   traffic by only sending messages to those nodes that want them.  This is called 'interested based
+   filtering'.  In addition, S9.6 messages are completely routable, and can use cheap Ethernet routers to
+   do teh work.  Now a layout can take up acres af space, and still run a single bus.  
+
+    
+
+   Other good works for Big layouts.  
+
+    
