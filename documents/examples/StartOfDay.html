@@ -1,104 +1,123 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
-<!-- $Id$ -->
-<html lang="en"><head>
-<title>OpenLCB Example: Start of Day Operations</title>
-</head>
-<body>
-<h1>OpenLCB Example: Start of Day Operations</h1>
-
-These examples discussion various aspects of 
-bringing up an OpenLCB, including adding segments and individual
-nodes to a running OpenLCB.
-
-<p>
-For an OpenLCB that's separated into multiple segments, 
-e.g. several modules on CAN networks connected via an Ethernet backbone, 
-it is likely that the segments will initialize at different times.
-
-<h2>Node Verification</h2>
-
-When a node becomes operational, it sends out an "Initialization Complete"
-message which other nodes can use to e.g. update status tables,
-trigger notifications, etc. It follows this with notification of 
-the Event IDs it wants to receive/consume 
-and the ones it is capable of sending/producing.
-
-<p>
-When a node comes up, it can check on the existance of 
-other nodes several ways:
-<ol>
-<li>To check for the existance of a specific node, 
-send a "Verify Node Serial Number (Addressed)" message to the specific node.
-<li>To get a list of all currently reachable nodes, 
-send a "Verify Node Serial Number (Unadressed)" message.
-<li>To check for the existance of at least one node 
-that produces a specific Event ID, e.g. one consumed by a node,
-the "Producer Identification"
-standard interaction can be used.
-There is no requirement that every Event ID configured into 
-an given consumer exist, so a lack of response to this interaction
-is not an error, but it can provide useful information.
-<li>To check for the existance of at least one node 
-that consumes a specific Event ID, e.g. one produced by a node,
-the "Consumer Identification"
-standard interaction can be used.
-There is no requirement that every Event ID configured into 
-an given producer exist, so a lack of response to this interaction
-is not an error, but it can provide useful information.
-</ol>
-
-<p>
-No mechanism is provided to find all the nodes that can 
-be reached by a newly-operational node.
-
-<h2>Configuration Upload</h2>
-
-<i>Is there a need for a mechanism by which a newly-operational
-node can e.g. upload configuration information, large files (e.g. sounds)
-or similar?  Might be nice to not have to store them locally, particularly
-with large bandwidth OpenLCBs.</i>
-
-<h2>State Restoration</h2>
-
-Producer/Consumer systems react to state changes, which are 
-transferred as Events. 
-When a node first becomes operational, however, 
-it may not have any knowledge of the existing state.  
-It can't figure out how to act until the next external change 
-results in an Event, which is distributed as a PCER message.
-
-<p>
-OpenLCB doesn't solve this problem completely for nodes that are powered up individually.
-They'll operate, but higher level mechanisms are needed for initialization.  
-Those mechanisms can be triggered by e.g. "Initialization Complete" messages
-from the newly-functional node.
-
-<p>
-Several mechanisms are available for implementation:
-
-<ol>
-<li>
-A store-load mechanism can capture and store the state of nodes, 
-and restore those latter.  
-This puts the layout back to the earlier state, 
-but doesn't handle any state changes that have happened since the state was captured.
-<p>
-The current state can be captured via the "Identify Consumers" common message.
-Restoration of this will restore the output state.
-Input state changes can be identified with via the "Identify Producers" common message.
-Non-producer/consumer mechanisms will need separate mechanisms.
-
-<li>
-The newly-functional node can use the Producer Identification interaction to 
-get "valid" bits from (all) the Producers of the Event IDs 
-that can effect the newly-functional node.  
-This is not fool-proof, however, as not all nodes can produce those,
-and there might be history (e.g. which Producer fired most recently) 
-that can't be recovered.
-
-</ol>
-
-<hr>
-This is SVN $Revision$
-</body>
-</html>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB Example: Start of Day Operations</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100722;11064000">
+	<!-- $Id$ -->
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>OpenLCB Example: Start of Day Operations</H1>
+<P>These examples discussion various aspects of bringing up an
+OpenLCB, including adding segments and individual nodes to a running
+OpenLCB. 
+</P>
+<P>For an OpenLCB that's separated into multiple segments, e.g.
+several modules on CAN networks connected via an Ethernet backbone,
+it is likely that the segments will initialize at different times. 
+</P>
+<H2>Node Verification</H2>
+<P>When a node becomes operational, it sends out an &quot;Initialization
+Complete&quot; message which other nodes can use to e.g. update
+status tables, trigger notifications, etc. It follows this with
+notification of the Event IDs it wants to receive/consume and the
+ones it is capable of sending/producing. 
+</P>
+<P>When a node comes up, it can check on the existance of other nodes
+several ways: 
+</P>
+<OL>
+	<LI><P STYLE="margin-bottom: 0cm">To check for the existance of a
+	specific node, send a &quot;Verify Node Serial Number (Addressed)&quot;
+	message to the specific node. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">To get a list of all currently
+	reachable nodes, send a &quot;Verify Node Serial Number
+	(Unadressed)&quot; message. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">To check for the existance of at
+	least one node that produces a specific Event ID, e.g. one consumed
+	by a node, the &quot;Producer Identification&quot; standard
+	interaction can be used. There is no requirement that every Event ID
+	configured into an given consumer exist, so a lack of response to
+	this interaction is not an error, but it can provide useful
+	information. 
+	</P>
+	<LI><P>To check for the existance of at least one node that consumes
+	a specific Event ID, e.g. one produced by a node, the &quot;Consumer
+	Identification&quot; standard interaction can be used. There is no
+	requirement that every Event ID configured into an given producer
+	exist, so a lack of response to this interaction is not an error,
+	but it can provide useful information. 
+	</P>
+</OL>
+<H2>Configuration Upload</H2>
+<P><I>Is there a need for a mechanism by which a newly-operational
+node can e.g. call for download of configuration information, large
+files (e.g. sounds) or similar? Might be nice to not have to store
+them locally, particularly with large bandwidth OpenLCBs. Global
+events can be used to call for specific resources, because they carry
+the source node ID of the emitting node.</I></P>
+<H2>State Restoration</H2>
+<P>Producer/Consumer systems react to state changes, which are
+transferred as Events. When a node first becomes operational,
+however, it may not have any knowledge of the existing state. It
+can't figure out how to act until the next external change results in
+an Event, which is distributed as a PCER message. 
+</P>
+<P>Nodes that power up independently will operate, but higher level
+mechanisms are needed for to initialize their inputs and outputs as
+part of the entire layout. Those mechanisms can be triggered by e.g.
+&quot;Initialization Complete&quot; messages from the
+newly-functional node. 
+</P>
+<P>Several mechanisms are available for implementation: 
+</P>
+<OL>
+	<LI><P>A store-load mechanism can capture and store the state of
+	nodes, and restore those latter. This puts the layout back to the
+	earlier state, but doesn't handle any state changes that have
+	happened since the state was captured. There's (currently) no
+	mechanism to trigger the store operation.  
+	</P>
+	<P STYLE="margin-bottom: 0cm">The store operation can capture the
+	current state of consumers on the layout via the &quot;Identify
+	Consumers&quot; common message. Nodes that fully implement this
+	reply with the current state of their consumers. Restoration of this
+	via PCER messages will restore the output state. Note that it's not
+	required that nodes know the state of the devices attached to their
+	outputs. Depending on what that device is, they simply might not
+	have any way to know.</P>
+	<P STYLE="margin-bottom: 0cm"></P>
+	<LI><P>The newly-functional node can use the Producer Identification
+	interaction to get &quot;valid&quot; bits from (all) the Producers
+	of the Event IDs that can effect the newly-functional node. This is
+	not fool-proof, however, as not all nodes can produce those, and
+	there might be history (e.g. which Producer fired most recently)
+	that can't be recovered. 
+	</P>
+</OL>
+<P STYLE="margin-left: 2cm">Sample scenario:</P>
+<P STYLE="margin-left: 2cm">A) For each event ID being consumed, send
+a global “Identify Producers” message.</P>
+<P STYLE="margin-left: 2cm">B) When (if) a “Producer Identified”
+message comes back, check the “uncertain” bit.  If the message is
+not uncertain, and the “valid” bit is set, consumers should act
+as if a PCER message with this event ID has been received.</P>
+<P STYLE="margin-left: 2cm">C) If more then one “Producer
+Identified” message without the “uncertain” bit is returned,
+it's possible that the “valid” bits will not agree.  There are
+several ways to deal with this (1) consider it an error to be
+reported, (2) just act on the 1<SUP>st</SUP> one or (3) just act on
+the last one.  The system is inconsistent, so it's not clear that any
+of these are right or wrong.</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
