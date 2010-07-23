@@ -131,37 +131,100 @@
     
 
    Numerous people have taken part in a series of internet egroups, some predating the NMRAs interest in
-   the bus.  The first group was started by xxx, DIYMetaDIY.  The discussion soon moved to MRRLCB, and
-   eventually moved to NMRAnet, when he NMRA got involved.  Some progress was made: CAN was recognized as
-   an ideal bus for MRR, haivng been used in automobiles anf truck – robust, error strong.  The pc model
-   was introduced to the group by xxx, and was recognize as a powerful method of buoth simplifying and
-   making a bus protocol more powerful.  The severe space limitations of Can packets lead to disagreements
-   on how to fit the messages.  Two members became eager to build a bus, and developed CBUS at MERG, base
-   on 11-bit headers.  Subsequently, another MERG member modified the protocol and develope AT-bus.  
+   the bus.  The first group, DIYMetaDIY, was started by Chuck Card.  The discussion moved to MRRLCB, and
+   eventually to NMRAnet, when the NMRA got involved.  There was some consensus: CAN was recognized as an
+   ideal bus for MRR, having been used in cars ans trucks, as it is robust, error strong.  The pc model was
+   introduced to the group by the ACCBUS group, Don Voss and John Socha-Leialoha, and was recognized as a
+   powerful method that both simplified and made the bus protocol more powerful.  The severe
+   space-limitations of CAN packets lead to disagreements on how to design the packets.  Two members were
+   eager to build a bus, and split off to develop the  CBUS at MERG, based on 11-bit headers.
+    Subsequently, another MERG member,  Roger Edwards modified the protocol and developed AT-bus.  
 
     
 
-   The group continued to discuss the use of CAN, focusing on 29-bit headers.  This group eventually split
-   into the S9.5 effort, lead by Don Voss, and the S9.6 effort comprising John Day. David Harris, Bob
-   Jacobsen, Alex Shepherd, and Alan Robinson.  Di Voss has done a good job introducing the concepts of an
-   accessory bus, and the concept of p/c, and gives a good description of S9.5.  This article will
-   concentrate on the advantages of S9.6.  
+   The rest of the group continued to discuss the use of CAN but focusing on 29-bit headers.  This group
+   eventually split into the S9.5 effort, lead by Don Voss, and the S9.6 effort comprising John Day. David
+   Harris, Bob Jacobsen, Alex Shepherd, and Alan Robinson.  Di Voss has done a good job introducing the
+   concepts of an accessory bus and the producer-consumer model, and the S9.5 proposal.  This article will
+   concentrate on describing the advantages of S9.6.  
 
     
 
     
+
+    
+
+   Support for the novice:
+
+     * plug and play 
+
+     * no node, channel, event numbers to worry about 
+
+     * push-button programming 
+
+     * no id conflicts 
+
+   Support for large layouts:  
+
+     * no id conflicts, bring together modules set up in isolation 
+
+     * no need to keep extensive lists of node and event numbers 
+
+     * auto-topology and tools to configure a meet, drill-down capability 
+
+   Scalability: 
+
+     * multiple segment supprt with high speed backbone 
+
+     * automatic traffic management and routing 
+
+   Adaptablility / Support for legacy equipment 
+
+     * other protocols folded into the event-space
+
+     * other protocol ids folded into node-space 
+
+   Three base protocols: events, datagrams, and streams.
 
    How S9.6 Differs
 
     
 
-   The S9.6 group wanted to design a bus standard that added significant function to the existing buses,
-   and one that will be useful into the future, lasting for at least 10-20 years.  For this reason the S9.6
-   design team has spent a lot of time thinking about the hard problems: how to make it simple for the
-   novice while letting it serve very large layouts, and letting it take advantage of future technology
-   while simplifying the implementation of individual nodes.  
+   The S9.6 group wanted to design a bus standard that added significant functionality to that provided by
+   existing buses, and one that one that will be useful into the next 10-20 years.  For this reason the
+   S9.6 design team spent a lot of time thinking about the hard problems: how to make it simple for the
+   novice and small layouts, but let it serve very large layouts; and how to let it take advantage of
+   future technology while simplifying the implementation of individual nodes.  
 
     
+
+    
+
+    
+
+   Node A
+
+   Node  C
+
+   Node B
+
+   Node  D
+
+   Node A
+
+   Node  C
+
+   Node B
+
+   Node  D
+
+   Node A
+
+   Node  C
+
+   Node B
+
+   Node  D
 
    Easy for the novice
 
@@ -169,60 +232,30 @@
 
    Alice wants to control her three track station. She has goes to her local store and buys one 8-button
    input node, four turnout-controller nodes, and a power supply. When she gets home, she unpacks the nodes
-   and connects each of the turnout-controllers to her four turnouts, E1, E2, W1, and W2. Then she connects
-   the nodes together with the provided cables. Following the directions, she then uses the blue button on
-   each of the turnout-controllers and ensures the attached turnout changes position.
+   and connects each of the turnout-controllers to her four turnouts.  She connects the nodes together,
+   teaches the buttons to control her turnouts.   
 
     
 
-   Node A
-
-   Node  C
-
-   Node B
-
-   Node  D
-
-   Node A
-
-   Node  C
-
-   Node B
-
-   Node  D
-
-   Node A
-
-   Node  C
-
-   Node B
-
-   Node  D
-
-   S9.6 lets you teach nodes to respond to one another by letting you place the same event number into each
-   node.  In the upper diagram to the left,
-
-    the four nodes are represented as boxes containing an event number.  However, the nodes have no
-   relationship with each other because they do not share the same event number.  
+   S9.6 lets one node teach its event numbers to other nodes.  In the upper diagram to the left,  the four
+   nodes are represented by boxes containing an event number.  Since they do not share any event numbers,
+   they cannot communicate.    
 
     
 
-   However, by teaching one node's event number to two others, the three nodes can now communicate, and
-   together they form an event.  This event can represent any conceptual idea, such as 'evening has fallen'
-   – this is shown symbolically in the bottom panel.    Node A has taught nodes B and C, and they share the
-   same event number.  
+   In the middle diagram, node A has taught its event number to nodes C and D and formed a relatinoship or
+   event.  This event can represent any conceptual idea, such as 'evening has fallen' – this is shown
+   symbolically in the bottom panel.    
 
     
 
-   One or more nodes can be taught from another node.  In S9.6 you can accomplish this be pushing buttons
-   to select the events to be taught on the learning nodes, and then choosing the event number to teach on
-   the teaching node.  This method is called the 'blue/gold' algorithm after the colour of the buttons.  
+   In S9.6 the teaching can be done by a series of button presses, and this is called the 'blue/gold'
+   teacing algorithm.  
 
     
 
-   Also, note that in the bottom panel, node B can be taught from any of the other nodes.
-
-    
+   Alice does not need to set any node, channel, event numbers – these were pre-defined at the factory.
+    She can plug-and=play with her nodes.  
 
     
 
@@ -239,11 +272,11 @@
 
    A major difference from previous buses, and the other proposals, is the use of 'big events' - S9.6 uses
    48-bit and 64-bit node-ids and event numbers, respectively.  This decision was not taken lightly.  Big
-   events have many advantages.  It simplifies the code of simple nodes, and allows increased flexibility
+   events have many advantages for you.  It simplifies the code of simple nodes, and increases flexibility
    since all nodes can respond to any event.  It frees you from remembering node, channel and event numbers
-   since these are pre-assigned when the nodes were made, and each is unique.  Since the events are unique
-   and big, your modular club and large layouts do not have to worry about running out of node numbers nor
-   whether two nodes will conflict.  
+   since these are pre-assigned at the factory, and each is unique.  Since the events are unique, your
+   modular club and other large layouts won't running out of node numbers and won't hav e any conflicting
+   nodes.  
 
     
 
@@ -257,32 +290,14 @@
 
    S9.6 uses existing event-handling code.
 
-   Big-events lets S9.6 to enfold the time-value inside a set of  events.  Your nodes respond to the
-   alarm-event just like any other event – and no extra code is needed.  
+   Big-events let S9.6 enclose the alarm time-value right inside an event.  All your nodes can use it just
+   like any other event.  There is no need to add code to the node to add this function.  
 
     
 
-   This is illustrated in the diagram to the right.  The top panel shows a alarm-event and the extra code
-   needed to recognize and process it.  The bottom panel sows S9.6's approach, the time is enclosed in a
-   regular event, and your node responds to it just like any other event.  
-
-    
-
-   Unique Ids equals no Ids
-
-    
-
-   Since S9.6 has big-events, it can afford to assign one to each node at its manufacture.  This means that
-   you do not need to set a node's id number when you get it, it already has one and its different from
-   every other node in the world.  This means that you don't have to worry about any two nodes conflicting.
-    You can set-up your node, take it to your friend's house, and not worry that it will conflict with his
-   nodes – S9.6 guarantees it.   
-
-    
-
-   If you have a large layouts, you don't need to keep detailed lists of node numbers -- a computer can
-   easily query the layout to retrieve all the node numbers.  In addition, you can refer to the nodes by
-   name.  
+   This is illustrated at the right.  The top panel shows how the old way would add the alarm-event and the
+   extra code required to recognize and process it.  The bottom panel shows S9.6's approach -- the time is
+   enclosed in a regular event, and the node responds to it just like any other event.  
 
     
 
