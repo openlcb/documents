@@ -1,0 +1,590 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Control Points</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100725;10130000">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Control Points</H1>
+<P>This document is the start of discussions on modeling “control
+points” (an American signaling practice) in OpenLCB. Specifically,
+the modeling of signals from the prototype, their operation, etc.</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Preferences</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Design Points</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H2>Discussion</H2>
+<P>The following was from several email discussions, not one single
+sequence. Authors are attributed in the headings.</P>
+<P><BR><BR>
+</P>
+<H4>On May 27, 2010, at 5:20 PM, John Plocher wrote:</H4>
+<P>[This response started as a posting I made to the JMRI developers
+list back in October, which explains some of the odd references to
+Usernames and such... Hope it helps, and that I haven't
+misstated/misunderstood too much -John]</P>
+<P>I've been digging pretty deep into the wonderful trainspotting
+field of ATCS Monitoring. Automatic Train Control System (also known
+as &quot;another train calling STOP&quot; :-) is a modern
+bidirectional communication mechanism between a &quot;dispatcher&quot;
+and the various field units.</P>
+<P>Much of my writing about userNames and associated abstractions is
+influenced by what I have learned - the prototype goes to great
+length to build and keep an abstraction layer between the dispatcher
+and the field.</P>
+<P>ATCS is (as is pretty much anything and everything on the
+prototype) built around the concept of control points. CP's control
+all the &quot;vital logic&quot; for a local area (aka
+interlocking...), respond to external commands and provide status
+reports when things change. If it helps, think about a cTc panel -
+pressing it's Code button sends a set of commands out to the field;
+the panel itself responds by showing lights that correspond to the
+status reports coming in from the field.</P>
+<P>The dispatcher's view of a railroad is that it is a collection of
+CPs; the only interactions he/she has with the field units are via
+these command and status reports. (It is not yet clear to me how
+adjacent control points talk to each other - are there shared track
+circuits or do they simply listen for each other's Indication
+packets?)</P>
+<P>In particular, the dispatcher does not need to know whether the CP
+is implemented with a SMINI, an SE8e or a bank of relays - it only
+communicates precise bits of information (see below for details) like
+switch position, track occupancy and signal control (but only at a
+&quot;stop, not-stop&quot; level, not individual control of each
+head/bulb...)</P>
+<P>The following is my interpretation of Caltrain's CP Michael here
+in San Jose - see</P>
+<P><A HREF="http://www.flickr.com/photos/plocher/4012062236/in/set-72157622432617817/">http://www.flickr.com/photos/plocher/4012062236/in/set-72157622432617817/</A></P>
+<P>and</P>
+<P><A HREF="http://www.flickr.com/photos/plocher/4646201934/in/set-72157622432617817/">http://www.flickr.com/photos/plocher/4646201934/in/set-72157622432617817/</A></P>
+<P>for the Realroad's official documentation of this CP.</P>
+<P>The dispatcher can control (the trailing &quot;S&quot; means
+&quot;Set&quot;)</P>
+<UL>
+	<LI><P>1NWS 1RWS 3NWS 3RWS 5NWS 5RWS (sWitches 1,3 and 5 Normal or
+	Reverse)</P>
+	<LI><P>2SGHS 2NGHS 4SGHS 4NGHS 6SGHS 6NGHS (siGnals 2,4 and 6 for
+	both South and North request other than Stop)</P>
+	<LI><P>2SHS 4SHS 6SHS (siGnal Stop request (here S means Stop and
+	not South...))</P>
+	<LI><P>2FLTS 2SFLTS 4FLTS 4SFLTS 6FLTS 6SFLTS (siGnal FLEET -
+	request the signal again as soon as a train passes it)</P>
+</UL>
+<P>The feedback provided by the control point is: (the trailing &quot;K&quot;
+means &quot;indiKation&quot;)</P>
+<UL>
+	<LI><P>1NWK 1RWK 3NWK 3RWK 5NWK 5RWK (sWitch position - Normal or
+	Reverse)</P>
+	<LI><P>2SGK 2NGK 4SGK 4NGK 6SGK 6NGK (siGnal is at other than Stop)</P>
+	<LI><P>2TEK 4TEK 6TEK (signal is at Stop (I think...))</P>
+	<LI><P>1TK 2TK 3TK 2ATK (Track circuits)</P>
+	<LI><P>2NAK 2SAK 4SAK 4NDAK 2NAAK 4NAAK 6NAK 6SAK (Approach track
+	(1st track away from signals 2N,2S,4S,4ND,2NA,4NA,6N &amp; 6S))</P>
+	<LI><P>4NAAAK (Approach to Approach track (2nd track away, top head
+	of 4N signal, also known as &quot;A Head&quot;))</P>
+	<LI><P>2FLTK 4FLTK 6FLTK (FLeeT enabled in field acknowledgment)</P>
+	<LI><P>POK is power off indication.</P>
+	<LI><P>LCK is local control indication.</P>
+	<LI><P>LOK is some filament at the control point is open. Light Out
+	indication</P>
+	<LI><P>DOK is door open indication.</P>
+	<LI><P>GFDK means a ground has been detected at the location.</P>
+</UL>
+<P>This information is communicated to (Controls) or from
+(Indications) the control point in packet form over code lines,
+radio, laser, satellite or whatever. They have a bunch of header info
+that identifies the railroad, the control point, sequence number and
+the like, followed by 1 to 8 bytes of data. The data is interpreted
+as a set of individual bits; they correspond exactly to the tables
+shown in the MOW's signal department diagram above:</P>
+<P>[Caltrain..CP Michael..C/I..Seq# : Byte1 Byte2 Byte3 Byte4 Byte5
+Byte6 Byte7 Byte8 ]</P>
+<P>From the diagram,</P>
+<P>Control Byte1 is made up of [1NWS 1RWS 3NWS 3RWS 5NWS 5RWS 2SGHS
+2NGHS]</P>
+<P>and</P>
+<P>Indication Byte1 has [1NWK 1RWK 3NWK 3RWK 5NWK 5RWK 2SGK 2NGK]</P>
+<P>The other 3 bytes (controls) or 5 (indications) for CPMichael are
+similarly interpreted.</P>
+<P>Caltrain's &quot;ATCS architecture&quot; seems to prefer that
+Control bits be interpreted as &quot;1=change, 0=no change&quot;,
+thus the separate bits for &quot;Set Turnout 1 Normal&quot; (1NWS)
+and Reverse (1RWS); A given Caltrain Control packet would, by
+definition, never have both bits set. I call this &quot;relative&quot;
+control - the assumption is that the field plant is in a known state
+and the dispatcher are simply making incremental changes to that
+state.</P>
+<P>Other Realroads consider the control bits to be absolute; that is,
+&quot;1=set/diverging, 0=clear/normal&quot;, and would use only one
+bit per turnout (or whatever). No matter what the previous state of
+the plant, a Control packet would set everything within the addressed
+Control Point to a known state.</P>
+<P>Since every Realroad's signal department gets to define the bits
+being sent to and from each of their Control Points, there is never
+any ambiguity - even if different control points on the RR do things
+differently. Of course, the Brotherhood would quickly lynch any
+consultant who designed wildly different interpretations for each
+Control Point on the property...</P>
+<P>As a real example, to set up the interlocking so a northbound
+train can move from Track 1 (1ST track circuit) into Tamien:3 (3NT
+circuit), one would send the following command bits out to the field:</P>
+<UL>
+	<LI><P>CP Michael:2SHS (set Signals 2N and 2S to STOP)</P>
+	<LI><P>CP Michael:4SHS (set Signals 4N and 4S to STOP)</P>
+	<LI><P>CP Michael:6SHS (set Signals 6N and 6S to STOP)</P>
+	<LI><P>CP Michael:1RWS (set switch 1 to reverse)</P>
+	<LI><P>CP Michael:3RWS (set switch 3 to reverse)</P>
+	<LI><P>CP Michael:2NGHS (set Signal 2N to &quot;not STOP&quot;)</P>
+</UL>
+<P>The indiKation bits coming back after successfully following those
+commands would be:</P>
+<UL>
+	<LI><P>CP Michael:</P>
+	<LI><P>CP Michael:2TEK (Signals 2N and 2S are at STOP)</P>
+	<LI><P>CP Michael:4TEK (Signals 4N and 4S are at STOP)</P>
+	<LI><P>CP Michael:6TEK (Signals 6N and 6S are at STOP)</P>
+	<LI><P>CP Michael:1RWK (switch 1 is reverse)</P>
+	<LI><P>CP Michael:3RWK (switch 3 is reverse)</P>
+	<LI><P>CP Michael:2NGK (signal 2N is other than Stop)</P>
+</UL>
+<P>As a train traversed this route, Indication packets containing
+1TK, 2ATK, 2TK, and 3TK would also be sent showing track circuit
+occupancy...</P>
+<P>It is important to note that only complete Indication or Control
+packets are ever sent or acted upon - think of them as transactions.
+Any time a packet is received, the receiver knows that they are
+seeing a self-consistent standalone representation of what the CP is
+or should be.</P>
+<H4>On May 27, 2010, at 7:38 PM, paul.bender@acm.org wrote:</H4>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">On 27 May, John
+Plocher wrote:</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">I've been digging
+pretty deep into the wonderful trainspotting field of ATCS
+Monitoring. Automatic Train Control System (also known as &quot;another
+train calling STOP&quot; :-) is a modern bidirectional communication
+mechanism between a &quot;dispatcher&quot; and the various field
+units.</P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0cm"><BR>
+</P>
+<P>I would describe ATCS as a codeline replacement technology. Rather
+than maintaining coper wire codelines in the ground, railroads are
+using ATCS or a slightly older technology called ARES (which was
+deployed widely on the Burlington Northern in the late 1980s/early
+1990s) and maintaining radio gear.</P>
+<P>Since ARES and ATCS are sent in the clear over open radio
+channels, we can decode the data stream without tapping any wires,
+but otherwise this is the same data that must travel on the codeline.</P>
+<P>The dispatcher's view of a railroad is that it is a collection of
+CPs; the only interactions he/she has with the field units are via
+these command and status reports. (It is not yet clear to me how
+adjacent control points talk to each other - are there shared track
+circuits or do they simply listen for each other's Indication
+packets?)</P>
+<P>Since ATCS is a codeline replacement, ATCS equiped control points
+get information from their neighbors in exactly the same way that
+codeline equiped control points do, i.e. by looking at local track
+occupancy information.</P>
+<P>The rest of the CTC system behaves in exactly the same manner as
+it would with a codeline in place.</P>
+<H4>On May 27, 2010, at 9:37 PM, Bob Jacobsen wrote:</H4>
+<P>To amplify that a little: ATCS is not a vital system. Neither was
+the code line. The occupancy information and other state that drives
+the signaling is vital, and therefore doesn't go through ATCS. Nor
+code line. Depending on the age of the equipment, that information
+will be transferred via dedicated lines (wires; that's why old
+pictures of rights-of-way would show telephone poles with dozens of
+wires on them), through coded track circuits, dedicated phone links,
+etc.</P>
+<H4>On May 27, 2010, at 11:09 PM, John Plocher wrote:</H4>
+<P>(In case it isn't obvious, I'm trying to play out what things
+would look like if one were to use the NMRAnet bus as if it were
+simply and only a codeline)</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">On Thu, May 27, 2010
+at 9:37 PM, Bob Jacobsen &lt;jacobsen@berkeley.edu&gt; wrote:</P>
+<P STYLE="margin-left: 2cm; margin-bottom: 0cm">The occupancy
+information and other state that drives the signaling is vital, and
+therefore doesn't go through ATCS.</P>
+<P>So, from a modular perspective, a control point both monitors its
+&quot;own&quot; vitals as well as [some selected set of...] the
+upstream and downstream control point's vitals.</P>
+<P>In the CP Michael example I referenced earlier, this implies that
+the track circuits for 1NT, 2NT and 3NT would be &quot;shared&quot;
+with CP Mack (the next CP in that direction), while 1ST and 2ST would
+be shared in the other direction. (in other words, CP Michael's 1NT
+would be CP Mack's 1ST, etc) Depending on the number of look-ahead
+blocks used by the signaling system, it may be that more than a
+single level might need to be shared.</P>
+<P>What else would be shared? Track circuits are the obvious need (to
+provide occupancy indications for multi-block signaling), similarly
+turnouts are obviously NOT shared. In a modularly wired system, it
+seems that the codeline bus and the set of shared advance track
+circuits is all that is needed between Control Points (and thus
+modules, assuming module boundaries coincide with CP boundaries)</P>
+<P>Or am I still hopelessly confused :-) ?</P>
+<H4>On May 27, 2010, at 11:27 PM, Bob Jacobsen wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm">On May
+27, 2010, at 11:09 PM, John Plocher wrote: </P>
+<P ALIGN=LEFT STYLE="margin-left: 4cm; margin-bottom: 0.39cm">On Thu,
+May 27, 2010 at 9:37 PM, Bob Jacobsen &gt; &lt;jacobsen@berkeley.edu&gt;
+wrote:  The occupancy information and other state that drives the
+signaling is vital, and therefore doesn't go through ATCS. </P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm">So,
+from a modular perspective, a control point both monitors its &quot;own&quot;
+vitals as well as [some selected set of...] the upstream
+and downstream control point's vitals.  
+</P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm">In the
+CP Michael example I referenced earlier, this implies that the rack
+circuits for 1NT, 2NT and 3NT would be &quot;shared&quot; with CP
+Mack (the next CP in that direction), while 1ST and 2ST would be
+shared in the other direction. (in other words, CP Michael's 1NT
+would be CP  Mack's 1ST, etc) Depending on the number of look-ahead
+blocks used  by the signaling system, it may be that more than a
+single level might need to be shared.</P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm">What
+else would be shared? Track circuits are the obvious need (to provide
+occupancy indications for multi-block signaling), similarly turnouts
+are obviously NOT shared. In a modularly wired system, it  seems
+that the codeline bus and the set of shared advance track  circuits
+is all that is needed between Control Points (and thus  modules,
+assuming module boundaries coincide with CP boundaries).</P>
+<P> A &quot;shared&quot; track circuit is one that has a relay at
+each end, so it can be read by the CPs at the two ends of the track. </P>
+<P>On the prototype, CPs very rarely share a track circuit. This
+is because they're almost always more than one track-circuit apart,
+e.g. have intermediate ABS/APB signals or similar. Information is
+shared between intermediate signals, eventually arriving at the CPs
+at each end.</P>
+<P>The other pass-to-neighbor operation is the signal state. This can
+be a single line (all that's needed for Clear/Approach/Stop) or
+more complicated cases (e.g. for four-block signals, where there
+are several next aspects to show). Signal logic (almost) never looks
+at occupancy past the next signal.</P>
+<P>The CPs do directly share a common direction state. This state has
+to be passed back and forth with relays at each end, and is also
+used for the APB tumble down. </P>
+<H4>On May 28, 2010, at 12:27 AM, dpharris@telus.net wrote:</H4>
+<P>Quoting Bob Jacobsen &lt;jacobsen@berkeley.edu&gt;:  The CPs
+do directly share a common direction state. This state has to be
+passed back and forth with relays at each end, and is also used for
+the APB tumble down. </P>
+<P>Can tumbledown signals not just watch the next signal upstream, if
+it goes to  Stop, then this signal goes to stop, too, and the next,
+and so on. If the upstream is non-stop, then revert to green?</P>
+<H4>On May 28, 2010, at 8:35 AM, Bob Jacobsen wrote:</H4>
+<P>You're thinking of standalone APB signals:</P>
+<P><A HREF="http://www.lundsten.dk/us_signaling/abs_apb/index.html">http://www.lundsten.dk/us_signaling/abs_apb/index.html</A></P>
+<P>APB signals do pass information from one to another, but they're
+also significantly more complicated than that. They have to be to
+provide protection against opposing trains (the page linked above has
+a good description of that), and also to allow for following moves
+(signals go red _behind_ a train, too; if a signal always drops when
+the one ahead is red, you end up blocking out following moves).</P>
+<P>Provision of a vital direction relay, commanded by the CTC system,
+simplifies the track circuits and logic a lot (vital circuitry is
+very expensive to build and maintain, so this is important). By
+making sure that the vital signaling will never allow two opposing
+trains into the single-track between the control points, the need for
+the overlaps is reduced, blocks can be lengthened (without a
+direction relay you had to have at least four blocks between control
+points; having fewer blocks means less vital equipment), etc.</P>
+<H4>(New thread, separate group) On Jul 19, 2010, at 8:54 AM, John
+Plocher wrote:</H4>
+<P>Here's the updated links:</P>
+<P><A HREF="http://www.spcoast.com/wiki/index.php/ControlPoint">http://www.spcoast.com/wiki/index.php/ControlPoint</A></P>
+<P><A HREF="http://www.spcoast.com/wiki/index.php/LoconetBreadboard">http://www.spcoast.com/wiki/index.php/LoconetBreadboard</A></P>
+<P><A HREF="http://www.spcoast.com/wiki/index.php/CANBusBreadboard">http://www.spcoast.com/wiki/index.php/CANBusBreadboard</A></P>
+<P>Hopefully today the BatchPCB people will enable my &quot;marketplace&quot;
+stuff soon, allowing anyone to get the boards fab'd for a few
+dollars...</P>
+<P>I'm looking to pull together a simple reference platform that can
+be used as a stepping stone for others looking to learn how to use
+this stuff, so thanks for all your help!</P>
+<H4>(New thread, separate group) On Jul 21, 2010, at 10:11 PM, John
+Plocher wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>This whole discussion is pretty intense, but seems to be missing a
+pretty big point - in a modular mashup, not every detail of a
+module's electronic animation/indication/control is something that
+necessarily should be exposed to observers outside that module. In
+programming terms, a module (or, if you prefer, a control point or an
+interlocking or ...) is a lot like an object oriented class - there
+are public, protected and private details. From where I sit, it seems
+y'all are only talking about the public sorts of things in these
+proposals.</P>
+<P>While I may have missed something (after all, there *is* a lot
+here to absorb), this discussion of node and layout IDs, gateways,
+NN, 48, 64K, events and payloads sounds a lot like an intro level
+programming course where nobody has discovered the concept of
+abstraction - and where the only tools were global variables and
+goto's. The predictable result in that class was unmaintainable
+write-once spaghetti code; what will we end up with here?</P>
+<P>I suspect that a fremo style modular mashup where every detail
+from every module was public (nodes, events, whatever) would be both
+undesirable and unmanageable. There is no reason for most of a
+module's internal derails to be exposed to modules on the other end
+of the mashup. There is a reason for scope and privacy abstractions
+in railroading as well in computer science - it makes maintaining
+things simpler. Borrowing computer science terms again, the vital
+logic is mostly private to a control point, with some protected track
+circuit and signal data being shared between adjacent CPs; the code
+line is a public interface exposed by a control point, with the
+details of that interface inherited from a common (ahem, mostly
+historical) superclass. Local variables and procedural scoping are
+used specifically to avoid namespace and data clashes between
+independent modules of both flavors. (and, yes, the programming
+analogy can be taken too far, but I hope it gets my point across...)</P>
+<P>Instead of continuing to circle around esoteric interpretations of
+node IDs, address space partitioning and gateways to allow more
+'global variables', it might be worthwhile to step back and ask on
+how someone could use this stuff to build a module that supported the
+idea of private, protected and shared controls and indications. I'm
+not certain that a bus-centric or node-centric approach is the right
+(or, alternatively only) way to approach this problem, but if your
+only tool is a CAN-bus segment hammer or Node ID (or payload) hammer,
+the world quickly starts looking mostly like nails...</P>
+<P>Myself, I'm experimenting with moving up the conceptual food chain
+a notch and using Loconet or CAN as a *code line* replacement and
+using custom programmed nodes (aka Arduinos + CMRI) as control
+points. In that world, the details of whether signal 2N in Control
+Point Michael should show an Approach or Approach Medium or
+Restricting aspect is something managed locally by the control point
+node itself. Just as in a cTc system, the only control a remote
+observer has is whether or not the signal should display Stop or not,
+and the only indications it can monitor are the ones the control
+point explicitly chooses to expose.</P>
+<H4>On Jul 21, 2010, at 11:30 PM, John Plocher wrote:</H4>
+<P>My concern is that, with a module built up out of &quot;Signals
+via single-lamp drivers&quot; events, all modules on that segment
+would see every lamp on and lamp off event, making them the
+equivalent of implementation details exposed as global variables.
+With smarter (or, I should say, more special purpose) nodes using
+more of an &quot;Integrated Signals&quot; style, you begin to
+approach the idea of a control point, but (I think) the spec
+mentioned still misses the mark.</P>
+<P>One subtle behavioral constraint of control points (or
+interlockings) is that the whole of the physical plant is controlled
+atomically - there is one &quot;control&quot; event (a code line
+message) that contains, as payload, the commanded state* of every
+controllable object in that control point, and one &quot;indication&quot;
+event that contains the new, self consistent state of that control
+point. There is no way to independently control the signal display
+and the turnout position – if you send a control message that fails
+the vital logic/interlocking protection check, the message is
+effectively rejected without action by the CP. This is a subtle
+point, to be sure...</P>
+<P>____</P>
+<P>* Each bit in a control message controls something in the CP. Some
+railroads interpret the bits as 1=on,0=off and assign one bit per
+item. Others interpret them as 1=change,0=nochange and effectively
+assign two bits per item. That is, either one bit is taken to mean a
+switch is normal or reversed, or two bits are used, one to command it
+normal and another to command it reverse. The difference is the
+former always conveys the absolute position of everything, the other
+conveys only the changes to be made.</P>
+<P><BR><BR>
+</P>
+<H4>On Jul 21, 2010, at 11:54 PM, dpharris@telus.net wrote:</H4>
+<P>That document is showing the range of options, and illustrates the
+range of possible products to manufacturers. 
+</P>
+<P>To control your CP, we could probably let you use up to 40 bits in
+an event. Some of those would need to identify the control point, say
+8-bits - that would leave 32 bits.</P>
+<P>Events may not really be the most appropriate tool for this
+purpose, though. Perhaps it better would be to use a Datagram, which
+allows up to 72 bytes (576 bits) of data. Datagrams are buffered so
+you would have the required atomic 'code line message'. See:
+<A HREF="http://www.openlcb.org/trunk/documents/DatagramProtocol.html">http://www.openlcb.org/trunk/documents/DatagramProtocol.html</A></P>
+<P>The alternative is to send a set of messages followed by a final
+'execute' message which applies all the previous messages if they are
+valid, and reports the result. This is likely to be more flexible,
+and efficient, as you could then just send changes. (but perhaps not
+so prototypical)</P>
+<P>If you could please write up the control point as a Use-Case, that
+would be most helpful to us. See:
+<A HREF="http://www.openlcb.org/trunk/documents/OpenLCB-Use-Cases.pdf">http://www.openlcb.org/trunk/documents/OpenLCB-Use-Cases.pdf</A>
+for other examples -- you would just do the description of the
+problem, which you have mostly already done. It would be nice to know
+how big the code line can be. 
+</P>
+<H4>On Jul 22, 2010, at 12:13 AM, John Plocher wrote:</H4>
+<P STYLE="margin-left: 2cm">On Wed, Jul 21, 2010 at 11:54 PM,
+&lt;dpharris@telus.net&gt; wrote:</P>
+<P STYLE="margin-left: 2cm">If you could please write up the control
+point as a Use-Case, that would be most helpful to us. See:
+<A HREF="http://www.openlcb.org/trunk/documents/OpenLCB-Use-Cases.pdf">http://www.openlcb.org/trunk/documents/OpenLCB-Use-Cases.pdf</A>
+for other examples -- you would just do the description of the
+problem, which you have mostly already done. It would be nice to know
+how big the code line can be.</P>
+<P>The most I've seen is 8 bytes (64 bits) of control or indication
+data, with most being much less than that (3 or 4 bytes). On
+Caltrain's ATCS system, all 8 bytes are defined (and, I think used),
+though many of them are full of '0' bits all the time. See
+<A HREF="http://www.flickr.com/photos/plocher/sets/72157624026048635/">http://www.flickr.com/photos/plocher/sets/72157624026048635/</A>
+for an example.</P>
+<P>I'll try and collect my CP musings and put them somewhere, though
+I don't see them as &quot;only&quot; applicable to the openLCB
+effort; IMO, all the various &quot;competing&quot; LCB efforts need
+to consider making it possible to wire and control ones layout in as
+prototypical a fashion as one operates and scenics</P>
+<H4>On Jul 23, 2010, at 7:36 AM, Bob Jacobsen wrote:</H4>
+<P>John Plocher has me thinking about &quot;control points&quot;
+again. He's pointed out that the prototype railroads do a lot of
+local control of track circuits, turnout position &amp; feedback, and
+signals using just a thin connection to higher control at e.g. the
+dispatching system. All the &quot;vital&quot; logic that keeps the
+system safe is co-located at the &quot;control point&quot; in the
+field. Upstream of that has very limited visibility into the control
+point; for example, it's not possible to tell the appearance of a
+particular signal from the dispatchers desk, just whether it's been
+cleared or not. (Signals that are not clear are certainly at &quot;stop&quot;,
+i.e. red, but the converse is not true). 
+</P>
+<P>I suspect that the prototype would _like_ to have lots of
+information  available remotely, for no other reason than
+debugging, but during the periods that many people model it didn't.
+So they developed this two,  and in some cases, three or four,
+level system.</P>
+<P>There aren't a lot of bits in the communication between the
+control point and higher authority (USS systems had a strict
+limitation of 13  bits, with most stations much less than that; 5
+or so in each direction was quite typical). The prototype connection
+was between a single set of dispatcher logic and each control point
+via a single &quot;code line&quot;. 
+</P>
+<P>Some people will want to implement their layout controls like
+this (e.g. it might be a good approach for modular layouts), so
+OpenLCB should support it gracefully and effectively. So I've been
+thinking about it during the &quot;tray tables up&quot; part of my
+trips this week.</P>
+<P>One approach might be &quot;control point nodes&quot; that sit
+between the main OpenLCB LCB on one side and
+signals/turnouts/sensors behind it on the other side. Like the
+relay hut at a prototype control point, this node does all the local
+logic using connections to the hardware, and communicates via
+summary messages to higher authority. This works pretty well so long
+as somebody builds monolithic boards that handle the logic, plus the
+needed electronics: occupancy detectors, turnout driver(s), signal
+drivers, perhaps connections for facia buttons, etc.</P>
+<P>Imagine a much smarter version of the Digitrax SE8c. The SE8c
+board's prime purpose is as a signal driver; it can connect to and
+drive 32 heads. But it also connects to sensors (pushbuttons, track
+circuits) and drives turnouts through Tortoises. Those are all
+directly connected, not via any kind of bus, and full-size SE8c
+implementations tend to become a real rats nest, but let's set that
+aside for a moment. The SE8c gives full access to what's &quot;behind&quot;
+it. As I understand it, Digitrax's original idea was to have the SE8c
+_also_ provide local signal logic, performing &quot;vital logic&quot;
+to control the signals locally. (They never released this, but they
+did show it working at one of the NMRA National Train Shows). So
+creating &quot;control points&quot; is taking hardware with that
+same kind of diversity, either directly or via a sub-bus, and giving
+it some local configurable intelligence. 
+</P>
+<P>If one wants to be able to pick and choose among the
+electronics _behind_ the control point board, e.g. so you can
+install your turnout driver or sensors of choice, then you're
+talking about some form of interface, perhaps even a little OpenLCB
+implementation that the control point board uses to talk to them.
+It doesn't have to be CAN, because it's over a small distance, small
+number of nodes, with complete control in the hands of the
+controller board. But it would be useful for there to be (one or
+more) common definitions, so people can pick and choose their
+components. SPI? One wire? MERG shift register? I don't know enough
+about those to know how well they're work over e.g. 2 or 3 meters,
+with roughly 10 or 15 addressable devices that need to be very
+cheap. 
+</P>
+<P>For debugging, etc, it would be nice if every one of those
+devices remained addressable and controllable from the main
+OpenLCB. When a device fails on the prototype, the signal
+maintainer goes out to the hut to operate it individually and figure
+out what's wrong. I've spent many an hour flipping an output back
+and forth from my phone while trying to figure out why a particular
+signal isn't working right on a local layout, and I'd like for that
+to continue even when that signal is behind a control point. That
+doesn't mean that each device behind the control point node needs
+to be a full OpenLCB implementation, with the board being just a
+gateway; that's probably not a great approach. But it does lead in
+the direction of a board that can act as a local control for a
+bunch of simple (brainless?) devices, making them full partners on
+the LCB, and also providing local control for them as the control
+point implementation of the vital logic. 
+</P>
+<P>Can the OpenLCB protocols do this? The code line communication
+is between specific things (control point logic and dispatcher
+logic) so point-to-point datagrams could easily replicate that.
+There's good reason to want that communication more visible, however,
+for example to drive multiple displays of layout status, so perhaps
+using event ranges might be a better approach given the small number
+of bits.  
+</P>
+<P>One open question is the station-to-station communications.
+In addition to the code line communication between control point
+and dispatching logic, the control points exchange state with their
+neighbors. They need to know about signal state, occupancy,
+etc, particularly on model railroads which tend to have few (if
+any) intermediate blocks. That communication is by specific wires &amp;
+relays on the prototype, but in a model it should go by the LCB
+somehow. That could be listening to events for specifics state
+changes, but I think this needs a little bit more thought on the
+details. There are a couple of approaches. 
+</P>
+<P>If this can be worked out, it would map up rather nicely to the
+issue of signaling for modular layouts. It's rare for a modular
+layout to split the parts of a control point across more than one
+module (or set of modules). So a control point board could control
+that and communicate to a central dispatcher _if_ neighbor
+communications can be sorted out.   
+</P>
+<P>I think we need more experimentation in this area.</P>
+<H4>On Jul 23, 2010, at 8:46 AM, dpharris@telus.net wrote:</H4>
+<P STYLE="margin-bottom: 0cm">I am at work, so limited cycles for
+this, but some points:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">(1) Agree that OpenLCB should support,
+and I see no reason it can't. I had imagined that we service the
+'code line' via datagram or event-range, but also recommend a more
+(OpenLCB) traditional interface to the node for config and debugging,
+and there is not reason why the two views can't exist together –
+one is operational, the other not.</P>
+<P STYLE="margin-bottom: 0cm">(2) RRCircuits is developing just such
+a Control Point, which interfaces to BODs and Signals, and does the
+CP logic, and communicates on the bus.</P>
+<P STYLE="margin-bottom: 0cm">(3) The station-to-station controls
+fits nicely with our auto-topology ideas. It would be nice if we
+could mimic the individual control lines easily and directly using
+events or datagrams.</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
