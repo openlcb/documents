@@ -3,10 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB To Do: Remaining Questions</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100728;19594800">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20100728;193100">
 	<!-- $Id$ -->
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -258,55 +259,45 @@ cleanly. Perhaps in PCE?</P>
 <P>101. Refactor BG to use e.g. NM for reset and PCE to send ident.</P>
 <P>102. C++ prototype Configuration.cpp should use NM to reset node
 number, all but node number, etc</P>
-<P>103. Configuration should have a discussion of “Setting/resetting
-node numbers”<BR>DPH: must redo discussion about originated-events
-vs non-originated-events. When moving a node to a new location, the
-node should be purged of event#s so as not to spread them into the
-wild. I think this needs to be a user controlled operation. Starting
-all events#=0, and generating a new event# (originatingNID.ee) as
-required for teaching, sounds the easiest way to handle this. Purging
-is then just zeroing out the event#s. This does not waste untaught
-event#s. Working though use-cases is useful: taking several nodes to
-the work-bench for set up, and reinstalling them to the layout;
-selling a node; lending a node; etc. The term “purging' seems to be
-useful, rather than “reset”. BobJ: The existing spec requires
-that a reset of the board assign new default EventIDs. This is about
-the best you can do: If you clear the board, you get new ones. You
-can't build a mechanisms that knows whether an EventID has been used
-or not, because it's possible for another node to enquire about what
-EventIDs the node has and starting using them without out telling the
-node. “EventID == 0” doesn't work for default eventIDs, because
-teach/learn need isn't the only way that you can learn about the
-EventIDs in a node.</P>
-<P>104. Finish DCC example from NMRA meeting</P>
-<P>105. Need Makefile for Arduino sketches so we can institute a
-“daily build” process to check for broken compiles</P>
-<P>106. Reorg to get rid of symbolic links in SVN for C and Arduino</P>
+<P><SPAN STYLE="background: #99ccff">103. Configuration needs a
+discussion of “Setting/resetting node numbers”; also needed in
+Event protocol document.</SPAN><BR>DPH: must redo discussion about
+originated-events vs non-originated-events. When moving a node to a
+new location, the node should be purged of event#s so as not to
+spread them into the wild. I think this needs to be a user controlled
+operation. Starting all events#=0, and generating a new event#
+(originatingNID.ee) as required for teaching, sounds the easiest way
+to handle this. Purging is then just zeroing out the event#s. This
+does not waste untaught event#s. Working though use-cases is useful:
+taking several nodes to the work-bench for set up, and reinstalling
+them to the layout; selling a node; lending a node; etc. The term
+“purging' seems to be useful, rather than “reset”. BobJ: The
+existing spec requires that a reset of the board assign new default
+EventIDs. This is about the best you can do: If you clear the board,
+you get new ones. You can't build a mechanisms that knows whether an
+EventID has been used or not, because it's possible for another node
+to enquire about what EventIDs the node has and starting using them
+without out telling the node. “EventID == 0” doesn't work for
+default eventIDs, because teach/learn need isn't the only way that
+you can learn about the EventIDs in a node.</P>
+<P><SPAN STYLE="background: #00ff00">104. Finish DCC example from
+NMRA meeting</SPAN></P>
+<P><SPAN STYLE="background: #00ff00">105. Need Makefile for Arduino
+sketches so we can institute a “daily build” process to check for
+broken compiles</SPAN></P>
+<P><SPAN STYLE="background: #00ff00">106. Reorg to get rid of
+symbolic links in SVN for C and Arduino</SPAN></P>
 <P>107. Port to mbed. 
 </P>
-<P>108. Private Node_ID Space: Decide if we want to have a “private
-ID” space, similar to “private IP spaces” in which people can
-be free to assign node-ids. These would always remain local and not
-cross Gateways. There would remain the danger of collisions if
-physically moved to another layout. BobJ: I still don't understand
-this. Given that this is not going to be used with leading-zero
-suppression (See item 110; these aren't going to the be the largest
-number of events, so using bandwidth tricks here doesn't make sense),
-why is it necessary at all? Just use a block of numbers allocated via
-one of the mechanisms in the <A HREF="NidUniqueAssignment.html">Node
-ID allocation spec</A>. People are free to assign in those.</P>
-<P STYLE="margin-bottom: 0cm">109. A note regarding use of TCP/IP,
-UDP, etc on Ethernet, possibly based on
-<A HREF="http://groups.yahoo.com/group/MRRLCB/message/2702">http://groups.yahoo.com/group/MRRLCB/message/2702</A>,
+<P>109. A note regarding use of TCP/IP, UDP, etc on Ethernet,
+possibly based on <A HREF="http://groups.yahoo.com/group/MRRLCB/message/2702">http://groups.yahoo.com/group/MRRLCB/message/2702</A>,
 <A HREF="http://groups.yahoo.com/group/NMRANETWG/message/386">http://groups.yahoo.com/group/NMRANETWG/message/386</A>,
 <A HREF="http://groups.yahoo.com/group/NMRANETWG/message/389">http://groups.yahoo.com/group/NMRANETWG/message/389</A>,
 and <A HREF="http://groups.yahoo.com/group/NMRANETWG/message/395">http://groups.yahoo.com/group/NMRANETWG/message/395</A>.
 </P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">110. Decide whether to allow
-suppression of particular leading values (e.g. leading zeros) in the
-EventID in PCER messages to conserve bandwidth. <STRIKE><SPAN STYLE="background: transparent">And
+<P>110. Decide whether to allow suppression of particular leading
+values (e.g. leading zeros) in the EventID in PCER messages to
+conserve bandwidth. <STRIKE><SPAN STYLE="background: transparent">And
 whether substituting NIDa for NID, and eliminating when sNID==NIDa,
 where possible, is viable as a bandwidth conservation measure. BobJ:
 General nodes don't need to know the complete NID ↔ NIDa mapping on
@@ -320,26 +311,23 @@ change, it can't even be stored on a one-time basis. As to
 suppressing the NID when it's the same as the source NID, that's the
 same issue: The other nodes don't have the whole-NID mapping
 available, typically.</SPAN></STRIKE></P>
-<P STYLE="margin-bottom: 0cm"><BR>
+<P>111. Explore whether raw Ethernet packets is a via option,
+possibly only for a one-segment OpenLCB-node only network for meets,
+with other Ethernet connections through another separate Ethernet.
+(low priority). 
 </P>
-<P STYLE="margin-bottom: 0cm">111. Explore whether raw Ethernet
-packets is a via option, possibly only for a one-segment OpenLCB-node
-only network for meets, with other Ethernet connections through
-another separate Ethernet. (low priority). 
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">112.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">113.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
+<P>112.</P>
+<P>113.</P>
+<P>114.</P>
+<P>115.</P>
+<P>116.</P>
+<P>117.</P>
+<P>118.</P>
+<P>119.</P>
+<P>120.</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
-<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=1></FONT></A></FONT>
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
 </P>
 <P>This is SVN $Revision$ 
 </P>
