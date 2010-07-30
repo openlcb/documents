@@ -1,0 +1,447 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Service Lookup Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100729;245100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Service Lookup Protocol</H1>
+<P>This document is the start of discussions on a protocol for nodes
+to look up “services” that they might want to provide information
+for them.  For example, a node might want to receive notifications
+when a circuit breaker trips, or messages about other status changes.
+ This protocol helps the node locate those; it's still an open
+question as to whether this protocol also provides the mechanism for
+requesting the information.</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Preferences</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Design Points</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H2>Discussion</H2>
+<P>The following was from several email discussions, not one single
+sequence. Authors are attributed in the headings. The topic grew out
+of a discussion of the display protocol, described in another note.</P>
+<H4>On Jul 25, 2010, at 8:52 PM, Edward Richards wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT SIZE=2 STYLE="font-size: 11pt"><FONT FACE="Helvetica, sans-serif">I
+guess I still don't understand. From my limited understanding it's as
+</FONT></FONT></FONT><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">though
+this protocol is designed as a way for a command station to get to
+the LCD of a throttle and not much else.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">If
+that's all it is then I guess it has value to push to the displays, I
+simply don't see it when for a little bit of code I'd have a throttle
+ask for the throttle service which would come from the command
+station and based on the NID of the throttle assign a loco slot and
+generate the appropriate text for the throttle.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">I
+guess what I'm thinking about are scenarios that are best around the
+other way (like surfing for a tv channel).</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Below
+is use case. Is the Display Protocol appropriate for it?</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Two
+occupancy detectors &amp; a basic I/O panel are in an area.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Let's
+say for example sake that the Basic I/O panel has a 2x16 LCD and 5
+pushbuttons (UP,DOWN,LEFT,RIGHT,ENTER)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Both
+occ' det' make both the following when a train enters the block</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">A:
+sends out an event n=&quot;BLOCK OCCUPIED&quot; (no optional data)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">B:(because
+of BiDi DCC, RFID, barcode etc etc) also sends out &quot;K36 485&quot;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Both
+want to print out &quot;Block n: K36 485&quot; on that area's LCD
+panel where &quot;n&quot; is some number* (see below). Out of the box
+it is a seed of the full NodeID/UID put there by the manufacturer -
+hopefully printing the seed on the pcb so that the user knows what it
+is.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*seeded
+number example:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">XYZ
+Corp: Occupancy Detector, Model OC1, Serial 123456 -&gt; seeds to
+&quot;111&quot;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">XYZ
+Corp: Occupancy Detector, Model OC1, Serial 123457 -&gt; seeds to
+&quot;222&quot;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">ABC
+Corp: Basic I/O panel, PANEL2010, Serial 112233</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Given
+the above scenario, how does a user from opening the bad of goodies
+from the hobby store configure the setup using the Display Protocol?</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H4>On Jul 26, 2010, at 12:17 AM, Bob Jacobsen wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">On
+Jul 25, 2010, at 8:52 PM, Edward Richards wrote:  I guess I still
+don't understand. From my limited understanding it's as though this
+protocol is designed as a way for a command station to get to  the
+LCD of a throttle and not much else. </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Pretty
+much right, though it doesn't have to be a command station  (e.g.
+it could be a dispatcher panel), and it doesn't have to be a throttle
+(e.g. it could be a stationary display at a &quot;station&quot;). </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">If
+that's all it is then I guess it has value to push to the 
+displays, I simply don't see it when for a little bit of code I'd
+have a throttle ask  for the throttle service which would come from
+the command station and based  on the NID of the throttle assign a
+loco slot and generate the appropriate  text for the throttle. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">That's
+a fine thing to add so long as it's optional. One use case doesn't
+need/want the user to make any kind of selection (and doesn't make
+any mechanism available for the user to do it with), so the  protocol
+has to handle that.  It's a matter of style whether it's better
+to have a protocol with a lot of optional capabilities, or have
+different protocols for different things. I tend more toward the
+&quot;many small ones&quot; end, but other choices are certainly
+reasonable. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&gt;
+I guess what I'm thinking about are scenarios that are best around
+the other  way (like surfing for a tv channel). </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Right.
+Think of that as &quot;using the remote control&quot; protocol,
+combined  with the &quot;watch the screen&quot; protocol. Other
+people might combine the &quot;press start on the DVD player&quot;
+protocol with &quot;watch the screen&quot;, or combine the &quot;kid,
+go press the channel button&quot; with &quot;w.t.s&quot;, etc. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&gt;
+Below is use case. Is the Display Protocol appropriate for it? &gt; &gt;
+Two occupancy detectors &amp; a basic I/O panel are in an area. &gt; &gt;
+Let's say for example sake that the Basic I/O panel has a 2x16 LCD&nbsp; &gt;
+and 5 &gt; pushbuttons (UP,DOWN,LEFT,RIGHT,ENTER) &gt; &gt;
+Both occ' det' make both the following when a train enters the
+block &gt; A: sends out an event n=&quot;BLOCK OCCUPIED&quot; (no
+optional data) &gt; B:(because of BiDi DCC, RFID, barcode etc etc)
+also sends out &quot;K36 &gt; 485&quot; &gt; &gt; Both want to
+print out &quot;Block n: K36 485&quot; on that area's LCD panel&nbsp; &gt;
+where &quot;n&quot; &gt; is some number* (see below). Out of the
+box it is a seed of the full &gt; NodeID/UID put there by the
+manufacturer - hopefully printing the&nbsp; &gt; seed on &gt; the
+pcb so that the user knows what it is. &gt; &gt; *seeded number
+example: &gt; XYZ Corp: Occupancy Detector, Model OC1, Serial
+123456 -&gt; seeds to&nbsp; &gt; &quot;111&quot; &gt; XYZ Corp:
+Occupancy Detector, Model OC1, Serial 123457 -&gt; seeds to&nbsp; &gt;
+&quot;222&quot; &gt; &gt; ABC Corp: Basic I/O panel, PANEL2010,
+Serial 112233 &gt; &gt;
+-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-= &gt; Given the above
+scenario, how does a user from opening the bad of&nbsp; &gt;
+goodies &gt; from the hobby store configure the setup using the
+Display Protocol? &gt; </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Basically,
+the display protocol (which I'm quite happy to rename, if  the name
+is causing confusion; I intended &quot;Display&quot; to be a verb,
+but most protocol names are nouns, so perhaps that's part of the
+problem) doesn't fit this. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Assume
+for a second that the occupancy detector nodes know
+they're&nbsp; occupancy detector nodes (not true in all cases, as
+the user could be&nbsp; using general-purpose input nodes). Then
+sending broadcast &quot;just in&nbsp; case somebody wants to know,
+Block 111 is occupied&quot; messages would be&nbsp; a reasonable
+thing for them to do. That gets back to the question of&nbsp; a
+broadcast datagram, on which something like this could be built.
+We&nbsp; need to work that out.  [An alternate solution, which
+works for events, is to have the display&nbsp; accept some user
+input to know &quot;human readable&quot; thing to say when
+a&nbsp; particular event is received. (I'm assuming that it doesn't
+have e.g.&nbsp; a keyboard to accept definitions of messages). Then
+event 12345678&nbsp; would display the message, etc. The board
+could have e.g. 10 canned&nbsp; messages that could have a number
+appended, or something like that.]</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Then
+the question becomes how to tell the display _which_ broadcast
+datagrams to display. Personally, I'd have the broadcast datagram
+ start with an EventID, which could be used to select interesting
+ones, and then fall back on the existing methods of teaching event
+IDs of interest. Message B would start with the event ID in A. This
+would  also have the nice property of driving the CBUS people nuts
+because&nbsp; they'd consider it wasteful, But there might be other
+ways to do it. (Don't forget that a node might send multiple message
+types, though). </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">It
+would be good to work this out in some detail, particularly  figuring
+out how the user can set it all up. That's exactly the right
+ question. </FONT></FONT></FONT></P>
+<H4>On Jul 26, 2010, at 9:48 AM, Edward Richards wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Bob
+wrote:  Assume for a second that the occupancy detector nodes
+know they're&nbsp; occupancy detector nodes (not true in all cases,
+as the user could be&nbsp; using general-purpose input nodes). Then
+sending broadcast &quot;just in&nbsp; case somebody wants to know,
+Block 111 is occupied&quot; messages would be&nbsp; a reasonable
+thing for them to do. That gets back to the question of&nbsp; a
+broadcast datagram, on which something like this could be built.
+We&nbsp; need to work that out.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Specifically
+- &quot;just in case somebody wants to know, ...........&quot;  I
+don't think that a gratuitous broadcast datagram is a good idea
+because it burns up (in CAN's case, what small amounts of)
+bandwidth (are available). Better to only broadcast/multicast AFTER
+the service has been activated by node that wants it. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">It
+occurs to me that another name for a &quot;gratuitous broadcast
+datagram&quot; is a &quot;P/C event with optional data&quot; - as
+long as it supports packet fragmentation. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">So...
+where does this leave us? </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Leave
+(push) Display protocol as is. Perhaps extend the data modes
+definitions so that there is: </FONT></FONT></FONT></P>
+<UL>
+	<LI><P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">ASCII
+	text </FONT></FONT></FONT></P>
+	<LI><P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Escape
+	sequenced ASCII text (VT100, etc etc) </FONT></FONT></FONT></P>
+	<LI><P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Basic
+	HTML </FONT></FONT></FONT></P>
+</UL>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Then
+make another protocol called &quot;Datagram Pull Protocol&quot; that
+is designed so it &quot;pulls&quot; ie that clients look for services
+on the network. This  protocol has a enumerated service type list.
+Each type has its own protocol  definition as a Chapter or Appendix
+or external doc to the Datagram Protocol. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Example
+service types would be: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Generic
+ones: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">ASCII
+text</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Escape
+sequenced ASCII text (VT100, etc etc) </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Basic
+HTML </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Graphics
+- who's stream is further defined by FOURCC codes</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Specific
+ones: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Command
+Station to Throttle protocol</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Throttle
+to Command Station protocol </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Booster
+status protocol </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Train
+Location protocol  </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">This
+leave the need to push data to nodes.  </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">So
+make another protocol called &quot;Datagram Push Protocol&quot; that
+is designed to  push data to a node, most commonly for
+configuration. </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Generic
+ones: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">ASCII
+text (the node would parse the text stream?)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Specific
+ones: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Signal
+Aspect</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Configuration </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Firmware
+Update* </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Manufacturer
+specific ones: </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Config
+protocol* </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*This
+would have a Model Number query command built into it field of the
+&quot;MODELNUMBER&quot; which enables the manufacturer's provided
+config tool or XML  for JMRI etc a way to find nodes on the
+network. </FONT></FONT></FONT></P>
+<H4>On Jul 26, 2010, at 3:05 PM, Bob Jacobsen wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">On
+Jul 26, 2010, at 9:48 AM, Edward Richards wrote:  &gt; I don't
+think that a gratuitous broadcast datagram is a good idea&nbsp; &gt;
+because it &gt; burns up (in CAN's case, what small amounts of)
+bandwidth (are&nbsp; &gt; available). &gt; Better to only
+broadcast/multicast AFTER the service has been&nbsp; &gt; activated
+by &gt; node that wants it. &gt; &gt; It occurs to me that
+another name for a &quot;gratuitous broadcast&nbsp; &gt; datagram&quot;
+is a &gt; &quot;P/C event with optional data&quot; - as long as it
+supports packet &gt; fragmentation. &gt;  </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">That's
+exactly the problem: How to support packet fragmentation in&nbsp; little
+nodes. The only alternatives I've been able to come up with&nbsp; are
+(1) say that nodes must have enough memory to buffer
+simultaneous&nbsp; receipt from the number of nodes they expect to
+send to them, or (2)&nbsp; allow nodes to drop messages silently or
+(3) provide some form of&nbsp; retransmission protocol, while still
+bounding memory at the&nbsp; transmitter. None of those strike me
+as particularly good.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&gt;
+So... where does this leave us? &gt; &gt; Leave (push) Display
+protocol as is. Perhaps extend the data modes &gt; definitions so
+that there is: &gt; ASCII text &gt; Escape sequenced ASCII text
+(VT100, etc etc) &gt; Basic HTML &gt; &gt; Then make another
+protocol called &quot;Datagram Pull Protocol&quot; that is&nbsp; &gt;
+designed &gt; so it &quot;pulls&quot; ie that clients look for
+services on the network. This &gt; protocol has a enumerated
+service type list. Each type has its own&nbsp; &gt; protocol &gt;
+definition as a Chapter or Appendix or external doc to the Datagram &gt;
+Protocol. &gt; How about calling it &quot;Service Lookup&quot;? &gt;
+Example service types would be: &gt; Generic ones: &gt; ASCII
+text &gt; Escape sequenced ASCII text (VT100, etc etc) &gt; Basic
+HTML &gt; Graphics - who's stream is further defined by FOURCC &gt;
+codes &gt; Specific ones: &gt; Command Station to Throttle
+protocol &gt; Throttle to Command Station protocol &gt; Booster
+status protocol &gt; Train Location protocol &gt; &gt; This
+leave the need to push data to nodes. &gt; </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">There
+probably needs to be a subscribe step: Once a service has
+been&nbsp; located, it needs to know that it (the service) should
+send info to a&nbsp; particular place. I haven't thought that one
+through. How do you see&nbsp; it working?</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&gt;
+So make another protocol called &quot;Datagram Push Protocol&quot;
+that is&nbsp; &gt; designed to &gt; push data to a node, most
+commonly for configuration. &gt;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Is
+this a 1-1 push, or a 1-N push?  The working code &amp; spec is
+1-1. If a given source is only talking to&nbsp; a small number of
+destinations, e.g. 1-4 or so, multiple 1-1&nbsp; transmissions
+might be the way to go. Beyond that, some kind of 1-N&nbsp; may
+make sense, but see the buffering problem above if that
+becomes&nbsp; effectively a M-N communication.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&gt;
+Generic ones: &gt; ASCII text (the node would parse the text
+stream?) &gt; Specific ones: &gt; Signal Aspect Configuration &gt;
+Firmware Update* &gt; Manufacturer specific ones: &gt; Config
+protocol* &gt; &gt; *This would have a Model Number query command
+built into it field of&nbsp; &gt; the &gt; &quot;MODELNUMBER&quot;
+which enables the manufacturer's provided config tool&nbsp; &gt; or
+XML &gt; for JMRI etc a way to find nodes on the network. &gt; </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">There
+are a couple places where a tool can infer things like model&nbsp; number.
+If the manufacturer has allocated Node IDs in a specific&nbsp; owned
+range, that would serve to identify the manufacturer. Also,
+for&nbsp; nodes with enough brains to provide configuration data,
+it can be&nbsp; found there. A needs-bootloading node might not
+know very much,&nbsp; though, so having a very simple bootloading
+protocol sounds like a&nbsp; good idea. </FONT></FONT></FONT></P>
+<H4>On Jul 26, 2010, at 3:14 PM, Edward Richards wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0.39cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Is
+this a 1-1 push, or a 1-N push? </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Definitely
+1-1. Probably need to define 1-N too? Haven't really thought about
+it. I don't have a problem with flashing one board at a time vs gang
+programming.  Fr normal operations is there any need to push 1-N?
+(vs requesting a service to start broadcasting 1-N) </FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><BR><BR>
+</P>
+<H4>On Jul 26, 2010, at 3:30 PM, Edward Richards wrote:</H4>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-left: 2cm; margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">There
+probably needs to be a subscribe step: Once a service has been
+located, it needs to know that it (the service) should send info to a
+particular place. I haven't thought that one through. How do you see
+it working?</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">The
+subscribe description step could be the protocol I drafted up a
+couple of emails ago.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Here's
+how the flow could go.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[Request
+Service][TYPE][MASK] -&gt;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">&lt;-
+[Service Provider Starting|Continueing][TYPE]</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[Start
+Service][Service NodeID][TYPE] -&gt;</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Once
+finished with the service...</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[Detach
+from Service][Service NodeID][TYPE]</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">The
+Service keeps a table. When #consumers == 0 it stops sending the
+service automatically to conserve bus bandwidth.</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">To
+purge the tables if the system gets out of whack (by a consuming
+board dying or being unplugged) a management tool could send out:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[Stop
+Service][Service NodeID*][TYPE][MASK]</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+A value eg FFFFFF means any NodeID - and thus shut off ALL nodes
+making</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">(TYPE
+&amp; MASK)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Eg</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[FFFFFF][1234][FF]
+would shut off all &quot;1234&quot; services</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[FFFFFF][123x][F0]
+would shut off all &quot;123x&quot; services (x is</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">don't
+care)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">[FFFFFF][xxxx][00]
+would shut off all services. (xxxx is don't</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">care)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0.39cm"><BR><BR>
+</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
