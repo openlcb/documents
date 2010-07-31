@@ -5,25 +5,27 @@
 	<TITLE>OpenLCB FAQ</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100628;8492500">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20100731;15150200">
 	<META NAME="CLASSIFICATION" CONTENT="Frequently Asked Questions">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
 		@page { margin: 2cm }
 		P { margin-bottom: 0.21cm }
+		H3.ctl { font-family: "Arial Unicode MS" }
 	-->
 	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1>OpenLCB Frequently Asked Questions</H1>
+<H1>OpenLCB Frequently Asked Questions and Misconceptions</H1>
 <P STYLE="margin-bottom: 0cm">This page holds the answers to some
-frequently asked questions about OpenLCB.</P>
+frequently asked questions and misconceptions about OpenLCB.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H3>Some have said that the sizes of S-9.6/OpenLCB node IDs and event
-IDs are too large, how do you see that?</H3>
+<H3 CLASS="western">1. Some have said that the sizes of S-9.6/OpenLCB
+node IDs and event IDs are too large, how do you see that?</H3>
 <P STYLE="margin-bottom: 0cm">We are specifically designing a bus for
 both the present and future. We therefore believe in 'thinking big
 but developing small', which means we plan for the more general case,
@@ -39,8 +41,8 @@ easily. For example, a fast-clock-node would produce events with the
 fast-time embedded. Even simple nodes can use these to automate and
 activate actions, without any additional code. 
 </P>
-<H3>But they take up too much room, and will make simple nodes too
-expensive. 
+<H3 CLASS="western">2. But they take up too much room, and will make
+simple nodes too expensive. 
 </H3>
 <P STYLE="margin-bottom: 0cm">Firstly, simple nodes need only a few
 events, so the space taken, even at 8-bytes per event, is not
@@ -56,7 +58,8 @@ limited. In many ways, having large event numbers simplifies, and
 therefore reduces, the firmware required in nodes, see the fast-clock
 example above. 
 </P>
-<H3>Why do you make such a big deal about bridging, isn't it easy? 
+<H3 CLASS="western">3. Why do you make such a big deal about
+bridging, isn't it easy? 
 </H3>
 <P STYLE="margin-bottom: 0cm">No, it is not easy, it's hard to do
 right and even harder to do it automatically. A bunch of hand waving
@@ -65,8 +68,8 @@ everyone knows, the devil is in the details, and we have taken the
 time to think though problems, and to solve them. We have chosen
 solutions that scale gracefully, and that can take advantage of
 commodity equipment such as Ethernet routers.</P>
-<H3>Why are your answers to the NMRAnet mandate questions so much
-more complicated than the other proposals? 
+<H3 CLASS="western">4. Why are your answers to the NMRAnet mandate
+questions so much more complicated than the other proposals? 
 </H3>
 <P STYLE="margin-bottom: 0cm">Stating something does not make it
 true. Whether a proposal fulfills a mandate or criterion is up to the
@@ -79,8 +82,8 @@ duplicate the capabilities of Loconet, albeit on a different
 transport and at a slightly faster bit-rate. Similarly, they only
 propose, at best, partial solutions to the problems facing modular
 groups and museum layouts.</P>
-<H3>Why include Ethernet in your proposal, isn't CAN sufficient for
-large layouts? 
+<H3 CLASS="western">5. Why include Ethernet in your proposal, isn't
+CAN sufficient for large layouts? 
 </H3>
 <P STYLE="margin-bottom: 0cm">CAN is sufficient for many layouts, but
 by no means all. CAN segments have quite strict limits on both node
@@ -100,34 +103,35 @@ segments, while at the same time reducing their required bandwidth.
 In addition, this allows multiple software running on PCs to be
 easily connected to the backbone, and to interact and control the
 resulting network.</P>
-<H3>Why do you use 29-bit headers and place the event IDs into the
-data portion of the CAN packet, isn't that awfully wasteful of the
-limited CAN bandwidth? 
+<H3 CLASS="western">6. Why do you use 29-bit headers and place the
+event IDs into the data portion of the CAN packet, isn't that awfully
+wasteful of the limited CAN bandwidth? 
 </H3>
 <P STYLE="margin-bottom: 0cm">For reliable operation, the CAN bus
 arbitration mechanism requires that the message headers be unique;
 overlapping messages cannot be reliably delivered unless they differ
-in the header. OpenLCB  includes the originating unique node ID in a
+in the header. OpenLCB includes the originating unique node ID in a
 29-bit CAN header to achieve this. In addition, CAN traffic is
 limited by the capability of nodes to generate that traffic, and
 therefore our group feels that the S9.6/OpenLCB packet-size will not
 make a significant impact on the real throughput of the CAN bus.</P>
-<H3>Does a OpenLCB network need any central nodes such as a network
-manager, configuration manager, etc?</H3>
+<H3 CLASS="western">7. Does a OpenLCB network need any central nodes
+such as a network manager, configuration manager, etc?</H3>
 <P STYLE="margin-bottom: 0cm">No, the full capability of OpenLCB is
 available without them. However, you certainly can add those if you
 want, and for larger networks they will be very helpful. 
 </P>
-<H3>Can any OpenLCB node be configured to send any event? In other
-words, can multiple nodes produce the same event message?</H3>
+<H3 CLASS="western">8. Can any OpenLCB node be configured to send any
+event? In other words, can multiple nodes produce the same event
+message?</H3>
 <P STYLE="margin-bottom: 0cm">Yes, two nodes can produce the same
 event ID. The packets will not be identical, as the originating node
 field in the message will be different, and therefore you can tell
 where it came from when debugging, but event-consumers will treat the
 two messages identically. 
 </P>
-<H3>How can two nodes send the same event ID if the top six bytes of
-the event ID are required to be a valid node ID?</H3>
+<H3 CLASS="western">9. How can two nodes send the same event ID if
+the top six bytes of the event ID are required to be a valid node ID?</H3>
 <P STYLE="margin-bottom: 0cm">Those six bytes are the node ID of the
 node that <U>defines</U> the event, not the node that is currently
 <U>producing</U><SPAN STYLE="text-decoration: none"> it. The first
@@ -139,7 +143,92 @@ unique, and therefore no reconfiguration is necessary to avoid
 collisions. We should note that using the node ID is only one of the
 ways to define an event ID. </SPAN>
 </P>
-<HR>
+<H3 CLASS="western"><SPAN STYLE="text-decoration: none">10. How do
+you program a node?</SPAN></H3>
+<P>OpenLCB programs a node two ways:</P>
+<P>(a) By using a node-based UI,for example the Blue-Gold algorithm,
+which lets any node teach its events to one or more other nodes in
+one teaching session.  This lets two or more nodes be taught events
+on the work-bench before they join the layout, after which they would
+learn the interactions with the other layout modules. The user does
+not need to know the node or event numbers, but just selects the
+appropriate consumers and producers, and the node passes the
+<FONT FACE="Times New Roman, serif"><FONT SIZE=3>associated event to
+the other nodes. See the draft video at
+</FONT></FONT><A HREF="http://www.youtube.com/openlcb#p/a/u/2/D95Y2Z-4gRQ"><FONT COLOR="#2e7adb"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>http://www.youtube.com/openlcb#p/a/u/2/D95Y2Z-4gRQ</FONT></FONT></FONT></A><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>
+for a look at Blue/Gold node </FONT></FONT></FONT><FONT FACE="Times New Roman, serif"><FONT SIZE=3>teaching.</FONT></FONT></P>
+<P>(b) By using a configuration tool to set events in nodes.  In
+either case, users do not need to know the node or event numbers
+used.</P>
+<H3 CLASS="western">11. OpenLCB events messages contain a source-node
+ID and an event-ID. In many cases the event-ID contains a node-id.
+How are these all related?</H3>
+<P>The source node-id is *always* carried in the message. In CAN
+messages, this is the node-id alias, and is carried in the header.
+The event-ID is a number unique to the event. On method of generating
+unique IDs is to include a node-id, but this does not need be the
+source-node's ID. In fact the event-ID is independent of the
+source-ID.</P>
+<H3 CLASS="western">12. What do you mean when you say 'programmed on
+the workbench'?</H3>
+<P>We mean that you can teach two or more nodes away from the layout
+to interact together. For example, a yard throat might be controlled
+by four nodes. These can be taught to set the yard's turnouts and to
+interact. When they are connected to the layout, there is no chance
+of a conflict of node or event IDs. The nodes will need to be taught
+how to interact with the other layout nodes (these are called
+edge-events). The yard can be removed and the internal workings
+revised. On return to the layout, all the previous edge events will
+continue to work undisturbed.</P>
+<H3 CLASS="western">13. What use does OpenLCB make of PCs.</H3>
+<P>Multiple PCs can be used for: <BR>(a) Configuration or
+modification of the layout nodes by programming events and
+node-variables, uploading firmware, similarly to JMRI;</P>
+<P>(b) Monitoring and debugging. The PC can 'drill' down to
+bus-segments, modules and node levels;</P>
+<P>(c) Operations. A PC can have multiple programs interacting with
+the layout through a single network interface. This programs can act
+as virtual nodes, monitors, logic extenders, 'glass panels' etc.</P>
+<H3 CLASS="western">14. Do OpenLCB users have to 'turn to the &quot;gods&quot;
+managing the node ID space and <FONT COLOR="#000000"><FONT FACE="Georgia, serif"><FONT SIZE=3 STYLE="font-size: 13pt">get
+allocated a node ID' before they can use nodes?</FONT></FONT></FONT></H3>
+<P STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Of
+course not, 99% of nodes will already have node-ids assigned by their
+manufacturer. Hobbyists can build their own nodes, if they like. In
+this case they can use node-ids already assigned to them through
+their club memberships, use ids reserved for local experimental use,
+or ask for a set of node-ids, likely through a website.</FONT></FONT></FONT></P>
+<H3 CLASS="western">15. How does an OpenLCB node get an unique alias
+on CAN?</H3>
+<P>On power-up each node generates a trial alias based on its
+node-id. It then sends a series of messages guaranteed to detect if
+another node-id has chosen the same alias. If this is the case, it
+will repeat the protocol with a new trial alias. See:</P>
+<P><A HREF="http://www.openlcb.org/trunk/documents/can/CanIDAllocation.html"><FONT COLOR="#2e7adb"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>http://www.openlcb.org/trunk/documents/can/CanIDAllocation.html</FONT></FONT></FONT></A></P>
+<H3 CLASS="western">(7) If OpenLCB events can be any arbitrary number
+(as long as its unique), how <FONT COLOR="#000000"><FONT FACE="Georgia, serif"><FONT SIZE=3 STYLE="font-size: 13pt">does
+the user know who sends what and where an event came from?</FONT></FONT></FONT></H3>
+<P>The Configuration Tool can report all the producers and consumers
+of an event. In addition, every OpenLCB message contains the node
+that sent it, so it is easy to trace its origin.</P>
+<H3 CLASS="western">(8) How can OpenLCB's Big-Events help with using
+legacy equipment?</H3>
+<P><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>Quite
+often we can 'fold' legacy messages inside out events. For example,
+DCC accessory messages can be turned into OpenLCB events. This means
+you can teach an OpenLCB node to respond to any DCC accessory bus
+message – no additional firmware is required in that node! Another
+example is embedding the fast clock time inside events. This means
+*any* OpenLCB node can can act at a specific time, again using the
+basic event-handling code. This was demonstrated at the NMRA
+convention. See draft video at:
+</FONT></FONT></FONT><A HREF="http://www.youtube.com/openlcb#p/a/u/0/aeLkI4jaFmA"><FONT COLOR="#2e7adb"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>http://www.youtube.com/openlcb#p/a/u/0/aeLkI4jaFmA</FONT></FONT></FONT></A></P>
+<P><BR><BR>
+</P>
+<P ALIGN=CENTER><IMG SRC="/Applications/OpenOffice.org.app/Contents/basis-link/share/gallery/rulers/blurulr1.gif" NAME="graphics2" ALIGN=LEFT WIDTH=1039 HEIGHT=12 BORDER=0><BR CLEAR=LEFT><BR><BR>
+</P>
+<P><BR><BR>
+</P>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
 </P>
