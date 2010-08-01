@@ -1,4 +1,4 @@
-                                          1. NMRAnet TM Introduction
+   1. NMRAnet TM Introduction
 
    This document describes NMRAnet, a local control bus developed as a parallel to locomotive control, such
    as DC and DCC.  
@@ -81,52 +81,94 @@ Data:
 
                                                5. CAN Protocol
 
-   General CAN format: [<header:29>](<length:4>) <data:0-64>
+   The CAN-specific adaptation of the Common Protocol is described in this section.
+
+   The general CAN format used is the 29-bit variant:
+   [<header:29>](<length:4>) <datapart:0-64>
    Where:
-   <header:29> - 29-bit header
-   <lenght:4> - number of data bytes
+   <header:29> - 29-bit header, enclosed in []
+   <lenght:4> - number of data bytes, enclosed in ()
    <datapart:0-64> - data-bytes, 0-8
+
+   The description of the OpenLCB CAN packets uses the following abbreviations:
+
+     * NIDa – a 12-bit alias for the full NID (node ID)
+
+     * sNIDa – the soure-node-ID's alias
+
+     * dNIDa – the destination-node-ID's alias
+
+     * format – 3-bit field that determines the packet format
+
+     * type– 8-bit message type indicator
+
+     * flags – 4-bit field that carries specific message flag bits
 
 Forms:
 
-   [<format:3><0000><type:8><sNIDa>](len:4>)<data:0-8> or
-   [<format:3><dNIDa:12><sNIDa>](len:4>)<data:0-8>
+   Adaptation of the OpenLCB Common Protocol messages uses a general form:
+   [<format:3><variableField:12><sNIDa>](len:4>)<data:0-64>
+
+    This is divided into two main sub-forms, with different uses for the variableField:
+
+     * Those messages without a source-node ID:  [<format:3><type:8><flags:4><sNIDa>](len:4>)<data:0-64>
+
+     * And those with a source-node ID:
+       [<format:3><dNIDa:12><sNIDa>](len:4>)<mti:8><data:0-56>   
 
 Formats:
 
-    1. 0 Simple MTI
+   The 3-bit format field determines how the rest of the packet is interpreted:
 
-    2. 1 Complex MTIFull source node ID
+     * 0 0b000 Simple MTI
 
-    3. 2 n/u
+     * 1 0b001 Complex MTI, includes full source node ID
 
-    4. 3 n/u
+     * 2 0b010 reserved
 
-    5. 4 Datagram frame, fragment, continuing
+     * 3 0b011 reserved
 
-    6. 5 Datagram frame, last fragment
+     * 4 0b100 Datagram frame fragment, continuing
 
-    7. 6 Destination, non-stream
+     * 5 0b101 Datagram frame, last fragment
 
-    8. 7 Destination, stream
+     * 6 0b110 Destination, non-stream
+
+     * 7 0b111 Destination, stream
 
 Basic Messages:
 
+   This section describes the three basic types of messages that as a basis for operation and layered
+   protocols.  
+
    Events
+
+   Event-messages implement Producer-Consumer Events.  They are the work-horse of operations and implement
+   m:n relationships.  They are also used for embedded information, such as fast-clock-time, and to port
+   other foreign event protocols to OpenLCB by embedding.   
 
    [<pri><0><0x02D><sNIDa:12>]<8><event:64>
 
    Datagrams
 
-       Middle:
+   Datagrams are used to sent small amounts of data, between 1 and 72 bytes, between nodes.  Since CAN
+   packets are limited to a 8-byte datapart, the Common Message Datagram is implemented as a set of
+   'middle'-packets, and ending with an 'end'-packet.  
+
+      Middle packets:
 
    [<pri><4><sNIDa:12><dNIDa:12>](<len:4>)<data:0-64>
 
-       End:
+       End packet:
 
    [<pri><5><sNIDa><dNIDa>](<len:4>)<data:8-64>
 
    Streams
+
+   Streams are designed for sending large amounts of data between two nodes as a continuous stream of
+   messages.  CAN packets are limited to 8-bytes in the datapart.  Because of buffering concerns, strams
+   involve a significant set-up overhead in order to negotiate buffer-sizes across multiple segments.
+    These  stream-management packets are described later.  
 
    [<pri><7><dNIDa:12><sNIDa:12>](<len:4>)<data:0-64>
 
@@ -134,67 +176,81 @@ Basic Messages:
 
 Management Messages:
 
-   Initialization complete:
+   Initialization complete
+   This packet indicates that a node has completed its initialization.  
 
    [<pri><1><0x008><sNIDa>](6) NID
 
    Verify Node ID Number
+   Request verification responses from a specific or all nodes.
 
    [<pri><6><dNIDa><sNIDa>](1) 0x0A – specific node
 
-   [<pri><0><0x00A><sNIDa>](0) - all nodes
+   [<pri><0><0x0AF><sNIDa>](0) - all nodes
 
    Verified Node ID Number
+   Requset a response wrt its node ID from a specific node.
 
-   [<pri><1><0x00B><sNIDa>](6) NID
+   [<pri><1><0x0BF><sNIDa>](6) NID
 
    Optional Interaction Rejected
+   This packet indicates that a node can not participate in a protocol.  
 
    [<pri><6><dNIDa><sNIDa>](2) 0x0C MTI
 
    Terminate Due to Error
+   This indicates that a node cannot proceed with a protocol.  
 
    [<pri><6><dNIDa><sNIDa>](2) 0x0D MTI
 
    Event Exchange Messages
 
    Identify Consumers
+   Request nodes report interest in an event, as a consumer.  
 
-   [<pri><0><0x024><sNIDa>](8) EID
+   [<pri><0><0x24F><sNIDa>](8) EID
 
    Consumer Identify Range
+   A node reporting interest in a range of events, as a consumer, as indicated by a mask.  
 
-   [<pri><1><0x025><sNIDa>](8) Event-mask
+   [<pri><1><0x25F><sNIDa>](8) Event-mask
 
    Consumer Identified
+   A node is reporting interest in an event, as a consumer.
 
-   [<pri><1><0x026><sNIDa>](8) EID
+   [<pri><1><0x26><11vu><sNIDa>](8) EID
 
-   Identify Producers
+   Identify Producer
+   Request nodes report interest in an event, as a producer.  
 
-   [<pri><0><0x028><sNIDa>](8) EID
+   [<pri><0><0x28F><sNIDa>](8) EID
 
    Producer Identify Range
+   A node is reporting interest in a range of events, as a producer, as indicated by a mask.  
 
-   [<pri><1><0x029><sNIDa>](8) Event-mask
+   [<pri><1><0x29F><sNIDa>](8) Event-mask
 
    Producer Identified
+   A node is reporting interest in an event, as a consumer.
 
-   [<pri><1><0x02A><sNIDa>](8) EID
+   [<pri><1><0x2A><11vu><sNIDa>](8) EID
 
    Identify Events
+   Request to report all events, to a specific or all nodes.
 
    [<pri><6><dNIDa><sNIDa>](1) 0x2B – specific node
 
    [<pri><0><0x02B><sNIDa>](0)  - all nodes
 
    Learn Event
+   Teach a specific event to all nominated event slots.  
 
-   [<pri><0><0x02C><sNIDa>](8) EID
+   [<pri><0><0x2CF><sNIDa>](8) EID
 
    P/C Event Report (event message)
+   Basic event packet.  
 
-   [<pri><0><0x02D><sNIDa>](8) EID
+   [<pri><0><0x2DF><sNIDa>](8) EID
 
     
 
@@ -205,8 +261,6 @@ Management Messages:
     
 
    Table of Contents
-
-   1. NMRAnet TM Introduction
 
    2. Transports
 
