@@ -1,0 +1,239 @@
+                                          1. NMRAnet TM Introduction
+
+   This document describes NMRAnet, a local control bus developed as a parallel to locomotive control, such
+   as DC and DCC.  
+
+                                                2. Transports
+
+   Although NMRAnet is designed to operate on multiple transports, this document will be limited to
+   descriptions of the protocol adapted to CAN and Ethernet.  
+
+   CAN Standard Version 2.0 A&B shall be adhered to for all signals on the CAN bus.  The CAN Extended frame
+   shall be used by NMRAnet to transfer data.
+
+   Ethernet standards are adhered to in the adaptation of NMRAnet to it.  
+
+                                     3. Common Protocol Frame Definition
+
+   The Common protocol describes the generalized protocol that is not directed at a specific transport.
+    The following is the Common Protocol Frame Definition:
+
+   <MTI:16><sNID:48>{<dNID:48>}{<Flags:8}<Length:16><Data:0-2k>
+   Where:
+   MTI – message type indicator
+   sNID = source node-ID
+   dNID = destination node-ID
+   Length – length of data bytes
+   Data – data associated with the message
+
+MTI – Message Type Identifier:
+
+   <00110><pri:2><0><type:4><0><DID:1><EV:1><Flags:1>
+   Where:
+   <00110> - reserved field, must be checked
+   <pri:2> - priority, 00 is high, 11 is low
+   <0> - reserved
+   <type:4> - type of message
+   <0> - reserved
+   <DID:1> - Destination node ID indicator, 0=not present, 1=present
+   <EID:1> - Event ID indicator, 0=not present, 1=present
+   <FLAGS:1> - flags-byte indicator, 0=not present, 1=present
+   Notes:
+
+    1. If the DID is present, it must be mappable to the full NID., and is located at the start of the
+       data-part;
+
+    2. If the EID is present, it follows the EID, if present, else is located at the start of the
+       data-part;
+
+    3.  If the flag-byte is present, the low bits of it may be relocated in CAN messages.   
+
+sNID – Source Node ID:
+
+   The can be the full node ID (48-bits) or an alias on some transports, such as CAN.  It must be
+   translatable between the two forms.  
+
+dNID – Destination Node ID:
+
+   This is an optional field, and its presence is indicated by the DID-bit in the MTI.  
+
+Event ID:
+
+   This is an optional field, and its presence is indicated by the EID-bit in the MTI.  
+
+Flags-byte:
+
+   This is an optional field, and its presence is indicated by the Flags-bit in the MTI.  
+
+Data:
+
+   This is an optional field, and can be up to 2k in length.  
+
+                                              4. Common Protocol
+
+   The common Protocol has three basic message types:
+
+     * Events: <00110><pri:2><0><xxxx><0010><sNID><event#>
+
+     * Datagrams: <00110><pri:2><0><yyyy><0z00><sNID>{<dNID>}<data:0-2k>
+
+     * Streams: <00110><pri:2><0><zzzz><0100><sNID><dNID><data:0-2k>
+
+                                               5. CAN Protocol
+
+   General CAN format: [<header:29>](<length:4>) <data:0-64>
+   Where:
+   <header:29> - 29-bit header
+   <lenght:4> - number of data bytes
+   <datapart:0-64> - data-bytes, 0-8
+
+Forms:
+
+   [<format:3><0000><type:8><sNIDa>](len:4>)<data:0-8> or
+   [<format:3><dNIDa:12><sNIDa>](len:4>)<data:0-8>
+
+Formats:
+
+    1. 0 Simple MTI
+
+    2. 1 Complex MTIFull source node ID
+
+    3. 2 n/u
+
+    4. 3 n/u
+
+    5. 4 Datagram frame, fragment, continuing
+
+    6. 5 Datagram frame, last fragment
+
+    7. 6 Destination, non-stream
+
+    8. 7 Destination, stream
+
+Basic Messages:
+
+   Events
+
+   [<pri><0><0x02D><sNIDa:12>]<8><event:64>
+
+   Datagrams
+
+       Middle:
+
+   [<pri><4><sNIDa:12><dNIDa:12>](<len:4>)<data:0-64>
+
+       End:
+
+   [<pri><5><sNIDa><dNIDa>](<len:4>)<data:8-64>
+
+   Streams
+
+   [<pri><7><dNIDa:12><sNIDa:12>](<len:4>)<data:0-64>
+
+    
+
+Management Messages:
+
+   Initialization complete:
+
+   [<pri><1><0x008><sNIDa>](6) NID
+
+   Verify Node ID Number
+
+   [<pri><6><dNIDa><sNIDa>](1) 0x0A – specific node
+
+   [<pri><0><0x00A><sNIDa>](0) - all nodes
+
+   Verified Node ID Number
+
+   [<pri><1><0x00B><sNIDa>](6) NID
+
+   Optional Interaction Rejected
+
+   [<pri><6><dNIDa><sNIDa>](2) 0x0C MTI
+
+   Terminate Due to Error
+
+   [<pri><6><dNIDa><sNIDa>](2) 0x0D MTI
+
+   Event Exchange Messages
+
+   Identify Consumers
+
+   [<pri><0><0x024><sNIDa>](8) EID
+
+   Consumer Identify Range
+
+   [<pri><1><0x025><sNIDa>](8) Event-mask
+
+   Consumer Identified
+
+   [<pri><1><0x026><sNIDa>](8) EID
+
+   Identify Producers
+
+   [<pri><0><0x028><sNIDa>](8) EID
+
+   Producer Identify Range
+
+   [<pri><1><0x029><sNIDa>](8) Event-mask
+
+   Producer Identified
+
+   [<pri><1><0x02A><sNIDa>](8) EID
+
+   Identify Events
+
+   [<pri><6><dNIDa><sNIDa>](1) 0x2B – specific node
+
+   [<pri><0><0x02B><sNIDa>](0)  - all nodes
+
+   Learn Event
+
+   [<pri><0><0x02C><sNIDa>](8) EID
+
+   P/C Event Report (event message)
+
+   [<pri><0><0x02D><sNIDa>](8) EID
+
+    
+
+    
+
+    
+
+    
+
+   Table of Contents
+
+   1. NMRAnet TM Introduction
+
+   2. Transports
+
+   3. Common Protocol Frame Definition
+
+   MTI – Message Type Identifier:
+
+   sNID – Source Node ID:
+
+   dNID – Destination Node ID:
+
+   Event ID:
+
+   Flags-byte:
+
+   Data:
+
+   4. Common Protocol
+
+   5. CAN Protocol
+
+   Forms:
+
+   Formats:
+
+   Basic Messages:
+
+   Management Messages:
+
+    
