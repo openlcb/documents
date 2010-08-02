@@ -6,11 +6,12 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100708;22494000">
+	<META NAME="CHANGED" CONTENT="20100801;23251500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -48,7 +49,7 @@ knob”. Might be physical, might be just virtual e.g. switch back
 and forth via button.</P>
 <P>Throttles need to be able to retrieve roster information (name,
 perhaps description and picture?) in addition to talking to control
-system.  Might not come from the same place!</P>
+system. Might not come from the same place!</P>
 <H3>Design Points</H3>
 <P>Use events for global communication, but mostly exchange
 point-to-point datagrams. A large series of unique node IDs has been
@@ -60,7 +61,7 @@ for start.</P>
 can be used to drive displays on the throttle once it's identified. 
 </P>
 <P>A node may have multiple “throttles” in it, e.g. two in a
-hand-held.  Need to be able to specify which when talking to and from
+hand-held. Need to be able to specify which when talking to and from
 the throttle, e.g. need to have a way to identify a specific
 “throttle” in the node with a specific display.</P>
 <H2>Proposed Protocol</H2>
@@ -100,7 +101,7 @@ during interchange.
 </P>
 <P>Throttle T sends single-frame datagrams with speed, functions as
 needed; 5 byte payload in 1<SUP>st</SUP> frame if Type, ID present,
-allowing a command byte and speed, with some functions.  Might still
+allowing a command byte and speed, with some functions. Might still
 want to separate speed and function.</P>
 <P>Command station C returns status datagrams as needed</P>
 <H4>Transfer command station</H4>
@@ -294,11 +295,11 @@ available, e.g. DCC NMRA now has <U>three</U> overlapping function
 address spaces, perhaps more if you count consisting. Bit mask is
 convenient for some things, but most option operations are just one
 change. Include a duration code for precise timing? Then sequences
-for sounds? Then what? If use bit mask, how many?  0-28 fits in four
-bytes, which is available. Any systems have more than that?  Is CAN
+for sounds? Then what? If use bit mask, how many? 0-28 fits in four
+bytes, which is available. Any systems have more than that? Is CAN
 fast enough that two consecutive commands to change two things at the
 same time doesn't introduce too much skew?</P>
-<P>Allocation commands – release, allow dual use, etc.  
+<P>Allocation commands – release, allow dual use, etc. 
 </P>
 <P>Get status: Read back everything the command station knows.</P>
 <P>Get info: For e.g. roster information. Might have to go to some
@@ -390,6 +391,21 @@ Therefore, the NID prefix could be derived from the layout ID, the
 meet's range, or a fixed number denoting 'Train'. Train NIDs would
 then have the form TRAIN.x, where x is 0-65k, and TRAIN is a fixed
 48-bit number.</P>
+<H3>Controlling turnouts from a throttle</H3>
+<P>E.g. LocoNet throttles let you send a message “change turnout
+23” to the DCC system. How to do that in OpenLCB?</P>
+<P>First, people don't want to enter the actual address of a turnout
+on a their throttle; they want to enter some useful number.  LocoNet
+has an entire mechanism in place to do that, but it's such a pain to
+set up that almost nobody uses it (Bushby bit).   Right way to do it
+is to teach the throttle a set of useful names for the things it
+wants to address, e.g. by downloading a list of names that can be
+scrolled through. WiThrottle does this by downloading the JMRI user
+names into the iPhone/Android for selection by the user. Need a
+protocol for that.</P>
+<P>For a really simple throttle, e.g. PIC-based, the best approach
+might be to do this in some central node that supports the IT (idiot
+throttle) and does any needed translation.</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
