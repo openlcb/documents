@@ -1,0 +1,285 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Note: Wireless Protocol</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100729;245100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Note: Wireless Protocol</H1>
+<P>This document is the start of discussions on a protocol for 
+communication over "low-performance" wireless links.</P>
+<H2>Environment of Proposal</H2>
+<H3>Requirements</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Preferences</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H3>Design Points</H3>
+<UL>
+	<LI><P></P>
+</UL>
+<H2>Discussion</H2>
+<P>The following was from several email discussions, not one single
+sequence. Authors are attributed in the headings. </P>
+
+<h4>Aug 3, 2010, at 10:49 AM, Bob Jacobsen</h4>
+
+<pre>
+(Starting a new thread with a better subject)
+
+Paul and Alan have raised a bunch of interesting issues associated 
+with wireless connections, see below.
+
+It sounds like now is a good time to start thinking about OpenLCB over 
+wireless links, e.g. the characteristics of a "wireless wire 
+protocol" (sorry, couldn't resist).
+
+My initial thinking was that this would be handled where the "wwp" 
+connects to the rest of the world. E.g. "wwp nodes" would talk a 
+specific way among themselves, like "CAN nodes" talk a specific way to 
+each other. Then, when information has to go to the wider world, 
+there would be gateways/routers responsible for transforming wwp to 
+other form(s).
+
+(As an aside, in 30+ years working with digital communications at the 
+nitty-gritty level, I've _never_ seen anything that's truly "transport 
+independent" across more than one transport. There's always something 
+that's done to adapt to another transport form, whether it be 
+packetization, zero-insertion, reformatting or something else. Two 
+non-identical transport mechanisms are, well, not identical, and the 
+real issue is how hard/easy/automatic it is to make the transformation)
+
+But if we want to extend OpenLCB to a transport protocol that's not 
+"reliable" (no loss, no duplicates, no reordering), we should look at 
+the implications of that. Can we handle them at the level of the wire 
+protocol? Or will this force changes at higher levels?
+
+For example, datagrams for e.g. configuration have some nice 
+properties. For one, duplicates don't cause trouble for 
+configuration, because each carries address, etc (they cause trouble 
+for the datagram state machine, but that's not the level I'm looking 
+at right now) That requires more overhead in the messages than e.g. 
+send the address, then a bunch of data in separate datagrams, but it 
+enables stateless code at both ends which is very nice. In the 
+presence of duplication, do we need to put more emphasis on doing this 
+kind of thing in all protocols?
+
+For another example, streams rely very, very heavily on the "reliable" 
+property. They have no internal structure to detect loss, duplication 
+or reordering, nor to cope with it. I think I start to see how 
+_detection_ can be added with e.g. sequence numbers, but _correction_ 
+has more complex implications for buffering, especially at 
+intermediate nodes. Do gateways have what they need to be able to 
+handle correction of lost/missing/reordered messages in a stream? 
+That needs to be carefully examined, probably simulated, and 
+eventually tested.
+
+Or is it possible to take an approach where some other, commonly 
+available protocol can be layered on the wireless to just fix the 
+problem? An analogy would be: when Internet Protocol (IP) doesn't 
+meet the need, one uses TCP/IP instead. Is there an equivalent "TCP 
+for wireless"?
+
+There's some really, really interesting stuff here. Sometimes we use 
+"interesting" to mean "insanely hard", though...
+
+Bob
+
+On Aug 2, 2010, at 8:55 PM, paul.bender@acm.org wrote:
+
+> On 3 Aug, Bob Jacobsen wrote:
+>> On Aug 2, 2010, at 4:40 PM, paul.bender@acm.org wrote:
+>>> Remember here, I'm interested in doing this wirelessly...
+>>> We cannot consider this an error, because, for all we know, the old
+>>> next hop neighbor has gone off line (it has gone to sleep, moved out
+>>> of communication range,etc), and the network topology is adjusting
+>>> to the new node arrangement... but this leaves open the possibilty 
+>>> of
+>>> receiving a duplicate message from the network if the next hop 
+>>> neighbor
+>>> is still active.
+>>>
+>> That's going to add some excitement!
+>>
+>> A _lot_ of OpenLCB's simplicity comes from assuming reliable
+>> transport: No messages lost, no messages duplicated.
+>>
+>> I'm at a loss for how to deal with nodes that can't be heard at all.
+>> If e.g. a handheld throttle can't be heard, it can't control things.
+>> About the only thing one can say is "don't do that".
+>
+> Since we're talking about an ad-hoc network here, which is very
+> beneficial to the modular railroading world, there are two problems 
+> that
+> do need to be addressed.
+>
+> The easy problem is that the node is acting as a relay node. When a 
+> node
+> like this goes offline, the network needs to re-route traffic around 
+> the
+> now missing link.
+>
+> The second case it is that a node is an endpoint. There are two
+> possible cases:
+> case 1) the node moves from one segment of the network to another.
+> In this case, the network topology needs to be updated to
+> reflect the new location.
+>
+> case 2) A node disappears and possibly re-appears later. You can
+> think of this as a throttle being turned off for a while (in the
+> sensor network world, we would say the node is sleeping - which
+> means at least the transceiver is turned off). While the node is
+> off, any packets addressed to it either needs to be stored for
+> later delivery (if the message must be delivered) or simply
+> discarded, if the application requires the nodes to be online
+> when the messages are sent.
+>
+> In an ad-hoc network, there's nothing to say a node can't be both a
+> relay and an endpoint.
+>
+>> Duplicated messages, particularly intermitted duplicated messages,
+>> seem somewhat different. Certain ones won't make much difference (A
+>> truly duplicated PCER event report isn't necessarily a disaster), but
+>> other ones are going to seriously mess with communications state
+>> machines and cause much trouble.
+>>
+>> What are the usual ways of dealing with this when connecting wireless
+>> networks?
+>
+> When this matters, we allow duplicate packets to arrive, and We use
+> sequence numbers to filter out duplicates in the networking stack. 
+> This
+> is true even in the embedded systems I work with (Which are mostly 
+> based
+> on IEEE 802.15.4 hardware... so the frames are limited to a maximum of
+> 128bytes.)
+>
+> These sequence numbers can be simple sequence numbers... i.e. the
+> sequence number for the next message received must be larger than the
+> one for the last message received....
+>
+> Though generally they are tied in with the reliable delivery 
+> mechanisms
+> somehow... in this case, acknowledgments are sent for single 
+> packets...
+> possibly on a hop by hop basis (It's cheaper from both a bandwidth and
+> energy perspective to retransmit over a single hop rather than over 
+> the
+> entire path...).
+>
+
+On Aug 3, 2010, at 1:13 AM, alanheathrobinson wrote:
+
+>
+> On Paul's comments, my only thoughts so far are:-
+>
+> 1. Radio networks are a mystery.
+>
+> 2. They can't possibly be ignored.
+>
+> 3. Dealing with sequence numbers can't be done at CAN end points 
+> because the packets are too small. Sequence numbers would have to be 
+> added and stripped in the gateways.
+>
+> 4. There didn't ought to be any problem in passing sequence numbers 
+> with messages on the backbone. So perhaps the way out would be to 
+> include them in the generic message definitions and make special 
+> arrangements (again!) for CAN.
+>
+
+</pre>
+
+<H4>Aug 3, 2010, at 11:47 AM, Bob Jacobsen wrote</H4>
+<PRE>
+On Aug 3, 2010, at 11:16 AM, Mike Johnson wrote:
+
+> Is this another problem or just the OpenLCB over IP problem again ?
+>
+> If there are OpenLCB CAN to Ethernet gateways, and cheap wireless 
+> routers,
+> and cheap wireless internet devices (Indian goverment $35 ipad) then 
+> will
+> anybody want to design and build something completly different ?
+>
+>
+
+"Wireless" means a lot of different things (1kW CW at 500 KHz 
+anyone?), but I think Paul was referring to Really Low End stuff, such 
+as are used in wireless sensor networks:
+
+http://en.wikipedia.org/wiki/Wireless_sensor_network
+
+The idea is that each itty-bitty-radio doesn't have a lot of 
+communications capability, hence is cheap/light/small, but the network 
+of them still provides useful communications.
+
+It's a reasonable question as to whether e.g. wireless throttles as we 
+know them will survive, as mass-produced devices may replace them. 
+Perhaps people will still want dedicated throttles with knobs, perhaps 
+some other solution will be found.
+
+But I think it's a good bet that _other_ uses for itty-bitty-radio 
+nodes will be found as the cost decreases. E.g., how about direct 
+communications to trains via ibr nodes in place of decoders? Or 
+reducing the wire burden under a layout by having ibr for control 
+point boards?
+</PRE>
+
+<h4>Aug 3, 2010, at 12:38 PM, David Harris</h4>
+<PRE>
+
+> Or is it possible to take an approach where some other, commonly
+> available protocol can be layered on the wireless to just fix the
+> problem? An analogy would be: when Internet Protocol (IP) doesn't
+> meet the need, one uses TCP/IP instead. Is there an equivalent "TCP
+> for wireless"?
+
+This was my thought, too. We package our packets inside another 
+wireless protocol that handles these problems.
+
+This brings to network topology. Should we be setting some 
+restrictions on this, to simply things? Eg should there be 'leaf' 
+segments? CAN segments perhaps should be leaf segments, ie only one 
+connection to the 'backbone'. This would not prevent joining two CAN 
+segments with a bridge/repeaters, though, as long as the other CAN 
+segment was not also connected to the backbone separately.
+
+Similarly, wireless segments perhaps should only connect at one place 
+( although this might be distributed but would appear as one 
+connection).
+</PRE>
+
+<h4>On Aug 3, 2010, at 1:09 PM, alanheathrobinson wrote:</h4>
+<PRE>
+
+Suppose a large layout with a number of CAN segments. 
+A modular meet maybe, and there's a problem to fix.
+
+Clever geezer wants to diagnose it, so he pulls his laptop, 
+a crossover ethernet cable, and a CAN/ethernet gateway out of his 
+bag and hooks up to his own CAN segment. 
+Just like he always does back home, well within his comfort zone.
+
+That CAN segment now has two gateways. 
+Violation of the 'CAN segments must be leaf nodes' rule?
+</PRE>
+
+
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
