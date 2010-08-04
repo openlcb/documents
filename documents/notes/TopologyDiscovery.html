@@ -3,15 +3,14 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Note: Discovering Topology</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100629;21333500">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<META NAME="CHANGED" CONTENT="20100803;22295000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: Discovering Topology</H1>
@@ -27,98 +26,111 @@ to implement that standard.
 <P>(See also the separate figure in a <A HREF="images/images/ATC2.pdf">PDF
 file</A>) 
 </P>
-<P>Each modular organization, eg NTrak, defines a protocol and a set
-of *fixed* events representing edge-messages for intra-module
-communication. They would also assign a range of &quot;Module IDs&quot;
-to clubs and individuals. So, I might be assigned: (symbolically)
-NTrak.dpharris.xx, based on my membership number (01.00.34.02.54.xx,
-say), where xx is my modules' numbers. 
+<P>When joining one set of modules to another set, only the 'edge
+events', is those events that link the modules across their mutual
+adjoining edge, need to be taght.  All internal events between nodes
+on each set of modules do not need to be touched.  
 </P>
-<P>In this proposal the module ID represents a virtual-node, and it
-can represent a single NTrak module, or a set of NTrak modules, which
-comprise one or more nodes. 
+<P>Edge-events will normally be limited to: <BR>  (1) Block-occupancy
+events, and<BR>  (2) Signal events.  
 </P>
-<P>In addition, the organization defines fixed events, eg: 
+<P>In this proposal each module, or set of modules, is assigned a
+module-id.  The module-id represents the module as a virtual-node.  
+Note that the nodes in these modules still have their own node IDs
+and events. 
+</P>
+<P>The modules can then send a set of pre-defined events between
+themselves.  
+</P>
+<P>Each modular organization will:<BR>  (1) Develop a protocol which
+defines the set of predefined events that represent the
+edge-messages. <BR>  (2) Assign a range of &quot;Module IDs&quot; to
+clubs and individuals. So, for example I might be assigned:
+Ntrak.dpharris.xx (symbolically) or 01.00.34.02.54.xx (numerically),
+based on Ntrak's number (01.00.43) and my membership number (0254). 
+My modules would be numbered 01, 02, 03 etc. <BR>  (3) Develop a set
+of global events,  if needed, such as 'Start Auto-topology
+Configuration'.  
+</P>
+<P>As an example of predefined edge-events, Ntrak might define: 
 </P>
 <OL>
-	<LI><P STYLE="margin-bottom: 0cm">0001 Start auto-topography
-	configuration 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0002 Stop ATC 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0003 Track 1 East block is
+	<LI><P STYLE="margin-bottom: 0cm">0001 Red-Line East block is
 	occupied 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0004 Track 1 East block is
+	<LI><P STYLE="margin-bottom: 0cm">0002 Red-Line East block is
 	unoccupied 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0005 Track 1 East signal is stop 
+	<LI><P STYLE="margin-bottom: 0cm">0003 Red-Line East signal is stop 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0006 Track 1 East signal is
+	<LI><P STYLE="margin-bottom: 0cm">0004 Red-Line East signal is
 	caution 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">0007 Track 1 East signal is
+	<LI><P STYLE="margin-bottom: 0cm">0005 Red-Line East signal is
 	proceed 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">... 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">001D Track 3 West block is
+	<LI><P STYLE="margin-bottom: 0cm">001D Green-Line West block is
 	occupied 
 	</P>
 	<LI><P>.... 
 	</P>
 </OL>
-<P>Each NTrak module(s) would be required to implement these fixed
-events. This can be done with a dedicated node, possibly obtained
+<P>Each NTrak module would be required to implement these pre-defined
+edge-events.  This can be done by a dedicated node, possibly obtained
 from the organizing committee, or implemented across a number of
-nodes, one at each end of teh module(s), say. To ease set-up, a
-special configuration tool might be provided that knows the event
-numbers, and can program the appropriate event slots in the nodes. 
+nodes, one at each end of the module(s), say. To ease set-up, a
+special configuration tool can be provided that knows the event
+numbers, and can program the appropriate event slots into the nodes. 
 </P>
 <H3>How it works: 
 </H3>
 <P>Consider two modules A and B. 
 </P>
-<PRE STYLE="margin-bottom: 0.5cm">east signal ---&gt; ======loco&gt;== ============== &gt; &gt; &lt;--- west-signal</PRE><P>
+<PRE STYLE="margin-bottom: 0.5cm">west |===1===||=loco&gt;==||====2===||======| east</PRE><P>
 Option 1 - creating the layout by taking a loco for a spin: 
 </P>
-<P>When a loco is transitions from module-A to module-B from west to
-east, module- B will report east-block-occupied and east-signal-state
+<P>When a loco transitions from module-1 to module-2 from west to
+east, module-2 will report east-block-occupied and east-signal-state
 events. In the case of my module, it would send:
-NTrak.dpharris.01.0003 and NTrak.dpharris.01.0005. Since, module-A
-knows the loco is present on it, and that it is exiting to the east,
-it will be expecting to receive some events from its adjacent block.
-It will insert these into into the appropriate event-slots:
-West-block-occupied and West-signal-stop. In addition, it will learn
-the module-id of the adjacent module, as it is embedded in the
-module-event#s. Similarly, when the loco leaves module-A, module-B
-will learn about module-A. In addition, if a module remembers the
-last protocol events it sees, then as soon as it becomes occupied, it
-can insert these events into the appropriate event-slots. 
+NTrak.dpharris.01.0001 and NTrak.dpharris.01.0003. Since, module-1
+knows that the loco is still occupying its west block, and therefore
+is exiting to the east, it will be expecting to receive some events
+from its adjacent module, it can insert these events into into its
+appropriate event-slots: West-block-occupied and West-signal-stop. In
+addition, in the process, it will learn the module-id of the adjacent
+module. Similarly, when the loco completes leaving module-1, module-2
+will learn module-1 events. Alternately, a module can remembers the
+last edge-events it sees, then fill its slots as soon as it becomes
+occupied. 
 </P>
 <P>Option 2 - creating the layout centrally: 
 </P>
 <P>Each track has a one wire electrical bidirectional connection
-between modules. A central meet-network manager gathers all the
-module IDs, and then tells each one in succession to report while it
-simultaneously activates each inter-module line. It repeats this with
-each module in succession. In more detail, the manager tells node-A
-to report. Node-A activates its Track 1 East intra-module line and
-sends the associated East messages. The next node reports
-'West-intra-module-line-activated' and fills its slots with node-A's
+between modules which is used to identify adjacent modules.  The
+central meet network-manager software automatically gathers all the
+module-ids, and then instructs each module, in succession, to report
+while it simultaneously activates each inter-module line. In more
+detail, the manager tells module-1 to report. Module-1 activates its
+Red-line-East intermodule wire and sends the associated East
+messages. The next module detects the active wire and reports 'Module
+-2 West-intermodule-line-activated' and fills its slots with node-1's
 events. This process quickly establishes the topology of the layout.
-The intra-module messages can either be learned by the modules at
-this time, as the above, or the network manager can set them
-explicitly at a later time. 
+The modules can learn the intermodule messages immediately or the
+network manager can set them explicitly, possibly at a later time. 
 </P>
 <H3>Discussion: 
 </H3>
 <H4>Advantages: 
 </H4>
-<P>This should speed up connecting modules. Additional central
-functions of a 'meet-network manager' could be to draw a scale plan
-of the layout, if dimensions of each module is available in an
-electronic form , either from the module-nodes or on separate media. 
+<P>This should greatly speed-up connecting modules. Other central
+functions, which are usually assigned to the human meet
+network-manager, can also be automated.  For example a  scale plan of
+the layout could be developed automatically at the time of topology
+discovery.  The dimensions of each module would be in electronic
+form, either directly from the modules' nodes, or from separate
+media. 
 </P>
 <H4>Disadvantages: 
 </H4>
@@ -128,35 +140,37 @@ standards and protocols. This can be a good or bad thing.
 </P>
 <H3>Comments: 
 </H3>
-<P>Can tumble-down be automatically configured, if the appropriate
-nodes are told to do tumble-down? Similarly, a module that goes from
-a single to double track via a turnout could manage its assignments
-based on the setting of its turnout. 
-</P>
-<P STYLE="margin-bottom: 0cm">Note the nodes in these modules still
-have their own node IDs and events. 
+<OL>
+	<LI><P>Can tumble-down be automatically configured, if the
+	appropriate nodes are told to do tumble-down?</P>
+	<LI><P>Similarly, for a module that goes from a single to double
+	track via a turnout, could it manage its assignments based on the
+	setting of the turnout? 
+	</P>
+</OL>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <H2>May 2010 Discussion</H2>
 <P>Using CAN would work better if only one end was connected at a
-time.  How about a switch in the middle of every module, which can
+time. How about a switch in the middle of every module, which can
 disconnect the ends from each other? Open the switch, have the end of
-module A communicate to the end of module B ot figure out what's
+module A communicate to the end of module B to figure out what's
 going on, then close the switch and have everybody communicate their
 results.</P>
 <P>Alternately, have that be a module in the center that can control
-the switch too, and do it remotely.  Each module closes its switch,
+the switch too, and do it remotely. Each module closes its switch,
 and then tells the newly combined network to close the next switches,
 and pretty soon it's all connected up again (does that work when
-opening the switches?  Must ensure that everybody hears before
-opening up)</P>
+opening the switches? Must ensure that everybody hears before opening
+up)</P>
 <H2>October 2009 Discussion</H2>
 <H3>David Harris</H3>
-<P>MERG list has been batting ideas around about how to do signalling
+<P>MERG list has been batting ideas around about how to do signaling
 and other control using local links between control points.</P>
 <P>I think we need to try to define this for OpenLCB, and we have
 previously made some suggestions around this. I think including local
 topological links are a good idea. Alan and others had suggested
-using a 1-wire like interface to send node.interface info between
+using a 1-wire like interface to send node interface info between
 adjacent nodes -- while in addition having a LCB connection for
 information flow, both between nodes and to others, such as displays.
 The suggestion is to have 4-6 links per node, to connect to adjacent
@@ -164,7 +178,7 @@ nodes. In the case of a track section, only two are needed, for a
 turnout, three, and for slips and other nodes, perhaps up to 6. 
 </P>
 <P>One idea would be to use a very simple active-low 1-wire link. A
-node would pull-down the appropritate link concurrently with&nbsp;a
+node would pull-down the appropriate link concurrently with a
 successful transmission of (specific) LCB packets. The links would
 notify adjacent nodes to process the associated LCB-packets. The
 packets would include the NID and interface#, for auto-configuration,
@@ -180,10 +194,10 @@ likes to discuss options rather than fight for&nbsp;some stupid
 corner. It'might be good to have him on board, but I've no idea if
 he'd be at all interested. 
 </P>
-<P>We haven't got as simple as a 1-wire interface yet. Mike
-Bolton&nbsp;asked if we were familiar with Dallas One-Wire, but
-that's all. The most likely options discussed so far have been my own
-QCBSP (3 pins/wires minimum per neighbour link) and software UARTs (2
+<P>We haven't got as simple as a 1-wire interface yet. Mike Bolton
+asked if we were familiar with Dallas One-Wire, but that's all. The
+most likely options discussed so far have been my own QCBSP (3
+pins/wires minimum per neighbour link) and software UARTs (2
 pins/wires minimum). So far, I'm inclined to favour UARTs (software,
 probably, but the standard needn't specify) for this job. If you've
 got a suggestion using only one wire, I'm all ears. If not, can we
@@ -202,12 +216,12 @@ different&nbsp;CAN segments.
 have to carry repeated node ID and port number, message
 collisions&nbsp;ought to be&nbsp;easy to deal with. If each node
 tries again after a pseudo-random interval based on its node ID
-(we've already&nbsp;mandated code that does most of that), and
-doesn't start to transmit if it has seen an incoming start bit, that
-should work. Another refinement: once a node has successfully
-received its neighbour's node ID, it could drop to a much lower but
-still pseudo-random transmission rate. Hmmmm. Didn't think of that
-until now: I think I'll post&nbsp;it on MERG. 
+(we've already mandated code that does most of that), and doesn't
+start to transmit if it has seen an incoming start bit, that should
+work. Another refinement: once a node has successfully received its
+neighbour's node ID, it could drop to a much lower but still
+pseudo-random transmission rate. Hmmmm. Didn't think of that until
+now: I think I'll post it on MERG. 
 </P>
 <P>Whether the neighbour links also carry track occupancy, etc. as
 well is a moot point. The MERG discussions so far haven't ruled a
@@ -482,15 +496,14 @@ or NMRAnet S9.5.
 </P>
 <H3>David Harris</H3>
 <P>There was mention on MERG about all-RF control of trains (but Alan
-shut it down ;-) ).&nbsp; 
+shut it down ;-) ).  
 </P>
 <P>I can see all RF coming, too. However, OpenLCB should be able to
-adapt easily&nbsp;to these, since we are planning message-routing,
-etc. 
+adapt easily to these, since we are planning message-routing, etc. 
 </P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
-<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=1></FONT></A></FONT>
 </P>
 <P>This is SVN $Revision$ 
 </P>
