@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100801;330200">
+	<META NAME="CHANGED" CONTENT="20100804;18595800">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
@@ -41,7 +42,16 @@ board via zero or more Identify Consumers, Identify Consumed Range,
 Identify Producers and Identify Consumed Range messages. These are
 not required to be in any particular order. 
 </P>
-<H2><A NAME="discovery"></A>B) Node ID Discovery</H2>
+<H2><A NAME="discovery"></A>B) Duplicate Node ID Detection</H2>
+<P>OpenLCB nodes must have unique node IDs.  To detect this across
+the entire connected OpenLCB, all OpenLCB nodes must indicate an
+error if they detect an incoming message with a Source Node ID equal
+to their own.</P>
+<P>To further improve the reliability of this detection, OpenLCB
+nodes should, but need not, emit a Verified Node ID message every 30
+to 90 seconds. 
+</P>
+<H2>C) Node ID Discovery</H2>
 <P STYLE="margin-bottom: 0cm">Upon receipt of a Verify Node ID Number
 message addressed to it, or an unaddressed Verify Node ID Number
 message, a node will reply with an unaddressed Verified Node ID
@@ -52,27 +62,25 @@ specific node is still reachable. When wire protocols compress the
 originating and/or destination NID, this can be used to obtain the
 full NID. 
 </P>
-<H2>C) Protocol Discovery</H2>
+<H2>D) Protocol Discovery</H2>
 <P>OpenLCB defines a number of specific protocols for interacting
 with nodes, including event exchange, datagrams, streams,
-configuration, etc.  These protocols are optional, in the sense that
-not every node will implement every one.  
+configuration, etc. These protocols are optional, in the sense that
+not every node will implement every one. 
 </P>
 <P>To determine which protocols a node implements, a Protocol Support
-Inquiry message is sent to the specific node.  It will reply with a
+Inquiry message is sent to the specific node. It will reply with a
 Protocol Support Reply message that contains one or more bytes of
-data.  A specific bit position has been reserved for each defined
-protocol in a separate spreadsheet 
-(<A HREF="ProtocolBitAllocations.ods">.ods</A>, 
-<A HREF="ProtocolBitAllocations.pdf">.pdf</A>
-form).  If the bit is
+data. A specific bit position has been reserved for each defined
+protocol in a separate spreadsheet (<A HREF="ProtocolBitAllocations.ods">.ods</A>,
+<A HREF="ProtocolBitAllocations.pdf">.pdf</A> form). If the bit is
 zero or not present, the protocol is not supported and requests to
-use it will result in a error.  If present and 1, the protocol is
+use it will result in a error. If present and 1, the protocol is
 supported.</P>
 <P>It is not necessary to check whether a protocol is supported by a
-node before attempting to use the protocol.  If it's not, the error
+node before attempting to use the protocol. If it's not, the error
 handling mechanism (see below) will indicate that.</P>
-<H2>D) Error Handling</H2>
+<H2>E) Error Handling</H2>
 <P STYLE="margin-bottom: 0cm">There are multiple mandatory
 error-handling scenarios defined.</P>
 <H3>Reject Addressed Optional Interaction</H3>
