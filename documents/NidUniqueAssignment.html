@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100804;13133000">
+	<META NAME="CHANGED" CONTENT="20100804;13345100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -71,8 +72,9 @@ number within the range hasn't been assigned.
 <P STYLE="margin-bottom: 0cm">As an initial simplification, and to
 encourage manufacturers to adopt OpenLCB, a group of 2^24 addresses
 will be assigned to each manufacturer with an NMRA manufacturer ID
-number. 
-</P>
+number. Manufacturers can assign a board any Node ID number from
+within their range so long as each number is only assigned to at most
+one node.</P>
 <TABLE BORDER=1 CELLPADDING=2 CELLSPACING=2>
 	<TR>
 		<TH>
@@ -129,12 +131,15 @@ defaults” doesn't lose the self-assigned part of the Node ID, e.g.
 the serial number.</P>
 <H3>Numbers assigned by members of organized groups</H3>
 <P>MERG kit builders and others would like to assign their own
-numbers without going through a complicated process. They can be
+numbers without going through a complicated process. To make this
+possible without any interaction with anybody, these people are
 assigned number ranges that involve their member number in the
-organization. A range of 255 numbers per member is sufficient for
-hobby usage; after building that many, the hobbyist can get a larger
-assignment by asking the central authority for a block. It's also
-convenient to give hobbyists a byte as their range. 
+organization. A member may assign any number from this range to the
+node(s) they produce, provided that each number is assigned to at
+most one node. A range of 255 numbers per member is sufficient for
+hobby usage; after building that many, the hobbyist can get another,
+larger assignment. It's also convenient to give hobbyists a byte as
+their range. 
 </P>
 <P STYLE="margin-bottom: 0cm">Each organization is assigned a unique
 high-order two bytes. The organization member number is given 24
@@ -223,7 +228,7 @@ assignments are:</P>
 </TABLE>
 <P><BR><BR>
 </P>
-<H3>Numbers assigned by do-it-yourself hobbyists</H3>
+<H3>Number ranges assigned by request</H3>
 <P STYLE="margin-bottom: 0cm">Anybody, particularly do-it-yourself
 hobbyists, can request a range of numbers for their own use. Blocks
 will be made easily available from a web site in groups of 2<SUP>8</SUP>
@@ -232,6 +237,70 @@ information to avoid “spam” requests using up the address space.
 Once the block is assigned, individual hobbyists can assign those
 numbers to their boards any way they'd like so long as each number is
 only assigned to at most one node.</P>
+<H3>Numbers assigned using other's methods for assuring uniqueness</H3>
+<P>Other groups have defined mechanisms to ensure that node ID
+numbers or equivalent constructs are uniquely assigned. They may have
+e.g. non-technical reasons for wishing to use those same mechanisms
+to assign OpenLCB node IDs.  Ranges of OpenLCB NIDs can be assigned
+to these, so that when people then use the group's mechanism to
+select a number within that range, the result will be a properly
+unique NID.</P>
+<P>The first example of this is MERG CBUS developers.  MERG CBUS has
+defined a “no cost” way of identifying unique 16-bit Node Number
+(NN) for CBUS use, perhaps with an option 16-bit “Layout Number”.
+People who wish to use this mechanism to allocate unique OpenLCB
+Numbers can, without having to consult anybody, generate an OpenLCB
+Node ID from the unique CBUS number(s) as follows:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=43*>
+	<COL WIDTH=43*>
+	<COL WIDTH=43*>
+	<COL WIDTH=43*>
+	<COL WIDTH=43*>
+	<COL WIDTH=43*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=17%>
+			<P>Byte 1</P>
+		</TH>
+		<TH WIDTH=17%>
+			<P>Byte 2</P>
+		</TH>
+		<TH WIDTH=17%>
+			<P>Byte 3</P>
+		</TH>
+		<TH WIDTH=17%>
+			<P>Byte 4</P>
+		</TH>
+		<TH WIDTH=17%>
+			<P>Byte 5</P>
+		</TH>
+		<TH WIDTH=17%>
+			<P>Byte 6</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>0x03</P>
+		</TD>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>0x05</P>
+		</TD>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>Layout High</P>
+		</TD>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>Layout Low</P>
+		</TD>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>NN High</P>
+		</TD>
+		<TD WIDTH=17%>
+			<P ALIGN=CENTER>NN Low</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
 <H3>Numbers assigned by software at run-time</H3>
 <P>Programs that act as one or more OpenLCB nodes need to associate
 unique NIDs with them. For licensed software, where a unique key can
