@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100804;18595800">
+	<META NAME="CHANGED" CONTENT="20100810;19592900">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -43,14 +44,24 @@ Identify Producers and Identify Consumed Range messages. These are
 not required to be in any particular order. 
 </P>
 <H2><A NAME="discovery"></A>B) Duplicate Node ID Detection</H2>
-<P>OpenLCB nodes must have unique node IDs.  To detect this across
-the entire connected OpenLCB, all OpenLCB nodes must indicate an
-error if they detect an incoming message with a Source Node ID equal
-to their own.</P>
+<P>OpenLCB nodes must have unique node IDs. To detect this across the
+entire connected OpenLCB, all OpenLCB nodes must indicate an error if
+they detect an incoming message with a Source Node ID equal to their
+own. If possible, they should indicate it at the board itself using a
+light or similar.  If possible, they should emit a PCER message with
+the “Duplicate Source ID detected” global event, which will carry
+the duplicate event ID in the Source Node ID field. 
+</P>
+<P>After sending the “Duplicate Source ID detected” global event,
+the node should not transmit any further messages until reset because
+this message will be received at the other duplicate-ID node(s),
+resulting in additional “Duplicate Source ID detected” global
+events and causing a possible message loop.</P>
 <P>To further improve the reliability of this detection, OpenLCB
 nodes should, but need not, emit a Verified Node ID message every 30
-to 90 seconds. 
-</P>
+to 90 seconds. As an implementation detail, it's recommended that
+CAN-attached nodes use their NIDa to pick that interval so that
+messages don't bunch up.</P>
 <H2>C) Node ID Discovery</H2>
 <P STYLE="margin-bottom: 0cm">Upon receipt of a Verify Node ID Number
 message addressed to it, or an unaddressed Verify Node ID Number
