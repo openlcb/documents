@@ -48,7 +48,7 @@
      * “RJ45” refers to the miniature 8 position unkeyed plug and jack defined in sections Section 6.1.1.3
         and Section 6.1.1.4, respectively, of the TIA-968-A specification.
 
-     * “UTP” refers to CAT-3 or better cable as defined in TIA/EIA-568-B.2 or the successor TIA/EIA-568-C.
+     * “UTP” refers to CAT-3 or better cable as defined in TIA/EIA-568-B or the successor TIA/EIA-568-C.
 
      * “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
        11898-2:2003 and their successors.
@@ -65,22 +65,39 @@
     
 
    CAN connections between nodes shall be made using UTP cable. Connectors are not required, but if
-   connectors are provided, there shall be a RJ45 plug on the cable and RJ45 jack on the node. The UTP
-   cables shall contain either 2 or 4 pairs. The signal, conductor and pair assignments shall be:
+   connectors are provided, there shall be a RJ45 plug on the cable and RJ45 jack on the node.  The signal,
+   conductor and pair assignments shall be:
 
     
 
-   (Table here)
+   Conductor Signal Name TIA/EIA-568-A Pair TIA/EIA-568-B Pair 
+                         (Informative)      (Informative)      
+   1         CAN_H       white/green        white/orange       
+   2         CAN_L       green              orange             
+   3         CAN_GND     white/orange       white/green        
+   4         Reserved    blue               blue               
+   5         Reserved    white/blue         white/blue         
+   6         CAN_GND     orange             green              
+   7         CAN_GND     white/brown        white/brown        
+   8         CAN_V+      brown              brown              
+                                                               
+                                                               
 
     
 
-   If two or more connections are provided, all conductors shall be connected in parallel with connections
-   rated for 1A current or better.
+   Cables, including cables attached to nodes, shall carry conductors 1 & 2 as a pair, and conductors 3 & 6
+   as a pair. Conductors 4 and 5, if present, shall be carried as a pair. Conductors 7 and 8, if present,
+   shall be carried as a pair.
+
+    
+
+   If two or more connections are provided, all eight conductors shall be connected in parallel on all
+   connectors with connections rated for current of at least 1A.
 
     
 
    Voltages of up to 100 volts AC or either polarity DC on the reserved conductors shall not damage the
-   node.
+   node nor prevent normal operation of the node.
 
     
 
@@ -88,8 +105,8 @@
 
     
 
-   Data shall be transferred using a CAN signal at 125kbps and CAN frames. The bit slew rate of the CAN
-   signal, as transmitted, shall be less than 10V/microsecond and more than 4V/microsecond.
+   Data shall be transferred using a CAN signal at 125kbps and CAN frame protocol. The bit slew rate of the
+   CAN signal, as transmitted, shall be less than 10V/microsecond and more than 4V/microsecond.
 
     
 
@@ -97,11 +114,11 @@
 
     
 
-   Node may, but are not required to, provide power to the cable.  If they do, they shall provide at least
-   9VDC and no more than 15VDC from zero current draw up to their specified maximum current. Their
-   specified maximum current shall not exceed 1A. The specified maximum current shall be permanently
-   written on the node in a location visible to the user.  (needs a “shall withstand” clause for applied
-   external voltage?)(needs a “shall withstand short circuits on the output ...”?)
+   Nodes may, but are not required to, provide power to the cable CAN_V+ conductor.  If they do, they shall
+   provide at least 9VDC and no more than 15VDC from zero current draw up to their specified maximum
+   current. Their specified maximum current shall not exceed 1A. The specified maximum current shall be
+   permanently written on the node in a location visible to the user.  (needs a “shall withstand” clause
+   for applied external voltage?)(needs a “shall withstand short circuits on the output ...”?)
 
     
 
@@ -109,11 +126,13 @@
 
     
 
-   Nodes may, but are not required to, draw power from the cable. Nodes shall be labelled with the maximum
-   current they draw. Nodes shall not draw more than 100mA when powered at any voltage from 7.5VDC to
-   15VDC.  Nodes shall operate properly with a supply voltage of 7.5VDC to 15VDC on the cable. (needs a
-   “shall withstand” clause for applied external voltage?)(needs a discussion of isolation, ala Dick's
-   vampire diodes?)
+   Nodes may, but are not required to, draw power from the CAN_V+ conductor in the cable.  Nodes shall not
+   draw more than 250mA at any CAN_V+ voltage from 7.5VDC to 15VDC.  Nodes that draw power from the cable
+   shall operate properly with a supply voltage of 7.5VDC to 15VDC on the CAN_V+ conductor. The maximum
+   current drawn by each node shall be permanently written on that node in a location visible to the user.
+   This label is required whether or not the node draws power from the cable. (needs a “shall withstand”
+   clause for applied external voltage?)(needs a discussion of isolation, ala Dick's vampire diodes? Or
+   leave that for implementors?)
 
     
 
