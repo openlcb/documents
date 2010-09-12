@@ -150,11 +150,95 @@ significant-length CAN bus is very disruptive because it causes reflections.  T
 termination is that it makes it much easier to have multiple terminators (customers think more must be good,
 and mistakenly turn them all on).  
 
-                                                 9 References
+                                      9 Repeaters, Bridges and Gateways
+
+   A CAN segment is a set of directly-connected cables that is shared by multiple nodes with
+   directly-connected transceivers. Any node on the segment can communicate with any other node. A CAN
+   segment has limited length, number of nodes and stub connections due to timing and electrical properties
+   of the cables and transceivers.
+
+   Repeaters, bridges and gateways are methods for connecting two or more CAN segments so that any node can
+   communicate with any node on any of the connected segments. This section provides some background
+   information on the three technologies.  Note that the terminology is somewhat flexible, and not all
+   manufacturers refer to their products in the same way.
+
+   In each section, URLs are provided for a few example devices. Inclusion of a device in this section is
+   not a recommendation, positive or negative, for the device. No inferences should be draw from a device
+   being or not being included in this section.
+
+9.1 Repeaters
+
+   A short CAN segment with many nodes may run out of electrical drive without reaching the timing
+   limitations of the CAN protocol.  In this case, a repeater may be used to connect a second segment
+   containing more nodes.  The repeater effectively boosts the electrical signals moving from one segment
+   to the other, so that the nodes on one side appear as only a single electrical load on the other.
+
+   Doing this takes a small amount of time, so use of repeaters reduces the total possible end-to-end
+   length of the combined CAN segments, typically around 30 m / 100 ft.  Under certain circumstances, they
+   can be used to add long stubs to a CAN network; doing this successfully requires detailed understanding
+   of CAN characteristics.
+
+   Repeaters are sometimes referred to as “working at the bit level”.  The CAN transmission is delayed by
+   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.
+
+   http://www.softing.com/home/en/industrial-automation/products/can-bus/more-can-bus/high-speed/iso-11898-2-repeater.php
+
+   http://www.ixxat.com/introduction-repeater_en.html
+
+   http://www.esd-electronics-usa.com/shared/datasheets/repeat-e.pdf
+
+   http://www.ixxat.com/can_cr200_en.html
+
+9.2 Bridges
+
+   A bridge looks like an independent CAN node on each of two or more CAN segments, receiving frames on a
+   segment and sending them independently on the others. As such, it allows connection of two or more full
+   size, full node-count CAN segments.s
+
+   Bridges are sometimes referred to as “working at the frame level”.  The CAN transmission is delayed by
+   more than a bit time, usually a frame time or longer.
+
+   The CAN arbitration process takes place on each segment independently, and is not shared between the
+   separate segments; frames will appear in different order on the various segments. The protocol(s)
+   running on the CAN segments must be compatible with this reordering.
+
+   Because bridges break the timing connection between the connected segments, they can also be used for
+   remote connections via non-CAN cables, wireless, etc.  In this case, a bridge device is usually used at
+   each end of the remote link, and the protocol between the two devices is specific to the CAN bridge
+   function.
+
+   http://www.ixxat.com/introduction_bridges_en.html
+
+   http://www.ieee-icnp.org/1996/papers/1996-21.pdf
+
+   http://doi.ieeecomputersociety.org/10.1109/ISPAN.1996.509033
+
+   http://www.ixxat.com/can_bridge_en.html
+
+   http://www.wrcakron.com/devicenet/CAN_Bus_Applications.pdf
+
+   http://www.matric.com/canbridge.html
+
+9.3 Gateways
+
+   Gateways connect a CAN segment to another communication technology, such as IP over wireless, Ethernet
+   or some other. In the process, they may reformat or translate the CAN frames as needed. For example, a
+   USB-CAN adapter may convert the CAN frame bytes into some form of human-readable text.
+
+   This reformatting may be independent of the CAN frame content information, or specific to some protocol
+   that defines meaning for the CAN frames.
+
+   http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
+
+   http://news.thomasnet.com/fullstory/Gateway-converts-from-CAN-into-Ethernet-529941
+
+   http://www.icpdas-usa.com/products.php?PID=3075
+
+                                                10 References
 
    This section provides references, and when possible URLs, that may be of use to NMRAnet implementors.
 
-9.1 Standards
+10.1 Standards
 
    The S 9.x.1 standard references ISO 11898-1 and ISO 11898-2 for CAN specifications.  The ISO
    (http://www.iso.org) sells PDF and paper copies of these. Copies can generally be found in engineering
@@ -168,23 +252,23 @@ and mistakenly turn them all on).  
    pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks.  The TIA (http://www.tiaonline.org)
    sells PDF and paper copies of these. Copies can generally be found in engineering libraries.
 
-9.2 Application Notes
+10.2 Application Notes
 
    A number of component manufacturers have written application notes that may be useful to NMRAnet
    developers.  A list is provided here for reference, but please note that none of these are normative;
    for specific values, etc, please refer to the standards listed above.
 
-  9.2.1 Anixter
+  10.2.1 Anixter
 
    “ANSI/TIA/EIA-568-B Standards Reference Guide”
    (http://www.anixter.com/AXECOM/AXEDocLib.nsf/(UnID)/8F2E0839A6190F4986257309005757CC/$file/ANSI-TIA-EIA-568-B.pdf)
 
-  9.2.2 Mohawk.com
+  10.2.2 Mohawk.com
 
    “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”
    (http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html)
 
-  9.2.3 Microchip Corp
+  10.2.3 Microchip Corp
 
    AN713 “Controller Area Network (CAN) Basics” (http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf)
 
@@ -193,11 +277,11 @@ and mistakenly turn them all on).  
    AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”
    (http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf)
 
-  9.2.4 Philips
+  10.2.4 Philips
 
    AN96116 “PCA82C250 / 251 CAN Transceiver” (http://www.nxp.com/documents/application_note/AN96116.pdf)
 
-  9.2.5 Texas Instruments
+  10.2.5 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
    differential signaling (LVDS)” (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
@@ -217,28 +301,28 @@ and mistakenly turn them all on).  
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
    transceiver” (http://focus.ti.com/lit/an/slyt249/slyt249.pdf)
 
-9.3 Component data sheets
+10.3 Component data sheets
 
    This section lists component data sheets that may be of value to the NMRAnet implementor.  Inclusion of
    a component data sheet in this section is not a recommendation, positive or negative, for the component.
-   No inferences should be draw from a component or data sheet not being included in this section.
+   No inferences should be draw from a component or data sheet being or not being included in this section.
 
-  9.3.1 Microchip
+  10.3.1 Microchip
 
    MCP 2551 High-Speed CAN Transceiver (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
 
    MCP2515 Stand-Alone CAN Controller With SPI Interface
    (http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf)
 
-  9.3.2 NXP Electronics (Philips)
+  10.3.2 NXP Electronics (Philips)
 
    PCA82C250 CAN controller interface (http://www.nxp.com/documents/data_sheet/PCA82C250.pdf)
 
-  9.3.3 STMicroelectronics
+  10.3.3 STMicroelectronics
 
    L9615 transceiver (http://www.st.com/stonline/products/literature/ds/5637.pdf)
 
-  9.3.4 Texas Instruments
+  10.3.4 Texas Instruments
 
    ISO1050 Isolated CAN Transceiver (http://focus.ti.com/lit/ds/symlink/iso1050.pdf)
 
@@ -295,30 +379,38 @@ and mistakenly turn them all on).  
    on-board termination is that it makes it much easier to have multiple terminators (customers think more
    must be good, and mistakenly turn them all on).  
 
-   9 References
+   9 Repeaters, Bridges and Gateways
 
-   9.1 Standards
+   9.1 Repeaters
 
-   9.2 Application Notes
+   9.2 Bridges
 
-   9.2.1 Anixter
+   9.3 Gateways
 
-   9.2.2 Mohawk.com
+   10 References
 
-   9.2.3 Microchip Corp
+   10.1 Standards
 
-   9.2.4 Philips
+   10.2 Application Notes
 
-   9.2.5 Texas Instruments
+   10.2.1 Anixter
 
-   9.3 Component data sheets
+   10.2.2 Mohawk.com
 
-   9.3.1 Microchip
+   10.2.3 Microchip Corp
 
-   9.3.2 NXP Electronics (Philips)
+   10.2.4 Philips
 
-   9.3.3 STMicroelectronics
+   10.2.5 Texas Instruments
 
-   9.3.4 Texas Instruments
+   10.3 Component data sheets
+
+   10.3.1 Microchip
+
+   10.3.2 NXP Electronics (Philips)
+
+   10.3.3 STMicroelectronics
+
+   10.3.4 Texas Instruments
 
     
