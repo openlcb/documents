@@ -9,31 +9,29 @@
 
 2.1 Intended Use
 
-   There is no intention that devices that connect more than on CAN segment (e.g. bridges) have to
-   electrically interconnect those separate segments.  
+   The Standard discusses single CAN segments, and is silent on interconnecting multiple segments.  For
+   more discussion of options for interconnection, see the “Repeaters, Bridges and Gateways” section below.
 
-   We don't discuss CAN terminators, because they're discussed in detail in the CAN documentation that the
-   standard references.  A simple resistor on a RJ45 plug can be used, or more complex devices can be
-   created and sold that e.g. contain diagnostic readouts.  So long as it provides in-spec termination,
-   they're all fine.
+   The Standard does not discuss CAN terminators because they're discussed in detail in the CAN literature.
+   See the “Termination” section below for more discussion.
 
 2.2 References and Context
 
    NMRA conformance testing is simplified when it can be done by referring to vendor documentation, rather
-   than requiring specific tests of parameters.  The standard therefore refers to other to existing
+   than requiring specific tests of parameters.  The Standard therefore refers to other to existing
    standards, where possible, instead of repeating the information here.
 
 2.3 Physical Interconnection
 
-   We're trying to enable two basic kinds of nodes:   Board with 2 connectors and box with a pig-tail
-   cable, e.g. a handheld throttle.  But we don't want to rule out e.g. a board with two connectors and
-   three pig-tails for attaching throttles, or anything else, hence the somewhat complex wording in this
-   section.
+   The Standard envisions two basic kinds of nodes:   Board with 2 connectors and box with a pig-tail
+   cable, e.g. a handheld throttle.  At the same time, the Standard should not rule out e.g. a board with
+   two connectors and three pig-tails for attaching throttles, or anything else, hence the somewhat complex
+   wording in this section.
 
    The assignments to particular colors are for information only. These are the colors that users will
-   encounter in the two popular ways of wiring commercial cables.  If you're building a product using
-   commercial cable, using one of these two color codes will reduce confusion, but most NMRAnet users will
-   never need to refer to the colors in their cables.
+   encounter in the two popular ways of wiring commercial cables.  When building a product using commercial
+   cable, using one of these two color codes will reduce confusion, but most NMRAnet users will never need
+   to refer to the colors in their cables.
 
    The signal names refer back to the signal definitions in the CAN specifications. UTP is unshielded
    cable, so the CAN_SHIELD conductor is being used as a second conductor for the CAN ground reference,
@@ -43,9 +41,9 @@
    it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than one
    connection to other nodes.
 
-   We want all 8 wires present so people can add power later, or we can define the reserved conductors
-   later, and still use them. The 1A on interconnects is to make sure they're at least as robust as the
-   connectors and cable.
+   The requirement to have all eight wires present is so people can add power later, or an updated Standard
+   can define the reserved conductors later, and still use them. The 1A requirement on interconnects is to
+   make sure they're at least as robust as the connectors and cable.
 
    For information on sizing circuit board traces to carry the required interconnection current, please see
    “IPC-2152 — Standard for Determining Current-carrying Capacity in Printed Board Design, 2009.”
@@ -53,20 +51,20 @@
    All 8 wires don't have to go through the board if there's only one connection, e.g. a throttle with a
    single jack or pig-tail cable with plug. In that case, only two pairs are required.
 
-   If your product is providing power and has e.g. two jacks, you can either connect them together and
-   provide a max of 0.5A to both combined, or separately power them up to 0.5A each. This is the only case
-   where a conductor doesn't have to pass through the board as a continuous electrical circuit. Note that
-   this means that your product has to provide power, however; if providing power is an option, not always
-   present, you should connect conductor 8 across the board to ensure that downstream nodes aren't cut off
-   from power when it's not provided by your board.
+   If a conforming device is providing power and has e.g. two jacks, the device can either connect them
+   together and provide a max of 0.5A to both combined, or separately power them up to 0.5A each. This is
+   the only case where a conductor doesn't have to pass through the board as a continuous electrical
+   circuit. Note that this means that the device has to provide power, however; if providing power is an
+   option, not always present, the device should connect conductor 8 across the board to ensure that
+   downstream nodes aren't cut off from power when it's not provided by the device.
 
-   The 100V requirement on the reserved conductors is also there to make sure that when we later find a use
-   for it, we don't blow up existing installations. The goal is to have all existing installations be able
-   to move to newly-defined uses without having to retrofit cables nor non-involved nodes.
+   The 100V requirement on the reserved conductors is also there to make sure that when a use if defined
+   for them late, it doesn't blow up existing installations. The goal is to have all existing installations
+   be able to move to newly-defined uses without having to retrofit cables nor non-involved nodes.
 
-   If you want to use the reserved conductors for experimental purposes, we recommend using jumpers (fixed
-   or movable) for making connections to the conductors and/or splitting the reserved conductors between
-   connectors so that you can restore normal usage later, should some other use be defined for them.  
+   To use the reserved conductors for experimental purposes, consider using jumpers (fixed or movable) for
+   making connections to the conductors and/or splitting the reserved conductors between connectors so that
+   the user can restore normal usage later, should some other use be defined for the reserved conductors.  
 
    The 27V requirement comes from the S9.1 limitation on track voltage.
 
@@ -79,20 +77,21 @@
 2.5 Supply of Power
 
    The power supply section is meant to define a 12V nominal system with wide margins on production and
-   consumption of power over the UTP cable. We expect that nodes will use this power in a range of ways,
-   including having local power regulation ranging from simple analog regulators through more advanced
-   supplies that increase current and/or voltage. 12V was chosen to reduce heat loads when using the
-   simplest regulators.  The current limit was required by use of 1 conductor in UTP wiring.
+   consumption of power over the UTP cable. The Standard is written to allow nodes to use this power in a
+   range of ways, including having local power regulation ranging from simple analog regulators through
+   more advanced supplies that increase current and/or voltage. 12V was chosen to reduce heat loads when
+   using the simplest regulators.  The current limit was required by use of 1 conductor in UTP wiring.
 
    Power can be injected into the cable by simple “mid-span injector” devices, essentially just two RJ45
-   connectors and a 2.1mm jack for a wall-wart. It's not required that it comes from a NMRAnet node itself.
+   connectors and a 2.1mm jack for a wall-wart. It is not required that power comes from a NMRAnet node
+   itself.
 
    Note that the standard permits, but does not require, connecting the CAN signal ground on conductors 3 &
-   6 with the PWR_NEG power distribution ground on conductor 7. We expect that most power-supplying and
-   power-consuming boards will connect PWR_NEG and the 3/6 grounds to simplify their internal structure.
-   Designers should carefully consider noise immunity, the possibility of ground loop, and voltage offsets
-   when doing this. A straight copper connection is within the letter of the requirement. An alternative to
-   connecting them directly is e.g. a 10 ohm resistor and a 0.1uF capacitor in parallel.
+   6 with the PWR_NEG power distribution ground on conductor 7. Power-supplying and power-consuming boards
+   can connect PWR_NEG and the 3/6 grounds to simplify their internal structure. Designers should carefully
+   consider noise immunity, the possibility of ground loop, and voltage offsets when doing this. A straight
+   copper connection is within the letter of the requirement. An alternative to connecting them directly is
+   a filtered connection, e.g. a 10 ohm resistor and a 0.1uF capacitor in parallel.
 
    The power provisions are for low-power uses that can be conveniently handled over short lengths of
    cable.  Boards are welcome to have other connectors for power. These other connectors can be anything
@@ -119,45 +118,47 @@
 
   3.1.1 Passive single resistor:  
 
-   This consists simply of a 120 ohm connected etween CAN-H and CAN-L, and is the commonest termination
-   scheme.  It main advantage is simplicity.  
+   A single 120±10 ohm resistor of ¼ watt or more capacity can connected between CAN-H and CAN-L.  This
+   approach has the advantage of simplicity.
 
   3.1.2 Passive split resistors to ground: 
 
    This consists of the CAN-L and CAN-H lines being connected by two 60 ohm resistors in series, with their
-   common connected via a capacitor to ground.   This is simple but also  helps balance the two lines.  
+   common connected via a capacitor to ground.  This provides a bypass to ground for common mode noise. The
+   tolerance on the individual resistor values is significantly tighter than on their total resistance.
+   (ref xx)
 
   3.1.3 Passive split resistors to fixed voltage: 
 
    As in (2), but common is also tied to a fixed voltage. This can be to nominal 2.5V via a voltage divider
-   (ref http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf), or by other means, by using a voltage
-   reference.  Unfortunately, this may lead to problems if there is a large ground offset between two
-   nodes.  
+   (ref yy), or by using a voltage reference (ref zz).  (need a balanced discussion of pros and cons here)
 
   3.1.4 Active termination: 
 
-   This termination is accomplished by using active elements, such as transistors or op-amps to  actively
-   drive the bus to its active state.   Although theoretically possible, this has not been used on CAN.
-    Note: active termination requires power.  
+   This termination is accomplished by using active elements, such as transistors or op-amps, to  actively
+   drive the bus to its proper state.   Because of the recessive component of the ISO 11898-2 CAN signal,
+   this form of termination is not appropriate.
 
   3.1.5 Distributed termination: 
 
-   This is not appropriate for MRR, since it requires a fixed number of nodes.  
+   This technique requires a fixed number of custom-impedance nodes, and is therefore not suitable for
+   model railroad applications that are based on multiple ad-hoc networks made from standard components.
 
 3.2 Placement:   
 
-   Any termination can be supplied as a on-board option, or as a terminator- connector.  Obviously, this is
-   based on the preferences of the manufacturer and  users. Using terminator-plugs would seem to provide
-   the maximum flexibility.  However, as long as on-board termination is de-selectable, flexibility is
-    maintained. Manufacturers may want to provide a special termination node that  as well as providing
-   passive or active termination, also provides some  indication of bus health.  
+   Termination can be supplied as a on-board option, or as a terminator- connector depending on the
+   preferences of the manufacturer and  users. Using terminator-plugs would seem to provide the maximum
+   flexibility.  However, as long as on-board termination is de-selectable, flexibility is  maintained.
+   Manufacturers may want to provide a special termination node to provide some  indication of bus health
+   as well as providing passive or active termination.  
 
-   Termination should, generally, only occur at the two distant ends of the bus, termination in the middle
+   Termination should, generally, only occur at the two distant ends of the bus.Termination in the middle
    of a significant-length CAN bus is very disruptive because it causes reflections.  The one downside to
    on-board termination is that it makes it much easier to have multiple terminators (customers think more
-   must be good, and mistakenly turn them all on).  Note that ISO11898-2 states "The locating of the
-   termination within a CAN node should be avoided because the bus lines lose termination if this node is
-   disconnected from the bus line."
+   must be good, and mistakenly turn them all on).  
+
+   Note that ISO11898-2 states "The locating of the termination within a CAN node should be avoided because
+   the bus lines lose termination if this node is disconnected from the bus line."
 
                                       4 Repeaters, Bridges and Gateways
 
