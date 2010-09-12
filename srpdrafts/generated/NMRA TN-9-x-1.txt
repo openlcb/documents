@@ -1,9 +1,13 @@
                                                 1 Introduction
 
-   This Technical Note contains informative discussion and background for the corresponding S 9.x.1
+   This Technical Note contains informative discussion and background for the corresponding S 9.x.1
    Standard. This Technical Note is not normative in any way.
 
-                                                2 Intended Use
+                                        2 Annotations to the Standard
+
+   This section provides background information on corresponding sections of the S 9.x.1 Standard document.
+
+2.1 Intended Use
 
    There is no intention that devices that connect more than on CAN segment (e.g. bridges) have to
    electrically interconnect those separate segments.  
@@ -13,13 +17,13 @@
    created and sold that e.g. contain diagnostic readouts.  So long as it provides in-spec termination,
    they're all fine.
 
-                                           3 References and Context
+2.2 References and Context
 
    NMRA conformance testing is simplified when it can be done by referring to vendor documentation, rather
    than requiring specific tests of parameters.  The standard therefore refers to other to existing
    standards, where possible, instead of repeating the information here.
 
-                                          4 Physical Interconnection
+2.3 Physical Interconnection
 
    We're trying to enable two basic kinds of nodes:   Board with 2 connectors and box with a pig-tail
    cable, e.g. a handheld throttle.  But we don't want to rule out e.g. a board with two connectors and
@@ -66,13 +70,13 @@
 
    The 27V requirement comes from the S9.1 limitation on track voltage.
 
-                                               5 Data Transport
+2.4 Data Transport
 
    A 4V/microsecond slew rate is preferred to reduce the effect of stubs on the network.
 
    This standard is silent on the use of specific CAN frame formats or features.
 
-                                              6 Supply of Power
+2.5 Supply of Power
 
    The power supply section is meant to define a 12V nominal system with wide margins on production and
    consumption of power over the UTP cable. We expect that nodes will use this power in a range of ways,
@@ -99,61 +103,62 @@
    connected to each other, even if their output voltages are not exactly the same. One way to handle this
    is an isolating diode on the PWR_POS output.
 
-                                            7 Consumption of Power
+2.6 Consumption of Power
 
    For their thermal calculations, node designers must assume that power is supplied at 15V.
 
    For their power calculations, node designers must assume that power is supplied at 7.5V.
 
-                                                8 Termination
+                                                3 Termination
 
-     The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies using a bus termination of
+    The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies using a bus termination of
    120±10 ohms located at each end of the bus..  Several alternate termination schemes have been proposed
    in the literature (see references), and these alternatives are discussed below.   
 
-8.1 Methods
+3.1 Methods
 
-  8.1.1 Passive single resistor:  
+  3.1.1 Passive single resistor:  
 
    This consists simply of a 120 ohm connected etween CAN-H and CAN-L  , and is the commonest termination
    scheme.  It main advantage is simplicity.  
 
-  8.1.2 Passive split resistors to ground: 
+  3.1.2 Passive split resistors to ground: 
 
    This consists of the CAN-L and CAN-H lines being connected by two 60 ohm resistors in series, with their
    common connected via a capacitor to ground.   This is simple but also  helps balance the two lines.  
 
-  8.1.3 Passive split resistors to fixed voltage: 
+  3.1.3 Passive split resistors to fixed voltage: 
 
    As in (2), but common is also tied to a fixed voltage. This can be to nominal 2.5V via a voltage divider
    (ref xx), or by other means, by using a voltage reference.  Unfortunately, this may lead to problems if
    there is a large ground offset between two nodes.  
 
-  8.1.4 Active termination: 
+  3.1.4 Active termination: 
 
    This termination is accomplished by using active elements, such as transistors or op-amps to  actively
    drive the bus to its active state.   Although theoretically possible, this has not been used on CAN.
     Note: active termination requires power.  
 
-  8.1.5 Distributed termination: 
+  3.1.5 Distributed termination: 
 
    This is not appropriate for MRR, since it requires a fixed number of nodes.  
 
-8.2 Placement:   
+3.2 Placement:   
 
-Any termination can be supplied as a on-board option, or as a terminator- connector.  Obviously, this is based
-on the preferences of the manufacturer and  users. Using terminator-plugs would seem to provide the maximum
-flexibility.  However, as long as on-board termination is de-selectable, flexibility is  maintained.
-Manufacturers may want to provide a special termination node that  as well as providing passive or active
-termination, also provides some  indication of bus health.  
+   Any termination can be supplied as a on-board option, or as a terminator- connector.  Obviously, this is
+   based on the preferences of the manufacturer and  users. Using terminator-plugs would seem to provide
+   the maximum flexibility.  However, as long as on-board termination is de-selectable, flexibility is
+    maintained. Manufacturers may want to provide a special termination node that  as well as providing
+   passive or active termination, also provides some  indication of bus health.  
 
-Termination should, generally, only occur at the two distant ends of the bus, termination in the middle of a
-significant-length CAN bus is very disruptive because it causes reflections.  The one downside to on-board
-termination is that it makes it much easier to have multiple terminators (customers think more must be good,
-and mistakenly turn them all on).  Note that ISO11898-2 states "The locating of the termination within a CAN
-node should be avoided because the bus lines lose termination if this node is disconnected from the bus line."
+   Termination should, generally, only occur at the two distant ends of the bus, termination in the middle
+   of a significant-length CAN bus is very disruptive because it causes reflections.  The one downside to
+   on-board termination is that it makes it much easier to have multiple terminators (customers think more
+   must be good, and mistakenly turn them all on).  Note that ISO11898-2 states "The locating of the
+   termination within a CAN node should be avoided because the bus lines lose termination if this node is
+   disconnected from the bus line."
 
-                                      9 Repeaters, Bridges and Gateways
+                                      4 Repeaters, Bridges and Gateways
 
    A CAN segment is a set of directly-connected cables that is shared by multiple nodes with
    directly-connected transceivers. Any node on the segment can communicate with any other node. A CAN
@@ -169,7 +174,7 @@ node should be avoided because the bus lines lose termination if this node is di
    not a recommendation, positive or negative, for the device. No inferences should be draw from a device
    being or not being included in this section.
 
-9.1 Repeaters
+4.1 Repeaters
 
    A short CAN segment with many nodes may run out of electrical drive without reaching the timing
    limitations of the CAN protocol.  In this case, a repeater may be used to connect a second segment
@@ -192,7 +197,7 @@ node should be avoided because the bus lines lose termination if this node is di
 
    http://www.ixxat.com/can_cr200_en.html
 
-9.2 Bridges
+4.2 Bridges
 
    A bridge looks like an independent CAN node on each of two or more CAN segments, receiving frames on a
    segment and sending them independently on the others. As such, it allows connection of two or more full
@@ -222,7 +227,7 @@ node should be avoided because the bus lines lose termination if this node is di
 
    http://www.matric.com/canbridge.html
 
-9.3 Gateways
+4.3 Gateways
 
    Gateways connect a CAN segment to another communication technology, such as IP over wireless, Ethernet
    or some other. In the process, they may reformat or translate the CAN frames as needed. For example, a
@@ -237,11 +242,11 @@ node should be avoided because the bus lines lose termination if this node is di
 
    http://www.icpdas-usa.com/products.php?PID=3075
 
-                                                10 References
+                                                 5 References
 
    This section provides references, and when possible URLs, that may be of use to NMRAnet implementors.
 
-10.1 Standards
+5.1 Standards
 
    The S 9.x.1 standard references ISO 11898-1 and ISO 11898-2 for CAN specifications.  The ISO
    (http://www.iso.org) sells PDF and paper copies of these. Copies can generally be found in engineering
@@ -255,23 +260,23 @@ node should be avoided because the bus lines lose termination if this node is di
    pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks.  The TIA (http://www.tiaonline.org)
    sells PDF and paper copies of these. Copies can generally be found in engineering libraries.
 
-10.2 Application Notes
+5.2 Application Notes
 
    A number of component manufacturers have written application notes that may be useful to NMRAnet
    developers.  A list is provided here for reference, but please note that none of these are normative;
    for specific values, etc, please refer to the standards listed above.
 
-  10.2.1 Anixter
+  5.2.1 Anixter
 
    “ANSI/TIA/EIA-568-B Standards Reference Guide”
    (http://www.anixter.com/AXECOM/AXEDocLib.nsf/(UnID)/8F2E0839A6190F4986257309005757CC/$file/ANSI-TIA-EIA-568-B.pdf)
 
-  10.2.2 Mohawk.com
+  5.2.2 Mohawk.com
 
    “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”
    (http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html)
 
-  10.2.3 Microchip Corp
+  5.2.3 Microchip Corp
 
    AN713 “Controller Area Network (CAN) Basics” (http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf)
 
@@ -280,11 +285,11 @@ node should be avoided because the bus lines lose termination if this node is di
    AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”
    (http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf)
 
-  10.2.4 Philips
+  5.2.4 Philips
 
    AN96116 “PCA82C250 / 251 CAN Transceiver” (http://www.nxp.com/documents/application_note/AN96116.pdf)
 
-  10.2.5 Texas Instruments
+  5.2.5 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
    differential signaling (LVDS)” (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
@@ -304,28 +309,28 @@ node should be avoided because the bus lines lose termination if this node is di
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
    transceiver” (http://focus.ti.com/lit/an/slyt249/slyt249.pdf)
 
-10.3 Component data sheets
+5.3 Component data sheets
 
    This section lists component data sheets that may be of value to the NMRAnet implementor.  Inclusion of
    a component data sheet in this section is not a recommendation, positive or negative, for the component.
    No inferences should be draw from a component or data sheet being or not being included in this section.
 
-  10.3.1 Microchip
+  5.3.1 Microchip
 
    MCP 2551 High-Speed CAN Transceiver (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
 
    MCP2515 Stand-Alone CAN Controller With SPI Interface
    (http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf)
 
-  10.3.2 NXP Electronics (Philips)
+  5.3.2 NXP Electronics (Philips)
 
    PCA82C250 CAN controller interface (http://www.nxp.com/documents/data_sheet/PCA82C250.pdf)
 
-  10.3.3 STMicroelectronics
+  5.3.3 STMicroelectronics
 
    L9615 transceiver (http://www.st.com/stonline/products/literature/ds/5637.pdf)
 
-  10.3.4 Texas Instruments
+  5.3.4 Texas Instruments
 
    ISO1050 Isolated CAN Transceiver (http://focus.ti.com/lit/ds/symlink/iso1050.pdf)
 
@@ -337,85 +342,72 @@ node should be avoided because the bus lines lose termination if this node is di
 
     
 
-    
-
    Table of Contents
 
    1 Introduction
 
-   2 Intended Use
+   2 Annotations to the Standard
 
-   3 References and Context
+   2.1 Intended Use
 
-   4 Physical Interconnection
+   2.2 References and Context
 
-   5 Data Transport
+   2.3 Physical Interconnection
 
-   6 Supply of Power
+   2.4 Data Transport
 
-   7 Consumption of Power
+   2.5 Supply of Power
 
-   8 Termination
+   2.6 Consumption of Power
 
-   8.1 Methods
+   3 Termination
 
-   8.1.1 Passive single resistor:  
+   3.1 Methods
 
-   8.1.2 Passive split resistors to ground: 
+   3.1.1 Passive single resistor:  
 
-   8.1.3 Passive split resistors to fixed voltage: 
+   3.1.2 Passive split resistors to ground: 
 
-   8.1.4 Active termination: 
+   3.1.3 Passive split resistors to fixed voltage: 
 
-   8.1.5 Distributed termination: 
+   3.1.4 Active termination: 
 
-   8.2 Placement:   
+   3.1.5 Distributed termination: 
 
-   Any termination can be supplied as a on-board option, or as a terminator- connector.  Obviously, this is
-   based on the preferences of the manufacturer and  users. Using terminator-plugs would seem to provide
-   the maximum flexibility.  However, as long as on-board termination is de-selectable, flexibility is
-    maintained. Manufacturers may want to provide a special termination node that  as well as providing
-   passive or active termination, also provides some  indication of bus health.  
+   3.2 Placement:   
 
-   Termination should, generally, only occur at the two distant ends of the bus, termination in the middle
-   of a significant-length CAN bus is very disruptive because it causes reflections.  The one downside to
-   on-board termination is that it makes it much easier to have multiple terminators (customers think more
-   must be good, and mistakenly turn them all on).  Note that ISO11898-2 states "The locating of the
-   termination within a CAN node should be avoided because the bus lines lose termination if this node is
-   disconnected from the bus line."
+   4 Repeaters, Bridges and Gateways
 
-   9 Repeaters, Bridges and Gateways
+   4.1 Repeaters
 
-   9.1 Repeaters
+   4.2 Bridges
 
-   9.2 Bridges
+   4.3 Gateways
 
-   9.3 Gateways
+   5 References
 
-   10 References
+   5.1 Standards
 
-   10.1 Standards
+   5.2 Application Notes
 
-   10.2 Application Notes
+   5.2.1 Anixter
 
-   10.2.1 Anixter
+   5.2.2 Mohawk.com
 
-   10.2.2 Mohawk.com
+   5.2.3 Microchip Corp
 
-   10.2.3 Microchip Corp
+   5.2.4 Philips
 
-   10.2.4 Philips
+   5.2.5 Texas Instruments
 
-   10.2.5 Texas Instruments
+   5.3 Component data sheets
 
-   10.3 Component data sheets
+   5.3.1 Microchip
 
-   10.3.1 Microchip
+   5.3.2 NXP Electronics (Philips)
 
-   10.3.2 NXP Electronics (Philips)
+   5.3.3 STMicroelectronics
 
-   10.3.3 STMicroelectronics
-
-   10.3.4 Texas Instruments
+   5.3.4 Texas Instruments
 
     
