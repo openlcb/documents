@@ -114,62 +114,74 @@
                                                3 Design Issues
 
    This section contains discussion of issues that a designer may wish to consider when designing an
-   NRMAnet product.  Nothing in this section is normative.
+   NMRAnet product.  Nothing in this section is normative.
 
 3.1 Bus Termination
 
-    The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies using a bus termination of
-   120±10 ohms located at each end of the bus..  Several alternate termination schemes have been proposed
-   in the literature (see references), and these alternatives are discussed below.   
+    The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies using a bus termination
+   resistor at each end of the bus of 120 (nominal; minimum 100, maximum 130) ohms and rated for 220mW or
+   more.  Several alternate termination schemes have been proposed in the literature, and these
+   alternatives are discussed below.   
 
-  3.1.1 Termination Methods
+  3.1.1 Termination Circuits
 
     3.1.1.1 Passive single resistor
 
    A single 120±10 ohm resistor of ¼ watt or more capacity can connected between CAN-H and CAN-L.  This
    approach has the advantage of simplicity.
 
-    3.1.1.2 Passive split resistors bypassed to ground: 
+    3.1.1.2 Passive split resistors bypassed to ground
 
    This consists of the CAN-L and CAN-H lines being connected by two 60 ohm resistors in series, with their
    common connected via a capacitor to ground.  This provides a bypass to ground for common mode noise. The
    tolerance on the individual resistor values is significantly tighter than on their total resistance.
-   (http://focus.ti.com/lit/an/slla270/slla270.pdf)
+   (http://focus.ti.com/lit/an/slla270/slla270.pdf) 1% tolerance resistors are often used.
 
-    3.1.1.3 Biased split termination: 
+    3.1.1.3 Biased split termination
 
-   As in (2), but the common of the resistors is also tied to a fixed voltage. This can be to nominal 2.5V
-   via a voltage divider (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf), or by using a voltage
-   reference (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf).  If there is a significant offset of
-   ground between two nodes, then this offset will be transmitted to the CAN lines and subsequent
-   degradation of common-mode rejection.  
+   As in (3.1.1.2), but the common of the resistors is also tied to a fixed voltage. This can be to nominal
+   2.5V via a voltage divider (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf), or by using a
+   voltage reference (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf).  If there is a significant
+   offset of ground between two nodes, then this offset will be transmitted to the CAN lines with
+   consequent degradation of common-mode rejection.  
 
-    3.1.1.4 Active termination: 
+    3.1.1.4 Active termination
 
    This termination is accomplished by using active elements, such as transistors or op-amps, to  actively
    drive the bus to its proper state.   Because of the recessive component of the ISO 11898-2 CAN signal,
    this form of termination is not appropriate.
 
-    3.1.1.5 Distributed termination: 
+    3.1.1.5 Distributed termination
 
    This technique requires a fixed number of custom-impedance nodes, and is therefore not suitable for
-   model railroad applications that are based on multiple ad-hoc networks made from standard components.
+   model railroad applications that are based on user-specific ad-hoc networks made from standard
+   components.
 
   3.1.2 Terminator Placement
 
    Termination can be supplied as an on-board option, or as a terminator housed within an RJ45 plug, or as
-   a separate terminator device, depending on the preferences of the manufacturer and  users. Using
-   plug-resident terminators would seem to provide the maximum flexibility.  However, as long as on-board
-   termination is de-selectable, flexibility is  maintained. Manufacturers may want to provide a special
-   termination node to provide some  indication of bus health as well as providing passive termination.  
+   a separate terminator device, depending on the preferences of the manufacturer and users.
 
-   Termination should only occur at the two distant ends of the bus.  Termination in the middle of a
-   significant-length CAN bus is very disruptive because it causes reflections.  The one downside to
-   on-board termination is that it makes it much easier to have multiple terminators (customers think more
-   must be good, and mistakenly turn them all on).  
+   Using plug-resident terminators would seem to provide the maximum flexibility, but it may be difficult
+   to built a split terminator into a RJ45 plug.
 
-   Note that ISO11898-2 states "The locating of the termination within a CAN node should be avoided because
-   the bus lines lose termination if this node is disconnected from the bus line."
+   If on-board terminators are provided, it must be possible to enable or disable them depending on where
+   the node is installed on the CAN segment.  Termination should only occur at the two distant ends of the
+   bus.  Termination in the middle of a significant-length CAN bus is very disruptive because it causes
+   reflections.  The one downside to on-board termination is that it makes it much easier to have multiple
+   terminators (customers think more must be good, and mistakenly turn them all on).   It's recommended
+   that nodes be shipped with on-board terminators disabled, to reduce the chance that a termination load
+   will be attached in the middle of the segment.  Note that ISO11898-2 states “The locating of the
+   termination within a CAN node should be avoided because the bus lines lose termination if this node is
+   disconnected from the bus line.” (Section 5.2.1) and “It is not recommended to integrate the termination
+   into a CAN node.” (Section 7.1)
+
+   Manufacturers may want to provide a special termination node to provide some  indication of bus health
+   as well as providing termination.  Industrial diagnostic equipment provides some examples of what can be
+   done. (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
+   (http://www.ixxat.com/cancheck_en.html?markierung=cancheck)
+   (http://www.ixxat.com/can_bus_tester_cbt_en.html)
+   (http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html)
 
 3.2 EMC Management
 
@@ -183,7 +195,12 @@
 
    See also the “References” section below.
 
-    
+  3.2.1 Chokes
+
+   A series choke or transformer can improve the noise immunity of a CAN transceiver.  The Standard permits
+   the use of one, but doesn't require it.  This advantages and disadvantages of including one are
+   discussed in the NXP (Philips) and Texas Instruments application notes referenced above. Typical parts
+   are the TDK ZJYS81RS-2PL51(T)-G01 and the ZJYS51-2PT.
 
                                       4 Repeaters, Bridges and Gateways
 
@@ -290,8 +307,8 @@
 5.2 Application Notes
 
    A number of component manufacturers have written application notes that may be useful to NMRAnet
-   developers.  A list is provided here for reference, but please note that none of these are normative;
-   for specific values, etc, please refer to the standards listed above.
+   developers.  A list is provided here for reference, but note that none of these are normative; for
+   specific values, etc, please refer to the standards listed above.
 
   5.2.1 Anixter
 
@@ -367,6 +384,25 @@
 
    SN65HVD1050 EMC Optimized CAN Transceiver (http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf)
 
+5.4 Tools
+
+   This section lists tools and diagnostic equipment that may be of value to the NMRAnet implementor.
+    Inclusion of an item in this section is not a recommendation, positive or negative, for the item. No
+   inferences should be draw from an item being or not being included in this section.
+
+  5.4.1 Microchip
+
+   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”
+   (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
+
+  5.4.2 IXAAT
+
+   CANcheck “Installation tester for CAN networks”
+   (http://www.ixxat.com/cancheck_en.html?markierung=cancheck)
+
+   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”
+   (http://www.ixxat.com/can_bus_tester_cbt_en.html)
+
     
 
     
@@ -393,21 +429,23 @@
 
    3.1 Bus Termination
 
-   3.1.1 Termination Methods
+   3.1.1 Termination Circuits
 
    3.1.1.1 Passive single resistor
 
-   3.1.1.2 Passive split resistors bypassed to ground: 
+   3.1.1.2 Passive split resistors bypassed to ground
 
-   3.1.1.3 Biased split termination: 
+   3.1.1.3 Biased split termination
 
-   3.1.1.4 Active termination: 
+   3.1.1.4 Active termination
 
-   3.1.1.5 Distributed termination: 
+   3.1.1.5 Distributed termination
 
    3.1.2 Terminator Placement
 
    3.2 EMC Management
+
+   3.2.1 Chokes
 
    4 Repeaters, Bridges and Gateways
 
@@ -442,5 +480,11 @@
    5.3.3 STMicroelectronics
 
    5.3.4 Texas Instruments
+
+   5.4 Tools
+
+   5.4.1 Microchip
+
+   5.4.2 IXAAT
 
     
