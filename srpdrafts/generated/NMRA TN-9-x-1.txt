@@ -44,13 +44,19 @@
    commercial cable, using one of these two color assignments will reduce confusion, but most NMRAnet users
    will never need to refer to the wire colors in their cables.
 
+   The Standard does not require that all eight conductors be present, but only the four that are minimally
+   necessary for CAN communications.  The reserved and power conductors are optional. This is because some
+   low-cost “Ethernet” cables have only those required pairs present.  Model railroaders who want to
+   minimize cost, do not need distributed power, and are willing to forego future use of the reserved
+   conductors can use these four-conductor “Ethernet” cables between nodes.
+
    The discussion of connecting in parallel is to make sure that all 8 wires go through a board, whether
    it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than one
    connection to other nodes.
 
-   The requirement to have all eight wires present is so people can add power later, or an updated Standard
-   can define the reserved conductors later, and still use them. The 1A requirement on interconnects is to
-   make sure they're at least as robust as the connectors and cable.
+   The requirement to have all eight conductors present in nodes is so people can add power later, or an
+   updated Standard can define the reserved conductors later, and still use them. The 1A requirement on
+   interconnects is to make sure they're at least as robust as the connectors and cable.
 
    For information on sizing circuit board traces to carry the required interconnection current, please see
    “IPC-2152 — Standard for Determining Current-carrying Capacity in Printed Board Design, 2009.”
@@ -100,10 +106,11 @@
 
    A reduced slew rate is preferred to reduce the effect of stubs on the network (c.f. the calculation in
    section 4.8 of TI SLLA 270 http://focus.ti.com/lit/an/slla270/slla270.pdf) It's expected that model
-   railroaders will use eventually be using stubs to e.g. connect to handheld devices, so it's important to
+   railroad networks will eventually use stubs to e.g. connect to handheld devices, so it's important to
    build support for a reasonable number of stubs into the network specification from the start. Note that
    many off-the-shelf CAN transceiver parts have slew rates greater than 10V/microsecond by default. The
-   recommended value for the slew rate is 4V/microsecond.
+   recommended value for the slew rate is 4V/microsecond. The 3.5V/microsecond lower limit is specified to
+   allow some manufacturing margin below the 4V/microsecond recommendation.
 
    The Standard only requires that termination meet the CAN requirements, which are limited to the
    differential total resistance of the terminators. Industry uses some improved termination practices
@@ -117,20 +124,20 @@
    consumption of power over the UTP cable. The Standard is written to allow nodes to use this power in a
    range of ways, including having local power regulation ranging from simple analog regulators through
    more advanced supplies that increase current and/or voltage. 12V was chosen to reduce heat loads when
-   using the simplest regulators.  The current limit was required by use of 1 conductor in UTP wiring.
+   using the simplest regulators.  The current limit was required by use of one conductor in UTP wiring.
 
    Power can be injected into the cable by simple “mid-span injector” devices, essentially just two RJ45
-   connectors and a 2.1mm jack for a wall-wart. It is not required that power comes from a NMRAnet node
-   itself.
+   connectors and a 2.1mm jack for a wall-wart. It is not required that power comes from a full node
+   implementation.
 
    The power provisions are for low-power uses that can be conveniently handled over short lengths of
    cable.  Boards are welcome to have other connectors for power. These other connectors can be anything
    not otherwise forbidden by some other standard, including terminal blocks, 2.1mm jacks, Anderson
    PowerPole connectors, or whatever else is considered useful for the specific market.
 
-   The wiring system is likely to result in power-supplying nodes being connected to each other. This
-   handled by the “must withstand” voltage requirement: power supply boards must be able to be connected to
-   each other, even if their output voltages are not exactly the same. One way to handle this is an
+   The wiring system is likely to result in power-supplying nodes being connected to each other. This is
+   covered by the “must withstand” voltage requirement: power supply boards must be able to be connected to
+   each other, even if their output voltages are not exactly the same. One way to implement this is an
    isolating diode on the PWR_POS output.  The closer the supply outputs are to the 12V nominal value, the
    better this will work.
 
@@ -198,12 +205,12 @@
    the node is installed on the CAN segment.  Termination should only occur at the two distant ends of the
    bus.  Termination in the middle of a significant-length CAN bus is very disruptive because it causes
    reflections.  The one downside to on-board termination is that it makes it much easier to have multiple
-   terminators (customers think more must be good, and mistakenly turn them all on).   It's recommended
-   that nodes be shipped with on-board terminators disabled, to reduce the chance that a termination load
-   will be attached in the middle of the segment.  Note that ISO11898-2 states “The locating of the
-   termination within a CAN node should be avoided because the bus lines lose termination if this node is
-   disconnected from the bus line.” (Section 5.2.1) and “It is not recommended to integrate the termination
-   into a CAN node.” (Section 7.1)
+   terminators (customers think more must be good, and mistakenly turn them all on).   It's required that
+   nodes be shipped with on-board terminators disabled to reduce the chance that a termination load will be
+   attached in the middle of the segment.  Note that ISO11898-2 states “The locating of the termination
+   within a CAN node should be avoided because the bus lines lose termination if this node is disconnected
+   from the bus line.” (Section 5.2.1) and “It is not recommended to integrate the termination into a CAN
+   node.” (Section 7.1)
 
    Manufacturers may want to provide a special termination node to provide some  indication of bus health
    as well as providing termination.  Industrial diagnostic equipment provides some examples of what can be
@@ -227,14 +234,16 @@
   3.2.1 Chokes
 
    A series choke or transformer can improve the noise immunity of a CAN transceiver.  The Standard permits
-   the use of one, but doesn't require it.  This advantages and disadvantages of including one are
-   discussed in the NXP (Philips) and Texas Instruments application notes referenced above. Typical parts
-   are the TDK ZJYS81RS-2PL51(T)-G01 and the ZJYS51-2PT.
+   the use of one, but doesn't require it.  The advantages and disadvantages of including one are discussed
+   in the NXP (Philips) and Texas Instruments application notes referenced above. Typical parts are the TDK
+   ZJYS81RS-2PL51(T)-G01 and the ZJYS51-2PT.
 
 3.3 Sample Schematic
 
    The following informative schematic is a sample of various possible design choices, and not normative in
    any way.
+
+   Sample Schematic
 
                                       4 Repeaters, Bridges and Gateways
 
