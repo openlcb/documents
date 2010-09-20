@@ -1,0 +1,858 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB CAN Message Transfer Explanation</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20100919;20082000">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.ctl { font-family: "Lucida Sans" }
+		H4.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1><FONT COLOR="#000000"><IMG SRC="../web/logo-ajs-dph.png" NAME="OpenLCB" ALIGN=RIGHT WIDTH=337 HEIGHT=135 BORDER=2></FONT>OpenLCB
+CAN Message Transfer Explanation</H1>
+<P>This is just a collection of pieces from other docs right now.</P>
+<H1 STYLE="page-break-before: always">From <META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><!-- $Id$ -->CAN
+Wire Protocol document</H1>
+<P>CAN bus (ISO 11898-*) provides a very convenient transport medium
+for OpenLCB on a specific module or layout. This section defines a
+specific wire protocol for transporting OpenLCB over CAN bus. 
+</P>
+<P>Common OpenLCB messages need to be translated for transport via
+CAN 2.0B frames because of the limited CAN frame sizes and to take
+advantage of CAN interface features such as filtering on the header
+bits. 
+</P>
+<P>The adaptations include 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">A 1-bit priority field has been
+	added to provide a coarse high/low message priority 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">NID values are translated to 12
+	bit forms. Those forms are dynamically allocated so as to remain
+	unique. 
+	</P>
+	<LI><P>Remapping of MTI values to make limited filtering possible. 
+	</P>
+</UL>
+<P>Note that these adaptions must be possible in standard CAN
+components, e.g. bridges and computer adapters must not require
+customization to operate with OpenLCB. This provides a stringent
+requirement on protocol design, in that OpenLCB CAN cannot require
+specific timing, deliberate creation of error cases or specific error
+handling. 
+</P>
+<H2 CLASS="western">Physical Layer</H2>
+<P>The physical layer of OpenLCB-CAN is 125kbps CAN over twisted pair
+wiring. The NMRA is attempting to define a common physical layer for
+use across multiple implementations, and that may in turn define the
+physical layer of OpenLCB-CAN.</P>
+<P>For more information, see the separate <A HREF="../documents/can/CommonPlatform.html">Common
+CAN Platform</A> document.</P>
+<H2 CLASS="western">Link Layer</H2>
+<P>OpenLCB common messages are converted, to the extent possible, to
+single CAN frames via a one-to-one mapping. 
+</P>
+<P>The translations include: 
+</P>
+<UL>
+	<LI><P>The NID Source ID (SID) is mapped to a shorter form, called a
+	&quot;NID Alias&quot; (NIDa). The method for this mapping is defined
+	such that devices on the CAN segment (e.g. gateways to other parts
+	of the larger OpenLCB installation) can determine the full NID that
+	corresponds to a particular alias. 
+	</P>
+	<P STYLE="margin-bottom: 0cm">Because this alias is still unique on
+	the specific CAN segment, it is used in the CAN header for
+	arbitration. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">MTIs may have to be shortened,
+	depending on bit allocations. 
+	</P>
+	<LI><P>When possible, Destination NIDs are also mapped to the
+	shorter form. In some OpenLCB messages, this is not possible, in
+	which case the full NID form is sent; a bit is provided to indicate
+	which format is carried. 
+	</P>
+</UL>
+<P>Design decisions:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">The CAN format has been allocated
+	on nibble boundaries to make it easier to e.g. read dumps of
+	packets. The header is considered to be right (LSB) aligned.</P>
+	<LI><P STYLE="margin-bottom: 0cm">A specific mapping from the common
+	16-bit MTI format to a shorter CAN format is documented in a
+	<A HREF="../documents/MtiAllocations.ods">separate worksheet</A>
+	(<A HREF="../documents/MtiAllocations.pdf">PDF version</A>). The
+	common form is 16 bits to have lots of space to grow at the high
+	end, but it can be mapped into a 8 bit field for efficient CAN
+	transfer. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Nodes must handle full rate
+	messages, specifically including messages not addressed to them.
+	(The datagram and stream protocols provide ways for nodes to
+	indicate whether or not they have sufficient buffering for the next
+	transmission, triggering retries as needed) For long term
+	reliability, a node <U>must</U> be able to completely process an
+	entire CAN frame in the time it takes to receive the next one, which
+	may be as little as 64 bit times, or about 500 microseconds.</P>
+	<LI><P>A 1-bit field priority field coarsely specifies the priority
+	of the message in terms of CAN arbitration to be high (pri=0) or low
+	(pri=1). By default, all messages are to be emitted with low
+	priority selected. Receiving nodes must not check this bit.</P>
+	<P STYLE="margin-bottom: 0cm">This field is intended for network
+	infrastructure and server type nodes (Command Stations) that may
+	from time to time experience high traffic loads and need the ability
+	to pre-empt other nodes to forward messages from a busy segment or
+	preempt the sending of responses to nodes over receiving new
+	requests to prevent message buffer overflow. This field is separate
+	from the static priority field in the MTI format specification.</P>
+	<LI><P>Designers may wish to use CAN hardware filtering, but it
+	can't be assumed to be present. We assign a single bit to indicate
+	“simple node protocol” messages to make simple filtering
+	possible.</P>
+</UL>
+<P>Header content and sizes (Nominal decisions shown, 29 bit header):
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Priority bit (Always sent as 1
+	now; at front to ensure it acts like a true priority; 0 for high
+	priority, 1 for low; not checked by receivers) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Frame Type (1 bit) OpenLCB message
+	or CAN control message 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Variable Field (15 bits) 
+	</P>
+	<LI><P>Source NID alias (12 bits) 
+	</P>
+</UL>
+<P>The order of these fields is chosen to get proper priority and
+access disambiguation via CAN's standard mechanisms.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Bit 0</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 1</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 2-16</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 17-28</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Priority: 0 high, 1 low</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Frame Type</P>
+			<P ALIGN=CENTER>1: OpenLCB Message</P>
+			<P ALIGN=CENTER>0: CAN Control Message</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Variable Field</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Source NID Alias</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x1000,0000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x0800,0000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x07FF,F000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x0000,0FFF</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Solo top bit</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Top bit of 6<SUP>th</SUP> nibble from right</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>3 bits lower bits, then three nibbles</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Right-most three nibbles</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm">The &quot;Variable field&quot; has
+different meanings depending on the &quot;Frame Type&quot; field. CAN
+control messages are identified with a Frame Type bit of 0, to ensure
+high priority.</P>
+<P STYLE="margin-bottom: 0cm"><I>Document no-seven-1-bits-in-top-11
+limitation to ensure future selections don't violate it.</I></P>
+<H3 CLASS="western">Throughput and Temporarily Deaf Nodes</H3>
+<P>OpenLCB requires that CAN-attached nodes be able to handle the
+full frame rate on the CAN bus. There is no guarantee that frames for
+a given node will arrive with non-zero time between then. 
+</P>
+<P>Some nodes are not always able to process frames. For example, the
+node may cease processing for a short time while writing non-volatile
+memory. Higher-level protocols, e.g. configuration write datagrams,
+have mechanisms built in to prevent overrun while writing
+configuration memory, but there could be multiple activities going on
+in parallel that will result in frames arriving while the node is not
+processing.</P>
+<P>Short outages can be covered by CAN hardware buffering, so long as
+the node will eventually catch up even at full arrival rate. Outages
+long enough that frames are lost due to e.g. buffer overflow require
+node to broadcast that it's back up if hardware detected frame lost.
+This is because tehre could have been frames of some form that
+modified the OpenLCB node state, which are now lost (e.g. drop alias,
+CIM/RIM in absence, or even higher level events) 
+</P>
+<H2 CLASS="western">CAN-specific Control Messages and Interactions</H2>
+<P>These are identified by the Frame Type bit being 0. They are
+formatted as shown in the following table:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=762 BORDER=1 CELLPADDING=2 CELLSPACING=4>
+	<COL WIDTH=317>
+	<COL WIDTH=423>
+	<TR>
+		<TH WIDTH=317>
+			<P>Name</P>
+		</TH>
+		<TH WIDTH=423>
+			<P>Variable Field</P>
+		</TH>
+	</TR>
+	<TR>
+		<TD WIDTH=317>
+			<P>Check ID (CIM) message</P>
+		</TD>
+		<TD WIDTH=423>
+			<P>MMM,NNNN,NNNN,NNNN 
+			</P>
+			<P>where MMM is the message sequence number, 0x7 to 0x4 (to give
+			priority to messages later in the process)</P>
+			<P>and NNNN,NNNN,NNNN is the 12-bit Node ID section being checked</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=317>
+			<P>Reserved ID (RIM) Message</P>
+		</TD>
+		<TD WIDTH=423>
+			<P>0x0700</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=317>
+			<P>Mapping Reset (MR) Message</P>
+		</TD>
+		<TD WIDTH=423>
+			<P>0x0701</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=317>
+			<P>Reserved</P>
+		</TD>
+		<TD WIDTH=423>
+			<P>All others</P>
+		</TD>
+	</TR>
+</TABLE>
+<H3 CLASS="western">CANid assignment</H3>
+<P>The common message format uses full 48-bit node ID numbers to
+identify originating nodes and in some case destination nodes. CAN
+frames use 12-bit local &quot;NID alias&quot; for these to save space
+in the limited-size CAN payload. 
+</P>
+<P>The standard Verify Node ID Number interaction can be used to get
+the full 48-bit NID from a node for translation. At power up each
+node must obtain a alias that is locally unique. Gateways will also
+have to obtain unique aliases for remote nodes they are proxying on
+to the segment. 
+</P>
+<P>Proposed algorithm, in rough form: 
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Compute a CANid from the NID using
+	a standard algorithm. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Send CAN frames claiming that
+	CANid and carrying sequential parts of NID in the Variable Field
+	section of the header. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">If error, step the algorithm in a
+	standard way and repeat until success. 
+	</P>
+	<LI><P>Send a CAN frame announcing that the node has claimed an ID
+	value. 
+	</P>
+</UL>
+<P>Note that there is no requirement that this alias be consistent
+from one run to the next. More detail is on a <A HREF="../documents/can/CanIDAllocation.html">separate
+page</A>. 
+</P>
+<H3 CLASS="western">CAN-specific messages</H3>
+<P>Most CAN frames are one-to-one or many-to-one equivalents of
+common OpenLCB messages. 
+</P>
+<P>A few additional messages are used for CAN-specific purposes. 
+</P>
+<DL>
+	<DT>CIM</DT><DD>
+	Check ID Message - used as part of the <A HREF="../documents/can/CanIDAllocation.html">ID
+	allocation</A>. 
+	</DD><DT>
+	RIM</DT><DD>
+	Reserved ID Message - used as part of the <A HREF="../documents/can/CanIDAllocation.html">ID
+	allocation</A>. 
+	</DD><DT>
+	MR</DT><DD STYLE="margin-bottom: 0.5cm">
+	Mapping Reset - indicates that the local alias in the source address
+	field may no longer be associated with the same NID, and mapping
+	tables should be reset. 
+	</DD></DL>
+<H2 CLASS="western">
+Translation</H2>
+<P>A node must be able to convert traffic on the local CAN segment
+into the common message format using only locally available
+information. This may be needed e.g. by a gateway or monitoring
+program attached to the CAN segment. 
+</P>
+<P>All traffic on a CAN segment uses aliases for both Source ID
+(always) and Destination ID (when the full NID isn't known). 
+</P>
+<P>If/when a full NID is needed, it can be obtained by sending a
+&quot;Verify Node ID Number (Addressed)&quot; message with an
+appropriate Destination Node ID in local alias form. The reply will
+eventually come back with the Source ID in local alias form and
+carrying the full NID in the message content. 
+</P>
+<P>Aliases for nodes on the local segment are only valid until an
+&quot;Initialization Complete&quot; is seen from that alias.
+Initialization Complete indicates that a node has restarted, and may
+have another local alias. 
+</P>
+<P>Gateways maintain the mapping between remote node's NID and local
+alias. If they need to break that mapping, e.g. because they need to
+reuse the local alias due to resource limitations in the mapping
+tables, they must send a &quot;Mapping Reset&quot; message to force
+nodes to drop their alias information. <I>&quot;Mapping Reset&quot;
+is a CAN-specific message limited to the segment, but all gateways on
+the segment must act on it.</I> 
+</P>
+<P>Gateways may not be able ensure permanent validity for alias to
+remote NIDs. For example, if they have a limited routing table, they
+may need to reuse local alias. Before reusing them, they have to send
+a &quot;Mapping Reset&quot; frame to drop references to the old NID,
+followed by a &quot;Initialization Complete&quot; when the alias is
+allocated to a new NID. 
+</P>
+<H3 CLASS="western">Map Acquisition</H3>
+<P><A NAME="todo"></A>In order to acquire the map between CANids and
+NIDs, a gateway needs to be able to send a CAN frame requiring
+&quot;everybody reply with your NID&quot;. Much like Ethernet gateway
+mapping, this needs to return the NID of just the specific
+CAN-attached hardware, not all the NIDs that can be e.g. reached
+through a gateway, so it needs to be a segment-specific message
+defined only at the CAN level. It must not be a OpenLCB common
+message. 
+</P>
+<H2 CLASS="western">OpenLCB message format</H2>
+<P>OpenLCB common messages are carried in frames with a 1 in the
+Frame Type field. They contain message type information and/or
+address information in the 15-bit variable field, and zero to eight
+CAN data bytes.</P>
+<P STYLE="font-style: normal">For OpenLCB messages, the variable
+field is used in three forms:</P>
+<UL>
+	<LI><P STYLE="font-style: normal">Unaddressed messages – messages
+	that don't have a destination address put the low 12 bits of the MTI
+	in the variable field</P>
+	<LI><P STYLE="font-style: normal">Addressed messages – messages
+	that have a specific destination address put it in the variable
+	field, and carry the MTI in the payload. This allows filtering.</P>
+	<LI><P STYLE="font-style: normal">Stream addressed messages – as a
+	special case to improve efficiency of transfer, the streaming
+	protocol uses 12 bits of the variable field to identify a particular
+	stream transfer. This is not the same as a destination NodeID alias,
+	but performs a similar function to allow filtering while also
+	allowing multiple streams from a source.</P>
+</UL>
+<P STYLE="margin-bottom: 0cm">The variable field is allocated:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=96*>
+	<COL WIDTH=160*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=37%>
+			<P>Variable Field Bits 0-2</P>
+			<P>Header Bits 2-4</P>
+			<P>OpenLCB Format</P>
+			<P>0x0700,0000</P>
+		</TH>
+		<TH WIDTH=63%>
+			<P>Variable Field Bits 3-14</P>
+			<P>Header Bits 5-16</P>
+			<P>OpenLCB Variable Header Content</P>
+			<P>0x00FF,F000</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>MTI &amp; additional information for “simple
+			node” unaddressed messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>MTI &amp; additional information for unaddressed
+			messages other than “simple node” forms</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>(Reserved, must not be sent or accepted)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 1 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>(Reserved for long-form MTIs in data area, <BR>must
+			not be sent or accepted)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for datagram message non-last
+			fragment</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 0 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for datagram message last
+			fragment</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 1 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for non-datagram addressed
+			messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 1 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for Stream Data Send messages</P>
+		</TD>
+	</TR>
+</TABLE>
+<P>Putting the destination alias in the header allows filtering on it
+with common CAN hardware. Putting the Stream ID in the header also
+allows filtering, and preserves the full 8-byte CAN payload for
+stream data.</P>
+<P><SPAN STYLE="font-style: normal">The specific MTI values are being
+allocated in a <A HREF="../documents/MtiAllocations.ods">separate
+worksheet</A> (<A HREF="../documents/MtiAllocations.pdf">PDF
+version</A>). In general, the MTI selection is done on the top 8 bits
+of the variable field. This is mapped to the low MTI byte in a
+standard format message.</SPAN></P>
+<P STYLE="font-style: normal">Some MTIs have additional status bits
+defined as part of the 2<SUP>nd</SUP> field. For example, there are
+two status bits associated with “Consumer Identified” which must
+be kept in the header since there is no room in the CAN data field.
+To simplify translation between formats, these are the low bits of
+the first byte after the MTI in a standard-form message.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal">Note that messages
+with Destinations IDs may occur in two forms: with an alias in the
+header and the MTI in the message; and with a full address in the
+data field and the MTI in the header.</P>
+<H2 CLASS="western">CAN Controller Filters</H2>
+<P STYLE="margin-bottom: 0cm">This coding has been generated such
+that simple nodes can use three hardware filters to select only
+frames that are of interest to them.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<COL WIDTH=85*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=33%>
+			<P ALIGN=CENTER>Purpose</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P ALIGN=CENTER>Mask</P>
+		</TH>
+		<TH WIDTH=33%>
+			<P ALIGN=CENTER>Required Value</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>CAN-specific control messages</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0800,0000</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0000,0000</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>OpenLCB format addressed to this node</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0C00,0FFF</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0C00,0nnn</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>Other simple OpenLCB format MTIs</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0F00,0000</P>
+		</TD>
+		<TD WIDTH=33%>
+			<P ALIGN=CENTER>0x0800,0000</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm">Note that whether or not filters are
+used, nodes must be able to handle all combinations of sucessive
+frames that the full CAN rate. There is no guarantee that a node will
+have time for processing between frames that it must handle.</P>
+<H2 CLASS="western"><BR><BR>
+</H2>
+<H2 CLASS="western"><META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">From
+Discussion of NodeID Alias Size on CAN Links</H2>
+<P>How big should the NodeID alias field be on CAN links?</P>
+<UL>
+	<LI><P>Smaller (fewer bits) allows more payload and/or simpler
+	coding of other parts of messages. 
+	</P>
+	<LI><P>Larger allows more unique nodes to be accessed.</P>
+</UL>
+<P>This note describes the issues in more detail, followed by a
+recommendation.</P>
+<H3 CLASS="western">Issues</H3>
+<H4 CLASS="western">Addressing</H4>
+<P>The Node ID size limits the number of unique nodes that can take
+part in communications on the CAN segment. Because Node ID aliases
+are assigned independently on each CAN segment, the only issue is how
+many different nodes are involved, not which ones they are or what
+pattern(s) are available in their address numbers.</P>
+<P>For electrical/timing reasons, a segment itself can only support a
+maximum of about 100 nodes, but communication also involves nodes off
+the segment. For example, chaining N CAN segments via bridges will
+generally make up to 100*N nodes available. We have a use case of
+chaining small numbers of CAN segments together, implying the need to
+address 500 or 1000 nodes. 
+</P>
+<P>As another example, a very large network might connect many CAN
+segments via TCP/IP or other networked connections. Each CAN-attached
+node might need to communicate with a larger number of others spread
+across that network.</P>
+<P>(CAN backbone case)</P>
+<H4 CLASS="western">Collisions during Allocation</H4>
+<P>The allocation process resolves collisions (attempt to use an
+already allocated Node ID alias), but that takes time. Minimizing the
+number of collisions is good. If the address space is just the size
+of the number of things you want to address, the collisions get hard
+/slow to resolve across multiple nodes. This points to having a
+factor of 2, at least, between the number of nodes to be addressed
+and the size of the address space.</P>
+<P>(Mostly talking about separate nodes here, not just one big
+interface node: Points to CAN backbone case)</P>
+<H4 CLASS="western">Size</H4>
+<P>Reducing size most important (so far) in the stream protocol.</P>
+<P>Events and Datagrams can be transmitted with a 16-bit alias size.</P>
+<P>To get the full payload (8 bytes) for streaming requires getting
+the rest of the protocol control, including two aliases for source
+and destination, in the 29 bit header. Allowing 2 bits for
+priority/extension, 2 for protocol control, 2 for MTI and 3 for
+stream ID (all very bare minima) leads to a 10-bit node ID alias
+length. 
+</P>
+<P>Using 1 of 8 payload bytes allows up to 14 bit node ID alias
+lengths, or 12 bit node ID alias lengths with some room for expansion
+and simpler MTI coding.</P>
+<H4 CLASS="western">Simplicity</H4>
+<P>Byte vs nibble vs bit boundaries in code, when debugging the
+protocol, etc.</P>
+<P>Having extra bits available in the header allows much simpler MTI
+coding, reserving specific bits for expansion instead of codes, etc.</P>
+<H4 CLASS="western">Filtering</H4>
+<P>Having the destination short enough to be in the header allows
+automated filtering of traffic.</P>
+<H2 CLASS="western" STYLE="page-break-before: always">From <META NAME="CHANGEDBY" CONTENT="Bob Jacobsen"><META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">Node
+ID Alias Allocation Algorithm doc</H2>
+<P>OpenLCB nodes on CAN segments do CAN arbitration by using their
+unique Node ID alias (NIDa) as part of the CAN header. This page
+documents a proposed algorithm for assigning unique Node ID aliases. 
+</P>
+<H3 CLASS="western">Introduction</H3>
+<P>This method of assigning aliases and checking that they are unique
+is necessary because of the characteristics and limitations oFromf
+CAN. 
+</P>
+<P>Each node has 48-bit unique id, and each wants a 12-bit local
+alias. Each assigns itself a potential 12-bit alias. The problem
+comes in determining whether this alias is in use by another node. 
+</P>
+<P>If a node sends out an check message containing just the alias,
+then it could expect that another node to complain if it has the same
+alias. This would work, except in the (very unlikely) case where both
+nodes send out the identical check message simultaneously. Neither
+would recognize a conflict and both would consider that they own the
+same alias. Therefore, a method needs to be found that guarantees
+that the check message(s) are unique, even if they are send
+simultaneously. 
+</P>
+<P>Unfortunately, limitations of CAN will not allow the full 48-bit
+NodeID to be included in the check message. Doing so would violate
+CAN rules as it could not be wholly contained in the header, and
+packets with identical headers are not allowed to have differing
+data-parts. 
+</P>
+<P>Therefore, the CIM/RIM method splits the NodeID into byte-sized
+parts, sends out 4 check messages (CIM = Check Id Messages, RIM =
+Reserved Id Message), each consisting of the alias and one quarter
+(12 bits) of the 48 bit id. Only if all of the CIMs *do not* conflict
+with another node (ie no RIM is received) does it guarantee that the
+alias is not in use by another node. Even if two nodes send out the
+identical packets simultaneously, at least one of these will differ
+due to a differing ID-part between the two nodes. 
+</P>
+<H3 CLASS="western">Requirements</H3>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Must not require any user
+	intervention. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Must be possible to map the
+	assigned alias to a Node Sequence Number and vice-versa.</P>
+	<LI><P STYLE="margin-bottom: 0cm">It is not required to come up with
+	the same alias every time a node or segment is powered up. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Must always converge to an alias,
+	regardless of when or in what order nodes come up. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Another node watching the process
+	must be able to monitor how the decision was reached and what the
+	result was. 
+	</P>
+	<LI><P>It is desirable to detect duplicate (non-unique) NIDs, but
+	100% reliable detection is not required. 
+	</P>
+</UL>
+<H3 CLASS="western">Algorithm</H3>
+<P>Start with the six-byte unique Node ID in each node, with the
+bytes labelled N1 through N6. 
+</P>
+<P>Initialize a specific full-sequence 48bit PRNG with the 48 Node
+ID. 
+</P>
+<P>A: 
+</P>
+<P>Take the next element from the PRNG . Derive the 12-bit value for
+TCA, the tentative alias. If TCA is zero, repeat.</P>
+<P>Start listening for CAN frames containing Check ID messages (CIMs)
+and Reserved ID Messages (RIMs). A CIM consists of an extended header
+with a 12 bit Source NIDa field, an 3 bit sequence field, a 12-bit
+TestN field, and other bits to denote that this is a Check ID
+Message. There is no other variable information in the frame. Having
+NIDa, Nn and TestN in the message ensure that CAN arbitration will
+work without error. An RIM is the same, except that it can be
+identified as being a different message for diagnostic purposes; it
+means the same thing upon receipt. 
+</P>
+<P>Send four CIMs with 0 through 3 in the Nn field, the 12-bit
+quarters of the NodeID in the TestN field, and TCA in the Source NIDa
+field. During this process, if a CIM or RIM is received that contains
+the TCA value in its CI field, TCA does not belong to this node.
+Repeat from (A). 
+</P>
+<P>Keep listening until your CAN hardware says your last CIM message
+has been sent and the CAN link is idle, plus 500 msec. If you cannot
+detect that condition, wait 1 second.</P>
+<P>If no CIM or RIM with this TCA value in the CI field is received
+before the end of the previous step, you've successfully allocated
+TCA as this node's source NIDa. Send an RIM with TCA in the CI field
+and go into normal operation. 
+</P>
+<UL>
+	<LI><P>If that message fails with an error occurring during the data
+	portion of the message, it's possible that two nodes have the same
+	NodeID, a fatal error. To prevent the OpenLCB being taken down, this
+	node should stop trying to allocate an alias and signal the error to
+	the user via some non-CAN method, e.g. LEDs, emitting smoke, etc.</P>
+	<LI><P>If any other error occurs, repeat from A.</P>
+</UL>
+<P>While in normal operation, if you receive a CIM with your source
+NIDa, send a RIM, which will cause the other node to back off and try
+something else. 
+</P>
+<P>It should not be possible to receive an RIM with your allocated
+source NIDa in normal operation. If you do, log an error (on whatever
+it is they log it on there) and restart the process at (A). 
+</P>
+<H4 CLASS="western">Proposed alias derivation</H4>
+<P>The 12 bit alias has to be derived from a 48-bit sequence number
+in a way that keeps as much entropy as possible.</P>
+<P>Sequentially numbered nodes will have initial seeds that differ
+only in the low bits of the PRNG output. For shift-register PRNGs,
+this can present a problem, as all bytes of the result are shifting
+together. Combining bytes (or even 12-bit chunks) via XOR or add
+operations results in reduced entropy.</P>
+<P>The OpenLCB proposed PRNG (next section) uses add operations with
+a constant term to avoid this problem, so treating the 48-bit PRNG
+output as four 12-but values, which are then XORed, works well.</P>
+<H4 CLASS="western">Proposed PRNG</H4>
+<P>The proposed 48-bit PRNG is from “A 48-Bit Pseudo-Random Number
+Generator”, Heidi G. Kuehn, Communications of the ACM, Volume
+4,&nbsp;Issue 8 (August 1961), pages 350-352.</P>
+<P>x<SUB>i+1</SUB> = (2<SUP>9</SUP>+1) x<SUB>i</SUB> + c</P>
+<P>where c = 29,741,096,258,473 or 0x1B0CA37A4BA9.The paper actually
+describes a PRNG that uses signed arithmetic, but for our purposes
+the 48<SUP>th</SUP> “sign” bit isn't important.</P>
+<P>Note that, unlike some other PNRGs, this one can generate a zero
+result, and can accept a zero seed.</P>
+<H3 CLASS="western">Discussion</H3>
+<P>CAN arbitration reliably avoids collisions between frames with
+unique headers. It does not guarantee arbitration between frames with
+identical headers and no data; if the timing is right, they may
+overlay each other such that only one frame appears to have been
+sent. It is very difficult to ensure that two nodes send
+initialization packets only at different times. In addition, CAN will
+eventually signal an error if two packets with the same header and
+different data payloads collide, but not all CAN interface hardware
+provides reliable indications about why that error occurred.</P>
+<P>At the highest level, this algorithm is broadcasting the complete
+Node ID and tentative alias to see if any other node is checking the
+same tentative alias. If two nodes have taken the same tentative
+alias, at least one of the four packets used in that broadcast will
+not be identical between the two nodes, because their six-byte Node
+IDs are different in at least one bit. CAN will successfully
+arbitrate this, and the other node will receive the frame, causing it
+to back off.</P>
+<P>CAN transmissions are not atomic operations; you can receive a
+frame between the time you tell the hardware to send a frame and the
+time that frame is actually sent. It's therefore possible for both
+nodes contending for the same alias value to back off and try again.
+Using the pseudo-random number generator as a sequence number makes
+it likely that the next attempt will be made using different alias
+values in the two nodes. <SPAN STYLE="font-style: normal">The use of
+the sequence generator also makes the arbitration process faster in
+the case of sequential Node ID values. People like to use small and
+sequential numbers for things, and the sequence generator maps those
+to very different values that are less likely to collide during
+arbitration. </SPAN>
+</P>
+<P>The delays at the end of the algorithm are to ensure that higher
+latency nodes, such as software nodes working through USB convertors,
+can reply to CID messages from nodes that come up on a working link.
+OpenLCB is a soft-real-time system, and software that's interacting
+with it needs to have response times of a couple hundred milliseconds
+or better to be reliable. The algorithm provides a wait of a few
+times that to enable those programs to take part.</P>
+<H2 CLASS="western">From Background doc</H2>
+<P><BR><BR>
+</P>
+<P>29-bit extended header and 8-byte payload results in a total
+transmission taking about 135 bit times.</P>
+<P>125Kbps with max-length extended header frames is about 900
+frames/second. CAN is very good at running at 100% utilization, so
+long as nodes can keep up and a proper set of priorities is in place.</P>
+<H3 CLASS="western">Rate, bandwidth and throttling</H3>
+<P>CAN is designed to run at 100% usage without problem, and it's
+routine for CAN segments in other contexts to run at 100% for
+extended times. Therefore, the CAN network does not require any
+inter-frame spacing, limitations on bandwidth usage, etc; the segment
+can be allowed to run at 100%.</P>
+<P>The real limitation is whether the nodes themselves can handle the
+full rate of frame arrival. There is (currently) no mechanism in
+OpenLCB to throttle the rate of frames arriving at a node, nor is it
+easy to create one in a CAN network. The stream and datagram protocol
+have been designed to allow a node to efficiently use a very limited
+amount of buffer memory, but don't provide mechanisms to limit the
+arrival of frames.</P>
+<P>For long term reliability, a node <U>must</U> be able to
+completely process an entire CAN frame in the time it takes to
+receive the next one, which may be as little as 42 (?) bit times.</P>
+<H3 CLASS="western">CIM/RIM message content and format</H3>
+<P>The CIM/RIM algorithm for finding aliases is designed to work
+without any CAN errors. Arbitration conflicts are OK, but deliberate
+errors are not, because different CAN implementations may deal with
+them differently. During execution of the algorithm, some frames
+might have the same header. They therefore have to have the same
+contents, or else a non-arbitration error can occur.</P>
+<P>Although it might be a useful debugging tool, putting the full NID
+in the data portion of the frames can cause errors. Therefore, we
+decided not to do that.</P>
+<H3 CLASS="western">CAN Bibliography</H3>
+<P>B. Gaujal and N. Navet, “Fault confinement mechanisms on CAN:
+analysis and improvements”, IEEE Transactions on Vehicular
+Technology, pp.1103-1113, 54(3), May 2005 (An interesting analysis of
+how CAN nodes react to error rates on the CAN bus by e.g. taking
+themselves offline, etc)</P>
+<P><BR><BR>
+</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
