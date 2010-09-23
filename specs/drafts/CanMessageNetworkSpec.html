@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100922;13100400">
+	<META NAME="CHANGED" CONTENT="20100922;21343400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -46,7 +47,144 @@ specified?</P>
 </P>
 <P><BR><BR>
 </P>
-<HR>
+<H2 CLASS="western">OpenLCB message format</H2>
+<P>(rationalize with the frame doc, that describes the 1<SUP>st</SUP>
+bit)</P>
+<P>OpenLCB common messages are carried in frames with a 1 in the
+Frame Type field. They contain message type information and/or
+address information in the 15-bit variable field, and zero to eight
+CAN data bytes.</P>
+<P STYLE="font-style: normal">For OpenLCB messages, the variable
+field is used in three forms:</P>
+<UL>
+	<LI><P STYLE="font-style: normal">Unaddressed messages – messages
+	that don't have a destination address put the low 12 bits of the MTI
+	in the variable field</P>
+	<LI><P STYLE="font-style: normal">Addressed messages – messages
+	that have a specific destination address put it in the variable
+	field, and carry the MTI in the payload. This allows filtering.</P>
+	<LI><P STYLE="font-style: normal">Stream addressed messages – as a
+	special case to improve efficiency of transfer, the streaming
+	protocol uses 12 bits of the variable field to identify a particular
+	stream transfer. This is not the same as a destination NodeID alias,
+	but performs a similar function to allow filtering while also
+	allowing multiple streams from a source.</P>
+</UL>
+<P STYLE="margin-bottom: 0cm">The variable field is allocated:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=96*>
+	<COL WIDTH=160*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=37%>
+			<P>Variable Field Bits 0-2</P>
+			<P>Header Bits 2-4</P>
+			<P>OpenLCB Format</P>
+			<P>0x0700,0000</P>
+		</TH>
+		<TH WIDTH=63%>
+			<P>Variable Field Bits 3-14</P>
+			<P>Header Bits 5-16</P>
+			<P>OpenLCB Variable Header Content</P>
+			<P>0x00FF,F000</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>MTI &amp; additional information for “simple
+			node” unaddressed messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>MTI &amp; additional information for unaddressed
+			messages other than “simple node” forms</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>(Reserved, must not be sent or accepted)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>0 1 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>(Reserved for long-form MTIs in data area, <BR>must
+			not be sent or accepted)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 0 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for datagram message non-last
+			fragment</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 0 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for datagram message last
+			fragment</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 1 0</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for non-datagram addressed
+			messages</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=37%>
+			<P ALIGN=CENTER>1 1 1</P>
+		</TD>
+		<TD WIDTH=63%>
+			<P ALIGN=CENTER>Destination Alias for Stream Data Send messages</P>
+		</TD>
+	</TR>
+</TABLE>
+<P>Putting the destination alias in the header allows filtering on it
+with common CAN hardware. Putting the Stream ID in the header also
+allows filtering, and preserves the full 8-byte CAN payload for
+stream data.</P>
+<P><SPAN STYLE="font-style: normal">The specific MTI values are being
+allocated in a <A HREF="../documents/MtiAllocations.ods">separate
+worksheet</A> (<A HREF="../documents/MtiAllocations.pdf">PDF
+version</A>). In general, the MTI selection is done on the top 8 bits
+of the variable field. This is mapped to the low MTI byte in a
+standard format message.</SPAN></P>
+<P STYLE="font-style: normal">Some MTIs have additional status bits
+defined as part of the 2<SUP>nd</SUP> field. For example, there are
+two status bits associated with “Consumer Identified” which must
+be kept in the header since there is no room in the CAN data field.
+To simplify translation between formats, these are the low bits of
+the first byte after the MTI in a standard-form message.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal">Note that messages
+with Destinations IDs may occur in two forms: with an alias in the
+header and the MTI in the message; and with a full address in the
+data field and the MTI in the header.</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm; font-style: normal"><BR>
+</P>
 <HR>
 <P>Below this is just a collection of pieces from other docs right
 now.</P>
