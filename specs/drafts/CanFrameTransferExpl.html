@@ -6,13 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100922;23132300">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20101004;9400500">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -31,107 +25,126 @@ CAN Frame Transfer Explanation</H1>
 <P>This explanatory note contains informative discussion and
 background for the corresponding “OpenLCB CAN Frame Transfer
 Specification”. This explanation is not normative in any way.</P>
-<P>Have to avoid collisions by design, not by luck.</P>
-<P>OpenLCB assumes(?) a global communications fabric: any node can
-send a message to any node, and any node can send a message to all
-nodes. This document describes how CAN is used to do that.</P>
-<P>Cannot (do not assume) one of anything, including node managers,
-etc. If you allow for more than zero, it has to be any number.</P>
-<P>Fully traceability also assures no collisions.</P>
-<P>The adaptations include 
+<P>The Frame Transfer layer of the OpenLCB-CAN stack likes above the
+CAN Physical Layer, and below the Message Network layer. It is
+responsible for ensuring the reliable transport of the CAN frames
+that make up OpenLCB-CAN messages. CAN provides reliable transport
+between any two nodes on a CAN segment within limitations:</P>
+<OL>
+	<LI><P>Every CAN header must be unique by construction. Collisions
+	between frames with identical headers do not result in well-defined
+	behavior, and must be avoided by design to avoid intermittent
+	problems.</P>
+	<LI><P>CAN does not provide a “link up” or “link down”
+	notification. Nodes may come and go from a CAN segment at any time,
+	and on an individual basis. In general, one can't assert that a
+	particular node is always present, always comes up first, or never
+	comes up first.</P>
+	<LI><P>CAN does not provide any indicator of which node sent a
+	particular frame. Any node can send any frame, and the receiving
+	nodes have no CAN-provided mechanism for identifying the source.</P>
+	<LI><P>On a busy segment, CAN frames are sent in a strict priority
+	order, with the priority determined by the content of the frame
+	headers. If multiple nodes have frames to send at the same time, the
+	highest priority (lowest numerical value header) frame will be sent
+	first. There is no concept of “reserved bandwidth” except
+	through frame priority, and low-priority frames may require
+	significant time to be sent.</P>
+	<LI><P>Nodes must be able to accept frames at the full CAN rate.
+	Hardware filters must be usable to help with that, but even then
+	nodes may receive adjacent frames addressed to them.</P>
+</OL>
+<P>Putting a unique source ID field in each frame ensures that the
+frames are unique (item 1 above), and provides a frame-level
+indicator of which node sent the frame for the purposes of
+monitoring, debugging, etc (item 3). Using a distributed algorithm to
+determine the value for that ID field prevents needing a single
+“manager” to provide it, thereby handling item 2. The header bit
+fields discussed below are organized to handle items 4 and 5. 
 </P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">A 1-bit priority field has been
-	added to provide a coarse high/low message priority 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">NID values are translated to 12
-	bit forms. Those forms are dynamically allocated so as to remain
-	unique. 
-	</P>
-	<LI><P>Remapping of MTI values to make limited filtering possible. 
-	</P>
-</UL>
-<P>Note that these adaptions must be possible in standard CAN
-components, e.g. bridges and computer adapters must not require
-customization to operate with OpenLCB. This provides a stringent
-requirement on protocol design, in that OpenLCB CAN cannot require
-specific timing, deliberate creation of error cases or specific error
-handling. 
+<P>OpenLCB-CAN is required to work with standard CAN components, e.g.
+bridges and computer adapters must not require customization to
+operate with OpenLCB. This provides a stringent requirement on
+protocol design, in that OpenLCB-CAN cannot require specific timing,
+deliberate creation of error cases or specific error handling. 
 </P>
-<P>The translations include: 
-</P>
-<UL>
-	<LI><P>The NID Source ID (SID) is mapped to a shorter form, called a
-	&quot;NID Alias&quot; (NIDa). The method for this mapping is defined
-	such that devices on the CAN segment (e.g. gateways to other parts
-	of the larger OpenLCB installation) can determine the full NID that
-	corresponds to a particular alias. 
-	</P>
-	<P STYLE="margin-bottom: 0cm">Because this alias is still unique on
-	the specific CAN segment, it is used in the CAN header for
-	arbitration. 
-	</P>
-	<LI><P>When possible, Destination NIDs are also mapped to the
-	shorter form. In some OpenLCB messages, this is not possible, in
-	which case the full NID form is sent; a bit is provided to indicate
-	which format is carried. 
-	</P>
-</UL>
-<P STYLE="margin-bottom: 0cm">The CAN format has been allocated on
-nibble boundaries to make it easier to e.g. read dumps of packets.
-The header is considered to be right (LSB) aligned.</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Designers may wish to use CAN
-	hardware filtering, but it can't be assumed to be present. We assign
-	a single bit to indicate “simple node protocol” messages to make
-	simple filtering possible.</P>
-</UL>
+<P>People will occasionally refer to a restriction against having
+seven 1 bits in the top 11 bits of the CAN header. There is no such
+restriction, and the statements are the result of a misunderstanding.
+There is a restriction against having seven consecutive recessive
+bits on the CAN connection, but sending seven consecutive 1 bits will
+not result in this. CAN uses a bit-stuffing technique to prevent that
+by inserting a dominant bit on the line after the fifth consecutive
+recessive bit, and removing it at the receiver.</P>
 <H2 CLASS="western">Annotations to the Specification</H2>
 <P>This section provides background information on corresponding
 sections of the Specification document. It's expected that two
 documents will be read together.</P>
 <H3 CLASS="western">Introduction</H3>
 <H3 CLASS="western">References and Context</H3>
+<P>Note that we reference the Node ID specification, but only to the
+extent that each node is required to have a unique Node ID. The
+Specification would work equally well with a Node ID that was
+allocated via any mechanism, and with any length from 2 to 8 bytes.</P>
 <H3 CLASS="western">Frame Format</H3>
 <P>OpenLCB uses a very vanilla transfer of frames, no special
 features, to reduce complexity and increase robustness.</P>
 <P>Standard header frames are also known as CAN 2.0A frames. Extended
 header frames are also known as CAN 2.0B frames.</P>
 <P>The specification is silent on the uses for standard (11-bit
-header) frames. The proper-operation require is so nodes tolerate
-them in case they're needed for e.g. bootloaders. This could also
-have been phrased as “shall ignore ...”, but the current phrasing
-is thought to be more exact.</P>
+header) frames. The proper-operation requirement is so nodes will
+tolerate them in case they're needed for other purposes. The Atmel
+bootloader () uses standard frames, for example, and the Microchip
+bootloader () can use them. 
+</P>
+<P>This could also have been phrased as “shall ignore ...”, but
+the current phrasing is thought to be more exact.</P>
 <P>We don't use RTR because CAN semantics require a specific use for
 it, which has been built into some silicon implementations. There are
 also some arbitration issues, see: CiA Application Note 802 (2005)
 and <A HREF="http://www.thecanmancan.com/?tag=rtr">http://www.thecanmancan.com/?tag=rtr</A>
 for more information.</P>
-<P>The MSB is likely to be used as a priority-boost bit in the
-future, e.g. so that a gateway can gain priority access to the CAN
-segment for various operations that require synchronization or
-atomicity. CAN encodes “do first” priority as 0 and “do later”
-as 1, so the specification requires that a 1 bit be sent. To preserve
-the utility of this, nodes must not require either a 1 nor 0 on
-receipt.</P>
-<UL>
-	<LI><P>A 1-bit field priority field coarsely specifies the priority
-	of the message in terms of CAN arbitration to be high (pri=0) or low
-	(pri=1). By default, all messages are to be emitted with low
-	priority selected. Receiving nodes must not check this bit.</P>
-	<P STYLE="margin-bottom: 0cm">This field is intended for network
-	infrastructure and server type nodes (Command Stations) that may
-	from time to time experience high traffic loads and need the ability
-	to pre-empt other nodes to forward messages from a busy segment or
-	preempt the sending of responses to nodes over receiving new
-	requests to prevent message buffer overflow. This field is separate
-	from the static priority field in the MTI format specification.</P>
-	<LI><P></P>
-</UL>
-<P STYLE="margin-bottom: 0cm"><I>Document no-seven-1-bits-in-top-11
-limitation to ensure future selections don't violate it.</I></P>
+<P>We don't use overload frames because not all CAN controller
+hardware can deliberately send them. We require that nodes be able to
+handle them because some CAN controller hardware will occasionally
+send them automatically.</P>
+<P>The CAN format has been allocated on nibble boundaries to make it
+easier to e.g. read dumps of packets. The header is considered to be
+right (LSB) aligned.</P>
+<P>The reserved first bit (MSB) is likely to be used as a
+priority-boost bit in the future, e.g. so that a gateway can gain
+priority access to the CAN segment for various operations that
+require synchronization or atomicity. CAN encodes “do first”
+priority as 0 and “do later” as 1, so the specification requires
+that a 1 bit be sent. To preserve the utility of this, nodes must not
+require either a 1 nor 0 on receipt.</P>
+<H2 CLASS="western">CAN-specific Control Messages and Interactions
+(Normative)</H2>
+<H3 CLASS="western">States</H3>
+<H3 CLASS="western">Control Message Format</H3>
+<P><BR><BR>
+</P>
+<H3 CLASS="western">Interactions</H3>
+<P>Communications protocols are about more than messages. The
+protocols must also specify the interactions in which the messages
+are used.</P>
+<H4 CLASS="western">ID Alias assignment</H4>
+<H4 CLASS="western">ID Alias validation</H4>
+<H4 CLASS="western">ID Alias termination</H4>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P>Putting the destination alias in the header allows filtering on it
+with common CAN hardware.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <H3 CLASS="western">Link State</H3>
 <P><BR><BR>
 </P>
@@ -164,6 +177,98 @@ for e.g. NVRAM writing.</P>
 <H3 CLASS="western">State machine</H3>
 <P>E.g. Higher level starts link control by providing a valid NID and
 telling to to start off.</P>
+<HR>
+<P><BR><BR>
+</P>
+<P>Header content and sizes (Nominal decisions shown, 29 bit header):
+</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0cm">Priority bit (Always sent as 1
+	now; at front to ensure it acts like a true priority; 0 for high
+	priority, 1 for low; not checked by receivers) 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Frame Type (1 bit) OpenLCB message
+	or CAN control message 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">Variable Field (15 bits) 
+	</P>
+	<LI><P>Source NID alias (12 bits) 
+	</P>
+</UL>
+<P>The order of these fields is chosen to get proper priority and
+access disambiguation via CAN's standard mechanisms.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Bit 0</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 1</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 2-16</P>
+		</TH>
+		<TH WIDTH=25%>
+			<P>Bits 17-28</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Priority: 0 high, 1 low</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Frame Type</P>
+			<P ALIGN=CENTER>1: OpenLCB Message</P>
+			<P ALIGN=CENTER>0: CAN Control Message</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Variable Field</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Source NID Alias</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x1000,0000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x0800,0000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x07FF,F000</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>0x0000,0FFF</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Solo top bit</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Top bit of 6<SUP>th</SUP> nibble from right</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>3 bits lower bits, then three nibbles</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P ALIGN=CENTER>Right-most three nibbles</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm">The &quot;Variable field&quot; has
+different meanings depending on the &quot;Frame Type&quot; field. CAN
+control messages are identified with a Frame Type bit of 0, to ensure
+high priority.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <H2 CLASS="western">On the choice of a 12-bit alias length</H2>
 <P>How big should the NodeID alias field be on CAN links?</P>
 <UL>
