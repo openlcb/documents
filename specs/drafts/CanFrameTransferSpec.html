@@ -6,8 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100922;22344200">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20101004;9391400">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -18,6 +17,7 @@
 	<!--
 		H2.ctl { font-family: "Lucida Sans" }
 		H3.ctl { font-family: "Lucida Sans" }
+		H4.ctl { font-family: "Lucida Sans" }
 	-->
 	</STYLE>
 </HEAD>
@@ -51,32 +51,28 @@ carries proper standard-format (11-bit header) frames.</P>
 <P>OpenLCB-CAN nodes shall not transmit extended-format remote frames
 (frames with RTR set). Nodes shall operate properly when the CAN
 segment carries proper extended-format remote frames.</P>
-<P>OpenLCB-CAN nodes shall not transmit eoverload frames. Nodes shall
+<P>OpenLCB-CAN nodes shall not transmit overload frames. Nodes shall
 operate properly when the CAN segment carries proper overload frames.</P>
-<P><BR><BR>
-</P>
 <P STYLE="margin-bottom: 0cm">The first (most-significant) bit is
 reserved for future use. It must be transmitted as a 1 bit, and
 ignored upon receipt.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P>Header content and sizes (Nominal decisions shown, 29 bit header):
+<P STYLE="margin-bottom: 0cm">The second (second-most-significant)
+bit is the Frame Type indicator. A value of 0 indicates a
+CAN-specific Control Message. A value of 1 indicates an OpenLCB
+Message.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<UL>
-	<LI><P STYLE="margin-bottom: 0cm">Priority bit (Always sent as 1
-	now; at front to ensure it acts like a true priority; 0 for high
-	priority, 1 for low; not checked by receivers) 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Frame Type (1 bit) OpenLCB message
-	or CAN control message 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Variable Field (15 bits) 
-	</P>
-	<LI><P>Source NID alias (12 bits) 
-	</P>
-</UL>
-<P>The order of these fields is chosen to get proper priority and
-access disambiguation via CAN's standard mechanisms.</P>
+<P STYLE="margin-bottom: 0cm">The next 15 bits are termed the
+Variable Field. The format and contents of the Variable Field depends
+on Frame Type and are defined in later sections.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The last twelve bits (least
+significant) are the Source Node ID Alias value.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=64*>
 	<COL WIDTH=64*>
@@ -98,10 +94,10 @@ access disambiguation via CAN's standard mechanisms.</P>
 	</TR>
 	<TR VALIGN=TOP>
 		<TD WIDTH=25%>
-			<P ALIGN=CENTER>Priority: 0 high, 1 low</P>
+			<P ALIGN=CENTER>Reserved: Send as 1, <BR>ignore upon receipt</P>
 		</TD>
 		<TD WIDTH=25%>
-			<P ALIGN=CENTER>Frame Type</P>
+			<P ALIGN=CENTER>Frame Type:</P>
 			<P ALIGN=CENTER>1: OpenLCB Message</P>
 			<P ALIGN=CENTER>0: CAN Control Message</P>
 		</TD>
@@ -134,73 +130,144 @@ access disambiguation via CAN's standard mechanisms.</P>
 			<P ALIGN=CENTER>Top bit of 6<SUP>th</SUP> nibble from right</P>
 		</TD>
 		<TD WIDTH=25%>
-			<P ALIGN=CENTER>3 bits lower bits, then three nibbles</P>
+			<P ALIGN=CENTER>3 bits, then three nibbles</P>
 		</TD>
 		<TD WIDTH=25%>
 			<P ALIGN=CENTER>Right-most three nibbles</P>
 		</TD>
 	</TR>
 </TABLE>
-<P STYLE="margin-bottom: 0cm">The &quot;Variable field&quot; has
-different meanings depending on the &quot;Frame Type&quot; field. CAN
-control messages are identified with a Frame Type bit of 0, to ensure
-high priority.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H2 CLASS="western">CAN-specific Control Messages and Interactions</H2>
-<P>These are identified by the Frame Type bit being 0. They are
-formatted as shown in the following table:</P>
+<P><BR><BR>
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<TABLE WIDTH=762 BORDER=1 CELLPADDING=2 CELLSPACING=4>
-	<COL WIDTH=317>
-	<COL WIDTH=423>
+<H2 CLASS="western">CAN-specific Control Messages and Interactions
+(Normative)</H2>
+<H3 CLASS="western">States</H3>
+<P>A node has two states:</P>
+<UL>
+	<LI><P>Inhibited</P>
+	<LI><P>Permitted</P>
+</UL>
+<P>Nodes shall start in the Inhibited state.</P>
+<P>Nodes shall transition to the Permitted state after assignment of
+a valid Node ID alias.</P>
+<P>A node may transmit Check ID Message and Reserved ID Message
+frames while in the Inhibited state. A node shall not transmit any
+other frame while in Inhibited state.</P>
+<H3 CLASS="western">Control Message Format</H3>
+<P>The format and contents of CAN-specific Control Messages are
+defined in the following table:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<TABLE WIDTH=813 BORDER=1 CELLPADDING=2 CELLSPACING=4>
+	<COL WIDTH=331>
+	<COL WIDTH=332>
+	<COL WIDTH=119>
 	<TR>
-		<TH WIDTH=317>
+		<TH WIDTH=331>
 			<P>Name</P>
 		</TH>
-		<TH WIDTH=423>
+		<TH WIDTH=332>
 			<P>Variable Field</P>
+		</TH>
+		<TH WIDTH=119>
+			<P>Data Bytes</P>
 		</TH>
 	</TR>
 	<TR>
-		<TD WIDTH=317>
-			<P>Check ID (CIM) message</P>
+		<TD WIDTH=331>
+			<P>Check ID (CIM) Message</P>
 		</TD>
-		<TD WIDTH=423>
+		<TD WIDTH=332>
 			<P>MMM,NNNN,NNNN,NNNN 
 			</P>
-			<P>where MMM is the message sequence number, 0x7 to 0x4 (to give
-			priority to messages later in the process)</P>
+			<P>where MMM is the message sequence number, with valid values
+			from 0x4 through 0x7</P>
 			<P>and NNNN,NNNN,NNNN is the 12-bit Node ID section being checked</P>
 		</TD>
+		<TD WIDTH=119>
+			<P>None</P>
+		</TD>
 	</TR>
 	<TR>
-		<TD WIDTH=317>
+		<TD WIDTH=331>
 			<P>Reserved ID (RIM) Message</P>
 		</TD>
-		<TD WIDTH=423>
+		<TD WIDTH=332>
 			<P>0x0700</P>
 		</TD>
+		<TD WIDTH=119>
+			<P>None</P>
+		</TD>
 	</TR>
 	<TR>
-		<TD WIDTH=317>
+		<TD WIDTH=331>
 			<P>Mapping Reset (MR) Message</P>
 		</TD>
-		<TD WIDTH=423>
+		<TD WIDTH=332>
 			<P>0x0701</P>
+		</TD>
+		<TD WIDTH=119>
+			<P>None</P>
 		</TD>
 	</TR>
 	<TR>
-		<TD WIDTH=317>
-			<P>Reserved</P>
+		<TD WIDTH=331>
+			<P>Mapping Enquiry Request (MRQ) Message</P>
 		</TD>
-		<TD WIDTH=423>
+		<TD WIDTH=332>
+			<P>0x0702</P>
+		</TD>
+		<TD WIDTH=119>
+			<P>Full Node ID</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=331>
+			<P>Mapping Enquiry Reply (MRR) Message</P>
+		</TD>
+		<TD WIDTH=332>
+			<P>0x0703</P>
+		</TD>
+		<TD WIDTH=119>
+			<P>Full Node ID</P>
+		</TD>
+	</TR>
+	<TR>
+		<TD WIDTH=331>
+			<P>Reserved; may not be sent, and must be ignored upon receipt</P>
+		</TD>
+		<TD WIDTH=332>
 			<P>All others</P>
+		</TD>
+		<TD WIDTH=119>
+			<P>To be defined</P>
 		</TD>
 	</TR>
 </TABLE>
-<H3 CLASS="western">CANid assignment</H3>
+<H3 CLASS="western">Interactions</H3>
+<H4 CLASS="western">ID Alias assignment</H4>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">… MMM is the message sequence number,
+0x7 to 0x4 (to give priority to messages later in the process) 
+</P>
+<H4 CLASS="western">ID Alias validation</H4>
+<P>A node receiving a Mapping Enquiry Request Message shall compare
+the Full Node ID in the CAN data segment to the node's own Node ID.
+If and only if they match in length and content and the receiving
+node is in Permitted state, the node shall reply with a Mapping
+Enquiry Reply Message.</P>
+<H4 CLASS="western">ID Alias termination</H4>
+<P>A node receiving a Mapping Reset Message must drop the 
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
 <P>The common message format uses full 48-bit node ID numbers to
 identify originating nodes and in some case destination nodes. CAN
 frames use 12-bit local &quot;NID alias&quot; for these to save space
@@ -232,6 +299,8 @@ to the segment.
 <P>Note that there is no requirement that this alias be consistent
 from one run to the next. More detail is on a <A HREF="../documents/can/CanIDAllocation.html">separate
 page</A>. 
+</P>
+<P><BR><BR>
 </P>
 <H3 CLASS="western">CAN-specific messages</H3>
 <P>Most CAN frames are one-to-one or many-to-one equivalents of
@@ -314,126 +383,89 @@ Frame Type field. They contain message type information and/or
 address information in the 15-bit variable field, and zero to eight
 CAN data bytes.</P>
 <P STYLE="font-style: normal">For OpenLCB messages, the variable
-field is used in three forms:</P>
+field is used in two forms:</P>
 <UL>
 	<LI><P STYLE="font-style: normal">Unaddressed messages – messages
 	that don't have a destination address put the low 12 bits of the MTI
 	in the variable field</P>
+</UL>
+<DIV ALIGN=RIGHT>
+	<TABLE WIDTH=817 BORDER=1 CELLPADDING=4 CELLSPACING=4>
+		<COL WIDTH=368>
+		<COL WIDTH=419>
+		<TR VALIGN=TOP>
+			<TH WIDTH=368>
+				<P>Variable Field Bit 0</P>
+				<P>Header Bit 2</P>
+				<P>0x0400,0000</P>
+			</TH>
+			<TH WIDTH=419>
+				<P>Variable Field Bits 1-14</P>
+				<P>Header Bits 3-16</P>
+				<P>OpenLCB Variable Header Content</P>
+				<P>0x03FF,F000</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=368 SDVAL="0" SDNUM="1033;">
+				<P ALIGN=CENTER>0</P>
+			</TD>
+			<TD WIDTH=419>
+				<P ALIGN=CENTER>OpenLCB message information</P>
+			</TD>
+		</TR>
+	</TABLE>
+</DIV>
+<P><BR><BR>
+</P>
+<UL>
 	<LI><P STYLE="font-style: normal">Addressed messages – messages
 	that have a specific destination address put it in the variable
 	field, and carry the MTI in the payload. This allows filtering.</P>
-	<LI><P STYLE="font-style: normal">Stream addressed messages – as a
-	special case to improve efficiency of transfer, the streaming
-	protocol uses 12 bits of the variable field to identify a particular
-	stream transfer. This is not the same as a destination NodeID alias,
-	but performs a similar function to allow filtering while also
-	allowing multiple streams from a source.</P>
 </UL>
-<P STYLE="margin-bottom: 0cm"><I>(Global vs addressed bit – really
-only two formats here)</I></P>
+<DIV ALIGN=RIGHT>
+	<TABLE WIDTH=817 BORDER=1 CELLPADDING=4 CELLSPACING=4>
+		<COL WIDTH=223>
+		<COL WIDTH=278>
+		<COL WIDTH=274>
+		<TR VALIGN=TOP>
+			<TH WIDTH=223>
+				<P>Variable Field Bit 0</P>
+				<P>Header Bit 2</P>
+				<P>0x0400,0000</P>
+			</TH>
+			<TH WIDTH=278>
+				<P>Variable Field Bits 1-2</P>
+				<P>Header Bits 3-4</P>
+				<P>OpenLCB Variable Header Content</P>
+				<P>0x0300,0000</P>
+			</TH>
+			<TH WIDTH=274>
+				<P>Variable Field Bits 3-14</P>
+				<P>Header Bits 5-16</P>
+				<P>OpenLCB Variable Header Content</P>
+				<P>0x00FF,F000</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TD WIDTH=223 SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD WIDTH=278>
+				<P ALIGN=CENTER>OpenLCB message information</P>
+			</TD>
+			<TD WIDTH=274>
+				<P ALIGN=CENTER>Destination Node ID Alias</P>
+			</TD>
+		</TR>
+	</TABLE>
+</DIV>
+<P><BR><BR>
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<P STYLE="margin-bottom: 0cm">The variable field is allocated:</P>
-<P STYLE="margin-bottom: 0cm"><BR>
+<P><BR><BR>
 </P>
-<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
-	<COL WIDTH=96*>
-	<COL WIDTH=160*>
-	<TR VALIGN=TOP>
-		<TH WIDTH=37%>
-			<P>Variable Field Bits 0-2</P>
-			<P>Header Bits 2-4</P>
-			<P>OpenLCB Format</P>
-			<P>0x0700,0000</P>
-		</TH>
-		<TH WIDTH=63%>
-			<P>Variable Field Bits 3-14</P>
-			<P>Header Bits 5-16</P>
-			<P>OpenLCB Variable Header Content</P>
-			<P>0x00FF,F000</P>
-		</TH>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>0 0 0</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>MTI &amp; additional information for “simple
-			node” unaddressed messages</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>0 0 1</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>MTI &amp; additional information for unaddressed
-			messages other than “simple node” forms</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>0 1 0</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>(Reserved, must not be sent or accepted)</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>0 1 1</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>(Reserved for long-form MTIs in data area, <BR>must
-			not be sent or accepted)</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>1 0 0</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>Destination Alias for datagram message non-last
-			fragment</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>1 0 1</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>Destination Alias for datagram message last
-			fragment</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>1 1 0</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>Destination Alias for non-datagram addressed
-			messages</P>
-		</TD>
-	</TR>
-	<TR VALIGN=TOP>
-		<TD WIDTH=37%>
-			<P ALIGN=CENTER>1 1 1</P>
-		</TD>
-		<TD WIDTH=63%>
-			<P ALIGN=CENTER>Destination Alias for Stream Data Send messages</P>
-		</TD>
-	</TR>
-</TABLE>
-<P>Putting the destination alias in the header allows filtering on it
-with common CAN hardware. Putting the Stream ID in the header also
-allows filtering, and preserves the full 8-byte CAN payload for
-stream data.</P>
-<P><SPAN STYLE="font-style: normal">The specific MTI values are being
-allocated in a <A HREF="../documents/MtiAllocations.ods">separate
-worksheet</A> (<A HREF="../documents/MtiAllocations.pdf">PDF
-version</A>). In general, the MTI selection is done on the top 8 bits
-of the variable field. This is mapped to the low MTI byte in a
-standard format message.</SPAN></P>
 <H2 CLASS="western">Frame Communications Process</H2>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Nodes must handle full rate
