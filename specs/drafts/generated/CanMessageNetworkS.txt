@@ -1,0 +1,104 @@
+                                         1 Introduction (Informative)
+
+   OpenLCB is based on a global exchange of individual messages. This specification describes how messages
+   and/or parts of messages are transported across CAN segments as CAN frames.
+
+                                     2 References and Context (Normative)
+
+   This specification is in the context of the following OpenLCB-CAN Specifications:
+
+     * The OpenLCB Frame Transfer Specification, which specifies …
+
+     * The OpenLCB Node Identifier Specification, which specifies …
+
+   “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
+   11898-2:2003 and their successors.
+
+   External certification of parts shall be accepted for conformance to these standards. Conformance with a
+   later version of a standard shall be accepted as conformance with the referenced versions.
+
+    
+
+   Common Section?
+
+   Are some conventions included by reference, e.g. that all of OpenLCB is big-endian unless otherwise
+   specified?
+
+    
+
+    
+
+                                           3 OpenLCB message format
+
+   (rationalize with the frame doc, that describes the 1st bit)
+
+   OpenLCB common messages are carried in frames with a 1 in the Frame Type field. They contain message
+   type information and/or address information in the 15-bit variable field, and zero to eight CAN data
+   bytes.
+
+   For OpenLCB messages, the variable field is used in three forms:
+
+     * Unaddressed messages – messages that don't have a destination address put the low 12 bits of the MTI
+       in the variable field
+
+     * Addressed messages – messages that have a specific destination address put it in the variable field,
+       and carry the MTI in the payload. This allows filtering.
+
+     * Stream addressed messages – as a special case to improve efficiency of transfer, the streaming
+       protocol uses 12 bits of the variable field to identify a particular stream transfer. This is not
+       the same as a destination NodeID alias, but performs a similar function to allow filtering while
+       also allowing multiple streams from a source.
+
+   The variable field is allocated:
+
+    
+
+   Variable Field Bits 0-2 Variable Field Bits 3-14                                                         
+                                                                                                            
+   Header Bits 2-4         Header Bits 5-16                                                                 
+                                                                                                            
+   OpenLCB Format          OpenLCB Variable Header Content                                                  
+                                                                                                            
+   0x0700,0000             0x00FF,F000                                                                      
+   0 0 0                   MTI & additional information for “simple node” unaddressed messages              
+   0 0 1                   MTI & additional information for unaddressed messages other than “simple node”   
+                           forms                                                                            
+   0 1 0                   (Reserved, must not be sent or accepted)                                         
+   0 1 1                   (Reserved for long-form MTIs in data area,                                       
+                           must not be sent or accepted)                                                    
+   1 0 0                   Destination Alias for datagram message non-last fragment                         
+   1 0 1                   Destination Alias for datagram message last fragment                             
+   1 1 0                   Destination Alias for non-datagram addressed messages                            
+   1 1 1                   Destination Alias for Stream Data Send messages                                  
+
+   Putting the destination alias in the header allows filtering on it with common CAN hardware. Putting the
+   Stream ID in the header also allows filtering, and preserves the full 8-byte CAN payload for stream
+   data.
+
+   The specific MTI values are being allocated in a separate worksheet (PDF version). In general, the MTI
+   selection is done on the top 8 bits of the variable field. This is mapped to the low MTI byte in a
+   standard format message.
+
+   Some MTIs have additional status bits defined as part of the 2nd field. For example, there are two
+   status bits associated with “Consumer Identified” which must be kept in the header since there is no
+   room in the CAN data field. To simplify translation between formats, these are the low bits of the first
+   byte after the MTI in a standard-form message.
+
+   Note that messages with Destinations IDs may occur in two forms: with an alias in the header and the MTI
+   in the message; and with a full address in the data field and the MTI in the header.
+
+    
+
+    
+
+   Below this is just a collection of pieces from other docs right now.
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 References and Context (Normative)
+
+   3 OpenLCB message format
+
+    
