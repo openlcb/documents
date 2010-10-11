@@ -17,20 +17,31 @@
    errors provides a cleaner system.  Further, this protocol can check support for protocols that use
    global (non-addressed messages); nodes are not permitted to return errors for global messages.
 
-   Generally, the node designer will just provide a simple fixed value for the reply.
-
                                         2 Annotations to the Standard
 
 2.1 Introduction
 
 2.2 Intended Use
 
+   Although this protocol isn't mandatory, it's a very good idea to provide it.  High-function nodes such
+   as PC programs are likely to use it to customize their operation. Programmers are more likely to use
+   this protocol rather than write special error-handling code for each of the many different protocols.
+   Use of this protocol also avoids “intentional errors”, which might confuse or annoy users.
+
 2.3 Reference and Context
+
+   We don't explicitly reference all the protocol definitions that are associated with specific bits.
+    Implementors can find them from the protocol names, and we don't want to clog up this section of the
+   Standard with a set of references that we'll have to update continually.
 
 2.4 Messages
 
    The CAN messages were defined to be part of the “simple” subset.  Low-end nodes may want to implement
    this protocol so that higher-function nodes can easily learn their limitations.
+
+   Generally, the node designer will just provide a simple fixed value for the reply. On CAN, the entire
+   frame is fixed except for the source and destination aliases.  The destination alias can be taken
+   directly from the request packet.
 
 2.5 Interactions
 
@@ -48,7 +59,16 @@
    be generated.
 
    0x00 00 00 00 00 08 through 0x00 00 00 00 00 01 are reserved for control of future expansion. They'll
-   eventually be needed when there are more than 44 protocols defined.
+   eventually be needed when there are more protocols defined than can fit in a single CAN frame.
+
+   In general, nodes using this protocol don't need to know the meaning of bits defined after the node was
+   created.  A node is looking to see whether a particular protocol is present or not so that it can select
+   what actions to take.  A newly-defined protocol isn't among the things that the node will try to reason
+   about.  This allows us to eventually extend the length of the reply in any one of several ways.
+
+   We define the bits here, rather than in the individual protocol definitions, to reduce the risk of
+   duplicate assignments. Duplicate assignments would be obvious here, but not so much when spread across
+   separate documents.
 
     
 
