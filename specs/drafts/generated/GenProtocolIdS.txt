@@ -1,50 +1,85 @@
                                          1 Introduction (Informative)
 
-                                          2 Intended Use (Normative)
+   OpenLCB defines various optional protocols. If another node attempts to use a protocol that the target
+   node doesn't implement, there are well-defined rules for how the target node will either signal an error
+   or ignore the request.
 
-   This Standard defines an optional protocol.
+   For some uses, it's convenient to be able to tell whether a node implements a protocol before attempting
+   to use it.  This protocol defines a method for doing that.
 
-                                     3 Reference and Context (Normative)
+                                         2 Intended Use (Informative)
 
-   Cite to transfer Standards and Technical Notes, CAN and others (complicated cites...)
+   This Standard defines an optional protocol. OpenLCB nodes may, but are not required to, implement it.
+
+                                     3 References and Context (Normative)
+
+   This Standard defines message transfers that must be done via the mechanisms defined in the OpenLCB
+   standards for message networking:
+
+     * OpenLCB-CAN Message Network Standard
+
+     * OpenLCB-TCP Message Network Standard
+
+   For more information on format and presentation, see
+
+     * OpenLCB Common Information Technical Note
 
                                             4 Messages (Normative)
 
-   Protocol Support Inquiry
+4.1 Protocol Support Inquiry
+
+   Message Type Indicator: 0x32E4
+
+   Destination address present: Yes
+
+   Simple subset: Yes
+
+   Priority group: 1
 
    Content: None
 
+   CAN frame format: 0x18dd,dsss 32 E4
+
     
 
-   Destination address required.
+4.2 Protocol Support Reply
 
-   Protocol Support Reply
+   Message Type Indicator: 0x32F4
 
-   Content: Bytes containing bits identifying the available OpenLCB protocols; see definitions in separate
-   (spreadsheet) (pdf).
+   Destination address present: Yes
+
+   Simple subset: Yes
+
+   Priority group: 1
+
+   Content: Six bytes containing bits identifying the OpenLCB protocols supported by the sending node; see
+   Section 6 below for coding.
+
+   CAN frame format: 0x18dd,dsss 32 E4 vv vv vv vv vv vv
 
                                           5 Interactions (Normative)
 
-   OpenLCB defines a number of specific protocols for interacting with nodes, including event exchange,
-   datagrams, streams, configuration, etc. These protocols are optional, in the sense that not every node
-   will implement every one.
-
-   To determine which protocols a node implements, a Protocol Support Inquiry message is sent to the
-   specific node. It will reply with a Protocol Support Reply message that contains one or more bytes of
-   data. A specific bit position has been reserved for each defined protocol in a separate spreadsheet
-   (.ods, .pdf form). If the bit is zero or not present, the protocol is not supported and requests to use
-   it will result in a error. If present and 1, the protocol is supported.
-
-   It is not necessary to check whether a protocol is supported by a node before attempting to use the
-   protocol. If it's not, the error handling mechanism (see below) will indicate that.
+   Upon receipt of a Protocol Support Request message addressed to it, a node implementing this protocol
+   shall return a Protocol Support Reply with correct values in the data bytes.
 
                                  6 Protocol Identification Values (Normative)
 
-   0x80 00 00 00 00 00 00 00 Protocol Identification Protocol
+   A 1 bit in a position indicates that the corresponding protocol is supported by the sending node. A 0
+   bit in a position indicates that the corresponding protocol is not supported by the sending node.
 
-   0x40 00 00 00 00 00 00 00 Datagram Protocol
+    
 
-   0x20 00 00 00 00 00 00 00 Stream Protocol
+       vv vv vv vv vv vv Protocol                                               
+   0x80 00 00 00 00 00   Protocol Identification Protocol                       
+   0x40 00 00 00 00 00   Datagram Protocol                                      
+   0x20 00 00 00 00 00   Stream Protocol                                        
+   0x10 00 00 00 00 00   Configuration Protocol                                 
+   0x08 00 00 00 00 00   Reservation Protocol                                   
+   0x04 00 00 00 00 00   Display Protocol                                       
+   0x02 00 00 00 00 00   Identification Protocol                                
+   0x01 00 00 00 00 00   Teaching/Learning Configuration Protocol               
+   0x00 80 00 00 00 00   Remote Button Protocol                                 
+   All others            Reserved. Shall be sent as 0 and ignored upon receipt. 
 
     
 
@@ -56,11 +91,15 @@
 
    1 Introduction (Informative)
 
-   2 Intended Use (Normative)
+   2 Intended Use (Informative)
 
-   3 Reference and Context (Normative)
+   3 References and Context (Normative)
 
    4 Messages (Normative)
+
+   4.1 Protocol Support Inquiry
+
+   4.2 Protocol Support Reply
 
    5 Interactions (Normative)
 

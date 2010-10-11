@@ -11,14 +11,7 @@
 
 2.1 Numerical representation
 
-   OpenLCB documents use the prefix “0x” to indicate a hexadecimal value, and “0b” to represent a binary
-   value.  
-
-   Constants should always include the full field length. A value for a 12-bit field should be written as
-   0x002 or 0b000000000010, not 0x2 or 0b10.
-
-   Commas can be used in numbers after decimal thousands (65,523), 16-bit double-bytes for hex constants
-   (0x1234,4567), and four bits in binary (0b1000,0000). Do not put a space after the comma.
+   Unless otherwise specified, OpenLCB fields are unsigned.
 
    OpenLCB does not define a floating point representation (yet).
 
@@ -36,11 +29,86 @@
    OpenLCB does not prefer length-coded or null-terminated strings.  Standards should specify which is used
    in each case.
 
-   OpenLCB uses newline, also known as line-feed (\n 0x0A) as the line-end character. Carriage return (\r
-   0x0D) should be considered as general white space.
+   OpenLCB uses newline, also known as line-feed (\n 0x0A) as the line-end character within strings.
+   Carriage return (\r 0x0D) should be considered as general white space.
 
    There are no specific tab settings. You cannot assume a tab is any particular number of spaces. You can
    assume it counts as non-null white space.
+
+                                                3 Presentation
+
+   OpenLCB documents use the prefix “0x” to indicate a hexadecimal value.  Hexadecimal values are presented
+   with capital letters: 0xAB not 0xab. A sequence of bytes only requires the “0x” prefix on the first
+   byte:  0x12 34 56 78.
+
+   OpenLCB documents use the prefix “0b” to represent a binary value.
+
+   Octal representations are not used.
+
+   The boolean values are “true” and “false”.
+
+   Constants should always include the full field length. A value for a 12-bit field should be written as
+   0x002 or 0b000000000010, not 0x2 or 0b10.
+
+   Commas can be used in numbers after decimal thousands (65,523), 16-bit double-bytes for hex constants
+   (0x1234,4567), and four bits in binary (0b1000,0000). Do not put a space after the comma.
+
+3.1 Presentation of CAN Quantities
+
+   The 29-bit CAN extended header is presented as a single hex string: 0x0000,0000. The active bits are at
+   the right side, so that the highest possible value is 0x1FFF,FFFF.
+
+   “sss” is used to represent the source node ID alias in a CAN frame.
+
+   “ddd” is used to represent the destination node ID alias in a CAN frame.
+
+   A sample CAN header with both source and destination node addresses might be: 0x1Fdd,dsss or 0x1Fdddsss.
+
+   The data content of a frame is presented as a sequence of individual bytes. A typical complete frame
+   might be then 0x1FFFFsss 01 02 03 04.
+
+3.2 Presentation of a OpenLCB message
+
+   OpenLCB messages are described in this format:
+
+   Message Type Indicator: The 16-bit value, typically in hex notation, of the full MTI
+
+   Destination address present: Whether this message includes a destination address for a specific node. If
+   no, the message is global.
+
+   Simple subset: Whether the message is included in the “simple node subset” (defined where?)
+
+   Priority group: A number from 0 to 3 that describes the line priority of the message; 0 can be sent
+   before 3.
+
+   Content: Description of data bytes, if any, included after fixed fields such as MTI and destination
+   address.
+
+   CAN frame format: Typical CAN frame, including header and data bytes.  Source node ID alias is
+   represented by “sss”.  Destination node ID alias, if present, is represented by “ddd”.
+
+   Note that this information is not completely independent.  The MTI value depends on simple subset,
+   priority subgroup, etc, values. We present the full set, at some risk of inconsistency, to make it
+   easier to understand the containing Standard.
+
+   For more information, see the various “Message Networking” Standards and Technical Notes.
+
+   Example:
+
+   Message Type Indicator: 0x32F4
+
+   Destination address present: Yes
+
+   Simple subset: Yes
+
+   Priority group: 1
+
+   Content: Six bytes containing bits identifying the OpenLCB protocols supported by the sending node; see
+   Section 6 below for coding.
+
+   CAN frame format: 0x18dd,dsss 32 E4 vv vv vv vv vv vv
+
+    
 
     
 
@@ -55,5 +123,11 @@
    2.2 Byte sequences
 
    2.3 Strings
+
+   3 Presentation
+
+   3.1 Presentation of CAN Quantities
+
+   3.2 Presentation of a OpenLCB message
 
     
