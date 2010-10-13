@@ -128,12 +128,16 @@
 
    RIM, CIM, etc are assigned low numbers to give them higher transmission priority.
 
-2.7 Interactions
+  2.6.1 Interactions
 
    Communications protocols are about more than messages. The protocols must also specify the interactions
    in which the messages are used.
 
-  2.7.1 ID Alias assignment
+    2.6.1.1 Transition to Permitted State
+
+   Note that there is no requirement that this alias be consistent from one run to the next.
+
+    2.6.1.2 Reserving a Node ID Alias
 
    For example, four CIM frames and a RIM:
 
@@ -153,11 +157,6 @@
 
    … MMM is the message sequence number, 0x7 to 0x4 (to give priority to messages later in the process)
 
-   Note that there is no requirement that this alias be consistent from one run to the next. More detail is
-   on a separate page.
-
-    2.7.1.1 CIM/RIM message content and format
-
    The CIM/RIM algorithm for finding aliases is designed to work without any CAN errors. Arbitration
    conflicts are OK, but deliberate errors are not, because different CAN implementations may deal with
    them differently. During execution of the algorithm, some frames might have the same header. They
@@ -166,7 +165,10 @@
    Although it might be a useful debugging tool, putting the full NID in the data portion of the frames can
    cause errors. Therefore, we decided not to do that.
 
-  2.7.2 ID Alias validation
+    2.6.1.3 Node ID Alias validation
+
+   This is intended for e.g. late arriving nodes, particularly gateways or diagnostic nodes, so they can
+   get an entire map of a single segment.
 
    Regular nodes won't need to use this. It provides a way for a node joining a segment to rapidly learn
    the Node IDs and Node ID aliases of the reachable nodes. This may be useful for e.g. a gateway that is
@@ -179,9 +181,15 @@
    gateway, so it needs to be a segment-specific message defined only at the CAN level. It must not be a
    OpenLCB common message.
 
-  2.7.3 ID Alias termination
+    2.6.1.4 Transition to Inhibited State
 
-   Regular nodes won't need to use this.
+   This is a way to release an alias, while informing everybody that the node is no longer reachable.
+
+   The alias is only released if this node allows some other node to allocate it via CIM/RIM messages. The
+   current node can still hang on to it if desired.
+
+   Regular nodes won't need to do this. They stay active until this are go instantly offline due to e.g.
+   power-off.
 
    Mapping Reset - indicates that the local alias in the source address field may no longer be associated
    with the same NID, and mapping tables should be reset.
@@ -198,6 +206,12 @@
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Mapping Reset" frame to drop references to the old NID, followed by a "Initialization Complete" when
    the alias is allocated to a new NID.
+
+  2.6.2 Node ID Alias Generation
+
+2.7 OpenLCB Message Format
+
+   Format selected to allow filtering on destination address.
 
                                      3 Load-Related Frame Synchronization
 
@@ -516,12 +530,48 @@
    “A 48-Bit Pseudo-Random Number Generator”, Heidi G. Kuehn, Communications of the ACM, Volume 4, Issue 8
    (August 1961), pages 350-352.
 
+   Sections of Etschberger book
+
    Table of Contents
 
-   Title 1
+   1 Introduction 1
 
-   Section Title 2
+   2 Annotations to the Standard 2
 
-   Section Title 2
+   2.1 Introduction 2
 
-   Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. Shepherd Page 1 of 12 - 10/11/2010
+   2.2 References and Context 2
+
+   2.3 Frame Format 2
+
+   2.4 CAN-specific Control Messages and Interactions 3
+
+   2.5 States 3
+
+   2.6 Control Message Format 3
+
+   2.6.1 Interactions 3
+
+   2.6.1.1 Transition to Permitted State 3
+
+   2.6.1.2 Reserving a Node ID Alias 3
+
+   2.6.1.3 Node ID Alias validation 4
+
+   2.6.1.4 Transition to Inhibited State 4
+
+   2.6.2 Node ID Alias Generation 5
+
+   2.7 OpenLCB Message Format 5
+
+   3 Load-Related Frame Synchronization 5
+
+   4 Throughput and Temporarily Deaf Nodes 6
+
+   5 On the choice of a 12-bit alias length 7
+
+   6 CAN Controller Filters 13
+
+   7 Additional References 13
+
+   Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. Shepherd Page 1 of 14 - 10/13/2010
