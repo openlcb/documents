@@ -54,6 +54,10 @@
 
 2.2 Intended Use
 
+   The OpenLCB protocol suite uses 6-byte Node ID values, but this layer of communications could be
+   valuable in other contexts too. The Standard is therefore written so that any Node ID length from 12
+   bits through 7*12 = 84 bits can be used in a straight-forward manner.
+
 2.3 References and Context
 
    Note that we reference the Node ID standard, but only to the extent that each node is required to have a
@@ -119,16 +123,15 @@
 
    RIM, CIM, etc are assigned low numbers to give them higher transmission priority.
 
+   The coding is done to allow up to 7 separate CIM sequence numbers, for use by protocols with longer node
+   IDs.
+
   2.6.1 Interactions
 
    Communications protocols are about more than messages. The protocols must also specify the interactions
    in which the messages are used.
 
-    2.6.1.1 Transition to Permitted State
-
-   Note that there is no requirement that this alias be consistent from one run to the next.
-
-    2.6.1.2 Reserving a Node ID Alias
+    2.6.1.1 Reserving a Node ID Alias
 
    For example, four CIM frames and a RIM:
 
@@ -156,6 +159,52 @@
    Although it might be a useful debugging tool, putting the full NID in the data portion of the frames can
    cause errors. Therefore, we decided not to do that.
 
+    
+
+   Start with the six-byte unique Node ID in each node, with the bytes labelled N1 through N6.
+
+   Initialize a specific full-sequence 48bit PRNG with the 48 Node ID.
+
+   A:
+
+   Take the next element from the PRNG . Derive the 12-bit value for TCA, the tentative alias. If TCA is
+   zero, repeat.
+
+   Start listening for CAN frames containing Check ID messages (CIMs) and Reserved ID Messages (RIMs). A
+   CIM consists of an extended header with a 12 bit Source NIDa field, an 3 bit sequence field, a 12-bit
+   TestN field, and other bits to denote that this is a Check ID Message. There is no other variable
+   information in the frame. Having NIDa, Nn and TestN in the message ensure that CAN arbitration will work
+   without error. An RIM is the same, except that it can be identified as being a different message for
+   diagnostic purposes; it means the same thing upon receipt.
+
+   Send four CIMs with 0 through 3 in the Nn field, the 12-bit quarters of the NodeID in the TestN field,
+   and TCA in the Source NIDa field. During this process, if a CIM or RIM is received that contains the TCA
+   value in its CI field, TCA does not belong to this node. Repeat from (A).
+
+   Keep listening until your CAN hardware says your last CIM message has been sent and the CAN link is
+   idle, plus 500 msec. If you cannot detect that condition, wait 1 second.
+
+   If no CIM or RIM with this TCA value in the CI field is received before the end of the previous step,
+   you've successfully allocated TCA as this node's source NIDa. Send an RIM with TCA in the CI field and
+   go into normal operation.
+
+     * If that message fails with an error occurring during the data portion of the message, it's possible
+       that two nodes have the same NodeID, a fatal error. To prevent the OpenLCB being taken down, this
+       node should stop trying to allocate an alias and signal the error to the user via some non-CAN
+       method, e.g. LEDs, emitting smoke, etc.
+
+     * If any other error occurs, repeat from A.
+
+   While in normal operation, if you receive a CIM with your source NIDa, send a RIM, which will cause the
+   other node to back off and try something else.
+
+   It should not be possible to receive an RIM with your allocated source NIDa in normal operation. If you
+   do, log an error (on whatever it is they log it on there) and restart the process at (A).
+
+    2.6.1.2 Transition to Permitted State
+
+   Note that there is no requirement that this alias be consistent from one run to the next.
+
     2.6.1.3 Node ID Alias validation
 
    This is intended for e.g. late arriving nodes, particularly gateways or diagnostic nodes, so they can
@@ -182,8 +231,12 @@
    Regular nodes won't need to do this. They stay active until this are go instantly offline due to e.g.
    power-off.
 
-   Mapping Reset - indicates that the local alias in the source address field may no longer be associated
+   Alias Map Reset - indicates that the local alias in the source address field may no longer be associated
    with the same NID, and mapping tables should be reset.
+
+   Simple nodes don't need to keep track of the Node ID to alias mapping, because they simply respond to
+   frames they receive that contain an alias.  Simple nodes just work with the alias itself. They also
+   don't need to track other nodes state, etc.
 
    Gateways will also have to obtain unique aliases for remote nodes they are proxying on to the segment.
 
@@ -198,19 +251,11 @@
    "Mapping Reset" frame to drop references to the old NID, followed by a "Initialization Complete" when
    the alias is allocated to a new NID.  
 
-  2.6.2 Node ID Alias Generation
-
-    
-
     
 
 2.7 OpenLCB Message Format
 
-   Format selected to allow filtering on destination address.
-
-    
-
-    
+   Format selected to allow filtering on destination address, see later section on filter use.
 
     
 
@@ -237,9 +282,21 @@
    of errors that prevent proper operation unless the protocols have been designed to have as few header
    collisions as possible, and no data collisions.
 
+                                      4 Gateways and segment management
+
     
 
-                                   4 Throughput and Temporarily Deaf Nodes
+   (Need to discuss the case of two segments being joined, to discover they've both arbitrated the same
+   aliases, including with gateways on one or both)
+
+   Discuss the use of repeaters, bridges and gateways w.r.t. Timing; ref physical layer. Possibility of
+   reordering.
+
+   If/when a full NID is needed, it can be obtained by sending a "Verify Node ID Number (Addressed)"
+   message with an appropriate Destination Node ID in local alias form. The reply will eventually come back
+   with the Source ID in local alias form and carrying the full NID in the message content.
+
+                                   5 Throughput and Temporarily Deaf Nodes
 
    OpenLCB requires that CAN-attached nodes be able to handle the full frame rate on the CAN bus. There is
    no guarantee that frames for a given node will arrive with non-zero time between then.
@@ -273,36 +330,17 @@
    For long term reliability, a node must be able to completely process an entire CAN frame in the time it
    takes to receive the next one, which may be as little as 42 (?) bit times.
 
-    
-
    Eventually may have to allow use of Overload Frames to throttle for e.g. NVRAM writing.
 
-    
+   Nodes must handle full rate messages, specifically including messages not addressed to them. (The
+   datagram and stream protocols provide ways for nodes to indicate whether or not they have sufficient
+   buffering for the next transmission, triggering retries as needed) For long term reliability, a node
+   must be able to completely process an entire CAN frame in the time it takes to receive the next one,
+   which may be as little as 64 bit times, or about 500 microseconds.
 
-    
+                                   6 On the choice of a 12-bit alias length
 
-    
-
-    
-
-   Bit 0                   Bits 1                     Bits 2-16                            Bits 17-28       
-                           Frame Type                                                                       
-                                                      
-   Priority: 0 high, 1 low 1: OpenLCB Message         Variable Field                       Source NID Alias
-                                                      
-                           0: CAN Control Message     
-   0x1000,0000             0x0800,0000                0x07FF,F000                          0x0000,0FFF      
-   Solo top bit            Top bit of 6th nibble from 3 bits lower bits, then three        Right-most three 
-                           right                      nibbles                              nibbles          
-
-   The "Variable field" has different meanings depending on the "Frame Type" field. CAN control messages
-   are identified with a Frame Type bit of 0, to ensure high priority.
-
-    
-
-    
-
-                                   5 On the choice of a 12-bit alias length
+   (Should this be here?  Or elsewhere? In either case, clean it up)
 
    How big should the NodeID alias field be on CAN links?
 
@@ -354,49 +392,10 @@
    priority/extension, 1 for protocol control, 3 for MTI and stream control (all very bare minima) leads to
    a 12-bit node ID alias length.
 
-    
-
-    
-
-   (Need to discuss the case of two segments being joined, to discover they've both arbitrated the same
-   aliases, including with gateways on one or both)
-
-    
-
-    
-
-    
-
-    
-
-    
-
-   Discuss the use of repeaters, bridges and gateways w.r.t. Timing; ref physical layer. Possibility of
-   reordering.
-
-    
-
-     * Nodes must handle full rate messages, specifically including messages not addressed to them. (The
-       datagram and stream protocols provide ways for nodes to indicate whether or not they have sufficient
-       buffering for the next transmission, triggering retries as needed) For long term reliability, a node
-       must be able to completely process an entire CAN frame in the time it takes to receive the next one,
-       which may be as little as 64 bit times, or about 500 microseconds.
-
-   All traffic on a CAN segment uses aliases for both Source ID (always) and Destination ID (when the full
-   NID isn't known).
-
-    
-
-   If/when a full NID is needed, it can be obtained by sending a "Verify Node ID Number (Addressed)"
-   message with an appropriate Destination Node ID in local alias form. The reply will eventually come back
-   with the Source ID in local alias form and carrying the full NID in the message content.
-
-   From Node ID Alias Allocation Algorithm doc
+                                              7 Alias Allocation
 
    OpenLCB nodes on CAN segments do CAN arbitration by using their unique Node ID alias (NIDa) as part of
    the CAN header. This page documents a proposed algorithm for assigning unique Node ID aliases.
-
-   Introduction
 
    This method of assigning aliases and checking that they are unique is necessary because of the
    characteristics and limitations oFromf CAN.
@@ -440,49 +439,9 @@
 
      * It is desirable to detect duplicate (non-unique) NIDs, but 100% reliable detection is not required.
 
-   Algorithm
+    
 
-   Start with the six-byte unique Node ID in each node, with the bytes labelled N1 through N6.
-
-   Initialize a specific full-sequence 48bit PRNG with the 48 Node ID.
-
-   A:
-
-   Take the next element from the PRNG . Derive the 12-bit value for TCA, the tentative alias. If TCA is
-   zero, repeat.
-
-   Start listening for CAN frames containing Check ID messages (CIMs) and Reserved ID Messages (RIMs). A
-   CIM consists of an extended header with a 12 bit Source NIDa field, an 3 bit sequence field, a 12-bit
-   TestN field, and other bits to denote that this is a Check ID Message. There is no other variable
-   information in the frame. Having NIDa, Nn and TestN in the message ensure that CAN arbitration will work
-   without error. An RIM is the same, except that it can be identified as being a different message for
-   diagnostic purposes; it means the same thing upon receipt.
-
-   Send four CIMs with 0 through 3 in the Nn field, the 12-bit quarters of the NodeID in the TestN field,
-   and TCA in the Source NIDa field. During this process, if a CIM or RIM is received that contains the TCA
-   value in its CI field, TCA does not belong to this node. Repeat from (A).
-
-   Keep listening until your CAN hardware says your last CIM message has been sent and the CAN link is
-   idle, plus 500 msec. If you cannot detect that condition, wait 1 second.
-
-   If no CIM or RIM with this TCA value in the CI field is received before the end of the previous step,
-   you've successfully allocated TCA as this node's source NIDa. Send an RIM with TCA in the CI field and
-   go into normal operation.
-
-     * If that message fails with an error occurring during the data portion of the message, it's possible
-       that two nodes have the same NodeID, a fatal error. To prevent the OpenLCB being taken down, this
-       node should stop trying to allocate an alias and signal the error to the user via some non-CAN
-       method, e.g. LEDs, emitting smoke, etc.
-
-     * If any other error occurs, repeat from A.
-
-   While in normal operation, if you receive a CIM with your source NIDa, send a RIM, which will cause the
-   other node to back off and try something else.
-
-   It should not be possible to receive an RIM with your allocated source NIDa in normal operation. If you
-   do, log an error (on whatever it is they log it on there) and restart the process at (A).
-
-   Proposed alias derivation
+7.1 Recommended alias generation algorithm
 
    The 12 bit alias has to be derived from a 48-bit sequence number in a way that keeps as much entropy as
    possible.
@@ -494,7 +453,7 @@
    The OpenLCB proposed PRNG (next section) uses add operations with a constant term to avoid this problem,
    so treating the 48-bit PRNG output as four 12-but values, which are then XORed, works well.
 
-   Proposed PRNG
+  7.1.1 Proposed PRNG
 
    The proposed 48-bit PRNG is from “A 48-Bit Pseudo-Random Number Generator”, Heidi G. Kuehn,
    Communications of the ACM, Volume 4, Issue 8 (August 1961), pages 350-352.
@@ -507,7 +466,7 @@
 
    Note that, unlike some other PNRGs, this one can generate a zero result, and can accept a zero seed.
 
-   Discussion
+  7.1.2 Discussion
 
    CAN arbitration reliably avoids collisions between frames with unique headers. It does not guarantee
    arbitration between frames with identical headers and no data; if the timing is right, they may overlay
@@ -537,11 +496,7 @@
    of a couple hundred milliseconds or better to be reliable. The algorithm provides a wait of a few times
    that to enable those programs to take part.
 
-    
-
-    
-
-                                           6 CAN Controller Filters
+                                           8 CAN Controller Filters
 
    This coding has been generated such that simple nodes can use three hardware filters to select only
    frames that are of interest to them.
@@ -555,7 +510,7 @@
 
    (but the simple-MTI stuff is at Message level)
 
-                                           7 Additional References
+                                           9 Additional References
 
    B. Gaujal and N. Navet, “Fault confinement mechanisms on CAN: analysis and improvements”, IEEE
    Transactions on Vehicular Technology, pp.1103-1113, 54(3), May 2005 (An interesting analysis of how CAN
@@ -590,26 +545,34 @@
 
    2.6.1 Interactions
 
-   2.6.1.1 Transition to Permitted State
+   2.6.1.1 Reserving a Node ID Alias
 
-   2.6.1.2 Reserving a Node ID Alias
+   2.6.1.2 Transition to Permitted State
 
    2.6.1.3 Node ID Alias validation
 
    2.6.1.4 Transition to Inhibited State
 
-   2.6.2 Node ID Alias Generation
-
    2.7 OpenLCB Message Format
 
    3 Load-Related Frame Synchronization
 
-   4 Throughput and Temporarily Deaf Nodes
+   4 Gateways and segment management
 
-   5 On the choice of a 12-bit alias length
+   5 Throughput and Temporarily Deaf Nodes
 
-   6 CAN Controller Filters
+   6 On the choice of a 12-bit alias length
 
-   7 Additional References
+   7 Alias Allocation
+
+   7.1 Recommended alias generation algorithm
+
+   7.1.1 Proposed PRNG
+
+   7.1.2 Discussion
+
+   8 CAN Controller Filters
+
+   9 Additional References
 
     

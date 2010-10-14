@@ -1,9 +1,17 @@
                                          1 Introduction (Informative)
 
    This specification describes the mechanism for sending OpenLCB-CAN information via frames on a CAN
-   segment.
+   segment. This mechanism involves operations during an initial state, followed operation in a state where
+   OpenLCB-CAN communications are permitted.
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
 
                                          2 Intended Use (Informative)
+
+   This Standard is intended for use whenever OpenLCB nodes are communicating on CAN segment. It is not
+   intended to cover OpenLCB communications over other types of communications links.
 
                                      3 References and Context (Normative)
 
@@ -21,13 +29,9 @@
    External certification of parts shall be accepted for conformance to these standards. Conformance with a
    later version of a standard shall be accepted as conformance with the referenced versions.
 
-   For more information on format and presentation, see:
-
-     * OpenLCB Common Information Technical Note
-
                                           4 Frame Format (Normative)
 
-   OpenLCB-CAN frames are sent and received using the CAN extended format (29-bit header) only.
+   OpenLCB-CAN frames shall be sent and received using the CAN extended format (29-bit header) only.
 
    OpenLCB-CAN nodes shall operate properly when the CAN segment carries proper standard-format (11-bit
    header) frames.
@@ -52,15 +56,15 @@
 
     
 
-   Bit 0                Bit 1                           Bits 2-16                  Bits 17-28               
-                        Frame Type:                                                                         
-   Reserved: Send as 1,                                 
-   ignore upon receipt  1: OpenLCB Message              Variable Field             Source NID Alias
-                                                        
-                        0: CAN Control Message          
-   0x1000,0000          0x0800,0000                     0x07FF,F000                0x0000,0FFF              
-   Solo top bit         Top bit of 6th nibble from      3 bits, then three nibbles Right-most three nibbles 
-                        right                           
+   Bit number: Bit 0               Bit 1                      Bits 2-16               Bits 17-28            
+                                   Frame Type:                                                              
+               Reserved:                                      
+   Content:    Send as 1,          1: OpenLCB Message         Variable Field          Source NID Alias
+               ignore upon receipt                            
+                                   0: CAN Control Message     
+   Mask:       0x1000,0000         0x0800,0000                0x07FF,F000             0x0000,0FFF           
+   Location:   Solo top bit        Top bit of 6th nibble from 3 bits, then three      Right-most three      
+                                   right                      nibbles                 nibbles               
 
     
 
@@ -169,6 +173,8 @@
 
    Say something about “nearby-but-different Node IDs should generally” be different aliases. How phrase
    that?  Foot note on testing?
+
+   Sequence needs to depend strongly on Node ID, so that sequence diverges.
 
    (algorithm is recommended in tech note, but not required; see also discussion of what makes a good
    algorithm)
