@@ -3,7 +3,9 @@
    This specification describes the mechanism for sending OpenLCB-CAN information via frames on a CAN
    segment.
 
-                                    2 References and Context (Informative)
+                                         2 Intended Use (Informative)
+
+                                     3 References and Context (Normative)
 
    This specification is in the context of the following OpenLCB-CAN Specifications:
 
@@ -23,7 +25,7 @@
 
      * OpenLCB Common Information Technical Note
 
-                                          3 Frame Format (Normative)
+                                          4 Frame Format (Normative)
 
    OpenLCB-CAN frames are sent and received using the CAN extended format (29-bit header) only.
 
@@ -42,16 +44,15 @@
    The second (second-most-significant) bit is the Frame Type indicator. A value of 0 indicates a
    CAN-specific Control Message. A value of 1 indicates an OpenLCB Message.
 
-    
-
    The next 15 bits are termed the Variable Field. The format and contents of the Variable Field depends on
    Frame Type and are defined in later sections.
 
-   The last twelve bits (least significant) are the Source Node ID Alias value for this node, see below.
+   The last twelve bits (least significant) are the Source Node ID Alias value for the sending node, see
+   below.
 
     
 
-   Bit 0                Bits 1                          Bits 2-16                  Bits 17-28               
+   Bit 0                Bit 1                           Bits 2-16                  Bits 17-28               
                         Frame Type:                                                                         
    Reserved: Send as 1,                                 
    ignore upon receipt  1: OpenLCB Message              Variable Field             Source NID Alias
@@ -64,11 +65,11 @@
     
 
    After the header, the frame shall contain from zero to eight bytes of data. Length and content are
-   defined with specific message definitions.
+   defined by specific message definitions elsewhere.
 
-                                                   4 States
+                                                   5 States
 
-   A node has two states:
+   The frame transfer layer of a node has two states:
 
      * Inhibited
 
@@ -79,12 +80,13 @@
    A node in the Inhibited state may transmit Check ID Message, Reserved ID Message, and Alias Map
    Definition frames. A node in the Inhibited state shall not transmit any other frame type.
 
-   Nodes  in Permitted state may transmit any frame type, except Check ID Message and Reserved ID Message
-   frames. A node in Permitted state shall not transmit Check ID Message and Reserved ID Message frames.
+   Nodes  in Permitted state may transmit any frame type.
 
-                         5 CAN-specific Control Messages and Interactions (Normative)
+                         6 CAN-specific Control Messages and Interactions (Normative)
 
-5.1 Control Message Format
+   OpenLCB CAN control messages shall be carried in frames with a 0 in the Frame Type field.
+
+6.1 Control Message Format
 
    The format and contents of CAN-specific Control Messages are defined in the following table:
 
@@ -103,11 +105,11 @@
    Reserved; may not be sent, and must be All others                                          To be defined 
    ignored upon receipt                   
 
-5.2 Interactions
+6.2 Interactions
 
    This section describes the interactions which use the above messages.
 
-  5.2.1 Reserving a Node ID Alias
+  6.2.1 Reserving a Node ID Alias
 
    To reserve a Node ID alias while in the Inhibited state, a node shall:
 
@@ -130,7 +132,7 @@
 
    If error, step the algorithm in a standard way and repeat until success.
 
-  5.2.2 Transition to Permitted State
+  6.2.2 Transition to Permitted State
 
    To transition from the Inhibited state to the Permitted state, a node shall, in order:
 
@@ -138,7 +140,7 @@
 
      * Transmit a Alias Map Definition (AMD) message with the node's reserved Node ID alias and Node ID
 
-  5.2.3 Node ID Alias validation
+  6.2.3 Node ID Alias validation
 
    A node in Permitted state receiving a Alias Mapping Enquiry Message shall compare the full Node ID in
    the CAN data segment to the node's own Node ID. If and only if they match in length and content and the
@@ -146,16 +148,16 @@
    the node's full Node ID in the data segment of the frame.
 
    A node in Permitted state receiving a Alias Mapping Enquiry Message with no data content shall reply
-   with a Alias Map DefinitionMessage carrying the node's full Node ID in the data segment of the frame.
+   with a Alias Map Definition Message carrying the node's full Node ID in the data segment of the frame.
 
    A node in Inhibited state shall not reply to a Alias Mapping Enquiry Message.
 
-  5.2.4 Transition to Inhibited State
+  6.2.4 Transition to Inhibited State
 
-   To transition from the Permitted state to the Inhibited state, a node shall transmit a Alias Map Reset
-    Message with the node's reserved Node ID alias and Node ID.
+   To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
+   Alias Map Reset Message with the node's reserved Node ID alias and Node ID.
 
-5.3 Node ID Alias Generation
+6.3 Node ID Alias Generation
 
    Aliases must be created from the node ID (give separate starting points)
 
@@ -171,7 +173,7 @@
    (algorithm is recommended in tech note, but not required; see also discussion of what makes a good
    algorithm)
 
-                                           6 OpenLCB Message Format
+                                           7 OpenLCB Message Format
 
    OpenLCB common messages shall be carried in frames with a 1 in the Frame Type field. They shall contain
    message type information and/or address information in the 15-bit variable field, and zero to eight CAN
@@ -218,28 +220,30 @@
 
    1 Introduction (Informative)
 
-   2 References and Context (Informative)
+   2 Intended Use (Informative)
 
-   3 Frame Format (Normative)
+   3 References and Context (Normative)
 
-   4 States
+   4 Frame Format (Normative)
 
-   5 CAN-specific Control Messages and Interactions (Normative)
+   5 States
 
-   5.1 Control Message Format
+   6 CAN-specific Control Messages and Interactions (Normative)
 
-   5.2 Interactions
+   6.1 Control Message Format
 
-   5.2.1 Reserving a Node ID Alias
+   6.2 Interactions
 
-   5.2.2 Transition to Permitted State
+   6.2.1 Reserving a Node ID Alias
 
-   5.2.3 Node ID Alias validation
+   6.2.2 Transition to Permitted State
 
-   5.2.4 Transition to Inhibited State
+   6.2.3 Node ID Alias validation
 
-   5.3 Node ID Alias Generation
+   6.2.4 Transition to Inhibited State
 
-   6 OpenLCB Message Format
+   6.3 Node ID Alias Generation
+
+   7 OpenLCB Message Format
 
     

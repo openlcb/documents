@@ -11,12 +11,12 @@
     1. Every CAN header must be unique by construction. Collisions between frames with identical headers do
        not result in well-defined behavior, and must be avoided by design to avoid intermittent problems.
 
-    2. CAN does not provide a “link up” or “link down” notification. Nodes may come and go from a CAN
+    2. CAN does not provide any indicator of which node sent a particular frame. Any node can send any
+       frame, and the receiving nodes have no CAN-provided mechanism for identifying the source.
+
+    3. CAN does not provide a “link up” or “link down” notification. Nodes may come and go from a CAN
        segment at any time, and on an individual basis. In general, one can't assert that a particular node
        is always present, always comes up first, or never comes up first.
-
-    3. CAN does not provide any indicator of which node sent a particular frame. Any node can send any
-       frame, and the receiving nodes have no CAN-provided mechanism for identifying the source.
 
     4. On a busy segment, CAN frames are sent in a strict priority order, with the priority determined by
        the content of the frame headers. If multiple nodes have frames to send at the same time, the
@@ -29,8 +29,8 @@
 
    Putting a unique source ID field in each frame ensures that the frames are unique (item 1 above), and
    provides a frame-level indicator of which node sent the frame for the purposes of monitoring, debugging,
-   etc (item 3). Using a distributed algorithm to determine the value for that ID field prevents needing a
-   single “manager” to provide it, thereby handling item 2. The header bit fields discussed below are
+   etc (item 2). Using a distributed algorithm to determine the value for that ID field prevents needing a
+   single “manager” to provide it, thereby handling item 3. The header bit fields discussed below are
    organized to handle items 4 and 5.
 
    OpenLCB-CAN is required to work with standard CAN components, e.g. bridges and computer adapters must
@@ -52,13 +52,15 @@
 
 2.1 Introduction
 
-2.2 References and Context
+2.2 Intended Use
+
+2.3 References and Context
 
    Note that we reference the Node ID standard, but only to the extent that each node is required to have a
    unique Node ID. The Standard would work equally well with a Node ID that was allocated via any
    mechanism, and with any length from 2 to 8 bytes.
 
-2.3 Frame Format
+2.4 Frame Format
 
    OpenLCB uses a very vanilla transfer of frames, no special features, to reduce complexity and increase
    robustness.
@@ -99,8 +101,6 @@
    mechanisms.
 
    Putting the destination alias in the header allows filtering on it with common CAN hardware.
-
-2.4 CAN-specific Control Messages and Interactions
 
 2.5 States
 
@@ -216,14 +216,13 @@
 
                                      3 Load-Related Frame Synchronization
 
-    
+   CAN networks exhibit a behavior called “load-related frame synchronization” (it also goes by other
+   names).
 
-   CAN networks exhibit a behavior called “load-related frame synchronization” (it goes by other names).
-
-   Because of the CAN priority structure, the network can run at high utilization rates. Under those
-   circumstances, all nodes attempt to send their highest-priority frame, and the node with the absolute
-   highest priority frame (first dominant bit) wins.  All other nodes wait until just after that frame and
-   try again.  
+   Because of the CAN priority arbitration structure, the network can run at high utilization rates. Under
+   those circumstances, all nodes attempt to send their highest-priority frame, and the node with the
+   absolute highest priority frame (first dominant bit) wins.  All other nodes wait until just after that
+   frame and try again.  
 
    This behavior greatly increases the probability that nodes with frames ready to send containing the same
    header will see a collision.
@@ -579,11 +578,11 @@
 
    2.1 Introduction
 
-   2.2 References and Context
+   2.2 Intended Use
 
-   2.3 Frame Format
+   2.3 References and Context
 
-   2.4 CAN-specific Control Messages and Interactions
+   2.4 Frame Format
 
    2.5 States
 
