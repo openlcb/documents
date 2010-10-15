@@ -1,7 +1,7 @@
                                          1 Introduction (Informative)
 
    This specification describes the mechanism for sending OpenLCB-CAN messages via frames on a CAN segment.
-   It ensures unique headers to prevent CAN arbitration errors and message loss, message traceability, node
+   It ensures unique headers to prevent CAN arbitration errors and frame loss, message traceability, node
    addressing and priority management.
 
    For information on format and presentation conventions, see:
@@ -37,20 +37,21 @@
    header) frames.
 
    OpenLCB-CAN nodes shall not transmit extended-format remote frames (frames with RTR set). Nodes shall
-   operate properly when the CAN segment carries proper extended-format remote frames.
+   operate properly when the CAN segment carries extended-format remote frames.
 
-   Nodes shall operate properly when the CAN segment carries proper overload frames.
+   Nodes shall operate properly when the CAN segment carries overload frames.
 
-   The first (most-significant) bit is reserved for future use. It must be transmitted as a 1 bit, and
-   ignored upon receipt.
+   The first (most-significant) bit of each OpenLCB-CAN frame is reserved for future use. It must be
+   transmitted as a 1 bit, and ignored upon receipt.
 
    The second (second-most-significant) bit is the Frame Type indicator. A value of 0 indicates a
-   CAN-specific Control Message. A value of 1 indicates an OpenLCB Message.
+   CAN-specific Control Frame. A value of 1 indicates an OpenLCB Message.
 
-   The next 15 bits are termed the Variable Field. The format and contents of the Variable Field depends on
-   Frame Type and are defined in later sections.
+   The next 15 bits are the Variable Field. The format and contents of the Variable Field depends on Frame
+   Type and are defined in later sections.
 
-   The last twelve bits (least significant) are the Source Node ID Alias value for the sending node.
+   The last twelve bits (least significant) are the Source Node ID Alias value of the source (sending)
+   node.
 
     
 
@@ -59,15 +60,15 @@
                Reserved:                                      
    Content:    Send as 1,          1: OpenLCB Message         Variable Field          Source NID Alias
                ignore upon receipt                            
-                                   0: CAN Control Message     
+                                   0: CAN Control Frame       
    Mask:       0x1000,0000         0x0800,0000                0x07FF,F000             0x0000,0FFF           
    Location:   Solo top bit        Top bit of 6th nibble from 3 bits, then three      Right-most three      
                                    right                      nibbles                 nibbles               
 
-    
+   Table 1: Frame Format
 
    After the header, the frame shall contain from zero to eight bytes of data. Length and content are
-   defined by specific message definitions elsewhere.
+   defined by specific frame and message definitions elsewhere.
 
                                                    5 States
 
@@ -79,55 +80,57 @@
 
    Nodes shall start in the Inhibited state.
 
-   A node in the Inhibited state may transmit Check ID Message, Reserved ID Message, and Alias Map
-   Definition frames. A node in the Inhibited state shall not transmit any other frame type.
+   A node in the Inhibited state may transmit Check ID frame, Reserved ID frame, and Alias Map Definition
+   frames. A node in the Inhibited state shall not transmit any other frame type.
 
-   Nodes  in Permitted state may transmit any frame type.
+   Nodes in Permitted state may transmit any frame type.
 
-                         6 CAN-specific Control Messages and Interactions (Normative)
+                          6 CAN-specific Control Frames and Interactions (Normative)
 
-   OpenLCB CAN control messages shall be carried in frames with a 0 in the Frame Type field.
+   OpenLCB CAN control frames shall be carried in frames with a 0 in the Frame Type field.
 
-6.1 Control Message Format
+6.1 Control Frame Format
 
-   The format and contents of CAN-specific Control Messages are defined in the following table:
+   The format and contents of CAN-specific Control frames are defined in the following table:
 
    Name                                   Variable Field                                      Data Bytes    
                                           MMM,NNNN,NNNN,NNNN                                                
                                                                                               
-                                          MMM is the message sequence number, with valid      
-   Check ID (CIM) Message                 values from 0x7 through 0x4                         None
+                                          MMM is the frame sequence number, with valid values 
+   Check ID (CID) frame                   from 0x7 through 0x4                                None
                                                                                               
                                           NNNN,NNNN,NNNN is the 12-bit Node ID section being  
                                           checked                                             
-   Reserved ID (RIM) Message              0x0700                                              None          
-   Alias Map Definition (AMD) Message     0x0701                                              Full Node ID  
-   Alias Mapping Enquiry (AME) Message    0x0702                                              Full Node ID  
-   Alias Map Reset (AMR) Message          0x0703                                              None          
+   Reserved ID (RID) frame                0x0700                                              None          
+   Alias Map Definition (AMD) frame       0x0701                                              Full Node ID  
+   Alias Mapping Enquiry (AME) frame      0x0702                                              Full Node ID  
+   Alias Map Reset (AMR) frame            0x0703                                              None          
    Reserved; may not be sent, and must be All others                                          To be defined 
    ignored upon receipt                   
 
+   Table 2: Control Frame Format
+
 6.2 Interactions
 
-   This section describes the interactions which use the above messages.
+   This section describes the interactions which use the above frames.
 
   6.2.1 Reserving a Node ID Alias
 
    To reserve a Node ID alias while in the Inhibited state, a node shall:
 
-     * Generate a new source Node ID alias value
+     * Generate a tenative source Node ID alias value
 
-     * Transmit a Check ID Message (CIM) with MMM = 0x7, the least significant 12 bits of the full Node ID
-       in the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node
-       ID alias value in the Source NID Alias field.
+     * Transmit a Check ID frame (CID) with MMM = 0x7, the least significant 12 bits of the full Node ID in
+       the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node ID
+       alias value in the Source NID Alias field.
 
-     * Repeat that three more times with MMM = 0x6, x5 and 0x4, respectively, with each message carrying
-       the next lower 12 bits of the full Node ID value, and the frames carrying the same tentative source
+     * Repeat that three more times with MMM = 0x6, x5 and 0x4, respectively, with each frame carrying the
+       next higher 12 bits of the full Node ID value, and the frames carrying the same tentative source
        Node ID alias value in the Source NID Alias field.
 
      * Wait at least 50 milliseconds
 
-     * Transmit a Reserve ID Message (RIM) with the tentative source Node ID alias value n the Source NID
+     * Transmit a Reserve ID frame (RID) with the tentative source Node ID alias value n the Source NID
        Alias field.
 
    The node shall restart the process at the top if, before completion of the process, a frame is received
@@ -142,38 +145,60 @@
 
      * Have or obtain a valid reserved Node ID alias
 
-     * Transmit a Alias Map Definition (AMD) message with the node's reserved Node ID alias and Node ID
+     * Transmit a Alias Map Definition (AMD) frame with the node's reserved Node ID alias and Node ID
 
   6.2.3 Node ID Alias validation
 
-   A node in Permitted state receiving a Alias Mapping Enquiry Message shall compare the full Node ID in
-   the CAN data segment to the node's own Node ID. If and only if they match in length and content and the
-   receiving node is in Permitted state, the node shall reply with a Alias Map Definition Message carrying
+   A node in Permitted state receiving a Alias Mapping Enquiry frame shall compare the full Node ID in the
+   CAN data segment to the node's own Node ID. If and only if they match in length and content and the
+   receiving node is in Permitted state, the node shall reply with a Alias Map Definition frame carrying
    the node's full Node ID in the data segment of the frame.
 
-   A node in Permitted state receiving a Alias Mapping Enquiry Message with no data content shall reply
-   with a Alias Map Definition Message carrying the node's full Node ID in the data segment of the frame.
+   A node in Permitted state receiving a Alias Mapping Enquiry frame with no data content shall reply with
+   a Alias Map Definition frame carrying the node's full Node ID in the data segment of the frame.
 
-   A node in Inhibited state shall not reply to a Alias Mapping Enquiry Message.
+   A node in Inhibited state shall not reply to a Alias Mapping Enquiry frame.
 
   6.2.4 Transition to Inhibited State
 
    To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
-   Alias Map Reset Message with the node's reserved Node ID alias and Node ID.
+   Alias Map Reset frame with the node's reserved Node ID alias and Node ID.
 
   6.2.5 Node ID Alias Collision Handling
 
    A node shall compare the source Node ID alias in each received frame against all reserved Node ID
-   aliases it currently holds.  In case of a match, the receiving node shall consider the Node ID alias
-   released and no longer reserved.  If that alias was used to transition to Permitted state, the node
-   shall transition to Inhibited state via transmission of an Alias Map Reset Message.
+   aliases it currently holds.  In case of a match, the receiving node shall
+
+   If the frame is a Check ID (CID) frame, send a Reserved ID (RID) frame in response.
+
+   If the frame is a any other type, the node is in Permitted state, and the received source Node ID alias
+   is the current Node ID alias of this node, this node shall immediately transition to Inhibited state and
+   release the current Node ID alias.
+
+   If the frame is another other type, and the node is not in Permitted state or the received source Node
+   ID alias is not the current Node ID alias of this node, the node shall immediately release the matching
+   node ID alias.
+
+  6.2.6 Duplicate Node ID Handling
+
+   Each node shall compare the node ID in each received  Alias Map Definition frame with its own Node ID.
+    Should they match, in addition to any other actions that may be required by the incoming message, the
+   node
+
+     * may, but is not required to, signal the user that duplicate Node ID values exist using a lamp or
+       other directly- visible indicator
+
+     * if in Permitted state, shall emit a PCER message with the reserved Event ID “Duplicate Node ID
+       Detected”.
+
+    
 
 6.3 Node ID Alias Generation
 
    Alias values shall not be zero.
 
-   The first alias values generated by nodes with node ID values within 255 of each other shall not be
-   identical.
+   The first alias values generated by nodes of the same type with node ID values within 255 of each other
+   shall not be identical.
 
    When two different nodes generate the same alias value at some point in their sequence, there shall be
    more than a 99% probability that the next alias values generated by the two nodes are different.
@@ -183,14 +208,13 @@
 
                                         7 OpenLCB Message Frame Format
 
-   OpenLCB common messages shall be carried in frames with a 1 in the Frame Type field. They shall contain
-   message type information and/or address information in the 15-bit variable field, and zero to eight CAN
-   data bytes.
+   OpenLCB messages shall be carried in frames with a 1 in the Frame Type field. They shall contain message
+   type information and/or address information in the 15-bit variable field, and zero to eight CAN data
+   bytes.
 
    For OpenLCB messages, the variable field shall be used in one of two forms:
 
-     * Unaddressed messages – messages that don't have a destination address put the low 12 bits of the MTI
-       in the variable field – shall be formatted:
+     * Unaddressed messages – messages that don't have a destination address – shall be formatted:
 
                         Variable Field Bits 1-14        
    Variable Field Bit 0                                 
@@ -201,7 +225,7 @@
                         0x03FF,F000                     
    0                    OpenLCB message information     
 
-    
+   Table 3: Unaddressed Message Format
 
      * Addressed messages – messages that have a specific destination address – shall have the address
        alias in the low 12 bits of the variable field. Two upper bits can carry part of the OpenLCB
@@ -216,11 +240,7 @@
                         0x0300,0000                     0x00FF,F000                     
    1                    OpenLCB message information     Destination Node ID Alias       
 
-    
-
-    
-
-    
+   Table 4: Addressed message format
 
     
 
@@ -236,9 +256,9 @@
 
    5 States
 
-   6 CAN-specific Control Messages and Interactions (Normative)
+   6 CAN-specific Control Frames and Interactions (Normative)
 
-   6.1 Control Message Format
+   6.1 Control Frame Format
 
    6.2 Interactions
 
@@ -251,6 +271,8 @@
    6.2.4 Transition to Inhibited State
 
    6.2.5 Node ID Alias Collision Handling
+
+   6.2.6 Duplicate Node ID Handling
 
    6.3 Node ID Alias Generation
 
