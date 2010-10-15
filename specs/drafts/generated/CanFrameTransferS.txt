@@ -1,17 +1,17 @@
                                          1 Introduction (Informative)
 
-   This specification describes the mechanism for sending OpenLCB-CAN information via frames on a CAN
-   segment. This mechanism involves operations during an initial state, followed operation in a state where
-   OpenLCB-CAN communications are permitted.
+   This specification describes the mechanism for sending OpenLCB-CAN messages via frames on a CAN segment.
+   It ensures unique headers to prevent CAN arbitration errors and message loss, message traceability, node
+   addressing and priority management.
 
-   For more information on format and presentation, see:
+   For information on format and presentation conventions, see:
 
      * OpenLCB Common Information Technical Note
 
                                          2 Intended Use (Informative)
 
-   This Standard is intended for use whenever OpenLCB nodes are communicating on CAN segment. It is not
-   intended to cover OpenLCB communications over other types of communications links.
+   This Standard is intended for use whenever OpenLCB nodes are communicating on a single CAN segment. It
+   is not intended to cover OpenLCB communications over other types of communications links.
 
                                      3 References and Context (Normative)
 
@@ -39,8 +39,7 @@
    OpenLCB-CAN nodes shall not transmit extended-format remote frames (frames with RTR set). Nodes shall
    operate properly when the CAN segment carries proper extended-format remote frames.
 
-   OpenLCB-CAN nodes shall not transmit overload frames. Nodes shall operate properly when the CAN segment
-   carries proper overload frames.
+   Nodes shall operate properly when the CAN segment carries proper overload frames.
 
    The first (most-significant) bit is reserved for future use. It must be transmitted as a 1 bit, and
    ignored upon receipt.
@@ -51,8 +50,7 @@
    The next 15 bits are termed the Variable Field. The format and contents of the Variable Field depends on
    Frame Type and are defined in later sections.
 
-   The last twelve bits (least significant) are the Source Node ID Alias value for the sending node, see
-   below.
+   The last twelve bits (least significant) are the Source Node ID Alias value for the sending node.
 
     
 
@@ -98,7 +96,7 @@
                                           MMM,NNNN,NNNN,NNNN                                                
                                                                                               
                                           MMM is the message sequence number, with valid      
-   Check ID (CIM) Message                 values from 0x4 through 0x7                         None
+   Check ID (CIM) Message                 values from 0x7 through 0x4                         None
                                                                                               
                                           NNNN,NNNN,NNNN is the 12-bit Node ID section being  
                                           checked                                             
@@ -117,9 +115,9 @@
 
    To reserve a Node ID alias while in the Inhibited state, a node shall:
 
-     * Generate a new tentative source Node ID alias value
+     * Generate a new source Node ID alias value
 
-     * Transmits a Check ID Message (CIM) with MMM = 0x7, the least significant 12 bits of the full Node ID
+     * Transmit a Check ID Message (CIM) with MMM = 0x7, the least significant 12 bits of the full Node ID
        in the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node
        ID alias value in the Source NID Alias field.
 
@@ -127,14 +125,16 @@
        the next lower 12 bits of the full Node ID value, and the frames carrying the same tentative source
        Node ID alias value in the Source NID Alias field.
 
+     * Wait at least 50 milliseconds
+
      * Transmit a Reserve ID Message (RIM) with the tentative source Node ID alias value n the Source NID
        Alias field.
 
-    
+   The node shall restart the process at the top if, before completion of the process, a frame is received
+   that carries the source Node ID alias value being testing in its source Node ID alias field.
 
-   (What to do when something goes wrong)
-
-   If error, step the algorithm in a standard way and repeat until success.
+   The node shall restart the process at the top if, before completion of the process, any error is
+   encountered during frame transmission.
 
   6.2.2 Transition to Permitted State
 
@@ -161,25 +161,27 @@
    To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
    Alias Map Reset Message with the node's reserved Node ID alias and Node ID.
 
+  6.2.5 Node ID Alias Collision Handling
+
+   A node shall compare the source Node ID alias in each received frame against all reserved Node ID
+   aliases it currently holds.  In case of a match, the receiving node shall consider the Node ID alias
+   released and no longer reserved.  If that alias was used to transition to Permitted state, the node
+   shall transition to Inhibited state via transmission of an Alias Map Reset Message.
+
 6.3 Node ID Alias Generation
 
-   Aliases must be created from the node ID (give separate starting points)
+   Alias values shall not be zero.
 
-   May, but need not, be saved to be the starting point for the next time
+   The first alias values generated by nodes with node ID values within 255 of each other shall not be
+   identical.
 
-   When a second is needed, it needs to be different.
+   When two different nodes generate the same alias value at some point in their sequence, there shall be
+   more than a 99% probability that the next alias values generated by the two nodes are different.
 
-   Aliases must not be zero.
+   A node may, but need not, save the current alias generation state so that it restarts the sequence at
+   the same point, hence the same alias value, after a reset or power cycle.
 
-   Say something about “nearby-but-different Node IDs should generally” be different aliases. How phrase
-   that?  Foot note on testing?
-
-   Sequence needs to depend strongly on Node ID, so that sequence diverges.
-
-   (algorithm is recommended in tech note, but not required; see also discussion of what makes a good
-   algorithm)
-
-                                           7 OpenLCB Message Format
+                                        7 OpenLCB Message Frame Format
 
    OpenLCB common messages shall be carried in frames with a 1 in the Frame Type field. They shall contain
    message type information and/or address information in the 15-bit variable field, and zero to eight CAN
@@ -248,8 +250,10 @@
 
    6.2.4 Transition to Inhibited State
 
+   6.2.5 Node ID Alias Collision Handling
+
    6.3 Node ID Alias Generation
 
-   7 OpenLCB Message Format
+   7 OpenLCB Message Frame Format
 
     
