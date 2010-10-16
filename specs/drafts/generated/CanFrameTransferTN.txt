@@ -47,8 +47,8 @@
    OpenLCB-CAN is required to work without user intervention; user presets are  neither required nor
    permitted.
 
-   It's desirable for OpenLCB-CAN nodes to duplicate (non-unique) Node IDs, but 100% reliable detection is
-   not required.
+   It's desirable for OpenLCB-CAN nodes to detect duplicate (non-unique) Node IDs, but 100% reliable
+   detection is not required.
 
 1.1 Load-Related Frame Synchronization
 
@@ -90,7 +90,8 @@
 
    Note that the Standard references the Node ID Standard, but only to the extent that each node is
    required to have a unique Node ID. The Standard would work equally well with a Node ID that was
-   allocated via any mechanism, and with any length from 12 through 84 bits.
+   allocated via any mechanism, and with any length from 12 through 84 bits. OpenLCB uses a 48-bit node ID,
+   which is assumed for the rest of this Technical Note.
 
 2.4 Frame Format
 
@@ -190,10 +191,10 @@
    therefore have to have the same contents, including null contents, or else a non-arbitration error can
    occur.
 
-   If two nodes have taken the same tentative alias, at least one of the four packets used in that
-   broadcast will not be identical between the two nodes, because their six-byte Node IDs are different in
-   at least one bit. CAN will successfully arbitrate this, and one node will receive the frame sent by the
-   other node, causing it to back off.
+   If two nodes have taken the same tentative alias, at least one of the packets used in the broadcast will
+   not be identical between the two nodes, because their Node IDs are different in at least one bit. CAN
+   will successfully arbitrate this, and one node will receive the frame sent by the other node, causing it
+   to back off.
 
    CAN transmissions are not atomic operations; a node can receive a frame between the time it tells the
    hardware to send a frame and the time that frame is actually sent. It's therefore possible for both
@@ -210,7 +211,7 @@
    Nodes may assign different alias values each time they are powered up. There is no requirement that they
    always reserve and use the same one, nor is it possible to guarantee that they will.
 
-   The sequence number MMM is sent in descending order, 0x7 to 0x4, to give priority on the CAN segment to
+   The sequence number MMM is sent in descending order, 0x7, 0x6, …, to give priority on the CAN segment to
    frames later in the process.  This lets some nodes complete as early as possible and remove themselves
    from contention.
 
@@ -291,10 +292,10 @@
    Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
    it.
 
-   Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
-   limited routing table, they may need to reuse local alias(es). Before reusing them, they have to send a
-   "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID.  
+   Gateways may not be able to ensure permanent validity for alias to remote NIDs. For example, if they
+   have a limited routing table, they may need to reuse local alias(es). Before reusing them, they have to
+   send a "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition"
+   when the alias is allocated to a new node ID.  
 
     2.6.2.5 Node ID Alias Collision Handling
 
