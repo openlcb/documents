@@ -1,0 +1,254 @@
+                                                1 Introduction
+
+   This Technical Note contains informative discussion and background for the corresponding “OpenLCB Unique
+   Identifiers Specification”. This explanation is not normative in any way.
+
+   Originally, OpenLCB was written in terms of 48-bit unique “node IDs”.  Other uses were found for these
+   IDs that didn't associate them with a specific node, which demonstrated the need for unique IDs beyond
+   just node IDs.  Therefore, the Standard and this Technical Note are generally written in terms of unique
+   IDs, which includes use for node IDs.  
+
+   Note that a node ID must be truly unique, in the sense that it's ID can't be used either for another
+   node nor for any other purpose.
+
+                                      2 Annotations to the Specification
+
+   This section provides background information on corresponding sections of the Specification document.
+   It's expected that two documents will be read together.
+
+2.1 Introduction
+
+2.2 Intended Use
+
+   The "globally unique" requirement only refers to the universe of connected nodes; nodes that never need
+   to communicate with each other need not have separate NIDs. In general, however, nodes can move: They
+   can be sold or loaned for use on another layout, nodes on modular layouts can be connected to other
+   arbitrary modules, and few assumptions can be made. It's best if nodes are given a completely unique ID
+   when manufactured, so there's no need to ever detect and resolve a conflict.
+
+    
+
+2.3 References and Context
+
+2.4 Format
+
+   The specification doesn't require any particular human-readable format, but hex-pairs with separators
+   are strongly suggested, e.g. 01.AB.34.01.CD.E3; decimal pairs could also be used, but in that case it's
+   important to provide a way to know which is use.
+
+    
+
+   Discuss who's responsible for ID uniqueness.  “Last constructor”, e.g. person who assembles and
+   configures a kit?
+
+   Make it clear that there are many methods to store the ID, and that's not constrained by the Standard.
+
+   If the user is involved in determining the Node ID, e.g. by setting switches, the node has to provide a
+   user-visible way to indicating a duplicate has been seen, and must implement the relevant
+   wire-protocol-specific methods for detecting duplicate node IDs.s
+
+    
+
+2.5 Allocation
+
+   Unique IDs are assigned via a delegation process. At the highest level, number ranges are assigned to
+   people and organizations, within which they are responsible for assigning unique numbers to separate
+   devices. These ranges can be subdivided and delegated further, as needed. Additional ranges can then be
+   requested, which will be recorded here or eventually in some online system accessible to anybody.
+
+   Anyone may request a block of IDs of a suitable size, which are then automatically assigned. It is
+   preferred that this be an easy process, perhaps just filling out a web form, so that people can rapidly
+   obtain and use unique IDs. For now, all assignments are documented in a web-accessible spreadsheet
+   (.ods) (.pdf).
+
+   In addition to ranges directly delegated by the central authority, there are several special-case
+   populations of modules:
+
+    1. Numbers assigned by manufacturers
+
+    2. Numbers assigned by members of organized groups
+
+    3. Numbers assigned by do-it-yourself hobbyists
+
+    4. Numbers assigned by software at run-time
+
+   One of the reasons for having a long, 48-bit NID space is to make it easier to have alternative
+   approaches like this. Particular assignments for these populations are discussed below. In each table,
+   the blank bytes on the left (most significant bytes) will be assigned fixed values for distinguishing
+   the various types.
+
+   In these delegated assignments, the lower order byte(s) are self-assigned. The values of zero is
+   reserved, indicating that a number within the range hasn't been assigned.
+
+  2.5.1 Numbers assigned by manufacturers
+
+   As an initial simplification, and to encourage manufacturers to adopt OpenLCB, a group of 2^24 addresses
+   will be assigned to each manufacturer with an NMRA manufacturer ID number. Manufacturers can assign a
+   board any Node ID number from within their range so long as each number is only assigned to at most one
+   node.
+
+   Byte 1 Byte 2 Byte 3      Byte 4        Byte 5        Byte 6        
+   0x02   0x01   Mfg ID byte self-assigned self-assigned self-assigned 
+
+   The NMRA has defined ID number 238 for future expansion with in the existing 8-bit ID space, but has not
+   determined how to use it. When 238 is finally used to identify a new set of manufacturers, those
+   manufacturers can be assigned OpenLCB ranges with a different set of high-order bits.
+
+   Software manufacturers who use software keys can generate the low-order 24 bits from some unique part of
+   the software key. Hardware manufacturers need to ensure that resetting a device to “factory defaults”
+   doesn't lose the self-assigned part of the Node ID, e.g. the serial number.
+
+  2.5.2 Numbers assigned by members of organized groups
+
+   MERG kit builders and others would like to assign their own numbers without going through a complicated
+   process. To make this possible without any interaction with anybody, these people are assigned number
+   ranges that involve their member number in the organization. A member may assign any number from this
+   range to the node(s) they produce, provided that each number is assigned to at most one node. A range of
+   255 numbers per member is sufficient for hobby usage; after building that many, the hobbyist can get
+   another, larger assignment. It's also convenient to give hobbyists a byte as their range.
+
+   Each organization is assigned a unique high-order two bytes. The organization member number is given 24
+   bits.
+
+   Byte 1 Byte 2 Byte 3        Byte 4        Byte 5        Byte 6        
+                 member number member number member number Self-assigned 
+
+    
+
+   Specific leading bytes are documented in the spreadsheet (.ods) (.pdf), but the first two assignments
+   are:
+
+   Byte 1 Byte 2 Group 
+   0x03   0x01   NMRA  
+   0x03   0x02   MERG  
+
+    
+
+  2.5.3 Numbers assigned by software at run-time
+
+   Programs that act as one or more OpenLCB nodes need to associate unique NIDs with them. For licensed
+   software, where a unique key can be associated with each instance of the program, this is easy: Use the
+   manufacturer space defined above, and generate the lower bits of specific ID from the license key.
+
+   Free, open and unlicensed software can't use a license-key-based method. Unfortunately, the 48-bit
+   address space is too small to use the IP-address-plus-signature GIDs that would otherwise make this a
+   simple problem, or the even larger MAC-address-plus-signature GIDs.
+
+   If the computer has a global IP address (not part of one of the four non-global IP ranges), that can be
+   used initially.
+
+   Byte 1 Byte 2    Byte 3    Byte 4    Byte 5    Byte 6        
+   0x04   IP number IP number IP number IP number self-assigned 
+
+   Non-global IP addresses (see appendix) will require another algorithm. It may be as simple as requesting
+   that the user get a number from one of the above spaces and provide it. If the software determines it
+   has an internet connection, it could also request a unique allocation from a central source.
+
+   Use of time in nsec from some epoch; needs a prefix for e.g. manufacturer number in case of multiple
+   programs coming up at some time? (You expect a collisions in nsec? Seriously?)
+
+   There are three ranges of IP addresses that are "private":
+
+    
+
+   10.0.0.0 - 10.255.255.255 (2^24 addresses)
+
+   172.16.0.0 - 172.31.255.255 (2^16 addresses)
+
+   192.168.0.0 - 192.168.255.255 (2^16 addresses)
+
+    
+
+   In addition, a range is reserved for the Windows
+
+   "Automatic Private IP Addressing" feature:
+
+   169.254.0.0 -169.254.255.255 (2^16 addresses)
+
+    
+
+   The A/B/C class system:
+
+   A has 0XXX,XXXX in 1st octet (0-127) and allocates 24-bit ranges
+
+   B has 10XX,XXXX in 1st octet (128-191) and allocates 16-bit ranges
+
+   C has 110X,XXXX in 1st octet (192-223) and allocates 8-bit ranges
+
+   D has 111X,XXXX in 1st octet (224-255) and is used for multicast, etc.
+
+    
+
+   But the regularity this defines is used for routing, something not needed in the much smaller OpenLCB
+   network.
+
+    
+
+   EUI-48 addresses (used to be known as MAC addresses) are 46 bits (48, but two of them indicate
+   global/local and other use).
+
+  2.5.4 Numbers assigned using other's methods for assuring uniqueness
+
+   Other groups have defined mechanisms to ensure that node ID numbers or equivalent constructs are
+   uniquely assigned. They may have e.g. non-technical reasons for wishing to use those same mechanisms to
+   assign OpenLCB node IDs. Ranges of OpenLCB NIDs can be assigned to these, so that when people then use
+   the group's mechanism to select a number within that range, the result will be a properly unique NID.
+
+   The first example of this is MERG CBUS developers. MERG CBUS has defined a “no cost” way of identifying
+   unique 16-bit Node Number (NN) for CBUS use, perhaps with an option 16-bit “Layout Number”. People who
+   wish to use this mechanism to allocate unique OpenLCB Node ID numbers can, without having to consult
+   anybody, generate an OpenLCB Node ID from the unique CBUS number(s) as follows:
+
+   Byte 1 Byte 2 Byte 3      Byte 4     Byte 5  Byte 6 
+   0x03   0x05   Layout High Layout Low NN High NN Low 
+
+    
+
+  2.5.5 Number ranges assigned by request
+
+  2.5.6 Reserved numbers
+
+   For error detection and future expansion, we reserve all numbers that start with either a 0x00 or 0xFF
+   value.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 
+   0x00   Any    Any    Any    Any    Any    
+   0xFF   Any    Any    Any    Any    Any    
+
+    
+
+   Node numbers starting with 0x00 can be used on a temporary basis for experimentation. In particular, an
+   experimenter can use numbers in that range as a starting point, and then assign more permanent numbers
+   before distributing nodes to others or using them in combination with nodes from others.
+
+    
+
+   Table of Contents
+
+   1 Introduction
+
+   2 Annotations to the Specification
+
+   2.1 Introduction
+
+   2.2 Intended Use
+
+   2.3 References and Context
+
+   2.4 Format
+
+   2.5 Allocation
+
+   2.5.1 Numbers assigned by manufacturers
+
+   2.5.2 Numbers assigned by members of organized groups
+
+   2.5.3 Numbers assigned by software at run-time
+
+   2.5.4 Numbers assigned using other's methods for assuring uniqueness
+
+   2.5.5 Number ranges assigned by request
+
+   2.5.6 Reserved numbers
+
+    
