@@ -17,9 +17,9 @@
 
                                      3 References and Context (Normative)
 
-   This specification is in the context of the OpenLCB-CAN … Specification, which specifies …
+   (may not be anything in this section)
 
-                                             4 Format (Normative)
+                                       4 Content and Format (Normative)
 
    An OpenLCB unique identifier (unique ID) shall be six bytes of eight bits each.
 
@@ -27,9 +27,9 @@
    shall be transmitted first during communication operations. The most-significant byte shall be written
    first (left-most in Western format) in any human-readable representation.
 
-   OpenLCB unique IDs shall include one or more 1 bits.
+   An OpenLCB unique ID shall include one or more 1 bits.
 
-   Every OpenLCB node shall have a unique identifier to use as a node identifier.
+   Every OpenLCB node shall have a unique identifier to use as a node identifier (node ID).
 
                                            5 Allocation (Normative)
 
@@ -41,48 +41,56 @@
 
     
 
-5.1 Node numbers assigned by manufacturers
+5.1 Unique identifiers assigned by manufacturers
 
    Manufacturers who have been assigned a manufacturer ID number by the NMRA may, but are not required to,
-   use their NMRA manufacturer ID number to self-assign unique identifier numbers using the pattern:
+   use their NMRA manufacturer ID number to self-assign unique identifiers within a range defined by:
 
-   Byte 1 Byte 2 Byte 3      Byte 4        Byte 5        Byte 6        
-   0x02   0x01   Mfg ID byte self-assigned self-assigned self-assigned 
+   Byte 1 Byte 2 Byte 3      Byte 4 Byte 5 Byte 6 
+   0x02   0x01   Mfg ID byte self-assigned
 
-    
+   Manufacturers shall ensure uniqueness for identifiers they assign.
 
-   Manufacturers shall ensure that the same node ID is not used by more than one node.
+5.2 Unique identifiers assigned by members of organized groups
 
-5.2 Node numbers assigned by members of organized groups
-
-   A NMRA member may, but is not required to, use their NMRA membership number to self-assign node ID
-   numbers using the pattern:
+   An NMRA member may, but is not required to, use their NMRA membership number to self-assign unique
+   identifiers within the range defined by:
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        
-   0x03   0x00   Member Number        Self-assigned 
+   0x03   0x00   NMRA Member Number   Self-assigned 
 
     
 
-   A MERG member may, but is not required to, use their MERG membership number to self-assign node ID
-   numbers using the pattern:
+   A MERG member may, but is not required to, use their MERG membership number to self-assign unique
+   identifiers within the range defined by:
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        
-   0x03   0x04   Member Number        Self-assigned 
+   0x03   0x04   MERG Member Number   Self-assigned 
 
     
 
-   Individuals using this assignment pattern shall ensure that the same node ID is not used by more than
-   one node.
+   Individuals using these assignment patterns shall ensure uniqueness for identifiers they assign.
 
-5.3 Node numbers assigned by software at run-time
+   MERG CBUS has a defined method for specifying a unique 16-bit Node Number (NN) for CBUS use, along with
+   an optional 16-bit Layout Number (LN). People may, but are not required to, use a unique CBUS node
+   number to generate an OpenLCB unique identifier as follows:
 
-   A program running in a computer with global IP address may, but is not required to, use that IP address
-   to self-assign node ID numbers using the pattern:
+   Byte 1 Byte 2 Byte 3       Byte 4      Byte 5       Byte 6      
+   0x03   0x08   LN High Byte LN Low Byte NN High Byte NN Low Byte 
 
-   Byte 1 Byte 2    Byte 3    Byte 4    Byte 5    Byte 6        
-   0x04   IP number IP number IP number IP number self-assigned 
+    
 
-   IP addresses in the following ranges shall not be used:
+   Future definition of ranges for additional groups will use unique values in Byte 2.
+
+5.3 Unique identifiers assigned by software at run-time
+
+   A program running in a computer with a global IP address may, but is not required to, use that IP
+   address to self-assign unique identifiers using the pattern:
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        
+   0x04   IP address                  self-assigned 
+
+   IP addresses in the following ranges shall not be used for this method:
 
     1.   1.   1.   1. 10.0.0.0 – 10.255.255.255
 
@@ -92,72 +100,67 @@
 
                       169.254.0.0 – 169.254.255.255
 
-   Programs using this assignment pattern shall ensure that the same node ID is not used by more than one
-   node.
+   Programs using this assignment pattern shall ensure uniqueness for identifiers they assign.
 
-5.4 Node numbers assigned using other's methods for assuring uniqueness
+5.4 Globally defined unique identifiers
 
-   Other groups have defined mechanisms to ensure that node ID numbers or equivalent constructs are
-   uniquely assigned. They may have e.g. non-technical reasons for wishing to use those same mechanisms to
-   assign OpenLCB node IDs. Ranges of OpenLCB NIDs can be assigned to these, so that when people then use
-   the group's mechanism to select a number within that range, the result will be a properly unique NID.
-
-   The first example of this is MERG CBUS developers. MERG CBUS has defined a “no cost” way of identifying
-   unique 16-bit Node Number (NN) for CBUS use, perhaps with an option 16-bit “Layout Number”. People who
-   wish to use this mechanism to allocate unique OpenLCB Node ID numbers can, without having to consult
-   anybody, generate an OpenLCB Node ID from the unique CBUS number(s) as follows:
-
-   Byte 1 Byte 2 Byte 3      Byte 4     Byte 5  Byte 6 
-   0x03   0x05   Layout High Layout Low NN High NN Low 
-
-    
-
-5.5 Global identification numbers
-
-   Well-known global identifiers
-
-    
+   OpenLCB defines specific well-known identification numbers and number ranges for specific uses. The
+   details of these ranges are defined in other Standards and/or have been reserved for future use.
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Use                      
    0x01   1      0x00   0x00   0x00   0x00   Well-known Event IDs     
-   0x01   1      0x01   0x00                 CBUS mapped Event IDs    
-   0x01   99                                 XpressNet translation    
-   0x01   129    Byte 1 Byte 2 Byte 3 Byte 4 LocoNet packet transport 
-   0x01   238                                DCC translation          
-                                                                      
+   0x01   1      0x01   0x00                 CBUS mapped Event IDs    
+   0x01   99                                 XpressNet translation    
+   0x01   129                                LocoNet packet transport 
+   0x01   238                                DCC translation          
 
     
 
-5.6 Assigned for use with locomotive control systems
+5.5 Unique identifiers assigned for use with locomotive control systems
 
-    
+   OpenLCB defines specific well-known identification numbers and number ranges for interoperation with
+   existing locomotive control systems. The details of these ranges are defined in other Standards and/or
+   have been reserved for future use.
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Use              
-   0x06   0                                  DC (block)       
-   0x06   1                                  DCC              
-   0x06   2                                  TMCC             
-   0x06   3                                  Marklin/Motorola 
-   0x06   4                                  MTH DCS          
-                                                              
+   0x06   0x00                               DC (block)       
+   0x06   0x01                               DCC              
+   0x06   0x02                               TMCC             
+   0x06   0x03                               Marklin/Motorola 
+   0x06   0x04                               MTH DCS          
 
     
 
-5.7 Number ranges assigned by request
+5.6 Unique identifier ranges assigned by request
 
    Any individual or corporation shall be able to obtain permanent allocations of blocks of 28, 216 and 224
    node identification numbers via the http://www.openlcb.org web site.
 
-5.8 Reserved numbers
+    
 
-   Node IDs in the following range shall not be used.
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        
+   0x05   0x01   Assigned by web site Self-assigned 
 
     
 
-   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 
-   0x00   Any    Any    Any    Any    Any    
-   0xFF   Any    Any    Any    Any    Any    
+   Byte 1 Byte 2 Byte 3     Byte 4    Byte 5 Byte 6 
+   0x05   0x02   Assigned by web site Self-assigned
 
-   All other node ID numbers not specifically discussed in this Standard shall not be used.
+    
+
+   Byte 1 Byte 2 Byte 3               Byte 4 Byte 5 Byte 6 
+   0x05   0x03   Assigned by web site Self-assigned
+
+5.7 Reserved unique identifiers
+
+   All other unique identifiers not specifically discussed in this Standard shall not be used until the
+   Standard is revised to permit their use.
+
+   Unique identifiers in the following ranges shall not be used at any point:
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 
+   0x00   Any    
+   0xFF   Any    
 
     
 
@@ -171,24 +174,22 @@
 
    3 References and Context (Normative)
 
-   4 Format (Normative)
+   4 Content and Format (Normative)
 
    5 Allocation (Normative)
 
-   5.1 Node numbers assigned by manufacturers
+   5.1 Unique identifiers assigned by manufacturers
 
-   5.2 Node numbers assigned by members of organized groups
+   5.2 Unique identifiers assigned by members of organized groups
 
-   5.3 Node numbers assigned by software at run-time
+   5.3 Unique identifiers assigned by software at run-time
 
-   5.4 Node numbers assigned using other's methods for assuring uniqueness
+   5.4 Globally defined unique identifiers
 
-   5.5 Global identification numbers
+   5.5 Unique identifiers assigned for use with locomotive control systems
 
-   5.6 Assigned for use with locomotive control systems
+   5.6 Unique identifier ranges assigned by request
 
-   5.7 Number ranges assigned by request
-
-   5.8 Reserved numbers
+   5.7 Reserved unique identifiers
 
     
