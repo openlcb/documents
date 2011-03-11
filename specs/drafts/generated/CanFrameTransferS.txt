@@ -4,10 +4,6 @@
    It ensures unique headers to prevent CAN arbitration errors and frame loss, message traceability, node
    addressing and priority management.
 
-   For information on format and presentation conventions, see:
-
-     * OpenLCB Common Information Technical Note
-
                                          2 Intended Use (Informative)
 
    This Standard is intended for use whenever OpenLCB nodes are communicating on a single CAN segment. It
@@ -21,7 +17,7 @@
        OpenLCB-CAN frames
 
      * The OpenLCB Unique Identifiers Standard, which specifies the mechanism(s) for providing a unique
-       6-byte identifier for each node
+       identifier for each node
 
    “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
    11898-2:2003 and their successors.
@@ -96,20 +92,21 @@
 
    The format and contents of CAN-specific Control frames are defined in the following table:
 
-   Name                                   Variable Field                                      Data Bytes    
-                                          MMM,NNNN,NNNN,NNNN                                                
+   Name                                Variable Field                                         Data Bytes    
+                                       MMM,NNNN,NNNN,NNNN                                                   
                                                                                               
-                                          MMM is the frame sequence number, with valid values 
-   Check ID (CID) frame                   from 0x7 through 0x4                                None
+                                       MMM is the frame sequence number, with valid values    
+   Check ID (CID) frame                from 0x7 through 0x4 or, for non-OpenLCB protocols,    None
+                                       down to 0x1.                                           
                                                                                               
-                                          NNNN,NNNN,NNNN is the 12-bit Node ID section being  
-                                          checked                                             
-   Reserve ID (RID) frame                 0x0700                                              None          
-   Alias Map Definition (AMD) frame       0x0701                                              Full Node ID  
-   Alias Mapping Enquiry (AME) frame      0x0702                                              Full Node ID  
-   Alias Map Reset (AMR) frame            0x0703                                              None          
-   Reserved; may not be sent, and must be All others                                          To be defined 
-   ignored upon receipt                   
+                                       NNNN,NNNN,NNNN is the 12-bit Node ID section being     
+                                       checked                                                
+   Reserve ID (RID) frame              0x0700                                                 None          
+   Alias Map Definition (AMD) frame    0x0701                                                 Full Node ID  
+   Alias Mapping Enquiry (AME) frame   0x0702                                                 Full Node ID  
+   Alias Map Reset (AMR) frame         0x0703                                                 None          
+   Reserved; may not be sent, and must All others                                             To be defined 
+   be ignored upon receipt             
 
    Table 2: Control Frame Format
 
@@ -129,7 +126,8 @@
 
      * Repeat that three more times with MMM = 0x6, x5 and 0x4, respectively, with each frame carrying the
        next higher 12 bits of the full Node ID value, and the frames carrying the same tentative source
-       Node ID alias value in the Source NID Alias field.
+       Node ID alias value in the Source NID Alias field. (Protocols with a Unique ID length different from
+       6 bytes will do this as many times as necessary to carry the entire Unique ID)
 
      * Wait at least 50 milliseconds
 
@@ -170,17 +168,17 @@
   6.2.5 Node ID Alias Collision Handling
 
    A node shall compare the source Node ID alias in each received frame against all reserved Node ID
-   aliases it currently holds.  In case of a match, the receiving node shall
+   aliases it currently holds.  In case of a match, the receiving node shall:
 
-   If the frame is a Check ID (CID) frame, send a Reserve ID (RID) frame in response.
+     * If the frame is a Check ID (CID) frame, send a Reserve ID (RID) frame in response.
 
-   If the frame is a any other type, the node is in Permitted state, and the received source Node ID alias
-   is the current Node ID alias of this node, this node shall immediately transition to Inhibited state and
-   release the current Node ID alias.
+     * If the frame is a any other type, the node is in Permitted state, and the received source Node ID
+       alias is the current Node ID alias of this node, this node shall immediately transition to Inhibited
+       state and release the current Node ID alias.
 
-   If the frame is another other type, and the node is not in Permitted state or the received source Node
-   ID alias is not the current Node ID alias of this node, the node shall immediately release the matching
-   node ID alias.
+     * If the frame is another other type, and the node is not in Permitted state or the received source
+       Node ID alias is not the current Node ID alias of this node, the node shall immediately release the
+       matching node ID alias.
 
   6.2.6 Duplicate Node ID Handling
 
@@ -191,8 +189,8 @@
      * may, but is not required to, signal the user that duplicate Node ID values exist using a lamp or
        other directly-visible indicator
 
-     * if in Permitted state, shall emit a PCER message with the reserved Event ID “Duplicate Node ID
-       Detected”.
+     * if in Permitted state, may, but is not required to, emit a PCER message with the reserved Event ID
+       “Duplicate Node ID Detected” followed by going offline until reset.
 
     
 
