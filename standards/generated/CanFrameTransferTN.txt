@@ -5,12 +5,16 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  Oct 19, 2010                       Preliminary            
+                                                  Mar 11, 2011                       Preliminary            
 
                                                 1 Introduction
 
    This Technical Note contains informative discussion and background for the corresponding “OpenLCB CAN
    Frame Transfer Standard”. This Technical Note is not normative in any way.
+
+   For information on format and presentation conventions, see:
+
+     * OpenLCB Common Information Technical Note
 
    The Frame Transfer layer of the OpenLCB-CAN stack lives above the CAN Physical Layer, and below the
    Message Network layer. It is responsible for ensuring the reliable transport of the CAN frames that make
@@ -44,7 +48,7 @@
    Putting a unique source ID field in each frame ensures that the frames are unique (item 1 above), and
    provides a frame-level indicator of which node sent the frame for the purposes of monitoring, debugging,
    etc (item 2). Providing a destination address field in the frame header allows a standard method of
-   addressed communications (item 4). Using a distributed algorithm to determine the value for that ID
+   addressed communications (item 43). Using a distributed algorithm to determine the value for that ID
    field prevents needing a single “manager” to provide it, thereby handling item 4. The header bit fields
    discussed below are organized to handle items 5 and 6.
 
@@ -97,10 +101,10 @@
 
 2.3 References and Context
 
-   Note that the Standard references the Node ID Standard, but only to the extent that each node is
-   required to have a unique Node ID. The Standard would work equally well with a Node ID that was
-   allocated via any mechanism, and with any length from 12 through 84 bits. OpenLCB uses a 48-bit node ID,
-   which is assumed for the rest of this Technical Note.
+   Note that the Standard references the NodeUnique ID Standard, but only to the extent that each node is
+   required to have a unique Node ID as it's node ID. The Standard would work equally well with a
+   NodeUnique ID that was allocated via any mechanism, and with any length from 12 through 84 bits. OpenLCB
+   uses a 48-bit unique ID as a node ID, which is assumed for the rest of this Technical Note.
 
 2.4 Frame Format
 
@@ -138,8 +142,10 @@
    is a restriction against having seven consecutive recessive bits on the CAN segment, but sending seven
    consecutive 1 bits will not result in this. CAN uses a bit-stuffing technique to prevent that by
    inserting a dominant bit on the line after the fifth consecutive recessive bit, and removing it at the
-   receiver.The CAN format has been allocated on nibble boundaries to make it easier to e.g. read dumps of
-   packets. The header is considered to be right (LSB) aligned.
+   receiver.
+
+   The CAN format has been allocated on nibble boundaries to make it easier to e.g. read dumps of packets.
+   The header is considered to be right (LSB) aligned.
 
    The reserved first bit (MSB) is likely to be used as a priority-boost bit in the future, e.g. so that a
    gateway can gain priority access to the CAN segment for various operations that require synchronization
@@ -261,6 +267,11 @@
 
    Note that there is no requirement that the node's alias value be consistent from one run to the next.
 
+   The Alias Mapping Enquiry provides a mechanism for determining which alias is associated with each Node
+   ID. This can be used when e.g. a new node attaches and needs the information. Operating nodes can also
+   track this information by watching CAN segment traffic, without having to use the Alias Mapping Enquiry
+   protocol.
+
     2.6.2.3 Node ID Alias validation
 
    Node ID alias validation provides a way for a node joining a segment to rapidly learn the Node IDs and
@@ -281,6 +292,21 @@
 
     2.6.2.4 Transition to Inhibited State
 
+   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
+   associated with the same NID, and mapping tables should be reset.
+
+   This is a way to release or reuse an alias, while informing everybody that the node is no longer
+   reachable.
+
+   The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
+   current node can still hang on to it if desired and reuse it with another Node ID.
+
+   Gateways have to obtain unique aliases for remote nodes they are proxying onto the segment. Gateways
+   maintain the mapping between remote node's node ID and the local alias. If they need to break that
+   mapping, e.g. because they need to repurpose a local alias due to resource limitations in the mapping
+   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
+   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
+   it. This is then followed by an "Alias Map Definition" when the alias is allocated to a new node ID.
    Regular nodes won't need to do this. They stay active until they go instantly offline due to e.g.
    power-off.
 
@@ -290,21 +316,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
-   associated with the same NID, and mapping tables should be reset.
+   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
+   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
+   segment, but all gateways on the segment must act on it.
 
-   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
+   Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
+   limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
+   "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
+   alias is allocated to a new node ID. the reuseto the segment.
 
    Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to reuserepurpose thea local alias due to resource limitations in the
-   mapping tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information.
-   "Alias Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must
-   act on it.
+   mapping, e.g. because they need to
 
-   Gateways may not be able to ensure permanent validity for alias to remote NIDs. For example, if they
-   have a limited routing table, they may need to reuse local alias(es). Before reusing them, they have to
-   send a "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition"
-   when the alias is allocated to a new node ID.
+   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
+   frame indicates that the alias value in the source address field may no longer be associated with the
+   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
+   until they go instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -489,9 +516,9 @@
    takes to receive the next one, which may be as little as 42 (?) bit times (short parasitic frame).
 
    Eventually OpenLCB may have to discuss use of Overload Frames to throttle for e.g. NVRAM writing, but
-   various sets hardware may also be doing this already. This mechanism provides only a little more time,
-   due to restrictions in the CAN specification that have become limitations on the silicon
-   implementations.
+   various sets CAN hardware implementations may also be doing this already. This mechanism provides only a
+   little more time, due to restrictions in the CAN specification that have become limitations on the
+   silicon implementations.
 
                                    5 On the choice of a 12-bit alias length
 
@@ -571,9 +598,10 @@
    provides an initial 48-bit value that can be mapped to a 12-bit value.
 
    To create a sequence of values, you want a computationally cheap way of sequencing through all those
-   possible 48-bit values. PRNGA suitable pseudo-random number generator does exactly this; runs through
-   full 48-bit sequence; each node joins at separate point in the sequence, so the 48 bit values are
-   unique.
+   possible 48-bit values. PRNG(Running through the 48-bit values and compressing each to a 12-bit alias
+   value is less likely to get multiple nodes attempting the same sequence than just working through a
+   12-bit sequence) A suitable pseudo-random number generator does exactly this; runs through full 48-bit
+   sequence; each node joins at separate point in the sequence, so the 48 bit values are unique.
 
    Want to have 12 bit version, so need an algorithm that preserves that to the extent possible.The most
    computationally convenient way to create a 12-bit value, while preserving as much of the randomness as
@@ -616,6 +644,8 @@
    The PRNG state is stored in two 32-bit quantities:
 
    uint32_t lfsr1, lfsr2; // sequence value: lfsr1 is upper 24 bits, lfsr2 lower
+
+   The 6-byte unique Node ID is stored in the nid[0:5] array.
 
    LTo load the PRNG from the Node ID:
 
@@ -790,4 +820,4 @@
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/ The specific code is available at
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
-   Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. Shepherd Page 1 of 13 - 10/19/2010
+   Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. Shepherd Page 1 of 13 - 3/11/2011
