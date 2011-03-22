@@ -6,13 +6,20 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100622;10234700">
+	<META NAME="CHANGED" CONTENT="20110322;10205800">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Common Message Format</H1>
@@ -53,13 +60,13 @@ transporting a message, reserved quantities must be transported
 unchanged. The zero value sometimes indicates a non-initialized
 value. 
 </P>
-<H2>Node ID Numbers - NID</H2>
+<H2 CLASS="western">Node ID Numbers - NID</H2>
 <P>A node ID number is 48 bits. The NMRA will allocate number ranges
 to individuals or organizations upon request, and maintain a public
 list of assignments. A detailed mechanism for kinds of delegation has
 been <A HREF="NidUniqueAssignment.html">separately proposed</A>. 
 </P>
-<H2>Message Type Indicator (MTI)</H2>
+<H2 CLASS="western">Message Type Indicator (MTI)</H2>
 <P>The common Message Type Indicator (MTI) is a 16 bit quantity. 
 </P>
 <P>Each specific MTI has a specific defined content <A HREF="CommonMessageDefinitions.html">documented
@@ -126,14 +133,159 @@ hexadecimal numbers. Note that, as a special dispensation for CAN,
 higher priority messages (MTIs with lower numerical values) may pass
 lower priority ones; this must be taken into account when designing
 protocols.</P>
+<P>MTI layout:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<COL WIDTH=37*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=14%>
+			<P>Field</P>
+		</TH>
+		<TD WIDTH=14%>
+			<P>Reserved</P>
+			<P>(send and check)</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>Message Type</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>Reserved</P>
+			<P>(send and check)</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>Destination ID flag</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>Event ID flag</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>Flag byte flag</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TH WIDTH=14%>
+			<P>Size &amp; location</P>
+		</TH>
+		<TD WIDTH=14%>
+			<P>5 bits</P>
+			<P>0xF800</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>7 bits</P>
+			<P>0x07F0</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 bit</P>
+			<P>0x0008</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 bit</P>
+			<P>0x0004</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 bit</P>
+			<P>0x0002</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 bit</P>
+			<P>0x0001</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TH WIDTH=14%>
+			<P>Value(s)</P>
+		</TH>
+		<TD WIDTH=14%>
+			<P>0b00110</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>See below</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>0b0</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 means Destination ID present, 0 means not present</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 means Event ID present, 0 means not present</P>
+		</TD>
+		<TD WIDTH=14%>
+			<P>1 means flag byte present, 0 means not present</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Message Type field (7 bits) layout:</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<COL WIDTH=64*>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Field</P>
+		</TH>
+		<TD WIDTH=25%>
+			<P>Static priority groups</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Reserved</P>
+			<P>(send and check)</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>Specific type</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Size &amp; location (within 7-bit field)</P>
+		</TH>
+		<TD WIDTH=25%>
+			<P>2 bits</P>
+			<P>0x60</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>1 bit</P>
+			<P>0x10</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>4 bits</P>
+			<P>0x0F</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TH WIDTH=25%>
+			<P>Value(s)</P>
+		</TH>
+		<TD WIDTH=25%>
+			<P>0b00 to 0b11</P>
+			<P>0b00 goes first, 0b11 last if priority processing is present</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>0b0</P>
+		</TD>
+		<TD WIDTH=25%>
+			<P>See spreadsheet for values &amp; meanings</P>
+		</TD>
+	</TR>
+</TABLE>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <P STYLE="margin-bottom: 0cm">Specific values are allocated and
 documented in a <A HREF="MtiAllocations.ods">separate worksheet</A>
 (<A HREF="MtiAllocations.pdf">PDF version</A>). We keep them in just
 that one place to avoid conflicting updates.</P>
-<H3>CAN considerations</H3>
+<H3 CLASS="western">CAN considerations</H3>
 <P STYLE="margin-bottom: 0cm">The standard CAN MTI field is 12 bits
 in the header (messages without destination address) or one byte in
-the data segment (addressed messages).  Since CAN frames only carry 8
+the data segment (addressed messages). Since CAN frames only carry 8
 data bytes, a 1-byte MTI short form will be used at first. The
 possibility of longer MTI values has been reserved.</P>
 <HR>
