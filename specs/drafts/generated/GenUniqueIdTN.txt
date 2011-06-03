@@ -109,28 +109,42 @@
 
    Programs that act as one or more OpenLCB nodes need to associate unique identifiers with them. For
    licensed software, where a unique key can be associated with each instance of the program, this is easy:
-   Use the manufacturer space defined above, and generate the lower bits of specific ID from the license
+   Use the manufacturer space defined above, and generate the lower bits of a specific ID from the license
    key.
 
    Free, open and unlicensed software can't use a license-key-based method. Unfortunately, the 48-bit
    address space is too small to use the IP-address-plus-signature GIDs that would otherwise make this a
    simple problem, or the even larger MAC-address-plus-signature GIDs.
 
-   If the computer has a global IP address (not part of one of the four non-global IP ranges), that can be
-   used as described in this section.  If the program implements multiple nodes, or wants to handle
-   multiple invocations of the program, it needs to have a method to provide a unique value for the lowest
-   bytes.
+   Initial experiments were done using 48-bit IPv4 addresses as components of unique identifiers, but this
+   is no longer recommended for several reasons:
 
-   Not all IP addresses are globally unique.  Some IP addresses correspond to “private networks”, which are
-   only locally unique.  See RFC 1918 and RFC 3330 for more information.  In addition, Microsoft defined an
-   non-IETF “Automatic Private IP Addressing” mechanism for providing non-global IP addresses.
+     * Not all IPv4 addresses are globally unique.   Some IP addresses correspond to “private networks”,
+       which are only locally unique.  See RFC 1918 and RFC 3330 for more information.  In addition,
+       Microsoft defined an non-IETF “Automatic Private IP Addressing” mechanism for providing non-global
+       IP addresses.
 
-   Non-global IP addresses cannot be directly used to create unique identifiers. Non-global IP addresses
-   (called out as specific ranges in the Standard) will require a separate unique identifier allocation
-   algorithm. It may be as simple as requesting that the user get an identifier from one of the above
-   spaces and provide it. If the software determines it has an internet connection, it could also request a
-   unique allocation from a central source. Future work may support a unique identifier made from e.g. use
-   of time in nanoseconds.
+     * A single computer may run several programs, so there still needs to be separate mechanism to provide
+       a unique value for the lowest bytes of the ID.  That involves a level of coordination across
+       multiple software vendors that's hard to imagine.
+
+     * IPv6 is coming.  It provides addresses that are too large to use directly. Even before that happens,
+       the various issues of IPv4 to IPv6 mapping raise all sorts of questions about uniqueness of IPv4
+       addresses.
+
+     * Even globally routable IPv4 addresses may not be unique over time.  For example, DCHP may assign the
+       same address to multiple computers sequentially.  This is particularly an issue with wireless access
+       at e.g. clubs and shows.
+
+   Computers that have global internet access, even if they don't have a permanent and unique IP address,
+   can still get a unique ID from an openlcb.org provided service.  
+
+   Other organizations can also distribute unique IDs from within their allocated blocks. For example, an
+   ID could be provided when a free-software program is downloaded, perhaps as part of the download package
+   or even as part of its filename.
+
+   Programs without access to an ID-providing service must use some other mechanism, which boil down to
+   promoting the user for a unique identifier assigned by one of the other mechanisms.
 
   2.5.4 Globally defined unique identifiers
 
