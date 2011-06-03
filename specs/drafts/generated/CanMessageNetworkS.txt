@@ -27,7 +27,7 @@
 
                                                    4 States
 
-   The message network layer in an OpenLCB-CAN network has two states:
+   The message network layer in an OpenLCB-CAN node has two states:
 
      * Uninitialized
 
@@ -36,7 +36,7 @@
    Nodes shall start in the Uninitialized state.
 
    A node in the Uninitialized state may transmit an Initialization Complete message.  A node in the
-   Unitialized state shall note transmit any other message type.
+   Unitialized state shall not transmit any other message type.
 
    A node in the Initialized state may transmit any message type.
 
@@ -74,7 +74,7 @@
 
    Priority group:
 
-   Content: Full NID of the sending node
+   Content: Node ID of the sending node
 
    CAN frame format:
 
@@ -153,8 +153,9 @@
 
 7.1 Node Initialization
 
-   Newly functional nodes, once their start-up is complete and they are fully operational, shall send an
-   "Initialization Complete" message and enter Initialized state.
+   Newly functional nodes, once their start-up is complete and they are fully operational, including having
+   the frame transfer layer in “Permitted state”, shall send an "Initialization Complete" message and enter
+   Initialized state.
 
      * There is no guarantee that any other node is listening for this. No reply is possible.
 
@@ -184,14 +185,7 @@
 7.3 Node ID Discovery
 
    Upon receipt of a Verify Node ID Number message addressed to it, or an unaddressed Verify Node ID Number
-   message, a node will reply with an unaddressed Verified Node ID Number.
-
-   This can be used as check that a specific node is still reachable. When wire protocols compress the
-   originating and/or destination NID, this can be used to obtain the full NID.
-
-   The standard Verify Node ID Number interaction can be used to get the full 48-bit NID from a node for
-   translation. At power up each node must obtain a alias that is locally unique. Gateways will also have
-   to obtain unique aliases for remote nodes they are proxying on to the segment.
+   message, a node must reply with an unaddressed Verified Node ID Number message.
 
 7.4 Error Handling
 

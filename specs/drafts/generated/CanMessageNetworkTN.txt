@@ -23,6 +23,10 @@
 
 2.6 Messages
 
+   (Note that Node ID in the data part of several messages is sent in full 48-bit format in all wire
+   protocols, specifically including CAN, even if an alias or alternate form is available elsewhere in the
+   message)
+
 2.7 Interactions
 
    All nodes must be able to take part in all standard interactions.
@@ -41,11 +45,13 @@
 
   2.7.2 Duplicate Node ID Discovery
 
-   OpenLCB nodes must have unique node IDs. To detect this across the entire connected OpenLCB, all OpenLCB
-   nodes must indicate an error if they detect an incoming message with a Source Node ID equal to their
-   own. If possible, they should indicate it at the board itself using a light or similar. If possible,
-   they should emit a PCER message with the “Duplicate Source ID detected” global event, which will carry
-   the duplicate node ID in the Source Node ID field.
+   OpenLCB nodes must have unique node IDs. The Frame Transfer protocol will detect duplicate node IDs on a
+   single OpenLCB segment, e.g. a CAN bus, but is not intended to detect duplicate node IDs across multiple
+   segments. To detect duplicates across the entire connected OpenLCB, all OpenLCB nodes must indicate an
+   error if they detect an incoming message with a Source Node ID equal to their own. If possible, they
+   should indicate it at the board itself using a light or similar. If possible, they should emit a PCER
+   message with the “Duplicate Source ID detected” global event, which will carry the duplicate node ID in
+   the Source Node ID field.
 
    After sending the “Duplicate Source ID detected” global event, the node should not transmit any further
    “Duplicate Source ID detected” messages until reset because this message will be received at the other
