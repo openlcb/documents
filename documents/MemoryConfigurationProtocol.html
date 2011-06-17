@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100705;21553500">
+	<META NAME="CHANGED" CONTENT="20110617;11045500">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -17,15 +18,22 @@
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.ctl { font-family: "Lucida Sans" }
+		H4.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB: Memory Access Configuration Protocol</H1>
-<P>This document defines a protocol for configuring OpenLCB nodes by directly accessing
-their configuration memory.</P>
+<P>This document defines a protocol for configuring OpenLCB nodes by
+directly accessing their configuration memory.</P>
 <P>See also the separate note on a <A HREF="notes/ConfigurationDescriptionInformation.html">Configuration
 Description Information</A>.</P>
-<H2>Environment of Protocol</H2>
-<H3>Requirements</H3>
+<H2 CLASS="western">Environment of Protocol</H2>
+<H3 CLASS="western">Requirements</H3>
 <UL>
 	<LI><P>Nodes must carry enough context that a stand-alone
 	configuration tool can provide a useful human interface without
@@ -40,7 +48,7 @@ Description Information</A>.</P>
 	<LI><P>It must be possible to read, store, and reload the
 	configuration of a node.</P>
 </UL>
-<H3>Preferences</H3>
+<H3 CLASS="western">Preferences</H3>
 <UL>
 	<LI><P>Small nodes shouldn't need a lot of processing power, e.g. to
 	compress or decompress data in real time. Memory usage should also
@@ -64,7 +72,7 @@ Description Information</A>.</P>
 	<LI><P>Addresses should be four bytes. Two address bytes is a
 	failure of imagination.</P>
 </UL>
-<H3>Design Points</H3>
+<H3 CLASS="western">Design Points</H3>
 <P>Basic configuration is done with datagrams, which can carry 64
 bytes of data to read or write. 
 </P>
@@ -89,7 +97,7 @@ that tools can know what they can do.
 into effect. Some will do it right away, some will require a reset,
 etc. Need flexibility for node developer, yet consistency for
 configuration tool builder.</P>
-<H3>CAN Aspects</H3>
+<H3 CLASS="western">CAN Aspects</H3>
 <P>CAN configuration datagrams have seven payload bytes in the 1<SUP>st</SUP>
 frame (the first byte identifies that it's a configuration transfer).
 See the “<A HREF="../DatagramProtocol.html">Datagram Protocol</A>”
@@ -98,21 +106,20 @@ document for more info. Read operations and 2-byte (or
 <P>Read-Stream and Write-Stream need to rendezvous on the stream IDs
 to know which stream is carrying the data. See Examples section
 below.</P>
-
-<H2>Protocol</H2>
+<H2 CLASS="western">Protocol</H2>
 <P>Configuration messages use a specific datagram format consisting
 of a single byte combining the operation “Command Type” field and
 flags. This is followed by data in an operation-specific format. When
 present, the four-byte memory address follows first, then the address
 space byte if present, then other data.</P>
-<H3>Address Space Size</H3>
+<H3 CLASS="western">Address Space Size</H3>
 <P>Configuration addresses are 32 bits. The addressable quantity is
 the byte. This allows directly addressing 4GB of data. The use of
 address spaces (see below) allows direct access to 1TBi.</P>
 <P>The large address range removes the need for address registers and
 other non-idempotent accesses when accessing e.g. sound information
 in a large memory.</P>
-<H3>Address Space Selection</H3>
+<H3 CLASS="western">Address Space Selection</H3>
 <P>Although a 32-bit address space is large enough to cover combined
 uses of memory, it can be more convenient to consider separate
 address spaces in the node. (This can also be considered to be a top
@@ -140,7 +147,7 @@ need to be specified as a byte value. The high addresses (0xFD
 through 0xFF) were chosen for the dedicated spaces so that space
 numbers 00, 01, 02 could be used as a 5<SUP>th</SUP> bytes in a
 contiguous address if desired.</P>
-<H3>Message Formats</H3>
+<H3 CLASS="western">Message Formats</H3>
 <P>The following table shows available configuration operation
 formats. All others reserved. They must not be skipped during
 identification. Items in {} are optional.</P>
@@ -301,7 +308,7 @@ identification. Items in {} are optional.</P>
 			</P>
 		</TD>
 		<TD WIDTH=12%>
-			<P>Datagram/Stream=1<BR>Reserved (5 bits)<BR>Address Space (2
+			<P>Datagram/Stream=1<BR>Reserved (3 bits)<BR>Address Space (2
 			bits)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -334,7 +341,7 @@ identification. Items in {} are optional.</P>
 			</P>
 		</TD>
 		<TD WIDTH=12%>
-			<P>Datagram/Stream=0<BR>Reserved (5 bits)<BR>Address Space (2
+			<P>Datagram/Stream=0<BR>Reserved (3 bits)<BR>Address Space (2
 			bits)</P>
 		</TD>
 		<TD WIDTH=11%>
@@ -885,8 +892,9 @@ identification. Items in {} are optional.</P>
 </TABLE>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
-<H3>Operations</H3>
-<H4><A NAME="discovery"></A>Get Configuration Options Reply</H4>
+<H3 CLASS="western">Operations</H3>
+<H4 CLASS="western"><A NAME="discovery"></A>Get Configuration Options
+Reply</H4>
 <P>To make it possible to make simple/cheap nodes, not every
 configuration operation &amp; option needs to be provide. The reply
 to “Get Configuration Options” provides information that a
@@ -903,7 +911,7 @@ node so that it only uses available modes.</P>
 	down the process as “Get Address Space Information” is needed to
 	determine whether they are present.</P>
 </UL>
-<H4>Get Address Space Information Reply</H4>
+<H4 CLASS="western">Get Address Space Information Reply</H4>
 <P>To ease automated access, a configuring node can enquire about the
 address spaces in the being-configured node.</P>
 <UL>
@@ -917,7 +925,7 @@ address spaces in the being-configured node.</P>
 	will let reply fit in single CAN frame.</P>
 	<LI><P>Description (variable length) - optional</P>
 </UL>
-<H4>Lock/Reserve and Freeze/Unfreeze</H4>
+<H4 CLASS="western">Lock/Reserve and Freeze/Unfreeze</H4>
 <P>An OpenLCB node can, in general, be configured while the network
 and even the node itself is operating. 
 </P>
@@ -942,14 +950,14 @@ to zero when the node is reset. Note that this is a voluntary
 protocol in the configuring nodes only; the node being configured
 does not change it's response to configuration operations when locked
 or unlocked.</P>
-<H4>Get Unique EventID</H4>
+<H4 CLASS="western">Get Unique EventID</H4>
 <P>Nodes maintain a list of unique EventIDs for use in configuration.
 These are allocated based on the node's unique NodeID. This command
 allows a configuration tool to get new unique EventIDs from the
 node's pool, for example to interact with the Blue/Gold configuration
 process. Each request must provide a different EventID, without
 repeat, even through node resets and factory resets.</P>
-<H4>Update Complete/Reset/Reboot/Reinitialize</H4>
+<H4 CLASS="western">Update Complete/Reset/Reboot/Reinitialize</H4>
 <P>This is a collection of three operations, distinguished by what
 are normally the flag bits.</P>
 <P>The configuration protocol does not specify the meaning of the
@@ -980,7 +988,7 @@ heavy-weight operation which may require some form of interlock, e.g.
 the user pressing a button, to prevent inadvertent data loss. As a
 small safety precaution, the NodeID of the note being reset is
 redundantly carried in the data part of the datagram.</P>
-<H4><A NAME="indicate">Indicate</H4>
+<H4 CLASS="western"><A NAME="indicate"></A>Indicate</H4>
 <P>This command tells the board to somehow identify itself to the
 user, for example by flashing a LED or operating it's outputs. This
 allows the user to be absolutely sure that he's configuring the
@@ -991,39 +999,39 @@ lets the board know what kind of indication to do. It's not always
 appropriate to operate outputs if they're e.g. driving large
 mechanical systems like doors. (This needs to be specified more
 precisely)</P>
-<H2>Implementation Notes</H2>
+<H2 CLASS="western">Implementation Notes</H2>
 <P>This section is non-normative notes and suggestions for
 implementors.</P>
-<H3>Example CAN Operations</H3>
+<H3 CLASS="western">Example CAN Operations</H3>
 <P>These are over CAN and includes some information from the datagram
 protocol to make traffic clearer. [d] is a single datagram;
 [di][di][de] is a datagram that's in multiple frames.</P>
-<H4>Get initial information</H4>
+<H4 CLASS="western">Get initial information</H4>
 <P>Get Configuration Info [d] →</P>
 <P>← datagram reply</P>
 <P>← Get Configuration Info Reply [d]</P>
 <P>datagram reply →</P>
-<H4>Write byte</H4>
+<H4 CLASS="western">Write byte</H4>
 <P>Write [d] →</P>
 <P>← datagram reply</P>
-<H4>Write 64 bytes</H4>
+<H4 CLASS="western">Write 64 bytes</H4>
 <P>Write [di] →</P>
 <P>Write [di] (7 times) →</P>
 <P>Write [de] →</P>
 <P>← datagram reply</P>
-<H4>Read byte</H4>
+<H4 CLASS="western">Read byte</H4>
 <P>Read [d] →</P>
 <P>← datagram reply</P>
 <P>← Read Reply [d]</P>
 <P>datagram reply →</P>
-<H4>Read 64 bytes</H4>
+<H4 CLASS="western">Read 64 bytes</H4>
 <P>Read [d] →</P>
 <P>← datagram reply</P>
 <P>← Read Reply [di]</P>
 <P>← Read Reply [di] (6 times)</P>
 <P>← Read Reply [de]</P>
 <P>datagram reply →</P>
-<H4>Large read via stream</H4>
+<H4 CLASS="western">Large read via stream</H4>
 <P>Read [di] →</P>
 <P>Read [de] →</P>
 <P>← datagram reply</P>
@@ -1037,7 +1045,7 @@ each)</P>
 <P>Stream Data Proceed →</P>
 <P>(repeats until done, then)</P>
 <P>← Stream Data Complete</P>
-<H4>Large write via stream</H4>
+<H4 CLASS="western">Large write via stream</H4>
 <P>Write [d] →</P>
 <P>← datagram reply</P>
 <P>Stream Initiate Request →</P>
@@ -1046,7 +1054,7 @@ each)</P>
 <P>← Stream Data Proceed (after write to memory complete)</P>
 <P>(repeats until done, then)</P>
 <P>Stream Data Complete →</P>
-<H3>Delays Due to Non-Volatile Memory</H3>
+<H3 CLASS="western">Delays Due to Non-Volatile Memory</H3>
 <P>Some microcontrollers can't continue to operate while writing
 configuration information to non-volatile memory.</P>
 <P>If the CAN buffering is sufficient (at about 1usec per buffer) for
@@ -1070,7 +1078,7 @@ retransmission.</P>
 <P>The transfer size for stream access is negotiated. By requiring a
 transfer size equal to or smaller than the memory write size, the
 node can ensure that the stream will pause during a write operation.</P>
-<H3>Large Volume Operations</H3>
+<H3 CLASS="western">Large Volume Operations</H3>
 <P>The stream protocol is meant for large reads and writes, but the
 datagram protocol can also work well on a single CAN segment. The
 difference in performance comes from the (potential) larger datagram
