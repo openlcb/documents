@@ -130,12 +130,30 @@ echo $range;
 // and send email notification
 define(EMAIL_FROM, "openlcb@pacbell.net");
 
-$headers = "From:" . EMAIL_FROM . "\nbcc: ".EMAIL_FROM;
-$to = $p_email;
 $subject = "OpenLCB unique ID range assignment";
 $body = "You were assigned an OpenLCB unique ID range of: \n".$range."\n\nThe OpenLCB Group\n";
 
-$ok = mail($to,$subject,$body,$headers);
+include('Mail.php');
+
+$recipients = array( $p_email ); # Can be one or more emails
+
+$headers = array (
+    'From' => EMAIL_FROM,
+    'To' => join(', ', $recipients),
+    'CC' => EMAIL_FROM,
+    'Subject' => $subject,
+);
+
+$mail_object =& Mail::factory('smtp',
+    array(
+        'host' => 'prwebmail',
+        'auth' => true,
+        'username' => 'openlcb',
+        'password' => $opts['email'],
+        #'debug' => true, # uncomment to enable debugging
+    ));
+
+$ok = $mail_object->send($recipients, $headers, $body);
 
 if ($ok) {
     echo "<p>Confirmation email sent</P>";
