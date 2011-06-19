@@ -20,7 +20,7 @@
 // open DB
 global $opts;
 mysql_connect($opts['hn'],$opts['un'],$opts['pw']);
-@mysql_select_db($opts['db']) or die( "Unable to select database");
+@mysql_select_db($opts['db']) or die( "Unable to select database. Error (" . mysql_errno() . ") " . mysql_error());
 
 
 function value($result, $j, $index) {
