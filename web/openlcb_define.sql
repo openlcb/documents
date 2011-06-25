@@ -29,6 +29,7 @@ CREATE TABLE `Person` (
   `person_last_name` varchar(50) DEFAULT NULL,
   `person_email` varchar(100) NOT NULL,
   `person_organization` varchar(100) DEFAULT NULL,
+  `person_request_IP_address` varchar(20) DEFAULT NULL,
   PRIMARY KEY (`person_id`),
   UNIQUE KEY `person_email` (`person_email`),
   KEY `person_first_name` (`person_first_name`),

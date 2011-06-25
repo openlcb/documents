@@ -28,7 +28,7 @@ $p_organization = $args["or"];
 // check for necessary user ID fields
 if ($p_first_name == "" || $p_last_name == "" || $p_email == "") {
     // missing something, present ID form
-    echo '<form method="post" action="requestuid.php">';
+    echo '<form method="post" action="requestuidrange.php">';
     echo 'Your info (* fields required):<br>';
     echo 'First Name: <input  name="fn" value="'.$p_first_name.'"/>*';
     echo 'Last Name:  <input  name="ln" value="'.$p_last_name.'"/>*<br>';
@@ -54,9 +54,9 @@ $result=mysql_query($query);
 if (mysql_numrows($result) == 0) {
     // insert this person
     $query = "INSERT INTO Person
-                (person_first_name, person_last_name, person_email, person_organization)
+                (person_first_name, person_last_name, person_email, person_organization, person_request_IP_address)
                 VALUES 
-                ('".$p_first_name."', '".$p_last_name."', '".$p_email."', '".$p_organization."')
+                ('".$p_first_name."', '".$p_last_name."', '".$p_email."', '".$p_organization."', '".$_SERVER['REMOTE_ADDR']."')
             ;";
     $result=mysql_query($query);    
     $id = mysql_insert_id();   // inserted ID
@@ -72,7 +72,7 @@ if (mysql_numrows($result) == 0) {
 // (only 256 for now)
 $size = $args["sz"];
 if ($size == "") {
-    echo '<form method="post" action="requestuid.php">';
+    echo '<form method="post" action="requestuidrange.php">';
     echo 'Requested allocations:<br>';
     echo '<input type="radio" name="sz" group="size" value="1" checked="yes">256 values<br>';
     echo 'Comment: <textarea  name="cm"></textarea><br>';
