@@ -137,14 +137,17 @@
        at e.g. clubs and shows.
 
    Computers that have global internet access, even if they don't have a permanent and unique IP address,
-   can still get a unique ID from an openlcb.org provided service.  
+   can still get a unique ID from an openlcb.org-provided service.  These unique IDs are provided from a
+   specified range to ensure they unique when created.  Each ID is only provided once to ensure that they
+   remain unique.  Programs using this facility should permanently remember unique IDs obtained this way,
+   because they won't get the same one on a later request.
 
    Other organizations can also distribute unique IDs from within their allocated blocks. For example, an
    ID could be provided when a free-software program is downloaded, perhaps as part of the download package
    or even as part of its filename.
 
-   Programs without access to an ID-providing service must use some other mechanism, which boil down to
-   promoting the user for a unique identifier assigned by one of the other mechanisms.
+   Programs without access to an ID-providing service must use some other mechanism, which may boil down to
+   prompting the user for a unique identifier assigned by one of the other mechanisms.
 
   2.5.4 Globally defined unique identifiers
 
@@ -166,9 +169,12 @@
   2.5.6 Unique identifier ranges assigned by request
 
    Users can request blocks of identifiers of various sizes.  The small (256) and medium (65536) blocks are
-   not scarce resources. The 24-bit blocks are slightly scarcer, but there are still almost 216 of them
-   available by using additional values for byte 2.  Requests for these blocks should be routinely granted
-   once the requestor has identified himself.
+   not scarce resources. Requests for these blocks should be routinely granted once the requestor has
+   identified himself. The 24-bit blocks are slightly scarcer, but there are still almost 216 of them
+   available by using additional values for byte 2.  
+
+   An initial automated system for requesting and obtaining unique ID ranges is available at
+   http://openlcb.net/trunk/web/requestuidrange.php and subsequent pages.  
 
   2.5.7 Reserved unique identifiers
 
@@ -176,7 +182,17 @@
    a 0x00 or 0xFF value. OpenLCB implementations can treat those as errors without causing any problems
    with future expansion.
 
-    
+                                         3 Implementation Information
+
+   Specific unique ID assignments are stored in a MySQL database on the http://openlcb.org website. The
+   full list of assignments, include overall ranges from the specification and ranges assigned for specific
+   purposes and users, can be found on the http://www.openlcb.org/trunk/web/viewuid.php dynamic page.
+
+   Automated allocation systems can be abused, and we don't want to give away large chunks of address space
+   to automated requestors.  All available information about requests is logged. Users are asked for their
+   name and contact information at the time of the request, which is also logged.  Depending on our
+   experience with requests, we may have to add an email challenge-response or other mechanism to ensure
+   only value requests get allocations.
 
     
 
@@ -209,5 +225,7 @@
    2.5.6 Unique identifier ranges assigned by request
 
    2.5.7 Reserved unique identifiers
+
+   3 Implementation Information
 
     
