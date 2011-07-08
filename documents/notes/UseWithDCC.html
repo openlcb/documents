@@ -3,15 +3,21 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Using OpenLCB with DCC</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100712;15482400">
+	<META NAME="CHANGED" CONTENT="20110707;21363000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Note: Using OpenLCB with DCC</H1>
@@ -36,9 +42,9 @@ conceptually similar to moving DCC accessory commands from OpenLCB to
 the DCC control bus, and similar methods should work. (See other
 notes)</P>
 <P>(figure)</P>
-<H2>Simple Prototocol</H2>
+<H2 CLASS="western">Simple Prototocol</H2>
 <P>Packets in the DCC track signal are turned into OpenLCB event
-messages directory.  The format of the resulting Event ID is</P>
+messages directory. The format of the resulting Event ID is</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<COL WIDTH=64*>
 	<COL WIDTH=64*>
@@ -64,11 +70,11 @@ messages directory.  The format of the resulting Event ID is</P>
 </TABLE>
 <P><BR><BR>
 </P>
-<P>Events: top two bytes are 1,238.  The next byte is 5 high bits is
+<P>Events: top two bytes are 1,238. The next byte is 5 high bits is
 “system ID”, for marking multiple DCC connections to OpenLCB. The
-low 3 bits in that byte are the length of the packet.  The last 5
+low 3 bits in that byte are the length of the packet. The last 5
 bytes are 0-5 bytes of DCC packet.</P>
-<H2>Configuration</H2>
+<H2 CLASS="western">Configuration</H2>
 <P>Simple configuration is needed, but we believe it's possible to
 build an adapter that doesn't require a computer tool for
 configuration.</P>
@@ -100,7 +106,7 @@ or something like that.</I></P>
 <P><I>See also the recent work on putting mapping LocoNet packets to
 and from OpenLCB EventIDs in a <A HREF="ExternalConnections.html">separate
 note</A>.</I></P>
-<H2>Numerology</H2>
+<H2 CLASS="western">Numerology</H2>
 <P>DCC packets for multi-function (locomotive) packets are 1 or 2
 bytes of address, 1 to 3 bytes of content, and 1 byte of error.
 Accessory packets are at most 5 bytes, including address. If this
@@ -113,6 +119,152 @@ layouts)</P>
 <U>events</U>, which makes them globally available. This will cause a
 lot of traffic if it includes refresh packets to e.g. locomotives,
 but might allow some other things to happen. Sort them?</P>
+<H2 CLASS="western">Notes from test implementation</H2>
+<P>David Harris did a test implementation (Spring 2011) and wrote two
+notes:</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">shows
+that last DCC command: </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Loco
+0000 Speed 000</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Loco
+0000 Func 00 = 0</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">   <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Acc
+0000 State=0</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">   <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Sig
+0000 State=0</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">UI:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Blue:
+Idle --&gt; Filters --&gt; Speed --&gt; Func --&gt; Acc --&gt; Sig
+--&gt; idle</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">   <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">and
+Gold selects Rejecting or Accepting for each</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">Gold
+--&gt; Idle --&gt; Teach --&gt; Idle</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">   <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">and
+Blue lets the next packet be accepted, when you get teh one you want,
+Gold sends a Learn-msg.  </FONT></FONT></FONT>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">/*===
+DCC to OpenLCB BridgeDCC to OpenLCB Bridge
+===========================================================/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+Converts DCC packets to Events: (DCCPrefix.Segment.rawdata] (2+1+5 =
+8 bytes)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+Filters on: speed, function, Acc, and Sig packets.  </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+Uses OpenDCC library:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ Raw packets converted to Events [DCCPrefic.RAW.d0,d1,d2,d3,d4]
+(filled with 0) 3+5=8</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ Speed packets  cobverted to Events
+[DCCprefix.SPEED.ForwardDir.Speed] (3+8+16+8+8) 3+1+2+1+1=8 </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ Function packets converted to Events:
+[DCCPrefix.FUNCTION.Addr.FuncNum.State] (3+8+16+8+8) 3+1+2+1+1=8</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ DCCAccState packets converted to Events: [DCCprefix.ACC.Addr.State]
+(x+8+16+8+8)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ DCCSigState packets converted to Events:
+[DCCprefix.SIG.Addr.OutputIndex.State] (x+8+16+8+8) 3+1+2+1+1=8</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+ Speed packets  cobverted to Events [DCCprefix. 1, dir] and
+[DCCprefix.2.speed]</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*==========================================================================================================*/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">/*===
+Events =============================================/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+0 - accept Speed-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+1 - reject speed packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+2 - accept Func-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+3 - reject Func-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+4 - accept Acc-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+5 - reject Acc-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+6 - accept Sig-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+7 - reject Sig-packets</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> 
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*========================================================/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"><FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">/*===
+User Interface ======================================/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+(blue)+ selects one of: Speed, Func, Acc, Sig, and </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+  (gold) sets its acceptance to true or false</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+(gold) sets program mode, will display the last packet, </FONT></FONT></FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+  (blue)+ allows another packet to be accepted, and</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+  (gold) sends Teach message</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*========================================================*/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> </FONT>
+</P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">/*===
+Resource use ==============================/</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+DCC uses:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   DCC input: D2 (PD2)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   DCC Ack: D3 (PD3)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   Timer: timer2</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+CAN uses:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   SPI: D10,11,12,13 (SS,MOSI,MISO,SCK)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   Int: D3 (PD3)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+LCD:</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   d0-3: D3-6</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   control: D8-9</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000">  <FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*
+   lcd(9, 8, 6, 5, 4, 3)</FONT></FONT></FONT></P>
+<P ALIGN=LEFT STYLE="margin-bottom: 0cm"><FONT COLOR="#000000"> 
+<FONT FACE="Helvetica, sans-serif"><FONT SIZE=2 STYLE="font-size: 11pt">*===============================================*/</FONT></FONT></FONT></P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
