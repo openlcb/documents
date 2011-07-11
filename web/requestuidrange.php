@@ -15,6 +15,13 @@
 <IMG SRC="logo-ajs-dph.png" NAME="graphics1" ALIGN=RIGHT WIDTH=195 HEIGHT=80 BORDER=0>
 <h1>Request OpenLCB Unique ID Range</h1>  
 
+This page allows you to request a range of 256 OpenLCB Unique IDs for your own use.
+<P>
+For more information on OpenLCB, please see the <a href="../documents/index.html">documentation page</a>.
+For more information on OpenLCB unique ID assignment, please see the current draft
+<a href="../specs/drafts/GenUniqueIdS.pdf">specification</a> and 
+<a href="../specs/drafts/GenUniqueIdTN.pdf">technical note</a>.
+
 <?php 
 // parse out arguments
 //parse_str($_SERVER["QUERY_STRING"], $args);
