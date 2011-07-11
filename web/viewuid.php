@@ -15,6 +15,13 @@
 <IMG SRC="logo-ajs-dph.png" NAME="graphics1" ALIGN=RIGHT WIDTH=195 HEIGHT=80 BORDER=0>
 <h1>View OpenLCB Unique ID Ranges</h1>  
 
+This page shows the ranges of OpenLCB Unique ID's that have been assigned to date.
+<P>
+For more information on OpenLCB, please see the <a href="../documents/index.html">documentation page</a>.
+For more information on OpenLCB unique ID assignment, please see the current draft
+<a href="../specs/drafts/GenUniqueIdS.pdf">specification</a> and 
+<a href="../specs/drafts/GenUniqueIdTN.pdf">technical note</a>.
+
 <?php 
 
 // open DB
