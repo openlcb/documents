@@ -10,16 +10,39 @@
 
 2.1 Intended Use
 
-   The third paragraph, discussing networks that “(u)sers can expect to be able to form”, is based on CAN
-   documentation, component-vendor specifications and application notes, and industrial experience with
-   CAN.  The intent is to set expectations that can be met essentially all of the time.  The Standard does
-   not restrict users from building, or attempting to build, networks that exceed these expectations.
-   Often, OpenLCB-CAN layouts that somewhat exceed these expectations will be able to operate reliably.  
+   Users can expect to be able to form networks within limitations, for example:
+
+     * Total cable length of 1000 ft / 300m; stub cables count double their length in that total; nodes
+       count as 20 ft / 6m in that total
+
+     * Never less than 1 ft / 30cm of cable between nodes, nor between a stub connection and a node.
+
+     * No more than 50 nodes connected.
+
+   This expectation is based on CAN documentation, component-vendor specifications and application notes,
+   and industrial experience with CAN.  The intent is to set expectations that can be met essentially all
+   of the time.  The Standard does not restrict users from building, or attempting to build, networks that
+   exceed these expectations. Often, OpenLCB-CAN layouts that somewhat exceed these expectations will be
+   able to operate reliably.  
 
    The expected network sizes in section 2 of the Standard are based on UTP/RJ45 wiring of equipment that
    conforms to the Standard. Wiring and/or equipment that exceeds the Standard may result in being able to
    reliably build larger networks; alternate wiring or equipment may work well on smaller networks, but may
    not be able to reach the network sizes listed in that section.
+
+   Manufacturers may want to use CAN transceiver chips with either reduced load, or increased drive
+   capability relative to the CAN specification.
+
+     * The CAN receiver input impedance Rdiff is specified as 10k ohms or greater.  Transceivers with e.g.
+       20k ohm input impedance reduce the total bus load and can allow more significantly more nodes.  They
+       will generally not allow greater maximum lengths.
+
+     * The CAN transmitter output drive capability is expressed as a minimum bus resistance of 45 ohms.
+        Bus transmitters with improved drive capability, e.g. 42.5 ohms, can allow significantly more nodes
+       because the bus termination resistance provides much of the total load. Improved transmitters will
+       generally not allow greater maximum lengths.
+
+   The  Standard permits, but does not require, the use of improved transceivers.
 
    The Standard discusses single CAN segments, and is silent on interconnecting multiple segments.  For
    more discussion of options for interconnection, see the “Repeaters, Bridges and Gateways” section below.
@@ -53,16 +76,23 @@
    The conductor assignments are based on industry practice for RJ45 connectors on CAN networks, c.f.
    Recommendation CiA 303 (2009) of the CAN in Automation e.V. group.
 
-   The assignments to particular wire colors are for information only. These are the wire colors that users
+   High-quality RGJ45 connections are reliable even after thousands of connections and disconnections.
+     (c.f. An HP survey of RJ45 use as a strain guage connector, a much more demanding application than
+   this one: http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf)
+   It's recommended that manufacturers use high-quality RJ45 jacks and recommend the use of high-quality
+   RJ45 plugs and cables. In particular, cables with strain-relief boots and tab protectors will reduce
+   connection problems for e.g. modular layouts.
+
+   The assignments of particular wire colors are for information only. These are the wire colors that users
    will encounter in the two popular ways of wiring commercial cables.  When building a product using
    commercial cable, using one of these two color assignments will reduce confusion, but most OpenLCB-CAN
    users will never need to refer to the wire colors in their cables.
 
    The Standard does not require that all eight conductors be present in cables, but only the four that are
    minimally necessary for CAN communications.  The reserved and power conductors are optional. This is
-   because some low-cost “Ethernet” cables have only those required pairs present.  Model railroaders who
-   want to minimize cost, do not need distributed power, and are willing to forego future use of the
-   reserved conductors can use these four-conductor “Ethernet” cables between nodes.
+   because some low-cost CAT-3 “Ethernet” cables have only those required pairs present.  Model railroaders
+   who want to minimize cost, do not need distributed power, and are willing to forego future use of the
+   reserved conductors can use these four-conductor CAT-3 “Ethernet” cables between nodes.
 
    The discussion of connecting in parallel is to make sure that all 8 wires go through a board, whether
    it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than one
@@ -135,8 +165,9 @@
    railroad networks will eventually use stubs to e.g. connect to handheld devices, so it's important to
    build support for a reasonable number of stubs into the network specification from the start. Note that
    many off-the-shelf CAN transceiver parts have slew rates greater than 10V/microsecond by default. The
-   recommended value for the slew rate is 4V/microsecond. The 3.5V/microsecond lower limit is specified to
-   allow some manufacturing margin below the 4V/microsecond recommendation.
+   recommended value for the slew rate is 4V/microsecond. A design range of 10V/microsecond to
+   3.5V/microsecond lower limit would allow some manufacturing margin below the 4V/microsecond
+   recommendation.
 
    The Standard only requires that termination meet the CAN requirements, which are limited to the
    differential total resistance of the terminators. Industry uses some improved termination practices
@@ -180,10 +211,15 @@
 
 3.1 Bus Termination
 
-    The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies the use of a bus termination
+   The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies the use of a bus termination
    resistor at each end of the bus of 120 (nominal; minimum 100, maximum 130) ohms and rated for 220mW or
    more.  Several alternate termination schemes have been proposed in the literature, and these
    alternatives are discussed below.   
+
+   Although the CAN specification allows the termination resistance to be below 120 ohms, this requires
+   additional drive from the CAN transceivers.  Holding the termination resistance closer to 120 ohms can
+   allow a larger number of nodes on a CAN segment, but generally does not increase the maximum segment
+   length.
 
   3.1.1 Termination Circuits
 
@@ -249,11 +285,12 @@
    (http://www.ixxat.com/can_bus_tester_cbt_en.html)
    (http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html)
 
-3.2 EMC Management
+3.2 EMC Management and Noise Immunity
 
-   CAN is a robust signaling method developed for use in the difficult environment of automobiles. Issues
-   of EMC, noise reduction, etc have been discussed in numerous vendor application notes including, but not
-   limited to:
+   Electro-Magnetic Compatibility (EMC) refers to ensuring that a system, e.g. a CAN bus, does not cause
+   interference with other systems. CAN is a robust signaling method developed for use in the difficult
+   environment of automobiles. Issues of EMC, noise immunity, etc have been discussed in numerous vendor
+   application notes including, but not limited to:
 
    http://www.nxp.com/documents/application_note/AN10211.pdf
 
@@ -273,7 +310,7 @@
    The following informative schematic is a sample of various possible design choices, and not normative in
    any way.
 
-    
+   graphics3
 
                                       4 Repeaters, Bridges and Gateways
 
@@ -327,8 +364,9 @@
    much more than a bit time, usually a frame time or longer.
 
    The CAN arbitration process takes place on each segment independently, and is not shared between the
-   separate segments; frames will appear in different order on the various segments. The protocol(s)
-   running on the CAN segments must be compatible with this reordering if it's to work with bridge(s).
+   separate segments; frames will appear in different order on the various segments. RTR frames generally
+   cannot be used across bridges.The protocol(s) running on the CAN segments must be compatible with these
+   constraints if bridges are to be used.
 
    Because bridges break the timing connection between the connected segments, they can also be used for
    remote connections via non-CAN cables, wireless, etc.  In this case, a bridge device is usually used at
@@ -435,13 +473,18 @@
    AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”
    (http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf)
 
-  5.3.4 Philips
+  5.3.4 ON Semiconductor
+
+   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”
+   (http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF)
+
+  5.3.5 Philips
 
    AN96116 “PCA82C250 / 251 CAN Transceiver” (http://www.nxp.com/documents/application_note/AN96116.pdf)
 
    AN10211 “TJA1040 high speed CAN transceiver” (http://www.nxp.com/documents/application_note/AN10211.pdf)
 
-  5.3.5 Texas Instruments
+  5.3.6 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
    differential signaling (LVDS)” (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
@@ -551,7 +594,7 @@
 
    3.1.2 Terminator Placement
 
-   3.2 EMC Management
+   3.2 EMC Management and Noise Immunity
 
    3.2.1 Chokes
 
@@ -583,9 +626,11 @@
 
    5.3.3 Microchip Corp
 
-   5.3.4 Philips
+   5.3.4 ON Semiconductor
 
-   5.3.5 Texas Instruments
+   5.3.5 Philips
+
+   5.3.6 Texas Instruments
 
    5.4 Component data sheets
 
