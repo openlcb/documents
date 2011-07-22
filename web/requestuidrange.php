@@ -35,8 +35,10 @@ If there is no company name, we will publish the personal name.
 <li>You may provide a comment, which we will publish if provided.  
 You can use this for company contact information, for example, including an email address.
 
-<li>If you check the &quote;Add to email list&quot; box, 
-we will add your email address to a mailing list for occasional updates to OpenLCB standards & documentation, policy changes, etc [link].  
+<li>If you check the &quot;Add to OpenLCB email list&quot; box, 
+we will add your email address to a 
+<a href="https://sourceforge.net/mailarchive/forum.php?forum_name=openlcb-announcements">mailing list</a>
+for occasional updates regarding OpenLCB standards & documentation, policy changes, etc.  
 We strongly recommend that you subscribe so that you'll hear about these things in a timely manner.  
 The traffic on that list will be low, generally less than one email a month.
 </ul>
@@ -53,6 +55,8 @@ $p_email = $args["em"];
 $p_organization = $args["or"];
 $p_url = $args["ur"];
 $p_comment = $args["cm"];
+$p_subscribe = ($args["ms"] != '')?"y":"n";
+$p_subscribe_checked = " checked ";  // always check box by default
 
 // check for necessary user ID fields
 if ($p_first_name == "" || $p_last_name == "" || $p_email == "") {
@@ -63,6 +67,7 @@ if ($p_first_name == "" || $p_last_name == "" || $p_email == "") {
     echo 'Last Name:  <input  name="ln" value="'.$p_last_name.'"/>*<br>';
     echo 'Organization: <input  name="or" value="'.$p_organization.'"/><br>';
     echo 'Email Address: <input  name="em" value="'.$p_email.'"/>*<br>';
+    echo '<input type="checkbox" name="ms" value="y" '.$p_subscribe_checked.'>Add to OpenLCB email list<br>';
     echo '<button type="submit">Next</button>';
     echo '</form>';
     echo '</body></html>';
@@ -83,9 +88,10 @@ $result=mysql_query($query);
 if (mysql_numrows($result) == 0) {
     // insert this person
     $query = "INSERT INTO Person
-                (person_first_name, person_last_name, person_email, person_organization, person_request_IP_address)
+                (person_first_name, person_last_name, person_email, person_organization, person_request_IP_address, person_subscribe)
                 VALUES 
-                ('".$p_first_name."', '".$p_last_name."', '".$p_email."', '".$p_organization."', '".$_SERVER['REMOTE_ADDR']."')
+                ('".$p_first_name."', '".$p_last_name."', '".$p_email."', '".$p_organization."', 
+                 '".$_SERVER['REMOTE_ADDR']."', '".$p_subscribe."')
             ;";
     $result=mysql_query($query);    
     $id = mysql_insert_id();   // inserted ID
