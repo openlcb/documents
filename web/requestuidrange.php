@@ -22,6 +22,26 @@ For more information on OpenLCB unique ID assignment, please see the current dra
 <a href="../specs/drafts/GenUniqueIdS.pdf">specification</a> and 
 <a href="../specs/drafts/GenUniqueIdTN.pdf">technical note</a>.
 
+<p>
+<ul>
+<li>You must provide a personal name. You may also provide a company name.  
+In our <a href="viewuid.php">listing of assigned ranges</a>, we will publish the company name, if provided.
+If there is no company name, we will publish the personal name.  
+
+<li>We will not publish your email address.
+
+<li>You may provide a URL, which we will publish if provided.
+
+<li>You may provide a comment, which we will publish if provided.  
+You can use this for company contact information, for example, including an email address.
+
+<li>If you check the &quote;Add to email list&quot; box, 
+we will add your email address to a mailing list for occasional updates to OpenLCB standards & documentation, policy changes, etc [link].  
+We strongly recommend that you subscribe so that you'll hear about these things in a timely manner.  
+The traffic on that list will be low, generally less than one email a month.
+</ul>
+
+<hr>
 <?php 
 // parse out arguments
 //parse_str($_SERVER["QUERY_STRING"], $args);
@@ -31,6 +51,8 @@ $p_first_name = $args["fn"];
 $p_last_name = $args["ln"];
 $p_email = $args["em"];
 $p_organization = $args["or"];
+$p_url = $args["ur"];
+$p_comment = $args["cm"];
 
 // check for necessary user ID fields
 if ($p_first_name == "" || $p_last_name == "" || $p_email == "") {
@@ -83,6 +105,7 @@ if ($size == "") {
     echo 'Requested allocations:<br>';
     echo '<input type="radio" name="sz" group="size" value="1" checked="yes">256 values<br>';
     echo 'Comment: <textarea  name="cm"></textarea><br>';
+    echo 'URL: <textarea  name="ur"></textarea><br>';
 
     echo '<input  type="hidden" name="fn" value="'.$p_first_name.'"/>';
     echo '<input  type="hidden" name="ln" value="'.$p_last_name.'"/>';
@@ -114,12 +137,12 @@ $next = 1+mysql_result($result,0,0);
 // insert
 $query = "INSERT INTO UniqueIDs
             (person_id, uniqueid_byte0_value, uniqueid_byte1_value, uniqueid_byte2_value, 
-             uniqueid_byte3_value, uniqueid_byte4_value, uniqueid_user_comment, uniqueid_byte5_value, 
-             uniqueid_byte5_mask)
+             uniqueid_byte3_value, uniqueid_byte4_value, uniqueid_byte5_value, 
+             uniqueid_byte5_mask, uniqueid_user_comment, uniqueid_url)
             VALUES 
             ('".$id."', '".$b0."', '".$b1."', '".$b2."',
-             '".$b3."', '".$next."','".$args["cm"]."', '0',
-             '255')
+             '".$b3."', '".$next."', '0',
+             '255','".$args["cm"]."','".$args["ur"]."')
         ;";
 $result=mysql_query($query);
 if (! $result) {
