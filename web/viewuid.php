@@ -42,7 +42,7 @@ $result=mysql_query($query);
 
 echo '<table border="1">';
 echo "<tr><th colspan='6'>Range. '*' means that any values are accepted in that byte.</th>";
-echo "<th>Organization or person name</th><th>URL</th><th>Comment</th></tr>";
+echo "<th>Delegating organization or person</th><th>URL</th><th>Comment</th></tr>";
 
 for ($j = 0; $j < mysql_numrows($result); $j++) {
     echo '<tr>';
