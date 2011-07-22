@@ -35,13 +35,14 @@ function value($result, $j, $index) {
     else return mysql_result($result,$j,"uniqueid_byte".$index."_value");
 }
 
-$query = "SELECT * FROM UniqueIDs
+$query = "SELECT * FROM UniqueIDs JOIN Person USING (person_id)
         ORDER BY uniqueid_byte0_value, uniqueid_byte1_value, uniqueid_byte2_value, uniqueid_byte3_value, uniqueid_byte4_value, uniqueid_byte5_value
         ;";
 $result=mysql_query($query);
 
 echo '<table border="1">';
-echo "'*' means that any values are accepted in that byte, forming the range.<p>";
+echo "<tr><th colspan='6'>Range. '*' means that any values are accepted in that byte.</th>";
+echo "<th>Organization or person name</th><th>URL</th><th>Comment</th></tr>";
 
 for ($j = 0; $j < mysql_numrows($result); $j++) {
     echo '<tr>';
@@ -51,6 +52,12 @@ for ($j = 0; $j < mysql_numrows($result); $j++) {
     echo '<td WIDTH="20" ALIGN="CENTER">'.value($result,$j,"3").'</td>';
     echo '<td WIDTH="20" ALIGN="CENTER">'.value($result,$j,"4").'</td>';
     echo '<td WIDTH="20" ALIGN="CENTER">'.value($result,$j,"5").'</td>';
+    if (mysql_result($result,$j,"person_organization") != '') {
+        echo '<td>'.mysql_result($result,$j,"person_organization").'</td>';
+    } else {
+        echo '<td>'.mysql_result($result,$j,"person_first_name").' '.mysql_result($result,$j,"person_last_name").'</td>';
+    }
+    echo '<td>'.mysql_result($result,$j,"uniqueid_url").'</td>';
     echo '<td>'.mysql_result($result,$j,"uniqueid_user_comment").'</td>';
     echo '</tr>';
 }
