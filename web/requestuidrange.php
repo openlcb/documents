@@ -62,12 +62,12 @@ $p_subscribe_checked = " checked ";  // always check box by default
 if ($p_first_name == "" || $p_last_name == "" || $p_email == "") {
     // missing something, present ID form
     echo '<form method="post" action="requestuidrange.php">';
-    echo 'Your info (* fields required):<br>';
-    echo 'First Name: <input  name="fn" value="'.$p_first_name.'"/>*';
-    echo 'Last Name:  <input  name="ln" value="'.$p_last_name.'"/>*<br>';
-    echo 'Organization: <input  name="or" value="'.$p_organization.'"/><br>';
-    echo 'Email Address: <input  name="em" value="'.$p_email.'"/>*<br>';
-    echo '<input type="checkbox" name="ms" value="y" '.$p_subscribe_checked.'>Add to OpenLCB email list<br>';
+    echo 'First, enter your info. (* fields required)<p>';
+    echo 'First Name: <input  name="fn" value="'.$p_first_name.'"/>* ';
+    echo 'Last Name:  <input  name="ln" value="'.$p_last_name.'"/>*<p>';
+    echo 'Organization: <input  name="or" value="'.$p_organization.'"/><p>';
+    echo 'Email Address: <input  name="em" value="'.$p_email.'"/>*<p>';
+    echo '<input type="checkbox" name="ms" value="y" '.$p_subscribe_checked.'>Add to OpenLCB email list<p>';
     echo '<button type="submit">Next</button>';
     echo '</form>';
     echo '</body></html>';
@@ -107,17 +107,18 @@ if (mysql_numrows($result) == 0) {
 // (only 256 for now)
 $size = $args["sz"];
 if ($size == "") {
+    echo 'Last, enter the request information.<br>';
     echo '<form method="post" action="requestuidrange.php">';
     echo 'Requested allocations:<br>';
-    echo '<input type="radio" name="sz" group="size" value="1" checked="yes">256 values<br>';
-    echo 'Comment: <textarea  name="cm"></textarea><br>';
-    echo 'URL: <textarea  name="ur"></textarea><br>';
+    echo '<input type="radio" name="sz" group="size" value="1" checked="yes">256 values<p>';
+    echo 'Comment: <textarea  name="cm"></textarea><p>';
+    echo 'URL: <textarea  name="ur"></textarea><p>';
 
     echo '<input  type="hidden" name="fn" value="'.$p_first_name.'"/>';
     echo '<input  type="hidden" name="ln" value="'.$p_last_name.'"/>';
     echo '<input  type="hidden" name="or" value="'.$p_organization.'"/>';
     echo '<input  type="hidden" name="em" value="'.$p_email.'"/>';
-    echo '<button type="submit">Next</button>';
+    echo '<button type="submit">Submit Request</button>';
     echo '</form>';
     echo '(Larger requests are handled offline, please contact openlcb@pacbell.net directly)';
     echo '</body></html>';
