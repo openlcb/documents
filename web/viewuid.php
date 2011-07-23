@@ -89,7 +89,7 @@ for ($i = 0; $i < mysql_numrows($result); $i++) {
     $table=mysql_query($query);
     
     if (mysql_numrows($table) > 0) {
-        echo "<h3>Range ".mysql_result($result,$i,"uniqueid_byte0_value")." ".mysql_result($result,$i,"uniqueid_user_comment")."</h3>\n";
+        echo "<h3>".mysql_result($result,$i,"uniqueid_user_comment")."</h3>\n";
         echo '<table border="1">';
         echo "<tr><th colspan='6'>Range. '*' means that any values are accepted in that byte.</th>";
         echo "<th>Delegating organization or person</th><th>URL</th><th>Comment</th></tr>";
