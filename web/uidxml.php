@@ -17,7 +17,7 @@ function value($result, $j, $index) {
     else return mysql_result($result,$j,"uniqueid_byte".$index."_value");
 }
 
-$query = "SELECT * FROM UniqueIDs JOIN Person USING (person_id)
+$query = "SELECT * FROM UniqueIDs LEFT JOIN Person USING (person_id)
         ORDER BY uniqueid_byte0_value, uniqueid_byte1_value, uniqueid_byte2_value, uniqueid_byte3_value, uniqueid_byte4_value, uniqueid_byte5_value
         ;";
 $result=mysql_query($query);
