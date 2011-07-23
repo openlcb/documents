@@ -36,7 +36,17 @@ function value($result, $j, $index) {
 }
 
 $query = "SELECT * FROM UniqueIDs LEFT JOIN Person USING (person_id)
-        ORDER BY uniqueid_byte0_value, uniqueid_byte1_value, uniqueid_byte2_value, uniqueid_byte3_value, uniqueid_byte4_value, uniqueid_byte5_value
+        WHERE   uniqueid_byte1_mask = 255
+            AND uniqueid_byte2_mask = 255
+            AND uniqueid_byte3_mask = 255
+            AND uniqueid_byte4_mask = 255
+            AND uniqueid_byte5_mask = 255            
+        ORDER BY uniqueid_byte0_value, uniqueid_byte0_mask, 
+                uniqueid_byte1_value, uniqueid_byte1_mask,
+                uniqueid_byte2_value, uniqueid_byte2_mask,
+                uniqueid_byte3_value, uniqueid_byte3_mask,
+                uniqueid_byte4_value, uniqueid_byte4_mask,
+                uniqueid_byte5_value, uniqueid_byte5_mask
         ;";
 $result=mysql_query($query);
 
@@ -63,6 +73,48 @@ for ($j = 0; $j < mysql_numrows($result); $j++) {
 }
 
 echo '</table>';
+
+for ($i = 0; $i < mysql_numrows($result); $i++) {
+
+    $query = "SELECT * FROM UniqueIDs LEFT JOIN Person USING (person_id)
+            WHERE   uniqueid_byte0_value = ".mysql_result($result,$i,"uniqueid_byte0_value")."   
+                AND NOT ( uniqueid_byte1_mask = 255 AND uniqueid_byte2_mask = 255 AND uniqueid_byte3_mask = 255 
+                        AND uniqueid_byte4_mask = 255 AND uniqueid_byte5_mask = 255 )
+            ORDER BY uniqueid_byte1_value, uniqueid_byte1_mask,
+                    uniqueid_byte2_value, uniqueid_byte2_mask,
+                    uniqueid_byte3_value, uniqueid_byte3_mask,
+                    uniqueid_byte4_value, uniqueid_byte4_mask,
+                    uniqueid_byte5_value, uniqueid_byte5_mask
+            ;";
+    $table=mysql_query($query);
+    
+    if (mysql_numrows($table) > 0) {
+        echo "<h3>Range ".mysql_result($result,$i,"uniqueid_byte0_value")." ".mysql_result($result,$i,"uniqueid_user_comment")."</h3>\n";
+        echo '<table border="1">';
+        echo "<tr><th colspan='6'>Range. '*' means that any values are accepted in that byte.</th>";
+        echo "<th>Delegating organization or person</th><th>URL</th><th>Comment</th></tr>";
+        
+        for ($j = 0; $j < mysql_numrows($table); $j++) {
+            echo '<tr>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"0").'</td>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"1").'</td>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"2").'</td>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"3").'</td>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"4").'</td>';
+            echo '<td WIDTH="20" ALIGN="CENTER">'.value($table,$j,"5").'</td>';
+            if (mysql_result($table,$j,"person_organization") != '') {
+                echo '<td>'.mysql_result($table,$j,"person_organization").'</td>';
+            } else {
+                echo '<td>'.mysql_result($table,$j,"person_first_name").' '.mysql_result($table,$j,"person_last_name").'</td>';
+            }
+            echo '<td>'.mysql_result($table,$j,"uniqueid_url").'</td>';
+            echo '<td>'.mysql_result($table,$j,"uniqueid_user_comment").'</td>';
+            echo '</tr>';
+        }
+        
+        echo '</table>';
+    }
+}
 
 ?>
 
