@@ -31,7 +31,7 @@
      * The next bit, the least significant of the top nibble, is reserved as 1; nodes must send and check
        that value.
 
-     * The next eight bits are used to number a specific message number. This also has some substructure:
+     * The next eight bits form a specific message number. This also has some substructure:
 
      * The most significant bit is reserved as 0; nodes must send and check that value.
 
@@ -42,8 +42,8 @@
 
      * The next bit is reserved as 0; nodes must send and check that value.
 
-     * The next 4 bits, forming the low nibble, are used to indicate the specific message type within a
-       priority group.
+     * The next 4 bits, forming the low nibble, are used to indicate the specific message within a priority
+       group.
 
      * The bottom nibble is interpreted as flags that define the structure and format of the message type.
 
@@ -51,23 +51,26 @@
 
      * The 2nd from-least-significant bit indicates that this message carries a destination node address
        (DID) when set to 1. Setting 0 means that the message is globally addressed. If a Destination Node
-       ID (DID) is present, it is at the specific location in the message content.
+       ID (DID) is present, it is at a specific location in the message content.
 
      * The next-to-least-significant bit indicates this message carries a P/C Event ID field when set to 1.
-       Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it's
-       at the start of the message, it is at the specific location in the message content.
+       Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it is
+       at a specific location in the message content.
 
      * The least-significant bit when set to 1 indicates this message carries a flag byte after the DID
-       and/or EID determined by the above bits. The low bits of that byte can be relocated in CAN messages,
-       see the definition of the CAN wire protocol.
+       and/or EID determined by the above bits. The low bits of that byte can be relocated for some wire
+       protocols, see e.g. the definition of the CAN wire protocol.
+
+   These flags allow nodes to do simple decoding of messages with MTIs that they don't recognize, perhaps
+   because they were defined after the node was created.  
 
    We've chosen to allocate bit fields to make decoding simpler; if possible, aligned on nibble boundaries
    to make it easy to read as hexadecimal numbers.
 
    MTI layout:
 
-                                                     Message Reserved  Destination ID Event ID   Flag Byte  
-   Field    Reserved  Simple Node flag     Reserved  Number            flag           flag       flag       
+                                                     Message Reserved                 Event ID   Flag Byte  
+   Field    Reserved  Simple Node flag     Reserved  Number            Dest ID flag   flag       flag       
                                                                        
    Size &   2 bits    1 bit                1 bit     8 bits  1 bit     1 bit          1 bit      1 bit      
    location                                                                                                 
@@ -80,7 +83,7 @@
 
     
 
-   Message Type byte (8 bits) layout:
+   Message Number byte (8 bits) layout:
 
                                                                               Reserved                      
    Field                Reserved         Static priority groups                         Specific type
@@ -96,44 +99,47 @@
 
     
 
-   Specific values are allocated and documented in a separate worksheet. We keep them in just that one
+   Specific values are allocated and documented in the separate worksheet. We keep them in just that one
    place to avoid conflicting updates.
 
                                            3 CAN MTI Considerations
 
    The standard CAN MTI field is 12 bits in the header (messages without destination address) or one byte
    in the data segment (addressed messages). Since CAN frames only carry 8 data bytes, a 1-byte MTI short
-   form will be used at first. The possibility of longer MTI values has been reserved.
+   form will be used until future expansion makes more necessary. The possibility of longer MTI values has
+   been reserved.
 
    MTI information is carried in a different format on CAN links to increase bandwidth efficiency, simplify
    decoding in small processors, and permit use of hardware filtering.
 
    Standard MTIs are mapped to one of seven types:
 
-   Type Meaning                              
-   0    Unaddressed MTI for simple nodes     
-   1    Unaddressed MTI for non-simple nodes 
-   2    (Reserved, not used)                 
-   3    (Reserved, not used)                 
-   4    Datagram not-last segment            
-   5    Datagram last segment                
-   6    Addressed MTI for all nodes          
-   7    Stream Data                          
+   Type Meaning                                     
+   0    Unaddressed MTI for simple nodes            
+   1    Unaddressed MTI for non-simple nodes        
+   2    (Reserved, not used)                        
+   3    (Reserved, not used)                        
+   4    Datagram not-last segment                   
+   5    Datagram last segment                       
+   6    Addressed MTI other than datagram or stream 
+   7    Stream Data                                 
 
     
 
    The bit coding of this has been chosen to use the “4” bit to indicate that a destination address is
-   present.
+   present, directly mapping to the “Destination ID present” bit in the full MTI.
 
    The 4, 5 (Datagram) and 7 (Stream Data) values are special cases chosen for efficient processing of
    large amounts of data on CAN.  Most MTIs will map to 0, 1 or 6.
+
+   The 0 vs 1 values map directly to the “Simple Node flag” in the full MTI.
 
 3.1 Addressed CAN MTIs
 
    Common MTIs with the “destination ID present” bit set are mapped to and from type 6.
 
-   In this case, the destination alias is placed in the header, and the Message Type byte is the first byte
-   of the CAN frame.
+   In this case, the 12-bit destination alias is placed in the header, and the Message Number byte from the
+   full MTI is the first byte of the CAN frame.
 
 3.2 Unaddressed CAN MTIs
 
@@ -141,8 +147,8 @@
    whether the “simple node” bit is reset or set.  
 
    In this case, the next twelve bits of the CAN header are available for MTI information.  The first (most
-   significant) eight bits are used for the Message Type byte.  The last (least significant) are used for
-   the Event ID present, and flag byte present flag, and any flag bits themselves.
+   significant) eight bits are used for the Message Number byte.  The last (least significant) four bits
+   are used for the Event ID present, the Flag Byte present flag, and any flag bits themselves.
 
     
 
