@@ -3,10 +3,10 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: Streaming</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100617;19392900">
+	<META NAME="CHANGED" CONTENT="20110725;18194000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -20,6 +20,13 @@
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Streaming Protocol</H1>
@@ -28,8 +35,8 @@ across a OpenLCB implementation.
 </P>
 <P>This documents describes the streaming protocol(s) in OpenLCB. 
 </P>
-<H2>Environment of Proposal</H2>
-<H3>Requirements</H3>
+<H2 CLASS="western">Environment of Proposal</H2>
+<H3 CLASS="western">Requirements</H3>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Must work within OpenLCB
 	architecture of a flat address space and unique identifiers 
@@ -46,7 +53,7 @@ across a OpenLCB implementation.
 	<LI><P>Streams are not required to provide real-time transfer, e.g.
 	to move live sound.</P>
 </UL>
-<H3>Preferences</H3>
+<H3 CLASS="western">Preferences</H3>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">It should be possible to have
 	multiple streams active at the same time to or from a single node.
@@ -58,7 +65,7 @@ across a OpenLCB implementation.
 	<LI><P>Streams should have a way of identifying their content &amp;
 	purpose within themselves, in addition to through other protocols.</P>
 </UL>
-<H3>Design Points</H3>
+<H3 CLASS="western">Design Points</H3>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Data integrity is handled by
 	transport level, and need not be ensured in the streaming protocol. 
@@ -79,7 +86,7 @@ across a OpenLCB implementation.
 	<LI><P>We assume that routes don't change dynamically in ways that
 	effect e.g. buffer allocation.</P>
 </UL>
-<H2>Protocol</H2>
+<H2 CLASS="western">Protocol</H2>
 <UL>
 	<LI><P STYLE="margin-bottom: 0cm">Optionally, the destination can
 	request that the source start a transfer. This uses some mechanism
@@ -177,7 +184,9 @@ across a OpenLCB implementation.
 	Proceed (Addressed) message to the source, carrying the Source
 	Stream ID and Destination Stream ID. This tells the source that
 	there is enough buffer space available that another Max Buffer Size
-	bytes can be sent.</P>
+	bytes can be sent. The destination can also set flag bits (error
+	codes) in this message to indicate that no more data should be sent
+	and the transmission should be terminated early.</P>
 	<LI><P>When the last data has been sent, the source sends a Stream
 	Data Complete message carrying the Source Stream ID and Destination
 	Stream ID to indicate that all data has been sent. Optionally, this
@@ -186,7 +195,7 @@ across a OpenLCB implementation.
 	When this message is received by the destination, the transfer is
 	complete.</P>
 </UL>
-<H3>Stream Content Type Identification</H3>
+<H3 CLASS="western">Stream Content Type Identification</H3>
 <P>Stream senders can, but don't have to, identify the content type
 (format, meaning, etc) of the data stream at the front. As part of
 their private protocol, they can use whatever structure they'd like
@@ -198,7 +207,7 @@ These can be allocated via the same mechanisms as EventIDs.
 Well-known ones will be published by OpenLCB. These identifiers are
 recorded in a separate worksheet. 
 </P>
-<H3>Buffer Size</H3>
+<H3 CLASS="western">Buffer Size</H3>
 <P>The buffer size can be up to 2<SUP>16</SUP>-1 bytes = 64KB-1. This
 is driven by the size of the initiate messages, which we want to keep
 in a single CAN frame. Although some transport mechanisms might be
@@ -208,7 +217,7 @@ lower latency than this size will allow. Should that turn out to be
 necessary in the future, an alternate form for the stream
 initialization messages can be defined for those large-message nodes.
 (It's unlikely they're running over CAN)</P>
-<H3>CAN Discussion</H3>
+<H3 CLASS="western">CAN Discussion</H3>
 <P>On a CAN segment, the data limit is 8 bytes. This requires use of
 as little control information as possible, so that as many of those
 eight bytes can be used for data as possible.</P>
@@ -227,7 +236,7 @@ be defined that puts a source or destination stream ID in the data
 portion, transferring six bytes at a time. The sender could then use
 that form if a 2<SUP>nd</SUP> stream is required. That is left for a
 future option.</P>
-<H3>Implementation Notes</H3>
+<H3 CLASS="western">Implementation Notes</H3>
 <P>The &quot;Stream Data Proceed&quot; from the destination is
 clearance to send another buffer-size-worth of data. To achieve
 better performance, the destination can send it before receiving the
