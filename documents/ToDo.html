@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20110715;14241800">
+	<META NAME="CHANGED" CONTENT="20110725;20174100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -71,14 +73,6 @@ note, showing how it could be done? <I>(Define some recommended
 events for room intensity, e.g. how to code intensity in event space;
 want a mechanism for events to drive specific pre-selected intensity;
 study Insteon solution - BobJ)</I></P>
-<P><SPAN STYLE="font-style: normal">45. Do we want to define some
-node-specific global events? E.g. “Node has logged error”, “Node
-has logged warning”; that in turn can e.g. trigger log retrieval.
-Others? Can define standard events as NodeID with low of 0xFFFF, etc,
-or use a single global Event ID and use the source ID field to know
-which event. <A HREF="notes/Logging.html">This has been used in the
-Logging note</A> and in the Ident note. Are there other areas that
-should be considered? See also item 18.</SPAN></P>
 <P>47. Eventually, write some words about a recommended common log
 format (mechanism is being developed in Logging note, but not format
 of log records)</P>
@@ -110,14 +104,10 @@ CAN, check that protocol.</P>
 “<A HREF="notes/DisplayProtocol.html">Display Protocol</A>” note
 and a sample implementation for a display, e.g. of RF or throttle
 info.</SPAN></P>
-<P STYLE="font-style: normal"><SPAN STYLE="background: #00ff00">61.
+<P><SPAN STYLE="font-style: normal"><SPAN STYLE="background: #00ff00">61.
 Clean up the CBUS-hardware PIC demo. Will this require reimplementing
 the C/C++ prototype in C? Very little is actually class based,
-struct+function might be just fine anyway.</SPAN></P>
-<P>70. Native format for strings is ASCII, UTF-8 or UTF-16? <FONT FACE="Times New Roman, serif"><FONT SIZE=3>Just
-one, or some way of identifying e.g. </FONT></FONT><A HREF="http://en.wikipedia.org/wiki/Byte_Order_Mark"><FONT COLOR="#0842b5"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><U>Byte
-Order Mark</U></FONT></FONT></FONT></A> <FONT FACE="Times New Roman, serif"><FONT SIZE=3>(BOM)?
-Single bit for ASCII vs UTF-8?</FONT></FONT></P>
+struct+function might be just fine anyway.</SPAN></SPAN></P>
 <P>71. The examples/CrossingGateExample.html file is a funny hybrid
 of general use case, and OpenLCB-specific documentation. It should
 probably have the general use case aspects moved to UseCases.html,
@@ -137,19 +127,17 @@ These need to be rationalized; at least one probably needs to be a
 note or even in main document area.</SPAN></P>
 <P>77. Finish notes/RouteCases.html doc and link</P>
 <P><SPAN STYLE="background: #99ccff">78. Add definition of flags
-(error, etc) in datagram, stream messages in
-CommonMessageDefinitions.html</SPAN></P>
+(error, etc) in datagram, stream message documents.</SPAN></P>
 <P>80. Discuss mechanism for removing entries from routing tables.
 E.g. a router could remember the nodeIDs using a particular event,
 then purge those entries if no traffic seen, no response to ping for
 NN seconds. Not normative, but might be useful? Mostly for consumers;
 if producer gone, doesn't produce.</P>
 <P><SPAN STYLE="background: #00ff00">83. Fast clock prototype using
-events to display.</SPAN></P>
+events to display. (Shown several times, needs to be in SVN and
+documented)</SPAN></P>
 <P>84. Add examples to the Datagram and Stream protocol docs with
 numerical CAN frames, to make the entire layout clear.</P>
-<P>85. Simulate Mike Bolton's “50 segments, 100 nodes on each, P/C
-32 events each” for startup and traffic.</P>
 <P>86. “Ident” protocol (item done) Prototype as part of BG
 class, needs to have implementation finished up.</P>
 <P>89. Finish up the <A HREF="notes/RFIDusage.html">RFID note</A>.
@@ -164,9 +152,9 @@ Obviously this is easy to get around, but by then hopefully they are
 not novices :-). </SPAN>
 </P>
 <P>91. Get CAN shields made so hobbyists can use their existing
-Arduino hardware? John Plocher has laid out the PC board. Document
-use of CAN shields available commercially? LEDuino production? (Task
-done).</P>
+Arduino hardware? John Plocher has laid out the Railroad Shield
+board. Document use of CAN shields available commercially? LEDuino
+production? (Task done).</P>
 <P>93. Movies to tell a story!</P>
 <UL>
 	<LI><P>(done)</P>
@@ -178,9 +166,6 @@ done).</P>
 	<LI><P>Breaking a segment in two; show filtering – could use clock
 	or DCC for source of events to be filtered. Filtering fast clock
 	messages would show event-ranges. 
-	</P>
-	<LI><P>DCC connection – David will do: hooking up, using dynamic
-	filtering. This may be one button per filter. 
 	</P>
 	<LI><P>Fast clock events – David will do: Fast clock source, Fast
 	clock display, teaching an alarm event. 
@@ -234,10 +219,10 @@ to enquire about what EventIDs the node has and starting using them
 without out telling the node. “EventID == 0” doesn't work for
 default eventIDs, because teach/learn need isn't the only way that
 you can learn about the EventIDs in a node.</P>
-<P><SPAN STYLE="background: #00ff00">105. Need Makefile for Arduino
-sketches so we can institute a “daily build” process to check for
-broken compiles (makefile done, daily build not; get somebody to do
-Hudson/Jenkins?) Consider using Boost test framework for C/C++ code.</SPAN></P>
+<P><SPAN STYLE="background: #00ff00">105. [done] so we can institute
+a “daily build” process to check for broken compiles (makefile
+done, daily build not; get somebody to do Hudson/Jenkins?) Consider
+using Boost test framework for C/C++ code.</SPAN></P>
 <P>107. Port to mbed. 
 </P>
 <P>109. A note regarding use of TCP/IP, UDP, etc on Ethernet,
@@ -268,13 +253,6 @@ document covers just use of identifying routing, no replies. Should
 return replies for all existing Producers (or consumers)?</P>
 <P>116. Should “identify” be pulled from the full configuration
 protocol and made into something light-weight?</P>
-<P>117. Should we refer to the Event ID's exchanged in the PCER
-message as “Tokens”? Might be easier for users to understand,
-ease the transition to them being just numbers, etc. <FONT FACE="Times New Roman, serif"><FONT SIZE=3>Edward
-Richards wrote “</FONT></FONT><FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3>(physical
-or otherwise) EVENTS trigger TOKENS to be sent on the network
-by PRODUCERS. TOKENS are processed by CONSUMERS which is turn cause
-a (physical or otherwise) REACTION.”</FONT></FONT></FONT></P>
 <P>118. We have a discussion in place about developers being able to
 assign node ID numbers based on whatever mechanism CBUS uses, which
 removes an objection that some CBUS developers had. But this doesn't
@@ -304,11 +282,6 @@ JavaDoc to web.</P>
 <P>127. Need default additional limited config format, so don't have
 to pull entire CDI down to find node type, name.</P>
 <P>129. Monitor app for Android</P>
-<P>130. CAN vs 16-bit MTI flag bits need to be rationalized.</P>
-<P>131. Write description of CAN to/from 16 bit MTI interconversion;
-<SPAN STYLE="background: #99ccff">sample code!</SPAN></P>
-<P>133. openlch.org needs to host an automated request mechanism for
-unique IDs, which needs to be fully documented.</P>
 <P>134. Some form of IRL/IRC or Skype get-together so developers can
 get to know each other.</P>
 <P>135. John Plocher is thinking through the consequences of “NAT”
@@ -325,12 +298,13 @@ I think it means”?</P>
 middle of the CAN bus” proposal for semi-automated configuration of
 a large modular layout. Can modern processors with two CAN buses help
 here?</P>
-<P>139. Fast clock app for iPhone (in CVS, await App Store approval)</P>
+<P>139. Fast clock app for iPhone (in SVN, failed App Store approval,
+figure out how to do ad-hoc?)</P>
 <P>140. Concern about timing of alias drop in dynamic aliasing for
 e.g. gateways with limited alias capability. E.g. if the drop occurs
 while a simple node is in the middle of a sequence using the alias.
 If alias-dropping gateways used lots of aliases (e.g. 400+), just
-traffic time and a LRU algorithm might get it right.  Consider
+traffic time and a LRU algorithm might get it right. Consider
 indirectly attached nodes.</P>
 <P>141. Prompted by NMRA 2011 question, discussion of bidirectional
 RF for locomotive control. Want to get info back (static and
@@ -354,8 +328,8 @@ Streams, needs to be clearer described, and generalized for e.g.
 2-frame global messages. Special case of buffer handling - “must be
 preparated to receive” as logic, but how handle multiple coming in
 to a cheap node?</P>
-<P>146. Discussion of the timeout at the end of the CAN alias
-allocation.</P>
+<P><SPAN STYLE="background: #00ff00">146. Discussion of the timeout
+at the end of the CAN alias allocation.</SPAN></P>
 <P>147. Arduino stream prototype needs to be completed, experiment
 with buffer management approaches for small nodes.</P>
 <P>148. Would be nice to have favicons on web pages, but OpenOffice
@@ -364,8 +338,19 @@ seems to strip the HTML for them.</P>
 146) (Skeleton in specs/drafts/GenGatewayTN.odt )</P>
 <P>150. Write a C++ bit of code to track alias ↔ node ID mapping &amp;
 demonstrate method.</P>
-<P>151.</P>
+<P>151. Make sure docs, C prototype &amp; tests, etc, properly handle
+the Node ID in Verify Node (Global). This <I>optionally</I> carries a
+node ID, which <I>if present </I>has to match. Consider the semantics
+of just a partial node ID present, e.g. just the first two bytes.
+Good for locating what?</P>
 <P>152.</P>
+<P>153.</P>
+<P>154.</P>
+<P>155.</P>
+<P>156.</P>
+<P>157.</P>
+<P>158.</P>
+<P>159.</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
