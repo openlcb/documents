@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Simple Node Protocol Subset</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20110802;18025500">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<!-- $Id$ -->
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1><FONT COLOR="#000000"><IMG SRC="../../web/logo-ajs-dph.png" NAME="OpenLCB" ALIGN=RIGHT WIDTH=337 HEIGHT=135 BORDER=2></FONT>Simple
+Node Protocol Subset 
+</H1>
+<P STYLE="margin-bottom: 0cm">(A few words about why this might be
+useful)</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>Simple nodes are defined as the leaf nodes that do basic layout
+control (input/output) operations.  Gateways, configuration tools and
+other network-aware nodes are not simple nodes.</P>
+<H2 CLASS="western">Messages Transmitted</H2>
+<P>Simple nodes may transmit any message, which must propagate
+correctly. 
+</P>
+<H2 CLASS="western">Messages Received</H2>
+<P>Simple nodes must receive any message addressed to them, plus the
+following unaddressed global messages:</P>
+<UL>
+	<LI><P>Verify Node ID – They need to receive this so that they can
+	reply to it.</P>
+	<LI><P>Verified Node ID – They need to receive this because it's
+	the reply to their own request, which might be used to e.g. locate a
+	node for delayed sending of status</P>
+	<LI><P>Protocol Support Inquiry – They need to receive this so
+	that they can reply to it.</P>
+	<LI><P>Protocol Support Reply - ?? Should this be here ??</P>
+	<LI><P>Identify Consumers, Identify Producers, Identify Events –
+	<FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">because</SPAN></FONT></FONT></FONT>
+	others will ask this of them</P>
+	<LI><P>Learn Event – so they can be programmed</P>
+	<LI><P>P/C Event Report – what they do for a living</P>
+</UL>
+<P>In the future, additional MTIs will be defined. If simple nodes
+need to received them, the MTI will indicate that; see the MTI
+Allocation TN.  
+</P>
+<P>Gateways <FONT COLOR="#000000"><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN LANG="en-US">that</SPAN></FONT></FONT></FONT>
+are serving network segments (e.g. single CAN segments) that contain
+only simple nodes may suppress unaddressed (global) messages that do
+not contain simple-node MTIs.</P>
+<H2 CLASS="western">Messages Not Received</H2>
+<P>Messages not listed in the section above do not need to be
+received by simple nodes.</P>
+<P>A brief description of why the following message types are not
+necessary for simple nodes:</P>
+<UL>
+	<LI><P>Initialization Complete: Used to indicate that a node is
+	newly available to the network. Simple nodes only care about their
+	specific tasks, and by definition are not interested in the overall
+	structure and availability of the network.</P>
+	<LI><P>Consumer Identified, Consumer Identify Range: These are of
+	interest to gateways and configuration tools, but an individual
+	producer does not need to know which (if any) nodes are consuming
+	its produced events.</P>
+	<LI><P>Producer Identified, Producer Identify Range: These are of
+	interest to gateways and configuration tools, but an individual
+	consumer does not need to know which (if any) nodes are producing
+	its consumed events.</P>
+</UL>
+<P><BR><BR>
+</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
