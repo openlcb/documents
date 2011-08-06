@@ -3,15 +3,22 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Unique Event ID Assignment</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="David Harris">
-	<META NAME="CHANGED" CONTENT="20091107;21192500">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20110806;9110900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
+	<STYLE TYPE="text/css">
+	<!--
+		H3.ctl { font-family: "Lucida Sans" }
+		H2.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Unique Event ID Assignment</H1>
@@ -25,6 +32,7 @@ however, nodes can move: They can be sold or loaned for use on
 another layout, nodes on modular layouts can be connected to other
 arbitrary modules, and few assumptions can be made. Therefore, we
 require globally uniqueness for all EventIDs.</P>
+<H2 CLASS="western">Ensuring Uniqueness</H2>
 <P>To ensure uniqueness, the top 6 bytes of EventIDs that you define
 are <U>required</U> to be within the NodeID space that you control.
 The low two bytes would be any number you prefer, so long as you use
@@ -83,16 +91,19 @@ it can ensure that the EventID not be reused.</P>
 		</TR>
 	</TABLE>
 </CENTER>
-<P><BR><BR>
-</P>
+<H3 CLASS="western">Using IDs for real nodes</H3>
 <P>The Node ID part could be e.g. from real nodes that you own. For
 example, the <A HREF="examples/BlueGoldConfig.html">Blue/Gold
 algorithm</A> for assigning Event IDs automatically puts the Node ID
 of the first node to use that event in the Event ID, guaranteeing it
 to be unique.</P>
-<P>Not all Event IDs need to be assigned through that algorithm. For
-example, a software configuration tool might define events and assign
-Event IDs to them. A board manufacturer may prefer some other
+<H3 CLASS="western">Using allocated IDs</H3>
+<P>Not all Event IDs need to be assigned using the IDs of real nodes
+that actually exist as hardware. The only requirement is that they be
+based on a Node ID owned by the allocator. 
+</P>
+<P>For example, a software configuration tool might define events and
+assign Event IDs to them. A board manufacturer may prefer some other
 pushbutton configuration process. A modular club may decide that
 certain events form the “boundaries” of modules, and need to be
 assigned well-known Event IDs to make it easier to create large
@@ -189,18 +200,17 @@ matter where one of these devices is taken, because the node ID range
 is guaranteed to belong to the manufacturer, and he'll use it only
 once. 
 </P>
-<H3>Well-known Event ID extensions</H3>
+<H3 CLASS="western">Well-known Event IDs</H3>
 <P STYLE="margin-bottom: 0cm">Because events are a very convenient
 way to broadcast information to the entire network, we define some
-extension values to represent common conditions:</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
-<P STYLE="margin-bottom: 0cm">0xFFF8 – Node has logged a new log
-entry (See <A HREF="notes/Logging.html">logging protocol note</A>)</P>
-<P STYLE="margin-bottom: 0cm">0xFFF7 - 
-</P>
-<P STYLE="margin-bottom: 0cm"><BR>
-</P>
+well-known global event IDs to convey certain kinds of events. As
+examples, “global emergency stop”, of interest to all, and “this
+node logged a message”, where the specific node can be identified
+from the source ID of the event message.  These use a 6-byte
+node-ID-part that's reserved to OpenLCB itself, and then globally
+defined lower 16 bits.</P>
+<P STYLE="margin-bottom: 0cm">For the entire list, see a separate
+<a href="../specs/EventIdAllocations.pdf">spreadsheet</a>.</P>
 <P><BR><BR>
 </P>
 <HR>
