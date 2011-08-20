@@ -3,17 +3,24 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Overview</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100627;16534300">
+	<META NAME="CHANGED" CONTENT="20110820;14452300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<!-- $Id$ -->
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB Overview</H1>
-<H2>Introduction</H2>
+<H2 CLASS="western">Introduction</H2>
 <P>OpenLCB defines a family of interoperating protocols for
 controlling model railroads. It is structured around some common
 concepts and separate implementations. 
@@ -33,7 +40,7 @@ achieve this range, and to allow for future technologies, OpenLCB is
 defined so that it can communicate over CAN segments, within
 computers, and on network links. 
 </P>
-<H2>Key Features of This OpenLCB Protocol Proposal</H2>
+<H2 CLASS="western">Key Features of This OpenLCB Protocol Proposal</H2>
 <P>The key features of this proposal are: 
 </P>
 <UL>
@@ -43,48 +50,52 @@ computers, and on network links.
 	control any number of actual devices on a layout. Nodes exchange
 	messages to control the layout. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">At it's basic level, OpenLCB
-	defines a transport layer for several types of data: 
+	<LI><P STYLE="margin-bottom: 0cm">Every node has a &quot;Node ID
+	number&quot; (NID). The assignment of the NIDs assures they are
+	globally unique. 
+	</P>
+	<LI><P STYLE="margin-bottom: 0cm">For controlling the layout,
+	OpenLCB defines how to transport several basic types of data between
+	nodes: 
 	</P>
 	<UL>
-		<LI><P STYLE="margin-bottom: 0cm">Events - Fixed length identifers
+		<LI><P STYLE="margin-bottom: 0cm">Events - Fixed length identifiers
 		that can propagate from multiple source nodes to multiple
-		destination nodes. 
-		</P>
+		destination nodes. These are typically used to announce that
+		something of interest has happened on the layouts so that
+		controlled devices can respond.</P>
 		<LI><P STYLE="margin-bottom: 0cm">Datagrams – Move up to 70 bytes
 		efficiently from a source node to a specific target node.</P>
 		<LI><P STYLE="margin-bottom: 0cm">Streams - An efficient way to
 		move a large, variable number of bytes from one node to another. 
 		</P>
 	</UL>
-	<P STYLE="margin-bottom: 0cm">This transport level also has
-	provision for interconnection of independent OpenLCB segments and
-	filtering of messages to reduce traffic. 
+	<P STYLE="margin-bottom: 0cm">There is also provision for
+	interconnection of independent OpenLCB segments and filtering of
+	messages to reduce traffic. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">OpenLCB defines a global set of
-	common message types and their content. OpenLCB specifies how the
-	common message types are to be used for standard interactions and
-	optional interactions. All OpenLCB nodes must be able to properly
-	take part in standard interactions that are originated from outside
-	the node. 
+	<LI><P STYLE="margin-bottom: 0cm">To do this, OpenLCB defines a
+	global set of common message types and their content. OpenLCB
+	specifies how the common message types are to be used for standard
+	interactions and optional interactions. All OpenLCB nodes must be
+	able to properly take part in standard interactions that are
+	originated from outside the node. 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">The format of the common messages
 	is separately specified for each of several wire protocols. The
 	initial wire protocols are CAN and TCP/IP point-to-point; additional
-	ones are envisaged. OpenLCB wire protocols may define additional
-	interactions and messages for specific transport-level uses, e.g.
-	for housekeeping on the local connection. These interactions and
-	messages will be divided into standard forms, which all nodes must
+	ones such as radio links are envisaged. OpenLCB wire protocols may
+	define additional interactions and messages for specific
+	transport-level uses on a particular type of connection, e.g. for
+	housekeeping on the local connection. These interactions and
+	messages are divided into standard forms, which all nodes must
 	implement, and optional forms. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">The OpenLCB as a whole is
-	considered as being comprised of one or more OpenLCB segments
-	interconnected with bridge devices that ensure all nodes are able to
-	communicate equally with all other nodes on the OpenLCB. 
-	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Every node has a &quot;Node ID
-	number&quot; (NID). The assignment of the NIDs assures they are
-	globally unique. 
+	<LI><P STYLE="margin-bottom: 0cm">The OpenLCB as a whole consists of
+	one or more OpenLCB segments interconnected with bridge devices that
+	ensure all nodes are able to communicate equally with all other
+	nodes on the OpenLCB. All OpenLCB nodes see all OpenLCB messages
+	relevant to them. 
 	</P>
 	<LI><P STYLE="margin-bottom: 0cm">There is no hierarchy of nodes or
 	node aggregation or tree structures or segmentation that necessarily
@@ -92,31 +103,16 @@ computers, and on network links.
 	nodes are equally accessible and addressable. At the same time,
 	there is provision for gateways to acquire routing and filtering
 	information so that messages can be efficiently delivered.</P>
-	<LI><P STYLE="margin-bottom: 0cm">All OpenLCB nodes can see all
-	OpenLCB messages relevant to them. 
-	</P>
 	<LI><P STYLE="margin-bottom: 0cm">All OpenLCB nodes identify the
 	messages they send with their unique Node ID number. Any OpenLCB
 	message can be traced back to the originator using the Source Node
 	ID. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0cm">Above the basic transport level,
-	OpenLCB defines methods for 
-	</P>
-	<UL>
-		<LI><P STYLE="margin-bottom: 0cm">Event transfer for layout control
-				</P>
-		<LI><P STYLE="margin-bottom: 0cm">Node configuration 
-		</P>
-		<LI><P STYLE="margin-bottom: 0cm">Error logging</P>
-	</UL>
-	<P>and others. 
-	</P>
 </UL>
-<H3>CAN Implementation</H3>
+<H3 CLASS="western">CAN Implementation</H3>
 <UL>
-	<LI><P STYLE="margin-bottom: 0cm">The Node ID is unique, but too
-	large to carry in a CAN header. Therefore OpenLCB dynamically
+	<LI><P STYLE="margin-bottom: 0cm">An OpenLCB Node ID is unique, but
+	too large to carry in a CAN header. Therefore OpenLCB dynamically
 	creates a segment-unique &quot;Node ID alias&quot;, which then
 	provides the necessary uniqueness to the CAN Arbitration Header to
 	ensure reliable collision avoidance. No other form of e.g. priority
@@ -132,8 +128,8 @@ computers, and on network links.
 	required, either globally or on a segment. Global network monitoring
 	and diagnostics can be provided if desired.</P>
 	<LI><P STYLE="margin-bottom: 0cm">CAN masks/filters can still be
-	applied to identify frames directed to a node, and relevant
-	globally-addressed messages.</P>
+	applied to identify frames directed to a node, along with the
+	relevant globally-addressed messages.</P>
 	<LI><P STYLE="margin-bottom: 0cm">Event data is placed in the CAN
 	Data portion of the CAN Frame. 
 	</P>
@@ -142,7 +138,7 @@ computers, and on network links.
 	streams as desired, but there can only be one stream on CAN at a
 	time between a specific source and destination node.</P>
 </UL>
-<H3>Design Considerations</H3>
+<H3 CLASS="western">Design Considerations</H3>
 <P>Networking technologies come and go and new ones become dominant.
 Due consideration needs to be given to the possibility that the
 current popular networking technologies of CAN and Ethernet may be
@@ -157,7 +153,7 @@ including ones not considered now.
 newer technologies without having to discard the older technologies.
 OpenLCB must be able to seamlessly add new network segments without
 having to reconfigure the whole OpenLCB to accommodate the change.
-Node numbers, event IDs and similar things should be portable across
+Node numbers, event IDs and similar things must be portable across
 the network so that topology changes are accommodated without
 requiring major reconfiguration. 
 </P>
@@ -172,15 +168,15 @@ cause(s) of faults and performance problems.
 <P>The OpenLCB must be able to start small and grow over time as
 layouts evolve. 
 </P>
-<H3>OpenLCB Network Topology</H3>
+<H3 CLASS="western">OpenLCB Network Topology</H3>
 <P>OpenLCB is built on top of a reliable transport. This can be
 either point-to-point, or multipoint. “Reliable” transport
 delivers all messages between two nodes, without changes, deletions,
-duplications, additions or reorderings. No assumptions are made about
-the order of communications between different nodes or node pairs.
-(The OpenLCB CAN format has been designed to allow for CAN network
-behavior, where low priority messages may be delivered behind higher
-priority messages)</P>
+duplications, additions or re-orderings. No assumptions are made
+about the order of communications between different nodes or node
+pairs. (The OpenLCB CAN format has been designed to allow for CAN
+network behavior, where low priority messages may be delivered behind
+higher priority messages)</P>
 <P>A layout with a OpenLCB will require at least one OpenLCB network
 segment. This could be CAN, Wireless, Ethernet or WiFi, but is likely
 a combination of several technologies. A layout may have a lengthy
