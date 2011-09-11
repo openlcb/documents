@@ -1,89 +1,74 @@
                                                 1 Introduction
 
-   OpenLCB messages carry a Message Type Indicator (MTI) field to indicate their type. The primary form is
-   a 16-bit number.
+   OpenLCB messages carry a Message Type Indicator (MTI) field to indicate their type. Many nodes will
+   treat MTIs as magic 16-bit numbers, just comparing them for equality to specific values of interest.
+    That's a perfectly fine node implementation strategy.
 
    This note describes how the numeric values for those MTIs are allocated. The current allocations are
-   documented in a separate spreadsheet1. Those allocations are normative. The discussion in this note is
-   not normative on OpenLCB users or node developers, but does describe the methods that are to be used for
-   allocating new MTI values for new OpenLCB message and protocol types.
+   documented in a separate spreadsheet1. We keep them in just that one place to avoid conflicting updates.
+   Those allocations are normative. The discussion in this note is not normative on OpenLCB users or node
+   developers, but does describe the methods that are to be used for allocating new MTI values for new
+   OpenLCB message and protocol types.
 
-   MTI information may be carried in different formats for different wire protocols. These are documented
-   in the same spreadsheet, and discussed in separate sections below.
+   The primary MTI form is a 16-bit number. MTI information may be carried in different formats for
+   different wire protocols. These are documented in the same spreadsheet, and discussed in separate
+   sections below.
+
+   To allocate specific MTI values, having a systematic pattern to the values can be more useful.
+
+   We've chosen to allocate bit fields to make decoding simpler; if possible, aligned on nibble boundaries
+   to make it easy to read as hexadecimal numbers. We've also used a mix of bit-fields and individual flag
+   bits to increase compatibility when additional MTI values are defined later.
+
+   There are two basic approaches to identify classes of message types, such as “addressed” vs “global”
+   messages.
+
+    1. Use a dedicated bit field to distinguish the types, e.g. 1 indicates addressed and 0 means global.
+
+    2. Encode in the type number, e.g. “A (addressed) is 1”, “B (addressed) is 2”, “C (global) is 3”, “D
+       (addressed) is 4”.
+
+   The encoded form uses less bits, particularly if there are many classes to distinguish, which would
+   require many dedicated bits.  But future expansion is easier with dedicated bit fields, because nodes
+   can do some limited decoding of MTIs even though the node was created before the MTI value was defined.
+   For example, a gateway can determine whether a message is global or addressed to a particular node, even
+   if the MTI was defined after the node was built.
+
+    
+
+    
 
                                              2 Common MTI Values
 
-   Many nodes will treat MTIs as magic 16-bit numbers, just comparing them for equality to specific values
-   of interest.  That's a perfectly fine implementation strategy.
+   Common MTI layout:
 
-   To allocate them, however, having a systematic pattern to the values can be more useful.
+                        Simple               Message   Reserved                      Event ID    Flag Byte  
+   Field    Reserved    Node flag Reserved   Type                 Dest ID flag       flag        flag       
+                                             Number               
+   Size &   2 bits      1 bit     1 bit      8 bits    1 bit      1 bit              1 bit       1 bit      
+   location                                                                                                 
+   mask     0xC000      0x2000    0x1000     0x0FF0    0x0008     0x0004             0x0002      0x0001     
+                        0 means                                                                  0 means    
+                        for                                       1 means            1 means     flag byte  
+   Value(s) 0 (send and simple    1 (send    See below 0 (send    Destination ID     Event ID    present, 1 
+            check)      node, 1   and check)           and check) present, 0 not     present, 0   not       
+                        means                                     present            not present present    
+                         not      
+
+    
 
      * The two most-significant bits are reserved as 00; nodes must send and check that value.
 
-     * The next bit is used to indicate unaddressed messages meant for “simple” or minimal nodes. A 1 in
-       this bit means that these simple nodes can ignore this message. A 0 in this bit means that the
-       simple nodes should process the message.
-       This is meant to speed processing of some message types.  The decision as to whether a particular
-       message type is of interest to the notional “simple” node is left to the actual protocol definition,
-       found elsewhere.  This bit is reserved to 1 for addressed messages, as a message specifically
-       delivered to a node should be processed.
+     * The next bit is used to indicate messages meant for “simple” or minimal nodes. A 1 in this bit means
+       that these simple nodes can ignore this message. A 0 in this bit means that the simple nodes should
+       process the message. See the Simple Node Protocol Description TN for more information. This bit is
+       reserved to 0 for all addressed message types, as a message specifically delivered to a node should
+       be processed.
 
      * The next bit, the least significant of the top nibble, is reserved as 1; nodes must send and check
        that value.
 
-     * The next eight bits form a specific message number. This also has some substructure:
-
-     * The most significant bit is reserved as 0; nodes must send and check that value.
-
-     * The next two of these are used to form static priority groups. A 0 bit is considered to have more
-       priority (can be processed first), a 1 bit less priority (can be processed later). The MSB makes a
-       larger statement about priority than the LSB of these two. Priority processing is permitted but not
-       required. The priority group bits are part of the overall message type.
-
-     * The next bit is reserved as 0; nodes must send and check that value.
-
-     * The next 4 bits, forming the low nibble, are used to indicate the specific message within a priority
-       group.
-
-     * The bottom nibble is interpreted as flags that define the structure and format of the message type.
-
-     * The most significant bit is reserved as 0; nodes much send and check that value.
-
-     * The 2nd from-least-significant bit indicates that this message carries a destination node address
-       (DID) when set to 1. Setting 0 means that the message is globally addressed. If a Destination Node
-       ID (DID) is present, it is at a specific location in the message content.
-
-     * The next-to-least-significant bit indicates this message carries a P/C Event ID field when set to 1.
-       Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it is
-       at a specific location in the message content.
-
-     * The least-significant bit when set to 1 indicates this message carries a flag byte after the DID
-       and/or EID determined by the above bits. The low bits of that byte can be relocated for some wire
-       protocols, see e.g. the definition of the CAN wire protocol.
-
-   These flags allow nodes to do simple decoding of messages with MTIs that they don't recognize, perhaps
-   because they were defined after the node was created.  
-
-   We've chosen to allocate bit fields to make decoding simpler; if possible, aligned on nibble boundaries
-   to make it easy to read as hexadecimal numbers.
-
-   MTI layout:
-
-                                                     Message Reserved                 Event ID   Flag Byte  
-   Field    Reserved  Simple Node flag     Reserved  Number            Dest ID flag   flag       flag       
-                                                                       
-   Size &   2 bits    1 bit                1 bit     8 bits  1 bit     1 bit          1 bit      1 bit      
-   location                                                                                                 
-            0xC000    0x2000               0x1000    0x0FF0  0x0008    0x0004         0x0002     0x0001     
-            0                              1                 0         1 means        1 means    0 means    
-                      0 means for simple             See               Destination ID Event ID   flag byte  
-   Value(s) (send and node, 1 means simple (send and below   (send and present, 0     present, 0 present, 1 
-            check)    node can skip        check)            check)    means not      means not  means not  
-                                                                       present        present    present    
-
-    
-
-   Message Number byte (8 bits) layout:
+     * The next eight bits form a specific message type number. This has substructure:
 
                                                                               Reserved                      
    Field                Reserved         Static priority groups                         Specific type
@@ -97,27 +82,58 @@
                         (send and check) 0 goes first, 3 last if priority     (send and values & meanings
                                          processing is present                check)    
 
-    
+     *  
 
-   Specific values are allocated and documented in the separate worksheet. We keep them in just that one
-   place to avoid conflicting updates.
+     * The most significant bit is reserved as 0; nodes must send and check that value.
+
+     * The next two of these are used to form static priority groups. A 0 bit is considered to have more
+       priority (can be processed first), a 1 bit less priority (can be processed later). The MSB makes a
+       larger statement about priority than the LSB of these two. Priority processing is permitted but not
+       required. The priority group bits are part of the overall message type.
+
+     * The next bit is reserved as 0; nodes must send and check that value.
+
+     * The next 4 bits, forming the low nibble, are used to indicate the specific message type within a
+       priority group.
+
+     * The bottom nibble of the MTI is interpreted as flags that define the structure and format of the
+       message type.
+
+     * The most significant bit is reserved as 0; nodes must send and check that value.
+
+     * The 2nd from-least-significant bit when set to 1 indicates that this is an addressed message that
+       carries a destination node address (DID). Setting 0 means that the message is globally addressed. If
+       a Destination Node ID (DID) is present, it is at a specific location in the message content.
+
+     * The next-to-least-significant bit indicates this message carries a P/C Event ID field when set to 1.
+       Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it is
+       at a specific location in the message content.
+
+     * The least-significant bit when set to 1 indicates this message carries a flag byte after the DID
+       and/or EID determined by the above bits. The low bits of that byte can be relocated for some wire
+       protocols, see e.g. the definition of the CAN wire protocol.
+
+   These flags allow nodes to do simple decoding of messages with MTIs that they don't recognize, perhaps
+   because they were defined after the node was created.  For example, gateways can use this to control
+   routing of messages that they don't understand, perhaps because they were defined after the gateway was
+   developed.
 
                                            3 CAN MTI Considerations
+
+   MTI information is carried in a different format on CAN links to increase bandwidth efficiency, simplify
+   decoding in small processors, and permit use of hardware filtering.
 
    The standard CAN MTI field is 12 bits in the header (messages without destination address) or one byte
    in the data segment (addressed messages). Since CAN frames only carry 8 data bytes, a 1-byte MTI short
    form will be used until future expansion makes more necessary. The possibility of longer MTI values has
-   been reserved.
-
-   MTI information is carried in a different format on CAN links to increase bandwidth efficiency, simplify
-   decoding in small processors, and permit use of hardware filtering.
+   been reserved, see below.
 
    Standard MTIs are mapped to one of seven types:
 
    Type Meaning                                     
    0    Unaddressed MTI for simple nodes            
    1    Unaddressed MTI for non-simple nodes        
-   2    (Reserved, not used)                        
+   2    (Reserved for 16-bit MTI format, not used)  
    3    (Reserved, not used)                        
    4    Datagram not-last segment                   
    5    Datagram last segment                       
@@ -138,8 +154,20 @@
 
    Common MTIs with the “destination ID present” bit set are mapped to and from type 6.
 
-   In this case, the 12-bit destination alias is placed in the header, and the Message Number byte from the
-   full MTI is the first byte of the CAN frame.
+   In this case, the 12-bit destination alias is placed in the header, and the Message Type Number byte
+   from the full MTI is the first byte of the CAN frame.
+
+    
+
+   Field                                      CAN prefix  Type        Destination ID                    
+                                              2 bits      3 bits      12 bits                           
+   Size & location (within 29-bit CAN Header)                                                           
+                                              0x1800,0000 0x0700,0000 0x00FF,F000                       
+   Value(s)                                   3           6           12-bit alias for destination node 
+
+    
+
+    
 
 3.2 Unaddressed CAN MTIs
 
@@ -152,29 +180,21 @@
 
     
 
-                                       4 (Information to be integrated)
+   Field                 CAN prefix  Type        Number         EID Present    Flags Present  Flag Bits     
+   Size & location                                                                                          
+   (within 29-bit CAN    0x1800,0000 0x0700,0000 0x00FF,0000    0x0000,8000    0x0000,4000    0x0000,3000
+   Header)               
+                                                 8 bit MTI type 1 if Event ID                 Flag bits, if 
+   Value(s)              3           0 or 1      number         present in CAN 1 if Flag byte present       
+                                                                data           
 
-   The following has been cut&pasted from other, older notes, and needs to be integrated with the main TN
-   text above.  This is a work in progress!
+    
 
-4.1 Bits vs Codes
+   Flag bit handling is used to get an extra 2 bits of data into the CAN frame, e.g. for certain messages
+   that contain an 8-byte Event ID plus some extra information.  If a common MTI has the “Flag Byte” bit
+   set, the low order two bits are moved from the data content into the two “flag bits” in the CAN header.
 
-   Should a common Message Type ID contain bit-coded fields for e.g. presence of Destination Node ID,
-   presence of Event ID? There are arguments in both directions.
-
-   Having a bit-coded value (bit that says Destination Node ID present) is the same as a bit saying "global
-   message vs addressed"; one could chose to document it either way. Having this bit saves space in the
-   most common messages, which are the global P/C Event Reports.
-
-   The alternative is a global address value. One could _always_ have the DID present, and have a specific
-   value (e.g. 0) that indicates the message is addressed to all nodes. This may result in simpler message
-   deformating code, as the remaining fields are always in the same byte locations.
-
-   The common message can be reformatted on any particular wire protocol, so if one form or the other works
-   better e.g. on a CAN link, the local format can use the other form.
-
-   Similarly, having a bit that indicates an Event ID is present can help parse messages faster, but it's
-   truely optional in any particular local format.
+    
 
    Table of Contents
 
@@ -187,10 +207,6 @@
    3.1 Addressed CAN MTIs
 
    3.2 Unaddressed CAN MTIs
-
-   4 (Information to be integrated)
-
-   4.1 Bits vs Codes
 
     
 
