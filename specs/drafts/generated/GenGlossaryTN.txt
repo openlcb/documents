@@ -7,6 +7,13 @@
 
                                                  2 Key Terms
 
+   Event
+
+   OpenLCB allows nodes to notify each other when specific "events" occur on the layout. These in turn can
+   cause nodes to take particular actions. Events are not necessarily attached to a producer ('Button 2
+   pressed') or attached to a consumer ('Turn off light 4'), but rather to an overall state change ('Set
+   for nighttime operation'). This is called a "Producer/Consumer model".
+
    Node
 
    A “node” is the basic unit of addressability in OpenLCB.  It can be a single board, or a process in a
@@ -16,11 +23,6 @@
    node. For example, a simple turnout controller board is one node, while a PC with multiple programs
    running may contain several nodes.
 
-   Node ID (NID)
-
-   Number identifying a specific node. OpenLCB node IDs must be globally unique, so they form a one-to-one
-   mapping to the nodes themselves.
-
    Message
 
    The basic unit of OpenLCB communication.
@@ -28,6 +30,10 @@
                                               3 General Glossary
 
     
+
+   Addressed
+
+   An “addressed” message is meant for only a single node. Contrast “global”.
 
    Alias
 
@@ -51,7 +57,7 @@
    The datagram protocol is a way for a OpenLCB node to efficiently send a short, definite-length message
    to another specific node. In that, it lies in between “event messages”, which efficiently sends very
    short event IDs to all interested nodes, and the streaming protocol, which sends long messages between
-   specific nodes, at some cost in efficiency.
+   specific nodes, at some cost in efficiency. Sending a datagram takes multiple messages.
 
    Device
 
@@ -61,13 +67,6 @@
    DID
 
    Destination Node ID - Node ID of the node to which a specific message is addressed.
-
-   Event
-
-   OpenLCB allows nodes to notify each other when specific "events" occur on the layout. These in turn can
-   cause nodes to take particular actions. Events are not necessarily attached to a producer ('Button 2
-   pressed') or attached to a consumer ('Turn off light 4'), but rather to an overall state change ('Set
-   for nighttime operation'). This is called a "Producer/Consumer model".
 
    Event ID (EID)
 
@@ -83,6 +82,10 @@
    identifiers in OpenLCB is meant to reduce the need for gateways. They generally only appear to connect
    the wider network to a CAN link.
 
+   Global
+
+   A “global” message is meant for all OpenLCB nodes that are interested in it.  Contrast “Addressed”.
+
    Installation
 
    An OpenLCB installation is the complete set of OpenLCB hardware, nodes, etc, that can be reached from
@@ -91,6 +94,11 @@
    MTI
 
    Message Type Indicator - identifies a common message type. (This term is still under discussion)
+
+   Node ID (NID)
+
+   Number identifying a specific node. OpenLCB node IDs must be globally unique, so they form a one-to-one
+   mapping to the nodes themselves.
 
    Producer/Consumer Model
 
@@ -114,7 +122,7 @@
 
    SID
 
-   Source Node ID - Node ID of the node which originated a specific message.
+   Source Node ID – The Node ID of the node which originated a specific message.
 
    Segment
 
@@ -139,10 +147,15 @@
 
                                                 4 CAN Glossary
 
+   CAN
+
+   Controller Area Network, an ISO-standardized communication network type. The CAN specification includes
+   aspects of the physical- and link-layer definitions for OpenLCB.
+
    Frame
 
    A Frame is packet as it is defined on the CAN bus. It consists of a 11 or 29 bit CAN header and zero
-   through 8 bytes of data.
+   through 8 bytes of data. An OpenLCB message may become one or more frames when transmitted over CAN.
 
    Segment
 
