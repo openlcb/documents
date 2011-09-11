@@ -6,20 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20110910;21215700">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20110911;15272500">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB™ To Do: Remaining Questions</H1>
@@ -78,20 +65,6 @@ study Insteon solution - BobJ)</I></P>
 <P>47. Eventually, write some words about a recommended common log
 format (mechanism is being developed in Logging note, but not format
 of log records)</P>
-<P>52. NodeId vs UniqueID terminology, esp. in the EventID
-allocation. (See also 117) (Task Done) Notional approach:</P>
-<UL>
-	<LI><P>(done)</P>
-	<LI><P>Require that every OpenLCB producer node be given a block of
-	64-bit event IDs such that the values in the most significant 48
-	bits of all those event IDs lie within an assigned set of 48-bit
-	unique IDs, and none of those event IDs is assigned to more than one
-	node.</P>
-	<LI><P>Recommend, but don't require, that nodes start assigning
-	EventIDs using the uniqueID they're using as their NodeID (most
-	people don't need to look at EventID numbers, but being able to
-	guess where they came from can be a useful debugging hint)</P>
-</UL>
 <P>54. Need a CAN boot-loader/IPL process definition. May serve as a
 good streaming, datagram example, but it's also possible that full
 OpenLCB implementation is too much to include in a bootloader
@@ -175,14 +148,14 @@ production? (Task done).</P>
 </UL>
 <P><SPAN STYLE="background: #99ccff">94. Document the use of
 new-unique EventIDs during “factory reset” and as a way of
-“deleting” an even in a producer or consumer.<BR>We need to
-discuss this. I think we should implement a Purge which replaces any
-native events in use with new native events – I am not sure this is
-what is happening now. (DPH?)</SPAN></P>
+“deleting” an even in a producer or consumer. (See also 103)<BR>We
+need to discuss this. I think we should implement a Purge which
+replaces any native events in use with new native events – I am not
+sure this is what is happening now. (DPH?)</SPAN></P>
 <P><FONT FACE="Times New Roman, serif"><FONT SIZE=3><SPAN STYLE="background: #99ccff">95.
 Document “Datagram start” needed on CAN so that a node can find
 the start of the next datagram after rejecting a not-last segment.
-See <FONT COLOR="#000000">drawings/CANDatagramProtocolDiagram.odg 
+See <FONT COLOR="#000000">drawings/CANDatagramProtocolDiagram.odg
 Mike J has expressed concern about the lack of a start-of-datagram
 bit; he wanted to allocated another bit in the CAN frame so that
 1B/1C/1D/1E were the four possible forms (start, end, both, neither)
@@ -206,25 +179,26 @@ cleanly. Perhaps in PCE?</P>
 number, all but node number, etc</P>
 <P><SPAN STYLE="background: #99ccff">103. Configuration needs a
 discussion of “Setting/resetting node numbers”; also needed in
-Event protocol document.</SPAN><BR>DPH: must redo discussion about
-originated-events vs non-originated-events. When moving a node to a
-new location, the node should be purged of event#s so as not to
-spread them into the wild. I think this needs to be a user controlled
-operation. Starting all events#=0, and generating a new event#
-(originatingNID.ee) as required for teaching, sounds the easiest way
-to handle this. Purging is then just zeroing out the event#s. This
-does not waste untaught event#s. Working though use-cases is useful:
-taking several nodes to the work-bench for set up, and reinstalling
-them to the layout; selling a node; lending a node; etc. The term
-“purging' seems to be useful, rather than “reset”. BobJ: The
-existing spec requires that a reset of the board assign new default
-EventIDs. This is about the best you can do: If you clear the board,
-you get new ones. You can't build a mechanisms that knows whether an
-EventID has been used or not, because it's possible for another node
-to enquire about what EventIDs the node has and starting using them
-without out telling the node. “EventID == 0” doesn't work for
-default eventIDs, because teach/learn need isn't the only way that
-you can learn about the EventIDs in a node.</P>
+Event protocol document. (See also 94)</SPAN><BR>DPH: must redo
+discussion about originated-events vs non-originated-events. When
+moving a node to a new location, the node should be purged of event#s
+so as not to spread them into the wild. I think this needs to be a
+user controlled operation. Starting all events#=0, and generating a
+new event# (originatingNID.ee) as required for teaching, sounds the
+easiest way to handle this. Purging is then just zeroing out the
+event#s. This does not waste untaught event#s. Working though
+use-cases is useful: taking several nodes to the work-bench for set
+up, and reinstalling them to the layout; selling a node; lending a
+node; etc. The term “purging' seems to be useful, rather than
+“reset”. BobJ: The existing spec requires that a reset of the
+board assign new default EventIDs. This is about the best you can do:
+If you clear the board, you get new ones. You can't build a
+mechanisms that knows whether an EventID has been used or not,
+because it's possible for another node to enquire about what EventIDs
+the node has and starting using them without out telling the node.
+“EventID == 0” doesn't work for default eventIDs, because
+teach/learn need isn't the only way that you can learn about the
+EventIDs in a node.</P>
 <P><SPAN STYLE="background: #00ff00">105. [done] so we can institute
 a “daily build” process to check for broken compiles (makefile
 done, daily build not; get somebody to do Hudson/Jenkins?) Consider
@@ -316,11 +290,12 @@ indirectly attached nodes.</P>
 RF for locomotive control. Want to get info back (static and
 dynamic). Standard RF technologies, but perhaps more than one? IEEE
 802.14.4? Use of built in addressing?</P>
-<P>142. Discussion of sizes in non-CAN implementations. E.g. RF that
-might have 128 byte (or likely smaller) frames. How to use generic
-OpenLCB form, but with some limitation on length? 128 bytes allows
-original MTI+ID sizes (2+6+6) even for datagram in a single frame.
-But what to say about other messages, particularly in the future?</P>
+<P>142. Discussion of sizes in non-CAN implementations. (See also
+145) E.g. RF that might have 128 byte (or likely smaller) frames. How
+to use generic OpenLCB form, but with some limitation on length? 128
+bytes allows original MTI+ID sizes (2+6+6) even for datagram in a
+single frame. But what to say about other messages, particularly in
+the future?</P>
 <P>143. Tools in various languages to track alias to full node to new
 alias changes when a node needs to keep long term access to an
 off-board node IDs.</P>
@@ -329,11 +304,11 @@ needs an update. It's from 2010, and footnotes are in some cases dead
 links. (See 150)</P>
 <P>145. Make sure the CAN frame-level discussion of many-byte global
 messages (we don't have any yet, but mechanism documented anyway) is
-clear. The entire mechanism for multi-frame messages like Datagrams,
-Streams, needs to be clearer described, and generalized for e.g.
-2-frame global messages. Special case of buffer handling - “must be
-prepared to receive” as logic, but how handle multiple coming in to
-a cheap node?</P>
+clear. (See also 142) The entire mechanism for multi-frame messages
+like Datagrams, Streams, needs to be clearer described, and
+generalized for e.g. 2-frame global messages. Special case of buffer
+handling - “must be prepared to receive” as logic, but how handle
+multiple coming in to a cheap node?</P>
 <P><SPAN STYLE="background: #00ff00">146. Discussion of the timeout
 at the end of the CAN alias allocation. (see 140)</SPAN></P>
 <P>147. Arduino stream prototype needs to be completed, experiment
@@ -343,7 +318,7 @@ seems to strip the HTML for them.</P>
 <P>149. Write a Tech Note for gateway implementors. (See 140, 145,
 146) (Skeleton in specs/drafts/GenGatewayTN.odt )</P>
 <P>150. Write a C++ bit of code to track alias ↔ node ID mapping &amp;
-demonstrate method. (See 144)</P>
+demonstrate method. (See 143)</P>
 <P>151. Finish definition (redefinition?) of VerifyNode/VerifiedNode,
 update prototype code.</P>
 <P>152.</P>
