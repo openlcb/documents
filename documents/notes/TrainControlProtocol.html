@@ -1,0 +1,456 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>OpenLCB: Train Control Protocl</TITLE>
+	<META NAME="GENERATOR" CONTENT="vim (OS X)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="D.E. Goodman-Wilson">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lucida Sans" }
+		h4.ctl { font-family: "Lucida Sans" }
+		H4.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+
+
+
+<H1>OpenLCB: Train Control Protocol</H1>
+
+<p>This document defines a protocol for the control of model trains.</p>
+
+
+<h2 class="western">Environment of Protocol</h2>
+
+<h4 class="western">Requirements</h4>
+<ul>
+	<li><p>Trains are to be treated as independent OpenLCB Nodes.</p></li>
+	<li><p>Train control must be independent of the underlying train control system.</p></li>
+	<li><p>Train control must be independent of train's scale, and other contextual factors.</p></li>
+	<li><p>Train control must avoid deliberately exposing the end user to unnecessary technical details; similarly, any model on any control system must be usable "out of the box", with no explicit configuration on the part of the user.</p></li>
+</ul>
+
+<h4 class="western">Preferences</h4>
+<ul>
+	<li><p>All communication should take advantage of the Datagram protocol.</p></li>
+	<li><p>Nevertheless, because currently technology requires that trains be represented by OpenLCB proxies, it should be possible to split the responsibilities of a proxy across several physical or virtual Nodes, to ease implementation. Therefore, the protocol should depend on little (preferably no) state information as context for the proper processing of commands. That is, each command should be atomic or self-contained.</p><li>
+</ul>
+
+<h4 class="western">Design Points</h4>
+
+<p>Trains will be addressed using a well-known addressing scheme. See TODO</p>
+
+<p>All communications will be point-to-point, between a <em>controller</em> and a <em>train</em>.</p>
+
+<p>A <em>controller</em> is any OpenLCB Node that might need to control a train; controllers includes hand-held cabs, computer control systems, or decentralized control units (such as auto-reversers for automated operation, or ATC systems).</p>
+
+<p>A <em>train</em> is any model that runs on rails (i.e. is not steerable; thus, a train might include vehicles using the Faller or Tomix car systems). A train might be a single locomotive, a locomotive with carriages (e.g. passenger cars with interior lighting or markerlights that can be digitally controlled), a consist of multiple locomotives, a multiple unit, etc. Take, for example a model of the Usui Pass in Japan, ca. 1970. Electric multiple units that wished to traverse the pass (either up or down) needed to be assisted by a matched pair of EF63 electric locomotives. In this scenario, there are several potential train objects: The EMU by itself (being permanently consisted, the individual carriages would not count as trains in the sense being used here), each individual EF63, the EF63s in a paired consist, and the entire EF63+EF63+EMU consist are all train objects.</p>
+
+<p>The <em>head</em> of a train is the node with control. In the case of a single locomotive, that train is its own head. In the case of a consist of multiple trains, the train at the very front in the forward direction of travel is the head.</p>
+
+<H2 CLASS="western">Protocol</H2>
+
+All communications via the Train Control Protocol use the Datagram transport method. Each datagram consists of an PTI (protocol type identifier) byte, which is TODO for the Train Control Protocol, a command identifier byte, and zero or more bytes of command-specific data:
+
+<TABLE BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<TR VALIGN=TOP>
+		<TH>
+			<P>Command</P>
+		</TH>
+		<TH>
+			<P>Command Identifier Byte</P>
+		</TH>
+		<TH>
+			<P>Arguments</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Emergency Stop</P>
+		</TD>
+		<TD>
+			<P>0x00</P>
+		</TD>
+		<TD>
+			<P></P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Set Train Speed</P>
+		</TD>
+		<TD>
+			<P>0x01</P>
+		</TD>
+		<TD>
+			<P>direction and speed (16-bit float)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Inquire Train Speed</P>
+		</TD>
+		<TD>
+			<P>0x02</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Report Train Speed</P>
+		</TD>
+		<TD>
+			<P>0x03</P>
+		</TD>
+		<TD>
+			<P>direction and speed (16-bit float)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Set Train FX</P>
+		</TD>
+		<TD>
+			<P>0x11</P>
+		</TD>
+		<TD>
+			<P>FX address (16-bit uint)</P>
+			<P>FX setting (16-bit uint)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Inquire Train FX</P>
+		</TD>
+		<TD>
+			<P>0x12</P>
+		</TD>
+		<TD>
+			<P>FX address (16-bit uint)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Report Train FX</P>
+		</TD>
+		<TD>
+			<P>0x13</P>
+		</TD>
+		<TD>
+			<P>FX address (16-bit uint)</P>
+			<P>FX setting (16-bit uint)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Request Attach to Train</P>
+		</TD>
+		<TD>
+			<P>0x21</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Attach Permitted</P>
+		</TD>
+		<TD>
+			<P>0x22</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Attach Denied</P>
+		</TD>
+		<TD>
+			<P>0x23</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Train Release</P>
+		</TD>
+		<TD>
+			<P>0x24</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Controller Dropped</P>
+		</TD>
+		<TD>
+			<P>0x25</P>
+		</TD>
+		<TD>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Create Consist</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Add to Consist</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Set Consist Head</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Remove from Consist</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD>
+			<P>Destroy Consist</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+		<TD>
+			<P>TODO</P>
+		</TD>
+	</TR>
+</TABLE>
+
+
+<h4 id="trainmovement" class="western">Train Movement</h4>
+
+Summary: Commands for controlling the movement of trains.
+
+Notes on the table columns:
+<ul>
+<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller.</li>
+<li>Controlled?: Controlled messages require the permission of a secure train prior to transmission (see below).</li>
+</ul>
+
+<TABLE BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<tr>
+		<th>Command</th>
+		<th>Direction</th>
+		<th>Controlled?</th>
+		<th>Protocol Identifier Byte
+		<th>Command Identifier Byte</th>
+		<th colspan=2>Arguments</th>
+	</tr>
+
+	<tr>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th>Byte 1</th>
+		<th>Byte 2</th>
+		<th>Byte 3</th>
+		<th>Byte 4</th>
+	</tr>
+
+	<tr>
+		<td><p>Emergency Stop</p></td>
+		<td><p>C&rarr;T</p></td>
+		<td><p>yes</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x00</p></td>
+	</tr>
+	
+	<tr>
+		<td><p>Set Train Speed</p></td>
+		<td><p>C&rarr;T</p></td>
+		<td><p>yes</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x01</p></td>
+		<td colspan=2><p>direction and speed (float16)</p></td>
+	</tr>
+
+	<tr>
+		<td><p>Inquire Train Speed</p></td>
+		<td><p>C&rarr;T</p></td>
+		<td><p>no</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x02</p></td>
+	</tr>
+
+	<tr>
+		<td><p>Report Train Speed</p></td>
+		<td><p>T&rarr;C</p></td>
+		<td><p>n/a</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x03</p></td>
+		<td colspan=2><p>direction and speed (float16)</p></td>
+	</tr>
+</table>
+
+<h4>Emergency Stop</h4>
+<p>Bring the train to an immediate halt, without regard to any physical simulation of momentum. Notice that this command is supplementary to the more general OpenLCB commands TODO, with the difference being primarily one of scope.</p>
+
+<h4>Set Train Speed</h4>
+<p>The speed and direction to set is encoded as a half-precision floating point number (aka 'float16'), with positive numbers indicating forward direction, negative indicating reverse, and zero indicating full (non-emergency) stop. The value specifies a speed in scale meters per second (scale-m/s).</p>
+
+<p>Rationale: The use of a 16-bit floating point permits relatively precise speed commands, especially at lower speeds; such fine granulatity ensures not just fine-grained control over the locomotive, but helps avoid aliasing issue that arise during the conversion to lower resolution system-specific speed commands (i.e. DCC's 14 or 28-step commands).</p>
+
+<p>The use of meters per second is somewhat arbitrary, and reflects standard velocity units used throughout the metric-speaking world. By standardizing on m/s, we avoid any future unit conversion issues.</p>
+
+<p>The use of <em>scale</em> meters per second has two distinct advantages. First, it permits us to transmit speed commands in a scale-independent way. Second, and because of this, it reduces the number of parameters that must be estimated when controlling a locomotive that has not yet been speed-calibrated (which, for new users using existing digital control systems, will be all of their models). For example, on a DCC system, if I issue a command to proceed at 30mph, the command station must convert the value in the speed command from 30mph to an interger in the range [0-26] (for 28-speed-step control). The command station need only estimate what a reasonable top speed for a locomotive might be: Let us say, 100mph. Thus, the command station could reasonably estimate that 30mph translates to speed step 8.</p>
+
+<p>The alternative possibilities considered to date are absolute speed using real units (as opposed to scale units), and relative speed units. The difficulty with relative speed units (i.e., percentage of full throttle), is that TODO. The difficulty with using real (as opposed to scale) units is that it requires the estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale. If I issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only understand what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1 m/s might be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use as a default, users must configure their digital command station to set the scale for either the entire layout, or on a per-model basis&mdash;an additional configuration step that is easily avoided by the mechanism for scale units described above.</p>
+
+<h4>Inquire Train Speed</h4>
+
+<p>This is a request for a train to report its speed. Any OpenLCB node may make inquiries about a train's state without requesting permission first (see Security Commands below), although the train is under no particular obligation to respond. This command takes no additional arguments.
+
+<h4>Report Train Speed</h4>
+
+<p>This is a response to the Inquire Train Speed command, and has the same arguments as the Set Train Speed command above.</p>
+
+<h3 class="western">Train FX</h3>
+
+Summary: Commands for controlling a train's special effects, including lighting and sound.
+
+Notes on the table columns:
+<ul>
+<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller.</li>
+<li>Controlled?: Controlled messages require the permission of a secure train prior to transmission (see below).</li>
+</ul>
+
+<TABLE BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<tr>
+		<th>Command</th>
+		<th>Direction</th>
+		<th>Controlled?</th>
+		<th>Protocol Identifier Byte
+		<th>Command Identifier Byte</th>
+		<th colspan=4>Arguments</th>
+	</tr>
+
+	<tr>
+		<th></th>
+		<th></th>
+		<th></th>
+		<th>Byte 1</th>
+		<th>Byte 2</th>
+		<th>Byte 3</th>
+		<th>Byte 4</th>
+		<th>Byte 5</th>
+		<th>Byte 6</th>
+	</tr>
+	
+	<tr>
+		<td><p>Set Train FX</p></td>
+		<td><p>C&rarr;T</p></td>
+		<td><p>yes</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x11</p></td>
+		<td colspan=2><p>FX address (uint_16)</p></td>
+		<td colspan=2><p>FX value (uint_16)</p></td>
+	</tr>
+
+	<tr>
+		<td><p>Inquire Train FX</p></td>
+		<td><p>C&rarr;T</p></td>
+		<td><p>no</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x12</p></td>
+		<td colspan=2><p>FX address (uint_16)</p></td>
+	</tr>
+
+	<tr>
+		<td><p>Report Train FX</p></td>
+		<td><p>T&rarr;C</p></td>
+		<td><p>n/a</p></td>
+		<td><p>PIBTODO</p></td>
+		<td><p>0x13</p></td>
+		<td colspan=2><p>FX address (uint_16)</p></td>
+		<td colspan=2><p>FX value (uint_16)</p></td>
+	</tr>
+	
+</table>
+
+<h4>Set Train FX</h4>
+
+<p>Many trains offer independent control of various special effects (FX, sometimes called "functions") such as lighting or sound. This command permits a controller to control these effects directly. The first argument is the address of the FX to control as a 16-bit unsigned integer. This protocol does not define a semantics for FX addresses; that is, there is no particular address that is singled out as represenging headlights or the airhorn. Instead, the addresses are deliberately abstract, permitting the user to decide how to map addresses to FX for each train.</p>
+
+<p>Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00 should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX should treat the 16-bit value as an unsigned integer.</p>
+
+<p>Rationale: Most digital systems offer multiple FX, each of which is numbered. Although currently most DCC throttles only permit access to 12 or 29 functions, DCC (TODO to my knowledge!) technically permits as many as 32796* different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two Instruction, and Feature Expansion Command Instruction especially the Binary State Control Subcommand). For this reason, it seems prudent to go ahead and use a 16-bit value.</p>
+
+<p>Likewise, although current DCC decoders only permit binary FX, some (for example SoundTraxx Tsunami sound decoders) actually permit a kind of analog control of FX by combining multiple DCC Functions. Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off.</p>
+
+<p>One problem that faces the decision to use a single command with a numerical FX addressing system is that any kind of standardized assignment of FX addresses to particular FX is impossible in practice. DCC, for example, makes no such prescription, although by convention function F0 controls direction-sensitive headlights. Beyond this lies only manufacturers' conventions. Thus, any kind of mapping is best handled on a per-train basis, by configuring the mapping between particular FX (e.g. headlights, airhorn) to FX addresses for each train.</p>
+
+<p>One way to mitigate this problem is to not make fixed FX address assignments, but to map them directly onto the addressing scheme used by the various control systems, that is, to leave each address in the OpenLCB FX addres space uninterpreted. In this way, the default behavior of each address will map directly onto the default behavior of the decoder in the train, giving some degree of predictability to the system, and permitting a digital command station the make reasonable guesses about the possible address-to-FX mappings. Nevertheless, users will often need to be exposed to this implementational detail, which is deeply unfortunate, but necessary given the ultimate flexibility of current train control systems.</p>
+
+<p>Thus, it is recommended that the FX address space be mapped directly to the particular control system's address space; thus DCC F0 becomes FX address 0x0000, F1 becomes 0x0001, etc. The DCC Binary State addresses should be mapped to 0x8000 to 0xFFFF (i.e., to the 15-bit range beginning with 0b1000.0000.0000.0000). Other systems should be handled analogously.
+
+
+<p>*RP-9.2.1 defines the following:<br />
+Function Group One: 5 (F0-F4)<br />
+Function Group Two: 8 (F5-F12)<br />
+Binary State Control: 32767 (15bits) (note: different address space!)<br />
+Feature Expansion Command 11110: 8 (F13-F20)<br />
+Feature Expansion Command 11111: 8 (F21-F28)<br />
+And in the future, perhaps even more. Possibly a lot more. There are just under 20bit of address space available in the Feature Expansion Comman Instruction for the potential manipulation of Binary State Controls.</p>
+
+<h4>Inquire Train FX</h4>
+
+Any node may inquire the state of a train's FX. The only argument is the address of the FX to query.
+
+Notice that, because the semantics for the FX address space may vary from train to train, this command does not provide a useful way to query the state of a particular FX, e.g. the headlights.
+
+<h4>Report Train FX</h4>
+
+This command is for trains to report the state of a particular FX in response to an Inquire FX command. The format of the parameters is the same as for the Set Train FX command.
+
+
+<h3 class="western">Consisting</h3>
+TODO
+Create Consist
+Add To Consist
+Remove From Consist
+Destroy Consist
+Consisting Acknowledged
+Consisting Denied
+<h3 class="western">Train Access Control</h3>
+<p>Optional. Trains may restrict communications from controllers using the following packet kinds.</p>
+TODO
+Attach Request
+Attach Acknowledged
+Attach Denied
+Command Denied?
