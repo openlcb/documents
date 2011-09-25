@@ -53,7 +53,51 @@
 
 <H2 CLASS="western">Protocol</H2>
 
-All communications via the Train Control Protocol use the Datagram transport method. Each datagram consists of an PTI (protocol type identifier) byte, which is TODO for the Train Control Protocol, a command identifier byte, and zero or more bytes of command-specific data:
+<h3>NodeIDs for Legacy Train Control Systems</h3>
+
+<p>Train Command Stations designed to act as a bridge between an OpenLCB network and a train control network, and hence that provides proxy OpenLCB Nodes to stand in for Trains unable to represent themselves, should adhere to the following schema for generating OpenLCB NodeIDs, as existing trains are unable to generate or provide these addresses for themselves. See OpenLCB Standard "OpenLCB Unique Identifiers", &#167;5.5 for additional details.</p>
+
+<table>
+<tr>
+<td>byte 1</td>
+<td>byte 2</td>
+<td>byte 3</td>
+<td>byte 4</td>
+<td>byte 5</td>
+<td>byte 6</td>
+</tr>
+<tr>
+<td>0x06</td>
+<td>[TCS ID]</td>
+<td>[DCS ID1]</td>
+<td>[DCS ID2]</td>
+<td>[Train ID1]<td>
+<td>[Train ID2]</td>
+<td>
+</tr>
+</table>
+
+<p>Where:</p>
+<ul>
+<li>[TCS ID] is determined as:
+<table>
+<tr><td>0x00</td><td>DC operated train</td></tr>
+<tr><td>0x01</td><td>DCC operated train</td></tr>
+<tr><td>0x02</td><td>TMCC operated train</td></tr>
+<tr><td>0x03</td><td>Marklin/Motorola operated train</td></tr>
+<tr><td>0x04</td><td>MTH DCS operated train</td></tr>
+<tr><td>0x05</td><td>C/MRI operated train</td></tr>
+<tr><td>0x06</td><td>DC + Tomix CL operated train</td></tr>
+</table>
+(This specification supercedes the allocation specified in OpenLCB Standard "OpenLCB Unique Identifiers", &#167;5.5.)
+</li>
+<li>[DCS IDx] is an identifier, unique on an OpenLCB network, indicating which Train Command Station has control of the train. Notice that this portion of the NodeID can and will change as the train roams from command station to command station. If only one command station is present, both [DCS IDx] will default to 0x00.</li>
+<li>[Train IDx] is the identifier for the train as used by the train command station, with [Train ID1] the MSW and [Train ID2] the LSW. Thus, for DCC short addresses, [Train ID1] will be 0x00 and [Train ID2] will be the DCC short address. For DCC long addresses (which are 14 bits), [Train ID1] will be contain the most significant 6 bits of the DCC address, and pTrain ID2] will contain the 8 least significant bits.
+</ul>
+
+<h3>Command Summary</h3>
+
+<p>All communications via the Train Control Protocol use the Datagram transport method. Each datagram consists of an PTI (protocol type identifier) byte, which is 0x30 for the Train Control Protocol, a command identifier byte, and zero or more bytes of command-specific data:</p>
 
 <TABLE BORDER=1 CELLPADDING=4 CELLSPACING=4>
 	<TR VALIGN=TOP>
@@ -94,9 +138,10 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Inquire Train Speed</P>
 		</TD>
 		<TD>
-			<P>0x02</P>
+			<P>0x03</P>
 		</TD>
 		<TD>
+			<p>kind of speed (8-bit flags)
 		</TD>
 	</TR>
 	<TR VALIGN=TOP>
@@ -104,8 +149,11 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Report Train Speed</P>
 		</TD>
 		<TD>
-			<P>0x03</P>
+			<P>0x02</P>
 		</TD>
+		<TD>
+			<p>kind of speed (8-bit flags)</p>
+		</td>
 		<TD>
 			<P>direction and speed (16-bit float)</P>
 		</TD>
@@ -127,7 +175,7 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Inquire Train FX</P>
 		</TD>
 		<TD>
-			<P>0x12</P>
+			<P>0x13</P>
 		</TD>
 		<TD>
 			<P>FX address (16-bit uint)</P>
@@ -138,7 +186,7 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Report Train FX</P>
 		</TD>
 		<TD>
-			<P>0x13</P>
+			<P>0x12</P>
 		</TD>
 		<TD>
 			<P>FX address (16-bit uint)</P>
@@ -170,7 +218,7 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Attach Denied</P>
 		</TD>
 		<TD>
-			<P>0x23</P>
+			<P>0x24</P>
 		</TD>
 		<TD>
 		</TD>
@@ -180,7 +228,7 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Train Release</P>
 		</TD>
 		<TD>
-			<P>0x24</P>
+			<P>0x23</P>
 		</TD>
 		<TD>
 		</TD>
@@ -190,7 +238,7 @@ All communications via the Train Control Protocol use the Datagram transport met
 			<P>Controller Dropped</P>
 		</TD>
 		<TD>
-			<P>0x25</P>
+			<P>0x26</P>
 		</TD>
 		<TD>
 		</TD>
@@ -253,13 +301,13 @@ All communications via the Train Control Protocol use the Datagram transport met
 </TABLE>
 
 
-<h4 id="trainmovement" class="western">Train Movement</h4>
+<h3 id="trainmovement" class="western">Train Movement</h3>
 
-Summary: Commands for controlling the movement of trains.
+<p>Summary: Commands for controlling the movement of trains.</p>
 
-Notes on the table columns:
+<p>Notes on the table columns:</p>
 <ul>
-<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller.</li>
+<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller. Notice that the least-significant bit of the CIB flags the directionality, with 0x01 indicating that the command is to a train, and 0x00 indicating that the command is from a train.</li>
 <li>Controlled?: Controlled messages require the permission of a secure train prior to transmission (see below).</li>
 </ul>
 
@@ -281,13 +329,14 @@ Notes on the table columns:
 		<th>Byte 2</th>
 		<th>Byte 3</th>
 		<th>Byte 4</th>
+		<th>Byte 5</th>
 	</tr>
 
 	<tr>
 		<td><p>Emergency Stop</p></td>
 		<td><p>C&rarr;T</p></td>
 		<td><p>yes</p></td>
-		<td><p>PIBTODO</p></td>
+		<td><p>0x30</p></td>
 		<td><p>0x00</p></td>
 	</tr>
 	
@@ -295,7 +344,7 @@ Notes on the table columns:
 		<td><p>Set Train Speed</p></td>
 		<td><p>C&rarr;T</p></td>
 		<td><p>yes</p></td>
-		<td><p>PIBTODO</p></td>
+		<td><p>0x30</p></td>
 		<td><p>0x01</p></td>
 		<td colspan=2><p>direction and speed (float16)</p></td>
 	</tr>
@@ -304,16 +353,18 @@ Notes on the table columns:
 		<td><p>Inquire Train Speed</p></td>
 		<td><p>C&rarr;T</p></td>
 		<td><p>no</p></td>
-		<td><p>PIBTODO</p></td>
-		<td><p>0x02</p></td>
+		<td><p>0x30</p></td>
+		<td><p>0x03</p></td>
+		<td><p>kind of speed (8-bit flags)</p></td>
 	</tr>
 
 	<tr>
 		<td><p>Report Train Speed</p></td>
 		<td><p>T&rarr;C</p></td>
 		<td><p>n/a</p></td>
-		<td><p>PIBTODO</p></td>
-		<td><p>0x03</p></td>
+		<td><p>0x30</p></td>
+		<td><p>0x02</p></td>
+		<td><p>kind of speed (8-bit flags)</p></td>
 		<td colspan=2><p>direction and speed (float16)</p></td>
 	</tr>
 </table>
@@ -334,19 +385,27 @@ Notes on the table columns:
 
 <h4>Inquire Train Speed</h4>
 
-<p>This is a request for a train to report its speed. Any OpenLCB node may make inquiries about a train's state without requesting permission first (see Security Commands below), although the train is under no particular obligation to respond. This command takes no additional arguments.
+<p>This is a request for a train to report its speed. Any OpenLCB node may make inquiries about a train's state without requesting permission first (see Security Commands below), although the train is under no particular obligation to respond. This command takes no additional arguments.</p>
+
+<p>Of course, a request for a train's speed is itself ambiguous. The controller might be interested in knowing any of a number of possible measures: What speed the train has been commanded to take; what speed the train is attempting to reach; what speed the train is actually travelling at. Thus, a speed inquiry requires a parameter to indicate the interests of the controller:</p>
+<table>
+<th><td>Speed Kind</td><td>command argument</td></th>
+<tr><td>Commanded speed</td><td>0x00</td></tr>
+<tr><td>Intended speed</td><td>0x01</td></tr>
+<tr><td>Actual speed</td><td>0x03</td></tr>
+</table>
 
 <h4>Report Train Speed</h4>
 
-<p>This is a response to the Inquire Train Speed command, and has the same arguments as the Set Train Speed command above.</p>
+<p>This is a response to the Inquire Train Speed command, and combines the arguments to the Set Speed and Inquire Speed commands, returning both the kind of speed being reported using the same flags as above, and the speed itself as a float16.</p>
 
 <h3 class="western">Train FX</h3>
 
-Summary: Commands for controlling a train's special effects, including lighting and sound.
+<p>Summary: Commands for controlling a train's special effects, including lighting and sound.</p>
 
-Notes on the table columns:
+<p>Notes on the table columns:</p>
 <ul>
-<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller.</li>
+<li>Direction: Some messages are issued by a controller ('C') for a train ('T'), and some are issued by a train for a controller. Notice that the least-significant bit of the CIB flags the directionality, with 0x01 indicating that the command is to a train, and 0x00 indicating that the command is from a train.</li>
 <li>Controlled?: Controlled messages require the permission of a secure train prior to transmission (see below).</li>
 </ul>
 
@@ -376,7 +435,7 @@ Notes on the table columns:
 		<td><p>Set Train FX</p></td>
 		<td><p>C&rarr;T</p></td>
 		<td><p>yes</p></td>
-		<td><p>PIBTODO</p></td>
+		<td><p>0x30</p></td>
 		<td><p>0x11</p></td>
 		<td colspan=2><p>FX address (uint_16)</p></td>
 		<td colspan=2><p>FX value (uint_16)</p></td>
@@ -386,8 +445,8 @@ Notes on the table columns:
 		<td><p>Inquire Train FX</p></td>
 		<td><p>C&rarr;T</p></td>
 		<td><p>no</p></td>
-		<td><p>PIBTODO</p></td>
-		<td><p>0x12</p></td>
+		<td><p>0x30</p></td>
+		<td><p>0x13</p></td>
 		<td colspan=2><p>FX address (uint_16)</p></td>
 	</tr>
 
@@ -395,8 +454,8 @@ Notes on the table columns:
 		<td><p>Report Train FX</p></td>
 		<td><p>T&rarr;C</p></td>
 		<td><p>n/a</p></td>
-		<td><p>PIBTODO</p></td>
-		<td><p>0x13</p></td>
+		<td><p>0x30</p></td>
+		<td><p>0x12</p></td>
 		<td colspan=2><p>FX address (uint_16)</p></td>
 		<td colspan=2><p>FX value (uint_16)</p></td>
 	</tr>
@@ -430,13 +489,13 @@ And in the future, perhaps even more. Possibly a lot more. There are just under 
 
 <h4>Inquire Train FX</h4>
 
-Any node may inquire the state of a train's FX. The only argument is the address of the FX to query.
+<p>Any node may inquire the state of a train's FX. The only argument is the address of the FX to query.</p>
 
-Notice that, because the semantics for the FX address space may vary from train to train, this command does not provide a useful way to query the state of a particular FX, e.g. the headlights.
+<p>Notice that, because the semantics for the FX address space may vary from train to train, this command does not provide a useful way to query the state of a particular FX, e.g. the headlights.</p>
 
 <h4>Report Train FX</h4>
 
-This command is for trains to report the state of a particular FX in response to an Inquire FX command. The format of the parameters is the same as for the Set Train FX command.
+<p>This command is for trains to report the state of a particular FX in response to an Inquire FX command. The format of the parameters is the same as for the Set Train FX command.</p>
 
 
 <h3 class="western">Consisting</h3>
@@ -447,6 +506,7 @@ Remove From Consist
 Destroy Consist
 Consisting Acknowledged
 Consisting Denied
+
 <h3 class="western">Train Access Control</h3>
 <p>Optional. Trains may restrict communications from controllers using the following packet kinds.</p>
 TODO
