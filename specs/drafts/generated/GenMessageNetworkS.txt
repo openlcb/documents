@@ -1,0 +1,311 @@
+                                         1 Introduction (Informative)
+
+   OpenLCB is based on a global exchange of individual messages. This specification defines the basic
+   messages and how they interact. Higher level protocols are based on this message network, but are
+   defined elsewhere.
+
+                                         2 Intended Use (Informative)
+
+   General discussion, not specific to any particular implementation.  Implementations such as CAN, TCP/IP,
+   etc, will have their own standards to specifics.
+
+                                     3 References and Context (Normative)
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+                                                   4 States
+
+   The message network layer in an OpenLCB node has two states:
+
+     * Uninitialized
+
+     * Initialized
+
+   Nodes shall start in the Uninitialized state.
+
+   A node in the Uninitialized state may transmit an Initialization Complete message.  A node in the
+   Uninitialized state shall not transmit any other message type.
+
+   A node in the Initialized state may transmit any message type.
+
+                                         5 Message Format (Normative)
+
+   OpenLCB messages are sent using the transfer mechanism and format described in the specification for a
+   specific wire protocol.
+
+   All messages shall contain a source Node ID and a message type indicator (MTI).  
+
+   Each message type is defined to include or not include an Event ID (EID). If the type is defined to
+   include an EID, the EID must be present all messages of that type.
+
+   Each message type is defined to include or not include a destination Node ID (DID).  If the type is
+   defined to include a DID, the DID must be present all messages of that type. Message types without a DID
+   are referred to as “global” or “non-addressed” messages.  Message types with a DID are referred to as
+   “addressed” messages.
+
+5.1 Global (non-addressed) messages
+
+   Global messages shall be delivered to all nodes.1
+
+5.2 Addressed messages
+
+   Addressed messages shall be delivered to the node in their destination node ID.  They may, but need not,
+   be delivered to other nodes.
+
+                                            6 Messages (Normative)
+
+   This section defines the format of common core messages.
+
+  6.1.1 Initialization Complete
+
+   Indicates that the sending node initialization is complete, and once the message is delivered, reachable
+   on the network.
+
+    
+
+   Name                    In Simple Node Protocol Dest ID Event ID Flag Byte Common MTI  Content         
+   Initialization Complete N                       N       N                  0x0000,0000 Sending Node ID 
+
+    
+
+    
+
+  6.1.2 Verify Node ID
+
+    
+
+   Name In Simple Node Protocol Dest ID Event ID Flag Byte Common MTI  Content 
+                                                           0x0000,0000         
+
+    
+
+    
+
+   Message Type Indicator: 0x
+
+   Destination address present: Both yes and no
+
+   Simple subset: Yes
+
+    
+
+  6.1.3 Verified Node ID
+
+    
+
+    
+
+   Name In Simple Node Protocol Dest ID Event ID Flag Byte Common MTI  Content 
+                                                           0x0000,0000         
+
+    
+
+    
+
+   Message Type Indicator: 0x
+
+   Destination address present: No (space reasons originally, but these no longer apply?)
+
+   Simple subset:
+
+   Priority group:
+
+   Content: NID of the sending node – this is sent in full 48 bit format in all wire protocols, even if an
+   alternate form or alias is available elsewhere in the message
+
+   CAN frame format:
+
+  6.1.4 Optional Interaction Rejected
+
+    
+
+   Name In Simple Node Protocol Dest ID Event ID Flag Byte Common MTI  Content 
+                                                           0x0000,0000         
+
+    
+
+    
+
+   Message Type Indicator: 0x
+
+   Destination address present: Yes
+
+   Simple subset:
+
+   Priority group:
+
+   Content:
+
+     * Mandatory most recent MTI (2 bytes)
+
+     * Mandatory error code (TBD)
+
+     * Optional data content (TBD)
+
+   CAN frame format:
+
+  6.1.5 Terminate Due to Error
+
+    
+
+   Name In Simple Node Protocol Dest ID Event ID Flag Byte Common MTI  Content 
+                                                           0x0000,0000         
+
+    
+
+    
+
+   Message Type Indicator: 0x
+
+   Destination address present: Yes
+
+   Simple subset:
+
+   Priority group:
+
+   Content:
+
+     * Mandatory most recent MTI  (2 bytes)
+
+     * Mandatory error code (TBD)
+
+     * Optional data content (TBD)
+
+   CAN frame format:
+
+                                          7 Interactions (Normative)
+
+   All nodes shall take part in all standard interactions defined in this section.
+
+7.1 Node Initialization
+
+   Newly functional nodes, once their start-up is complete and they are fully operational, including having
+   the frame transfer layer in “Permitted state”, shall send an "Initialization Complete" message and enter
+   Initialized state.
+
+     * There is no guarantee that any other node is listening for this. No reply is possible.
+
+     * Nodes must not emit any other OpenLCB message before the “Initialization Complete” message.
+
+   Sending the IC message is required to insure that higher-level tools are notified that they may start to
+   work with the node.
+
+    
+
+7.2 Duplicate Node ID Detection
+
+   OpenLCB nodes must have unique node IDs. To detect this across the entire connected OpenLCB, all OpenLCB
+   nodes must indicate an error if they detect an incoming message with a Source Node ID equal to their
+   own. If possible, they should indicate it at the board itself using a light or similar. If possible,
+   they should emit a PCER message with the “Duplicate Source ID detected” global event, which will carry
+   the duplicate event ID in the Source Node ID field.
+
+   After sending the “Duplicate Source ID detected” global event, the node should not transmit any further
+   messages until reset because this message will be received at the other duplicate-ID node(s), resulting
+   in additional “Duplicate Source ID detected” global events and causing a possible message loop.
+
+   To further improve the reliability of this detection, OpenLCB nodes should, but need not, emit a
+   Verified Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that
+   CAN-attached nodes use their NIDa to pick that interval so that messages don't bunch up.
+
+7.3 Node ID Discovery
+
+   Upon receipt of a Verify Node ID Number message addressed to it, or an unaddressed Verify Node ID Number
+   message, a node must reply with an unaddressed Verified Node ID Number message.
+
+7.4 Error Handling
+
+   There are multiple mandatory error-handling scenarios defined.
+
+   (Need to explain “optional” here)
+
+  7.4.1 Reject Addressed Optional Interaction
+
+     * Node A receives an addressed message from Node B that carries Node A's NID.
+
+     * The MTI indicates the start of an optional interaction.
+
+     * If Node A does not want to take part in the optional interaction, it may send an Optional
+       Interaction Rejected message addressed to Node B with the original MTI in the message content. There
+       is no requirement that OIR be sent; the node may silently ignore the incoming message.
+
+   The message content also contains an optional reason code and an optional data value. The use of these
+   fields is to be defined.
+
+  7.4.2 Reject Unaddressed Optional Interaction
+
+     * Node A receives an unaddressed message from Node B.
+
+     * The MTI indicates the start of an optional interaction.
+
+   If Node A does not want to take part in the optional interaction, it silently drops the message without
+   reply.
+
+  7.4.3 Reject Addressed Standard Interaction Due to Error
+
+     * Node A is taking part in an addressed interaction with Node B. Either node may be able to send the
+       next message.
+
+     * Some error condition prevents Node A from continuing the interaction.
+
+     * To terminate the interaction, Node A sends a Terminate Due to Error message to Node B. It then
+       resets it's state so as to no longer be taking part in the addressed interaction.
+
+   The message content contains the most recent MTI received in this interaction, a mandatory reason code
+   and an optional data value. The use of these fields is to be defined.
+
+    
+
+    
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 Intended Use (Informative)
+
+   3 References and Context (Normative)
+
+   4 States
+
+   5 Message Format (Normative)
+
+   5.1 Global (non-addressed) messages
+
+   5.2 Addressed messages
+
+   6 Messages (Normative)
+
+   6.1.1 Initialization Complete
+
+   6.1.2 Verify Node ID
+
+   6.1.3 Verified Node ID
+
+   6.1.4 Optional Interaction Rejected
+
+   6.1.5 Terminate Due to Error
+
+   7 Interactions (Normative)
+
+   7.1 Node Initialization
+
+   7.2 Duplicate Node ID Detection
+
+   7.3 Node ID Discovery
+
+   7.4 Error Handling
+
+   7.4.1 Reject Addressed Optional Interaction
+
+   7.4.2 Reject Unaddressed Optional Interaction
+
+   7.4.3 Reject Addressed Standard Interaction Due to Error
+
+    
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 The “simple node protocol” is an exception to this, which needs to be worked into this Standard.
