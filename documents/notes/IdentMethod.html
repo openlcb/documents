@@ -3,16 +3,29 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Note: Ident Method(s)</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100718;21040500">
+	<META NAME="CHANGED" CONTENT="20120130;11501000">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.cjk { font-family: "SimSun" }
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.cjk { font-family: "SimSun" }
+		H3.ctl { font-family: "Lucida Sans" }
+		H4.cjk { font-family: "SimSun" }
+		H4.ctl { font-family: "Lucida Sans" }
+		H5.cjk { font-family: "SimSun" }
+		H5.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Ident Method(s)</H1>
@@ -22,7 +35,7 @@ similar to the way that a pilot presses the “ident” button on a
 plane's transponder to light up the proper echo on a traffic
 controller's screen.</P>
 <P>This note is a working draft proposal.</P>
-<H2>Use Cases</H2>
+<H2 CLASS="western">Use Cases</H2>
 <P>A user wants to use a configuration tool to configure a new input
 on node A, located under the far end of the layout. He presses button
 on the node, and the tool learns which node (specifically, the Node
@@ -31,58 +44,57 @@ it's found the right one.</P>
 <P>A user walks from module to module on a modular layout, pressing
 buttons. A configuration tool sees the sequence of button presses and
 checks it against the expected module-to-module connections.</P>
-<H2>Protocol</H2>
-<P>We standardize on emitting the global event 0x 01 00 00 00 FE 00
-to indicate an “ident”.</P>
+<H2 CLASS="western">Protocol</H2>
+<P>We standardize on emitting the global event 0x 01 01 00 00 00 00
+FE 00 to indicate an “ident”.</P>
 <P>For nodes with blue and gold buttons, we recommend that pushing
 both of them (briefly!) at the same time send an ident. On release,
 the node should not be left in specific blue/gold programming state.</P>
 <P STYLE="margin-bottom: 0cm">We recommend that configuration tools
-reply to an ident global event with a 
-<A HREF="../MemoryConfigurationProtocol.html#indicate">configuration
+reply to an ident global event with a <A HREF="../MemoryConfigurationProtocol.html#indicate">configuration
 protocol</A> “indicate” method. This will tell the user that the
 tool has seen the user identification of the node.</P>
-<H2>Discussion</H2>
-<H3>Methods</H3>
+<H2 CLASS="western">Discussion</H2>
+<H3 CLASS="western">Methods</H3>
 <P>There are (at least) four ways of doing this, each with advantages
 and disadvantages. In this section, we discuss those briefly to
 explain why we picked the protocol described above.</P>
-<H4>Dedicated Node-Specific Event</H4>
+<H4 CLASS="western">Dedicated Node-Specific Event</H4>
 <P>One way to provide an “ident” capability would be to define a
 node-specific EventID that nodes produce to identify themselves. For
 example, reserving 0xFF,FF in the lower bytes, with the NodeID in the
 upper bytes, would give a unique indication that an ident button was
 pressed.</P>
-<H5>Advantages</H5>
+<H5 CLASS="western">Advantages</H5>
 <P>The identification messages need to propagate across the entire
 LCB. P/C Events are the OpenLCB general mechanism for doing this. 
 </P>
-<H5>Disadvantages</H5>
+<H5 CLASS="western">Disadvantages</H5>
 <P>Makes the event address space a lot less orthogonal.</P>
 <P>Don't want every node to emit “produces” and “consumes”
 messages for general event IDs, so would have to build that into
 routing as a special case (this is an issue just beyond this use of
 generic EventID signaling). That's a lot of special case entries.</P>
-<H4>Dedicated Global Event</H4>
+<H4 CLASS="western">Dedicated Global Event</H4>
 <P STYLE="margin-bottom: 0cm">We could define a global eventID that
 indicates “ident”; the source ID in the message then provides the
 information needed to track down the source.</P>
-<H5>Advantages</H5>
+<H5 CLASS="western">Advantages</H5>
 <P STYLE="margin-bottom: 0cm">Small footprint, stays orthogonal.</P>
-<H5>Disadvantages</H5>
+<H5 CLASS="western">Disadvantages</H5>
 <P>Requires the global eventID space be implemented, specifically in
 routers and gateways. That's a single range, though, so it's only one
 entry in any routing tables.</P>
 <P>Requires central allocation of the specific EventID, but this only
 needs to be done once.</P>
-<H4>Configuration Message</H4>
+<H4 CLASS="western">Configuration Message</H4>
 <P>A specific form of configuration message within the <A HREF="ConfigurationProtocol.html">configuration
 protocol</A> can be reserved for this.</P>
 <P>The configuration protocol already has a “confirm” mechanism
 to signal the proper board by e.g. lighting a light. Being able to
 send a message back via button push, so that the configuration tool
 can get positive confirmation of the right board, would be useful.</P>
-<H5>Advantages</H5>
+<H5 CLASS="western">Advantages</H5>
 <P>The configuration protocol already has a “confirm” mechanism
 to signal the proper board by e.g. lighting a light. Being able to
 send a message back via button push, so that the configuration tool
@@ -92,23 +104,23 @@ multiple idents at the some time, e.g. during modular layout setup,
 by using the original configuration message to specify a particular
 return message. But it's not at all clear how to do overlapping
 idents in the same node.</P>
-<H5>Disadvantages</H5>
+<H5 CLASS="western">Disadvantages</H5>
 <P>Since the configuration protocol is point-to-point, the node with
 the button press needs to find out where to send the message. It's
 not at all clear how to solve this. It's not practical to first
 communicate with all nodes so they know you want to hear when their
 button is pressed.</P>
-<H4>Dedicated Message Type</H4>
+<H4 CLASS="western">Dedicated Message Type</H4>
 <P>A specific OpenLCB message type could be defined for this, with a
 specific MTI. This could then be specified to propagate as needed.</P>
-<H5>Advantages</H5>
+<H5 CLASS="western">Advantages</H5>
 <P>Can specify it exactly, without compromise.</P>
-<H5>Disadvantages</H5>
+<H5 CLASS="western">Disadvantages</H5>
 <P>MTIs are eventually a scarce resource.</P>
 <P>Another special case in code. This is not an incredibly large
 issue, as simple nodes need only emit a fixed message, and routing
 nodes just pass it through.</P>
-<H3>Use of Buttons</H3>
+<H3 CLASS="western">Use of Buttons</H3>
 <P>The Blue/Gold configuration method is already using a single press
 of each button for normal operation. Multiple presses of the blue
 button are used to index to a particular producer or consumer. A
