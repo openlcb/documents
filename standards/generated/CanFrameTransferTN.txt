@@ -5,7 +5,7 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  Jan 17, 2012                       Preliminary            
+                                                  Feb 1, 2012                        Preliminary            
 
                                                 1 Introduction
 
@@ -322,22 +322,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
-   associated with the same NID, and mapping tables should be reset.
-
-   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
-
-   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to reuse the local alias due to resource limitations in the mapping
-   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
-   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
-   it.
+   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
+   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
+   segment, but all gateways on the segment must act on it.
 
    Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID. Regular nodes won't need to do this. They stay active until they go
-   instantly offline due to e.g. power-off.
+   alias is allocated to a new node ID. the reuseto the segment.
+
+   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
+   mapping, e.g. because they need to
+
+   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
+   frame indicates that the alias value in the source address field may no longer be associated with the
+   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
+   until they go instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -693,13 +693,13 @@
    This coding has been generated such that simple nodes can use three hardware filters to select only
    frames that are of interest to them.
 
-    Purpose                                            Mask                     Required Value              
+    Purpose                                         Mask                        Required Value              
 
-    CAN-specific control frames                        0x0800,0000              0x0000,0000                 
+    CAN-specific control frames                     0x0800,0000                 0x0000,0000                 
 
-    OpenLCB format addressed to this node              0x0C00,0FFF              0x0C00,0nnn                 
+    OpenLCB format addressed to this node           0x0C00,0FFFFF,F000          0x0Cnn,n00000,0nnn          
 
-    OpenLCB global messages                            0x0C00,0000              0x0800,0000                 
+    OpenLCB global messages                         0x0C00,0000                 0x0800,0000                 
 
                                            8 Additional References
 
@@ -828,4 +828,4 @@
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
    Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. ShepherdCopyright 2011. All rights reserved.
-   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 1/17/2012
+   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 2/1/2012
