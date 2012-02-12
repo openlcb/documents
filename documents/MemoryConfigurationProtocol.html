@@ -3,10 +3,11 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB: Memory Access Configuration Protocol</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20110617;11045500">
+	<META NAME="CHANGED" CONTENT="20120212;184400">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -20,8 +21,11 @@
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
+		H2.cjk { font-family: "SimSun" }
 		H2.ctl { font-family: "Lucida Sans" }
+		H3.cjk { font-family: "SimSun" }
 		H3.ctl { font-family: "Lucida Sans" }
+		H4.cjk { font-family: "SimSun" }
 		H4.ctl { font-family: "Lucida Sans" }
 	-->
 	</STYLE>
@@ -134,11 +138,11 @@ these numbers (in addition to any others the designer might provide):</P>
 <UL>
 	<LI><P>(0xFF, flag=11) Configuration definition – reading this is
 	how you get the configuration definition</P>
-	<LI><P>(0xFE, flag=01) All memory – provides access to “all”
+	<LI><P>(0xFD, flag=01) All memory – provides access to “all”
 	memory in the device, where “all” is defined by the designer.
 	Single, flat address space for access. Can be used for e.g. dynamic
 	access to RAM for monitoring &amp; debugging.</P>
-	<LI><P>(0xFD, flag=10) Configuration - basic configuration space,
+	<LI><P>(0xFE, flag=10) Configuration - basic configuration space,
 	with the structure of the 32-bit space defined by the designer.</P>
 </UL>
 <P>These three spaces, inclusive, can be addressed without an extra
@@ -903,13 +907,18 @@ node so that it only uses available modes.</P>
 <UL>
 	<LI><P>Available operations mask (2 bytes, bit coded): Indicate
 	which operations are available.</P>
-	<LI><P>Write lengths supported (5 bits, bit coded): 1,2,4,64 bytes;
-	stream.</P>
-	<LI><P>Write under mask supported</P>
-	<LI><P>Address spaces (byte): Highest number space available. Not
-	all up to that need be available, but sparse allocation will slow
-	down the process as “Get Address Space Information” is needed to
-	determine whether they are present.</P>
+	<UL>
+        <LI><P>Write lengths supported (5 bits, bit coded): 1,2,4,64 bytes;
+        stream.</P>
+        <LI><P>Write under mask supported</P>
+    </UL>
+	<LI><P>Highest Address Space (byte): Highest number space available.
+	Not all up to that need be available, but sparse allocation will
+	slow down the process as “Get Address Space Information” is
+	needed to determine whether they are present.</P>
+	<LI><P>Lowest Address spaces (byte): Lowest number space available.
+	Note that spaces 0xFC, 0xFD and 0xFF are assumed to be included even
+	if the low space ↔ high space range doesn't include them.</P>
 </UL>
 <H4 CLASS="western">Get Address Space Information Reply</H4>
 <P>To ease automated access, a configuring node can enquire about the
