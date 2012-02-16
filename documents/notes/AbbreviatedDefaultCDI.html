@@ -3,11 +3,20 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB: Configuration Description Information</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20110531;364600">
+	<META NAME="CHANGED" CONTENT="20120216;10070800">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.cjk { font-family: "SimSun" }
+		H2.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>OpenLCB: Abbreviated Default Configuration Description
@@ -107,24 +116,27 @@ both?)</P>
 <P STYLE="margin-bottom: 0cm">It would be nice to keep this somewhat
 compact, with the most useful (in the sense of &quot;people will want
 to see this quickly&quot;) info at the front. Reading a full datagram
-(64 bytes payload) would let us sample about 50 nodes in a second
-(idle bus), which is fine. Another factor of 4 larger might start to
-seem slow to the user, though. The whole idea is to be able to get a
-view of even large networks faster than a user can browse through the
-info on an screen. The user can then select a small number of
-specific nodes that are interesting, pull the full CDI and work with
-the entire configuration information of those nodes.</P>
+(64 bytes payload originally, but now less based on extended CAN)
+would let us sample about 50 nodes in a second (idle bus), which is
+fine. Another factor of 4 larger might start to seem slow to the
+user, though. The whole idea is to be able to get a view of even
+large networks faster than a user can browse through the info on an
+screen. The user can then select a small number of specific nodes
+that are interesting, pull the full CDI and work with the entire
+configuration information of those nodes.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Proposed content:</P>
-<P STYLE="margin-bottom: 0cm">Read from space N</P>
+<P STYLE="margin-bottom: 0cm">Read from space N (suggest 0xFD, right
+below CDI etc)</P>
 <P STYLE="margin-bottom: 0cm">Byte 0: ADCDI version, default 0</P>
 <P STYLE="margin-bottom: 0cm">Next: Manufacturer name as string</P>
 <P STYLE="margin-bottom: 0cm">Next: Manufacturer-issued node type
 name as string</P>
-<P STYLE="margin-bottom: 0cm">Next:  Manufacturer-defined node
+<P STYLE="margin-bottom: 0cm">Next: Manufacturer-defined node
 version, as string</P>
-<P STYLE="margin-bottom: 0cm">Read from space M</P>
+<P STYLE="margin-bottom: 0cm">Read from space M (suggest 0xFC, right
+below CDI etc)</P>
 <P STYLE="margin-bottom: 0cm">Byte 0: ADCDI version, default 0</P>
 <P STYLE="margin-bottom: 0cm">Next: User provided node name as string</P>
 <P STYLE="margin-bottom: 0cm">Next: User provided free-form comment
@@ -133,13 +145,51 @@ as string</P>
 </P>
 <P STYLE="margin-bottom: 0cm">(Comment provides a longer field, not
 computer parsed; node name is a short thing for e.g. headings, etc)</P>
+<P STYLE="margin-bottom: 0cm">(String means zero terminated)</P>
 <P STYLE="margin-bottom: 0cm">Two spaces provided for simplicity in
 implementation, as we imagine that some will be from a permanent
 memory and some will be user configurable.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
+<P STYLE="margin-bottom: 0cm">Strings just concatenate with null
+termination. Could get in e.g. 30 character manufacturer, 16
+character node type, 8 character version. (This is just fixed data in
+memory)</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Protocol ID protocol specifies whether
+this is present, so no more confirmation information is needed.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <P STYLE="margin-bottom: 0cm">Later versions with higher ADCDI
 version numbers, can contain more fields.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H2 CLASS="western">Simple Node Identification Information</H2>
+<P STYLE="margin-bottom: 0cm">(Should this be moved to another doc?)</P>
+<P STYLE="margin-bottom: 0cm">There is a need for something for tiny
+nodes, that uses a single message instead of datagrams and
+configuration. This allows getting getting the information with a
+bare minimum of support at the requested node end, so long as the
+requesting node can be sure to handle it.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Upon receipt of an addressed messages
+with a SNII Request MTI, the node returns a single message with a
+SNII Reply MTI carrying the information of the two types listed
+above, concatenated.  (Identify the end by the null-based string
+end?)</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">On CAN, this is done via the usual
+mechanism of concatenated frames, with a short or empty one
+indicating end.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <HR>
