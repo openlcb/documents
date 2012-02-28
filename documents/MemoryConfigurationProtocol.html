@@ -6,7 +6,10 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20120216;10143200">
+	<META NAME="CHANGED" CONTENT="20120228;10491100">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -902,7 +905,7 @@ identification. Items in {} are optional.</P>
 <P>Attempts to read from an invalid location, either outside the
 available address range in an valid address space, or from an invalid
 address space, still require a return message, requires a reply
-datagram with an data length of zero.  
+datagram with an data length of zero. 
 </P>
 <P>In general, a read reply may provide less than the requested data,
 but always at least one byte if it's a valid read.</P>
@@ -915,32 +918,58 @@ configuring device can use to control how it communicates with the
 node so that it only uses available modes.</P>
 <UL>
 	<LI><P>Available operations mask (2 bytes, bit coded): Indicate
-	which operations are available.</P>
+	which operations are available so the using software can know
+	whether convenience operations (which are not possible on some
+	hardware) are available.</P>
 	<UL>
-		<LI><P>Write lengths supported (5 bits, bit coded): (provided for
-		devices that can only write certain sizes to memory)</P>
-		<UL>
-			<LI><P>0x8000 1 byte write</P>
-			<LI><P>0x4000 2 byte write</P>
-			<LI><P>0x2000 4 byte writes</P>
-			<LI><P>0x1000 64 bytes writes (full datagram, but not 63 bytes,
-			just 64)</P>
-			<LI><P>0x0080 stream writes supported (stream support will
-			identify buffer size)</P>
-		</UL>
-		<LI><P>0x0040 Write under mask supported</P>
-		<LI><P>0x0020 through 0x0001 reserved, must be ignored on receipt
-		and sent as zero.</P>
+		<LI><P>0x8000 Write under mask supported</P>
+		<LI><P>0x4000 Unaligned reads supported. If not set, reads have to
+		start on an address with the low bits, as given by the data size,
+		all zero. For example a 4-byte write must have the low two address
+		bits zero.</P>
+		<LI><P>0x2000 Unaligned writes supported. If not set, reads have to
+		start on an address with the low bits, as given by the data size,
+		all zero. For example a 4-byte write must have the low two address
+		bits zero.</P>
+		<LI><P>0x0800 Read from address space 0xFD available (this is the
+		manufacturer part of Abbreviated CDI)</P>
+		<LI><P>0x0400 Read from address space 0xFC available (this is the
+		user-entered part of Abbreviated CDI)</P>
+		<LI><P>0x0200 Write to address space 0xFC available (this is the
+		user-entered part of Abbreviated CDI)</P>
+		<LI><P>Others reserved, must be ignored on receipt and sent as
+		zero.</P>
 	</UL>
+	<LI><P>Write lengths supported (One byte, bit coded): (provided for
+	devices that can only write certain sizes to memory) (at least one
+	bit must be set)</P>
+	<UL>
+		<LI><P>0x80 1 byte write</P>
+		<LI><P>0x40 2 byte write</P>
+		<LI><P>0x20 4 byte writes</P>
+		<LI><P>0x10 64 bytes writes (full datagram, but not 63 bytes, just
+		64)</P>
+		<LI><P>0x02 arbitrary writes of any length OK</P>
+		<LI><P>0x01 stream writes supported (stream support will identify
+		buffer size)</P>
+		<LI><P>Others reserved, must be ignored on receipt and sent as
+		zero.</P>
+	</UL>
+</UL>
+<UL>
 	<LI><P>Highest Address Space (byte): Highest number space available.
 	Not all up to that need be available, but sparse allocation will
 	slow down the process as “Get Address Space Information” is
 	needed to determine whether they are present.</P>
+</UL>
+<UL>
 	<LI><P>Lowest Address spaces (byte): Lowest number space available.
 	Note that spaces 0xFD, 0xFE and 0xFF are assumed to be included even
-	if the low space ↔ high space range doesn't include them.   (also
+	if the low space ↔ high space range doesn't include them. (also
 	0xFC, 0xFB of Abbreviated Default CDI? All 0xFX?)</P>
 </UL>
+<P><BR><BR>
+</P>
 <H4 CLASS="western">Get Address Space Information Reply</H4>
 <P>To ease automated access, a configuring node can enquire about the
 address spaces in the being-configured node. Whether or not the
