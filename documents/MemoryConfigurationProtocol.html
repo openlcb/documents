@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20120228;10491100">
+	<META NAME="CHANGED" CONTENT="20120304;7001300">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -142,12 +144,12 @@ these numbers (in addition to any others the designer might provide):</P>
 <UL>
 	<LI><P>(0xFF, flag=11) Configuration definition – reading this is
 	how you get the configuration definition</P>
+	<LI><P>(0xFE, flag=10) Configuration - basic configuration space,
+	with the structure of the 32-bit space defined by the designer.</P>
 	<LI><P>(0xFD, flag=01) All memory – provides access to “all”
 	memory in the device, where “all” is defined by the designer.
 	Single, flat address space for access. Can be used for e.g. dynamic
 	access to RAM for monitoring &amp; debugging.</P>
-	<LI><P>(0xFE, flag=10) Configuration - basic configuration space,
-	with the structure of the 32-bit space defined by the designer.</P>
 </UL>
 <P>These three spaces, inclusive, can be addressed without an extra
 byte in the datagram using control bits in the flag byte. All others
@@ -931,11 +933,11 @@ node so that it only uses available modes.</P>
 		start on an address with the low bits, as given by the data size,
 		all zero. For example a 4-byte write must have the low two address
 		bits zero.</P>
-		<LI><P>0x0800 Read from address space 0xFD available (this is the
+		<LI><P>0x0800 Read from address space 0xFC available (this is the
 		manufacturer part of Abbreviated CDI)</P>
-		<LI><P>0x0400 Read from address space 0xFC available (this is the
+		<LI><P>0x0400 Read from address space 0xFB available (this is the
 		user-entered part of Abbreviated CDI)</P>
-		<LI><P>0x0200 Write to address space 0xFC available (this is the
+		<LI><P>0x0200 Write to address space 0xFB available (this is the
 		user-entered part of Abbreviated CDI)</P>
 		<LI><P>Others reserved, must be ignored on receipt and sent as
 		zero.</P>
@@ -947,8 +949,8 @@ node so that it only uses available modes.</P>
 		<LI><P>0x80 1 byte write</P>
 		<LI><P>0x40 2 byte write</P>
 		<LI><P>0x20 4 byte writes</P>
-		<LI><P>0x10 64 bytes writes (full datagram, but not 63 bytes, just
-		64)</P>
+		<LI><P>0x10 64 byte writes (full datagram, but not 63 bytes or
+		arbitrary length, just exactly 64)</P>
 		<LI><P>0x02 arbitrary writes of any length OK</P>
 		<LI><P>0x01 stream writes supported (stream support will identify
 		buffer size)</P>
@@ -966,27 +968,35 @@ node so that it only uses available modes.</P>
 	<LI><P>Lowest Address spaces (byte): Lowest number space available.
 	Note that spaces 0xFD, 0xFE and 0xFF are assumed to be included even
 	if the low space ↔ high space range doesn't include them. (also
-	0xFC, 0xFB of Abbreviated Default CDI? All 0xFX?)</P>
+	0xFC, 0xFB of Abbreviated Default CDI if bits indicate they're
+	available)</P>
 </UL>
-<P><BR><BR>
-</P>
+<P>A node that only has the high spaces could have Highest Address
+Space = 255, Lowest Address Space = 253 or 251.</P>
+<P>A node that has additional low address spaces, e.g. to make more
+memory available with a 28-bit address, could have Highest Address
+Space = 127, Lowest Address Space = 0 and leave the top spaces
+assumed.</P>
 <H4 CLASS="western">Get Address Space Information Reply</H4>
 <P>To ease automated access, a configuring node can enquire about the
 address spaces in the being-configured node. Whether or not the
 address space is present, a reply is required.</P>
 <UL>
-	<LI><P>Flags (byte)</P>
+	<LI><P>Present:  This is carried in the lowest bit of the command
+	byte, just below the reply bit</P>
 	<UL>
-		<LI><P>0x80 == 1: Present. == 0 not present.</P>
+		<LI><P>0x01 == 1: Present. == 0 not present.</P>
 	</UL>
 	<LI><P>Space ID – provided to identify request this is in response
 	to</P>
 	<LI><P>Highest Address (4 bytes)</P>
-	<LI><P>Flags 2 (byte) – Write alignment required at 2<SUP>N</SUP>
-	bytes, with N=0 to 16; Read-Only</P>
+	<LI><P>Flags (byte) – (Alignment and size were going to be here
+	but were made global above); Read-Only is LSB, can write if 0, can
+	only read if 1</P>
 	<LI><P>Lowest Address (4 bytes) – optional, omit if zero, as that
 	will let reply fit in single CAN frame.</P>
-	<LI><P>Description (variable length) - optional</P>
+	<LI><P>Description (variable length) – optional null-terminated
+	string giving the user-readable name of this space</P>
 </UL>
 <H4 CLASS="western">Lock/Reserve and Freeze/Unfreeze</H4>
 <P>An OpenLCB node can, in general, be configured while the network
