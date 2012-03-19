@@ -86,12 +86,17 @@
        Interaction Rejected message addressed to Node B with the original MTI in the message content. There
        is no requirement that OIR be sent; the node may silently ignore the incoming message.
 
-   (The message content also contains an optional reason code and an optional data value. (Define use)
+   (The message content also contains an optional reason code and an optional data value. (Define use))
 
-   This is written that sending the OIR in return is optional.  This greatly increases the complexity of
+   (This is written that sending the OIR in return is optional.  This greatly increases the complexity of
    error handling on the originating node, though, as it can't assume that lost messages are a transient
    error. It would be better to have this be a mandatory response to simplify that.  Does it add much
    complexity cost to the nodes?)
+
+   (The phrasing is also in terms of an "optional interaction", which doesn't cover the case of "undefined
+   interaction", e.g. an MTI that's not allocated. Since any given node doesn't actually know whether an
+   MTI has been allocated or not (it might have been built a while ago, with new optional protocols added
+   since then), this should be rephrased. I'll add a to-do item for that too.)
 
     2.7.4.2 Reject Unaddressed Optional Interaction
 
@@ -227,11 +232,11 @@
    error-responses (error reply to datagram; Option Interaction Rejected) instead of silently failing for
    directed messages. Timeout logic is only necessary to handle transport failures and failures of nodes to
    execute the protocols, including e.g. when they power off in the middle of something. The Standard
-   should say that “Nodes shall allow at least nnn msec for a reply to be received to their
-   communications”.  Then this TN can talk about timeouts, how you have to assume that you'll have to wait
-   for a reply when arranging state machines and buffering, and the generic issues around recovering from
-   an expected reply not being received.  Any specific issues with timeout recovery can be discussed in the
-   messge-specific parts of the TN.
+   should say that “Nodes shall allow at least nnn msec for a reply to be received to their communications”
+   and “Nodes shall reply to messages within mmm msec”.  Then this TN can talk about timeouts, how you have
+   to assume that you'll have to wait for a reply when arranging state machines and buffering, and the
+   generic issues around recovering from an expected reply not being received.  Any specific issues with
+   timeout recovery can be discussed in the messge-specific parts of the TN.
 
     
 
