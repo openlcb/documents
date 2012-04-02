@@ -5,7 +5,7 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  Feb 1, 2012                        Preliminary            
+                                                  Apr 2, 2012                        Preliminary            
 
                                                 1 Introduction
 
@@ -322,22 +322,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
-   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
-   segment, but all gateways on the segment must act on it.
+   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
+   associated with the same NID, and mapping tables should be reset.
+
+   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
+
+   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
+   mapping, e.g. because they need to reuse the local alias due to resource limitations in the mapping
+   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
+   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
+   it.
 
    Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID. the reuseto the segment.
-
-   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to
-
-   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
-   frame indicates that the alias value in the source address field may no longer be associated with the
-   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
-   until they go instantly offline due to e.g. power-off.
+   alias is allocated to a new node ID. Regular nodes won't need to do this. They stay active until they go
+   instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -453,7 +453,7 @@
 
    Although useful criteria, they were omitted as too hard to comprehensively test.
 
-   What's really necessary, but hard to describe in standard language, is that two seperate nodes have
+   What's really necessary, but hard to describe in standard language, is that two separate nodes have
    different sequences of generated numbers. If node A will try 3,4,5,6, then it's important that node B
    try some other sequence. If B also has generates values in the sequence 3,4,5,6, the two nodes can get
    locked to each other trying the same value, both rejecting it, and then trying the same new value.
@@ -461,6 +461,11 @@
    Formally, if A_i is defined as a particular value in node A's sequence, B_i is defined as a particular
    value in B's sequence, then “if A_i = B_i, then A_i+1 != B_i+1 most of the time” is the important
    condition.
+
+   It's not required that two sequential aliases be different. It's possible that the sequence generator
+   will come up with the same value occasionally, and the RID/CID mechanism is constructed to handle that.
+   The sequence on the CAN bus will be clearer, and in some cases the allocation process will be faster, if
+   nodes identify duplicate aliases in sequence, and just go on to the next one.
 
 2.7 OpenLCB Message Frame Format
 
@@ -828,4 +833,4 @@
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
    Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. ShepherdCopyright 2011. All rights reserved.
-   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 2/1/2012
+   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 4/2/2012
