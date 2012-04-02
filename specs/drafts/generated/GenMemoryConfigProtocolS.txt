@@ -1,0 +1,386 @@
+                                         1 Introduction (Informative)
+
+   Minimal introductory material, only the stuff that's absolutely needed to understand the Standard.
+
+                                         2 Intended Use (Informative)
+
+   Any limitations to the area of use of the Standard.
+
+                                     3 References and Context (Normative)
+
+   Citations to other docs, as needed.
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+     * requires datagram, etc.
+
+                                               4 Section Title
+
+    
+
+                                               5 Section Title
+
+5.1 Subsection Title
+
+  5.1.1 Sub-subsection Title
+
+   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
+   odio.
+
+     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
+       sed massa.
+
+                                     6 Stuff to be merged into the above
+
+   This document defines a protocol for configuring OpenLCB nodes by directly accessing their configuration
+   memory.
+
+   See also the separate note on a Configuration Description Information.
+
+   Must also implement Protocol Identification Protocol, identifying support for this protocol and for
+   datagrams, and perhaps for streams.
+
+   That's required to simplify discovery of a datagram-based protocol.
+
+6.1 Protocol
+
+   Configuration messages use a specific datagram format consisting of a single byte combining the
+   operation “Command Type” field and flags. This is followed by data in an operation-specific format. When
+   present, the four-byte memory address follows first, then the address space byte if present, then other
+   data.
+
+  6.1.1 Address Space Size
+
+   Configuration addresses are 32 bits. The addressable quantity is the byte. This allows directly
+   addressing 4GB of data. The use of address spaces (see below) allows direct access to 1TBi.
+
+   The large address range removes the need for address registers and other non-idempotent accesses when
+   accessing e.g. sound information in a large memory.
+
+  6.1.2 Address Space Selection
+
+   Although a 32-bit address space is large enough to cover combined uses of memory, it can be more
+   convenient to consider separate address spaces in the node. (This can also be considered to be a top
+   digit in a global address space, if you want to, but note that the separate address spaces may cover the
+   same memory objects, e.g. “all memory” and “Event ID configuration” spaces may reference the same
+   configuration memory)
+
+   Required space definitions (these may or may not have content on a particular node); these address space
+   numbers can only be used for this, and if the information is available, it must be accessible by these
+   numbers (in addition to any others the designer might provide):
+
+     * (0xFF, flag=11) Configuration definition – reading this is how you get the configuration definition
+
+     * (0xFE, flag=10) All memory – provides access to “all” memory in the device, where “all” is defined
+       by the designer. Single, flat address space for access. Can be used for e.g. dynamic access to RAM
+       for monitoring & debugging.
+
+     * (0xFD, flag=01) Configuration - basic configuration space, with the structure of the 32-bit space
+       defined by the designer.
+
+   These three spaces, inclusive, can be addressed without an extra byte in the datagram using control bits
+   in the flag byte. All others need to be specified as a byte value. The high addresses (0xFD through
+   0xFF) were chosen for the dedicated spaces so that space numbers 00, 01, 02 could be used as a 5th bytes
+   in a contiguous address if desired.
+
+  6.1.3 Message Formats
+
+   The following table shows available configuration operation formats. All others reserved. They must not
+   be skipped during identification. Items in {} are optional.
+
+    
+
+                    Flag                                                                                    
+                    Byte    Flag Byte 
+                    Command Operation 
+   Name             Type    Type      Lower Bits                                                      
+                    Field   Field     
+                    (2      (4 bits)
+                    bits)   
+                                      Datagram/Stream=1                                                     
+                                      ReadReply/Write=0           
+                                      Under Mask (1     Address
+   Write            0x0               bit)              (4 bytes) {Space}(1) Data (1-N)               
+                                      Reserved (1 bit)  
+                                      Address Space (2  
+                                      bits)             
+                                      Datagram/Stream=0                                                     
+                                      ReadReply/Write=0                                  
+                                      Under Mask (1     Address   {Space} (1 Stream
+   Write Stream     0x0               bit)              (4 bytes) bytes)     information              
+                                      Reserved (1 bit)  
+                                      Address Space (2  
+                                      bits)             
+                                      Datagram/Stream=1                                                     
+                                      ReadReply/Write=1 Address   {Space} (1 Data (1-N   
+   Read-Reply       0x0               Reserved (2 bits) (4 bytes) bytes)     bytes)                   
+                                      Address Space (2  
+                                      bits)             
+                                      Datagram/Stream=1                                                     
+   Read             0x1               Reserved (3 bits) Address   {Space} (1 Count (1                 
+                                      Address Space (2  (4 bytes) bytes)     byte)
+                                      bits)             
+                                      Datagram/Stream=0                                                     
+   Read Stream      0x1               Reserved (3 bits) Address   {Space} (1 Count (4    Stream       
+                                      Address Space (2  (4 bytes) bytes)     bytes)      information
+                                      bits)             
+   Get                                Reply=0                                                               
+   Configuration    0x2     0x0       Reserved (1 bit)                                                
+   Options          
+                                                                  Write                                     
+                                                                  lengths (5                         
+                                                                  bits)                              
+                                                                  Under Mask 
+                                                                  Available  
+   Get                                                  Available (1 bit)    Highest     Lowest
+   Configuration    0x2     0x0       Reply=1           commands  Read       Space       Space       {Name}
+   Options Reply                      Reserved (1 bit)  (2 bytes) Stream     (1 byte)    (1 byte)
+                                                                  Supported  
+                                                                  (1 bit)    
+                                                                  Write      
+                                                                  Stream     
+                                                                  Supported  
+                                                                  (1 bit)    
+   Get Address      0x2     0x1       Reply=0           Space ID                                            
+   Space Info                         Reserved (1 bit)  (1 byte)  
+                                                                             Requires                       
+   Get Address                        Reply=1           Space ID  Largest    Alignment   {Lowest     
+   Space Info Reply 0x2     0x1       Present/Absent (1 (1 byte)  Address (4 (4 bits)    Address} (4 {Desc}
+                                      bit)                        bytes)     Read-Only   bytes)
+                                                                             (1 bit)     
+   Lock/Reserve     0x2     0x2       Reply=0           NodeID                                              
+                                      Reserved (1 bit)  (6 bytes) 
+   Lock/Reserve     0x2     0x2       Reply=1           NodeID                                              
+   Reply                              Reserved (1 bit)  (6 bytes) 
+                                                        Number to                                           
+   Get Unique ID    0x2     0x3       Reply=0           reserve                                       
+                                      Reserved (1 bit)  (3 bits,  
+                                                        1-7)      
+                                                        New                                                 
+                                                        Unique    
+   Get Unique ID    0x2     0x3       Reply=1           EventID                                       
+   Reply                              Reserved (1 bit)  (8 bytes, 
+                                                        1-7       
+                                                        times)    
+   Reserved         0x2     0x4-0x7   Reserved (2 bits)                                                     
+                                      Reserved (1 bit)                                                      
+   Freeze/Unfreeze  0x2     0x8       Freeze/Unfreeze                                                 
+                                      (1bit)            
+                                                        (somehow                                            
+                                                        identify  
+   Indicate         0x2     0x9       Reserved (1 bit)  outputs,                                      
+                                      Start/Stop        LEDs, etc 
+                                                        to        
+                                                        drive?)   
+   Update Complete  0x2     0xA       0x0                                                                   
+   Reset/Reboot     0x2     0xA       0x1                                                                   
+   Reinitialize/                                        Target                                              
+   Factory Reset    0x2     0xA       0x2               NodeID (6                                     
+                                                        bytes)    
+   Reserved         0x2     0xA       0x3                                                                   
+   Reserved         0x2     0xB-0xF   Reserved (2 bits)                                                     
+
+    
+
+  6.1.4 Operations
+
+    6.1.4.1 Read, Read-Reply
+
+   Attempts to read from an invalid location, either outside the available address range in an valid
+   address space, or from an invalid address space, still require a return message, requires a reply
+   datagram with an data length of zero.
+
+   In general, a read reply may provide less than the requested data, but always at least one byte if it's
+   a valid read.
+
+    6.1.4.2 Get Configuration Options Reply
+
+   To make it possible to make simple/cheap nodes, not every configuration operation & option needs to be
+   provide. The reply to “Get Configuration Options” provides information that a configuring device can use
+   to control how it communicates with the node so that it only uses available modes.
+
+     * Available operations mask (2 bytes, bit coded): Indicate which operations are available so the using
+       software can know whether convenience operations (which are not possible on some hardware) are
+       available.
+
+          * 0x8000 Write under mask supported
+
+          * 0x4000 Unaligned reads supported. If not set, reads have to start on an address with the low
+            bits, as given by the data size, all zero. For example a 4-byte write must have the low two
+            address bits zero.
+
+          * 0x2000 Unaligned writes supported. If not set, reads have to start on an address with the low
+            bits, as given by the data size, all zero. For example a 4-byte write must have the low two
+            address bits zero.
+
+          * 0x0800 Read from address space 0xFC available (this is the manufacturer part of Abbreviated
+            CDI)
+
+          * 0x0400 Read from address space 0xFB available (this is the user-entered part of Abbreviated
+            CDI)
+
+          * 0x0200 Write to address space 0xFB available (this is the user-entered part of Abbreviated CDI)
+
+          * Others reserved, must be ignored on receipt and sent as zero.
+
+     * Write lengths supported (One byte, bit coded): (provided for devices that can only write certain
+       sizes to memory) (at least one bit must be set)
+
+          * 0x80 1 byte write
+
+          * 0x40 2 byte write
+
+          * 0x20 4 byte writes
+
+          * 0x10 64 byte writes (full datagram, but not 63 bytes or arbitrary length, just exactly 64)
+
+          * 0x02 arbitrary writes of any length OK
+
+          * 0x01 stream writes supported (stream support will identify buffer size)
+
+          * Others reserved, must be ignored on receipt and sent as zero.
+
+     * Highest Address Space (byte): Highest number space available. Not all up to that need be available,
+       but sparse allocation will slow down the process as “Get Address Space Information” is needed to
+       determine whether they are present.
+
+     * Lowest Address spaces (byte): Lowest number space available. Note that spaces 0xFD, 0xFE and 0xFF
+       are assumed to be included even if the low space ↔ high space range doesn't include them. (also
+       0xFC, 0xFB of Abbreviated Default CDI if bits indicate they're available)
+
+   A node that only has the high spaces could have Highest Address Space = 255, Lowest Address Space = 253
+   or 251.
+
+   A node that has additional low address spaces, e.g. to make more memory available with a 28-bit address,
+   could have Highest Address Space = 127, Lowest Address Space = 0 and leave the top spaces assumed.
+
+    6.1.4.3 Get Address Space Information Reply
+
+   To ease automated access, a configuring node can enquire about the address spaces in the
+   being-configured node. Whether or not the address space is present, a reply is required.
+
+     * Present: This is carried in the lowest bit of the command byte, just below the reply bit
+
+          * 0x01 == 1: Present. == 0 not present.
+
+     * Space ID – provided to identify request this is in response to
+
+     * Highest Address (4 bytes)
+
+     * Flags (byte) – (Alignment and size were going to be here but were made global above); Read-Only is
+       LSB, can write if 0, can only read if 1
+
+     * Lowest Address (4 bytes) – optional, omit if zero, as that will let reply fit in single CAN frame.
+
+     * Description (variable length) – optional null-terminated string giving the user-readable name of
+       this space
+
+   Lock/Reserve and Freeze/Unfreeze
+
+   An OpenLCB node can, in general, be configured while the network and even the node itself is operating.
+
+   Code can be simplified by disabling operation of a node while it's being configured, so that there's no
+   concern about it trying to react to transient incomplete information. The Freeze/Unfreeze command, if
+   supported, can be used to tell a node that it should “freeze” operation, ignoring inputs, while the
+   configuration is being updated. A reset of the node releases the freeze option, if set.
+
+   Although nodes can be configured by multiple other nodes, this can also lead to inconsistencies. The
+   optional Lock/Release command can be used to avoid this. At the start of configuration, a configuring
+   node sends a Lock message with its NodeID. If no node has locked this node, indicated by zero content in
+   the lock memory, the incoming NodeID is placed in the lock memory. If a node has locked this node, the
+   non-zero NodeID in the lock memory is not changed. In either case, the content of the lock memory is
+   returned in the reply. This acts as a test&set operation, and informs the requesting node whether it
+   successfully reserved the node. To release the node, repeat the lock operation with a zero NodeID. The
+   lock memory is set to zero when the node is reset. Note that this is a voluntary protocol in the
+   configuring nodes only; the node being configured does not change it's response to configuration
+   operations when locked or unlocked.
+
+    6.1.4.4 Get Unique EventID
+
+   Nodes maintain a list of unique EventIDs for use in configuration. These are allocated based on the
+   node's unique NodeID. This command allows a configuration tool to get new unique EventIDs from the
+   node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
+   a different EventID, without repeat, even through node resets and factory resets.
+
+    6.1.4.5 Update Complete/Reset/Reboot/Reinitialize
+
+   This is a collection of three operations, distinguished by what are normally the flag bits.
+
+   The configuration protocol does not specify the meaning of the transferred data. In particular, it
+   doesn't specify when new configuration information takes effect. Depending on how the node is
+   constructed, this might be immediately upon transfer (although this raises issues of write boundaries),
+   or when an entire sequence of transfers is complete. “Update Complete” is the command that indicates
+   that a series of configuration writes is consistent and complete, and the node can put it into effect.
+   Nodes do not have to require this operation, but receiving it must be permitted. Configuration tools
+   should send it at the end of operations. Nodes may, but are not required to, reset after sending the
+   reply to this message.
+
+   The “Reboot/Reset” command is meant to reinitialize a node, equivalent to powering it up. Nodes should
+   finish any pending operations, e.g. non-volatile memory writes, before doing the initialization. It's
+   expected that the datagram reply will be sent before the reset, but this might not be entirely reliable.
+   Configuration tools should not count on the reply. The configuring node will receive a “Node
+   Initialization Complete” when the node is back up. This operation must not reset any configuration
+   information to default contents.
+
+   “Reinitialize/Factory Reset” is similar, but includes restoring the node's configuration as if factory
+   reset. (This may require creating new unique EventIDs, see other note) This is a heavy-weight operation
+   which may require some form of interlock, e.g. the user pressing a button, to prevent inadvertent data
+   loss. As a small safety precaution, the NodeID of the note being reset is redundantly carried in the
+   data part of the datagram.
+
+    6.1.4.6 Indicate
+
+   This command tells the board to somehow identify itself to the user, for example by flashing a LED or
+   operating it's outputs. This allows the user to be absolutely sure that he's configuring the correct
+   board. “Start” (bit 0 = 1) means that the board should start indicating, and “Stop” (bit 0 = 0) means
+   that the board should stop indicating. The data portion carries information that lets the board know
+   what kind of indication to do. It's not always appropriate to operate outputs if they're e.g. driving
+   large mechanical systems like doors. (This needs to be specified more precisely)
+
+    
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 Intended Use (Informative)
+
+   3 References and Context (Normative)
+
+   4 Section Title
+
+   5 Section Title
+
+   5.1 Subsection Title
+
+   5.1.1 Sub-subsection Title
+
+   6 Stuff to be merged into the above
+
+   6.1 Protocol
+
+   6.1.1 Address Space Size
+
+   6.1.2 Address Space Selection
+
+   6.1.3 Message Formats
+
+   6.1.4 Operations
+
+   6.1.4.1 Read, Read-Reply
+
+   6.1.4.2 Get Configuration Options Reply
+
+   6.1.4.3 Get Address Space Information Reply
+
+   6.1.4.4 Get Unique EventID
+
+   6.1.4.5 Update Complete/Reset/Reboot/Reinitialize
+
+   6.1.4.6 Indicate
+
+    
