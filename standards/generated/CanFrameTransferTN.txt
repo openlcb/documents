@@ -149,11 +149,11 @@
    The CAN format has been allocated on nibble boundaries to make it easier to e.g. read dumps of packets.
    The header is considered to be right (LSB) aligned.
 
-   The reserved first bit (MSB) is likely to be used as a priority-boost bit in the future, e.g. so that a
-   gateway can gain priority access to the CAN segment for various operations that require synchronization
-   or atomicity. CAN encodes “do first” priority as 0 and “do later” as 1, so the Standard requires that a
-   1 bit be sent. To preserve the utility of this, nodes must not require either a 1 nor 0 on receipt. It
-   is therefore not available as a protocol expansion bit.
+   The reserved firstmost-significant bit (MSB) is likely to be used as a priority-boost bit in the future,
+   e.g. so that a gateway can gain priority access to the CAN segment for various operations that require
+   synchronization or atomicity. CAN encodes “do first” priority as 0 and “do later” as 1, so the Standard
+   requires that a 1 bit be sent. To preserve the utility of this, nodes must not require either a 1 nor 0
+   on receipt. It is therefore not available as a protocol expansion bit.
 
    The order of the header fields is chosen to get proper priority and access disambiguation via CAN's
    standard mechanisms.
@@ -325,22 +325,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
-   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
-   segment, but all gateways on the segment must act on it.
+   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
+   associated with the same NID, and mapping tables should be reset.
+
+   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
+
+   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
+   mapping, e.g. because they need to reuse the local alias due to resource limitations in the mapping
+   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
+   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
+   it.
 
    Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID. the reuseto the segment.
-
-   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to
-
-   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
-   frame indicates that the alias value in the source address field may no longer be associated with the
-   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
-   until they go instantly offline due to e.g. power-off.
+   alias is allocated to a new node ID. Regular nodes won't need to do this. They stay active until they go
+   instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
