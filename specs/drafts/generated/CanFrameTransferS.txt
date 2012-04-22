@@ -54,15 +54,15 @@
 
     
 
-   Bit number: Bit 0               Bit 1                      Bits 2-16               Bits 17-28            
-                                   Frame Type                                                               
-               Reserved:                                      
-   Content:    Send as 1,          1: OpenLCB Message         Variable Field          Source NID Alias
-               ignore upon receipt                            
-                                   0: CAN Control Frame       
-   Mask:       0x1000,0000         0x0800,0000                0x07FF,F000             0x0000,0FFF           
-   Location:   Solo top bit        Top bit of 6th nibble from 3 bits, then three      Right-most three      
-                                   right                      nibbles                 nibbles               
+   Bit number1: Bit 28              Bit 27                    Bits 26-12              Bits 11-0             
+                                    Frame Type                                                              
+                Reserved:                                     
+   Content:     Send as 1,          1: OpenLCB Message        Variable Field          Source NID Alias
+                ignore upon receipt                           
+                                    0: CAN Control Frame      
+   Mask:        0x1000,0000         0x0800,0000               0x07FF,F000             0x0000,0FFF           
+   Location:    Solo top bit        Top bit of 6th nibble     3 bits, then three      Right-most three      
+                                    from right                nibbles                 nibbles               
 
    Table 1: Frame Format
 
@@ -131,7 +131,7 @@
 
      * Wait at least 200 milliseconds
 
-     * Transmit a Reserve ID frame (RID) with the tentative source Node ID alias value n the Source NID
+     * Transmit a Reserve ID frame (RID) with the tentative source Node ID alias value in the Source NID
        Alias field.
 
    The node shall restart the process at the top if, before completion of the process, a frame is received
@@ -221,14 +221,14 @@
 
      * Unaddressed messages – messages that don't have a destination address – shall be formatted:
 
-                        Variable Field Bits 1-14        
-   Variable Field Bit 0                                 
-                        Header Bits 3-16                
-   Header Bit 2                                         
-                        OpenLCB Variable Header Content 
-   0x0400,0000                                          
-                        0x03FF,F000                     
-   0                    OpenLCB message information     
+   Variable Field Bit 14 Variable Field Bits 13-0        
+                                                         
+   Header Bit 26         Header Bits 25-12               
+                                                         
+                         OpenLCB Variable Header Content 
+                                                         
+   0x0400,0000           0x03FF,F000                     
+   0                     OpenLCB message information     
 
    Table 3: Unaddressed Message Format
 
@@ -236,14 +236,14 @@
        alias in the low 12 bits of the variable field. Two upper bits can carry part of the OpenLCB
        message.
 
-                        Variable Field Bits 1-2         Variable Field Bits 3-14        
-   Variable Field Bit 0                                                                 
-                        Header Bits 3-4                 Header Bits 5-16                
-   Header Bit 2                                                                         
-                        OpenLCB Variable Header Content OpenLCB Variable Header Content 
-   0x0400,0000                                                                          
-                        0x0300,0000                     0x00FF,F000                     
-   1                    OpenLCB message information     Destination Node ID Alias       
+   Variable Field Bit 14 Variable Field Bits 13-12       Variable Field Bits 11-0        
+                                                                                         
+   Header Bit 26         Header Bits 25-24               Header Bits 23-12               
+                                                                                         
+                         OpenLCB Variable Header Content OpenLCB Variable Header Content 
+                                                                                         
+   0x0400,0000           0x0300,0000                     0x00FF,F000                     
+   1                     OpenLCB message information     Destination Node ID Alias       
 
    Table 4: Addressed message format
 
@@ -286,3 +286,9 @@
    7 OpenLCB Message Frame Format
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte
+   numbering. Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions,
+   but note that other technologies may use other conventions.
