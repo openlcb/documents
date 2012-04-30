@@ -14,6 +14,8 @@
 
 2.3 References and Context
 
+   Built on frame-level structures.
+
 2.4 States
 
    The Uninitialized state is only occupied when the node is first starting up.  At present, there's no way
@@ -21,11 +23,18 @@
 
 2.5 Message Format
 
+   Really needs nice table or diagram here.
+
 2.6 Messages
 
    (Note that Node ID in the data part of several messages is sent in full 48-bit format in all wire
    protocols, specifically including CAN, even if an alias or alternate form is available elsewhere in the
    message)
+
+   (need a good way to show the non-normative information here, so that it's all gathered in one place.
+    Just add footnote saying that the other documents win in case conflicts)
+
+   Extensive discussion of MTI needed here.
 
 2.7 Interactions
 
@@ -53,14 +62,14 @@
    message with the “Duplicate Source ID detected” global event, which will carry the duplicate node ID in
    the Source Node ID field.
 
-   After sending the “Duplicate Source ID detected” global event, the node should not transmit any further
+   After sending the “Duplicate Source ID detected” global event, the node shall not transmit any further
    “Duplicate Source ID detected” messages until reset because this message will be received at the other
    duplicate-ID node(s), resulting in additional “Duplicate Source ID detected” global events and causing a
    possible message loop. (Optionally, could allow to send again after e.g. 5 seconds)
 
-   To further improve the reliability of this detection, OpenLCB nodes should, but need not, emit a
-   Verified Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that
-   CAN-attached nodes use their NIDa to pick that interval so that messages don't bunch up.
+   To further improve the reliability of this detection, OpenLCB nodes may, but need not, emit a Verified
+   Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that CAN-attached
+   nodes use their NIDa to pick that interval so that messages don't bunch up.
 
   2.7.3 Node ID Detection
 

@@ -40,8 +40,6 @@
 
                                              2 Common MTI Values
 
-   Common MTI layout:
-
                         Simple               Message   Reserved                      Event ID    Flag Byte  
    Field    Reserved    Node flag Reserved   Type                 Dest ID flag       flag        flag       
                                              Number               
@@ -54,6 +52,8 @@
             check)      node, 1   and check)           and check) present, 0 not     present, 0   not       
                         means                                     present            not present present    
                          not      
+
+   Table 1: Common MTI Layout
 
     
 
@@ -81,6 +81,8 @@
    Value(s)                                                                             See spreadsheet for 
                         (send and check) 0 goes first, 3 last if priority     (send and values & meanings
                                          processing is present                check)    
+
+   Table 2: Message Type Number Substructure
 
      *  
 
@@ -140,6 +142,8 @@
    6    Addressed MTI other than datagram or stream 
    7    Stream Data                                 
 
+   Table 3: MTI Type Values
+
     
 
    The bit coding of this has been chosen to use the “4” bit to indicate that a destination address is
@@ -165,6 +169,8 @@
                                               0x1800,0000 0x0700,0000 0x00FF,F000                       
    Value(s)                                   3           6           12-bit alias for destination node 
 
+   Table 4: Addressed MTI CAN Header Format
+
     
 
     
@@ -188,11 +194,21 @@
    Value(s)              3           0 or 1      number         present in CAN 1 if Flag byte present       
                                                                 data           
 
+   Table 5: Unaddressed MTI CAN Header Format
+
     
 
    Flag bit handling is used to get an extra 2 bits of data into the CAN frame, e.g. for certain messages
    that contain an 8-byte Event ID plus some extra information.  If a common MTI has the “Flag Byte” bit
    set, the low order two bits are moved from the data content into the two “flag bits” in the CAN header.
+
+                                                   4 Notes
+
+   Standard-header CAN frames don't carry the bits for the CAN MTI. Both hardware and software generally
+   carry these as 0 bits, and require that the user code check an “extended” flag to know whether it's
+   dealing with a standard or extended frame.  By ensuring that CAN header part of the MTI coding can never
+   be zero, we ensure that standard frames don't accidentally get interpreted as OpenLCB frames. (The
+   leading priority bit's default value of 1 can't be assumed to always be present)
 
     
 
@@ -207,6 +223,8 @@
    3.1 Addressed CAN MTIs
 
    3.2 Unaddressed CAN MTIs
+
+   4 Notes
 
     
 

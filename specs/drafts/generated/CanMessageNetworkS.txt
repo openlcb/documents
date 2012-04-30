@@ -5,7 +5,7 @@
 
                                          2 Intended Use (Informative)
 
-   For moving messages on CAN...
+   For moving messages on CAN... (includes aspects of moving on and off CAN to other forms)
 
                                      3 References and Context (Normative)
 
@@ -48,6 +48,16 @@
    the “OpenLCB-CAN Frame Transfer Standard”. This defines a 15 bit variable field in the frame, the format
    and contents of which is defined in this section.  There are two formats, indicated by the most
    significant bit of the variable field.
+
+   (refer back to the general standard, where most of the content is)
+
+   (Needs to discuss structure of CAN MTI, so that equipment can count on the long-term-stable parts of
+   that)
+
+   (The following bits about addressing are somewhat overlapping with the frame-level, which is where
+   addressed vs non-addressed is structured for CAN)
+
+    
 
 5.1 Global (non-addressed) messages
 
@@ -157,15 +167,6 @@
    the frame transfer layer in “Permitted state”, shall send an "Initialization Complete" message and enter
    Initialized state.
 
-     * There is no guarantee that any other node is listening for this. No reply is possible.
-
-     * Nodes must not emit any other OpenLCB message before the “Initialization Complete” message.
-
-   Sending the IC message is required to insure that higher-level tools are notified that they may start to
-   work with the node.
-
-    
-
 7.2 Duplicate Node ID Detection
 
    OpenLCB nodes must have unique node IDs. To detect this across the entire connected OpenLCB, all OpenLCB
@@ -174,13 +175,9 @@
    they should emit a PCER message with the “Duplicate Source ID detected” global event, which will carry
    the duplicate event ID in the Source Node ID field.
 
-   After sending the “Duplicate Source ID detected” global event, the node should not transmit any further
+   After sending the “Duplicate Source ID detected” global event, the node shall not transmit any further
    messages until reset because this message will be received at the other duplicate-ID node(s), resulting
    in additional “Duplicate Source ID detected” global events and causing a possible message loop.
-
-   To further improve the reliability of this detection, OpenLCB nodes should, but need not, emit a
-   Verified Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that
-   CAN-attached nodes use their NIDa to pick that interval so that messages don't bunch up.
 
 7.3 Node ID Discovery
 
@@ -228,7 +225,10 @@
    The message content contains the most recent MTI received in this interaction, a mandatory reason code
    and an optional data value. The use of these fields is to be defined.
 
-    
+   (much of the discussion here should move to the TN)
+
+   Needs definition of a permanent vs temporary bit in the error code information (consider choosing bits
+   in a similar way to the datagram definitions)
 
     
 
