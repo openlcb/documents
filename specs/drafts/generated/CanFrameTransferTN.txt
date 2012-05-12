@@ -84,13 +84,13 @@
 
 2.1 Introduction
 
-   (nothing to add)
+   (Nothing to add to the Standard)
 
 2.2 Intended Use
 
-   The OpenLCB protocol suite uses 6-byte Node ID values, but this protocol layer could be valuable in
-   other contexts too. The Standard is therefore written so that any Node ID length from 12 bits through
-   7*12 = 84 bits can be used in a straight-forward manner.
+   The OpenLCB protocol suite uses 6-byte Node ID values, but this protocol layer could be useful in other
+   contexts too. The Standard is therefore written so that any Node ID length from 12 bits through 7*12 =
+   84 bits can be used in a straight-forward manner.
 
 2.3 References and Context
 
@@ -370,9 +370,9 @@
 
    This should never happen, of course, but it's possible that two nodes will have the same Node ID
    assigned.  This will result in frame loss and operational difficulties. OpenLCB-CAN does not guarantee
-   prompt detection of this condition, at any level of the protocol stack. At the Frame Transfer level, two
-   nodes on the same CAN segment sharing a common Node ID will be detected when a node receives a Alias Map
-   Definition frame that contains its own Node ID.
+   prompt detection of this condition, at any level of the protocol stack, but it's extremely likely that
+   it will be. At the Frame Transfer level, two nodes on the same CAN segment sharing a common Node ID will
+   be detected when a node receives a Alias Map Definition frame that contains its own Node ID.
 
    The “in addition to any other actions” refers to e.g. acting on identical alias values, should that also
    be the case.
@@ -388,9 +388,9 @@
 
    A: 0x10701aaa 01 02 03 04 05 06  (AMD frame with Node ID 0x010203040506)
 
-   (For simplicity, B has not transmitted yet) B discovers that it's node ID has been duplicated.
+   (For simplicity, B has not transmitted yet) B discovers that its node ID has been duplicated.
 
-   B: 0x1800bbb 01 01 00 00 00 00 02 01  (Producer-Consumer Event Report (PCER) message with event ID
+   B: 0x18ADFbbb 01 01 00 00 00 00 02 01  (Producer-Consumer Event Report (PCER) message with event ID
    0x0101,0000,0000,0201 )
 
    If the two nodes have also assigned the same alias value, that interaction is also invoked here.
@@ -433,15 +433,22 @@
 
 2.7 OpenLCB Message Frame Format
 
-   Format selected to allow filtering on destination address, see later section on filter use.
+   The OpenLCB message frame format comes in two varieties, with and without a destination address
+   included.  This is included here, at frame level, to allow frame-level bridges to use the information
+   without having to be able to completely decode the OpenLCB message-level protocols.   
+
+   The coding is a 0b000 value in the top three bits of the 15-bit variable field to indicate that the
+   bottom 12 bits are OpenLCB information in a global frame; other values in those three bits indicate that
+   the bottom 12 bits are a destination node alias.  Those other values can then be used by higher levels
+   to indicate segmentation or other parts of a message-level protocol.
 
                                       3 Gateways and segment management
 
-   (Talk about a bridge that's OpenLCB-CAN aware, and can e.g. signal that it's time to rearbitrate, vs one
-   that's not aware)
+   Talk about a bridge that's OpenLCB-CAN aware, and can e.g. signal that it's time to re-arbitrate, vs one
+   that's not aware.
 
-   (Need to discuss the case of two segments being joined, to discover they've both arbitrated the same
-   aliases, including with gateways on one or both)
+   Need to discuss the case of two segments being joined, to discover they've both arbitrated the same
+   aliases, including with gateways on one or both; see above.
 
    Discuss the use of repeaters, bridges and gateways w.r.t. Timing; ref physical layer. Possibility of
    reordering. Refer to glossary?
@@ -472,8 +479,8 @@
 
    Short outages can be covered by CAN hardware buffering, so long as the node will eventually catch up
    even at full arrival rate. Outages long enough that frames are lost due to e.g. buffer overflow require
-   node to broadcast that it's back up if hardware detected frame lost. This is because there could have
-   been frames of some form that modified the OpenLCB node state, which are now lost (e.g. drop alias,
+   node to broadcast that it's back up if the hardware detected frames lost. This is because there could
+   have been frames of some form that modified the OpenLCB node state, which are now lost (e.g. drop alias,
    CID/RID in absence, or even higher level events)
 
    The real limitation is whether the nodes themselves can handle the full rate of frame arrival. There is
@@ -530,11 +537,11 @@
 
   5.1.2 Collisions during Allocation
 
-   (not talking CAN arbitration here, but two nodes trying to use same alias) The allocation process
-   resolves collisions (attempt to use an already allocated Node ID alias), but that takes time. Minimizing
-   the number of collisions is good. If the address space is just the size of the number of things you want
-   to address, the collisions get hard /slow to resolve across multiple nodes. This points to having a
-   factor of 2, at least, between the number of nodes to be addressed and the size of the address space.
+   The alias allocation process resolves collisions (attempt to use an already allocated Node ID alias),
+   but that takes time. Minimizing the number of collisions is good. If the address space is just the size
+   of the number of things you want to address, the collisions get hard /slow to resolve across multiple
+   nodes. This points to having a factor of 2, at least, between the number of nodes to be addressed and
+   the size of the address space.
 
    (Mostly talking about separate nodes here, not just one big interface node: Points to CAN backbone case)
 
@@ -662,15 +669,21 @@
 
                                            7 CAN Controller Filters
 
-   This coding has been generated such that simple nodes can use three hardware filters to select only
-   frames that are of interest to them.
+   This coding has been generated such that simple nodes can use three hardware filters to select frames
+   that are of interest to them.
 
    Purpose                               Mask        Required Value 
    CAN-specific control frames           0x0800,0000 0x0000,0000    
-   OpenLCB format addressed to this node 0x0CFF,F000 0x0Cnn,n000    
-   OpenLCB global messages               0x0C00,0000 0x0800,0000    
+   OpenLCB format addressed to this node 0x08FF,F000 0x08nn,n000    
+   OpenLCB global messages               0x0F00,0000 0x0800,0000    
 
     
+
+   “nnn” refers to this node's alias.
+
+   The “OpenLCB format addressed to this node” filter will improperly pass some global messages with an
+   accidental match of the node alias nnn, but those would have been passed by the 3rd filter for global
+   messages in any case.
 
                                            8 Additional References
 
