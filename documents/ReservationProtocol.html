@@ -1,0 +1,168 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Reservation Protocol Proposal</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.cjk { font-family: "SimSun" }
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.cjk { font-family: "SimSun" }
+		H3.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1><FONT COLOR="#000000"><IMG SRC="../web/logo-ajs-dph.png" NAME="OpenLCB" ALIGN=RIGHT WIDTH=337 HEIGHT=135 BORDER=2></FONT>Reservation
+Protocol Proposal</H1>
+<P STYLE="margin-bottom: 0cm">This is a proposal for a
+general-purpose protocol for “reserving” resources, e.g.
+reserving unique access to a locomotive node or reserving unique
+access for memory-configuration protocol.  It grew out of (and in
+some places is a cut&amp;paste from) capability in the
+memory-configuration protocol.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Note that this has <U>not</U> been
+agreed to by the general OpenLCB group.  It's just a proposal. 
+Details will change.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The basic idea is to provide a
+test-and-set approach to reservation. It goes through datagrams (but
+could be modified to use message level, which might be a bood idea if
+the messages can be kept short enough).</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<H3 CLASS="western">Preferences</H3>
+<UL>
+	<LI><P>Small nodes shouldn't need a lot of processing power, e.g. to
+	compress or decompress data in real time. Memory usage should also
+	be limited, but is a second priority.</P>
+	<LI><P>Operations should be state-less and idempotent to simplify
+	software at both ends.</P>
+	<LI><P>Multiple independent reservation operations can proceed at
+	the same time. Multiple devices should be able to make reservations
+	on separate nodes at the same time. Multiple overlapping
+	reservations of overlapping resources in the same node should be
+	possible. 
+	</P>
+	<LI><P>For efficiency, reservation operations should fit into a
+	single-frame CAN datagram (or small).</P>
+	<LI><P>The mechanism for indicating which resource is being reserved
+	should be general, extensible, and distributed.</P>
+</UL>
+<H2 CLASS="western">Discussion</H2>
+<P>To have a general-purpose protocol for reserving things, you have
+to specify what those things are.  They're accessed within a specific
+node via addressed messages, so NodeID doesn't have to be part of the
+resource identification. But you need to have several, so that a
+given node can be separately locked for e.g. memory-configuration
+protocol, and also 5 different times for the 5 locomotives it's
+controlling.</P>
+<UL>
+	<LI><P>Small is good, so that small nodes can deal with reservations
+	easier.  One or two bytes would be ideal.</P>
+	<LI><P>There needs to be a way to allocate it.  Using e.g. the byte
+	value of a datagram-protocol ID would be nice because it's
+	unambiuguous, and already allocated.  But it doesn't work for
+	datagram protocols that provide more than one thing to lock, nor for
+	stream-based or other non-datagram-based protocols.</P>
+	<LI><P>A full unique-ID (6 bytes) is easy to allocate, and makes it
+	easy to associate event IDs with various lock indications.  But it's
+	a lot of space.</P>
+	<LI><P>Compromise on two bytes: The first is flags and expansion,
+	the second is a datagram-protocol ID, stream-protocol ID, etc as
+	indicated by the flags.</P>
+	<LI><P>But that doesn't fit in a single-frame datagram, so fall back
+	to one byte, allocated via a common spreadsheet, using
+	datagram-protocol values when available.</P>
+</UL>
+<H2 CLASS="western">Protocol</H2>
+<P>Send the following datagrams to reserve, release, etc.</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=864 BORDER=1 CELLPADDING=4 CELLSPACING=4>
+	<COL WIDTH=230>
+	<COL WIDTH=166>
+	<COL WIDTH=360>
+	<COL WIDTH=56>
+	<TR VALIGN=TOP>
+		<TH WIDTH=230>
+			<P>Name</P>
+		</TH>
+		<TH WIDTH=166>
+			<P>Datagram Protocol ID byte</P>
+		</TH>
+		<TH WIDTH=360>
+			<P>Resource Selection Byte</P>
+		</TH>
+		<TH WIDTH=56>
+			<P>Content</P>
+		</TH>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=230>
+			<P>Lock/Reserve</P>
+		</TD>
+		<TD WIDTH=166>
+			<P>(TBD)</P>
+		</TD>
+		<TD WIDTH=360>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=56>
+			<P>NodeID <BR>(6 bytes)</P>
+		</TD>
+	</TR>
+	<TR VALIGN=TOP>
+		<TD WIDTH=230>
+			<P>Lock/Reserve Reply</P>
+		</TD>
+		<TD WIDTH=166>
+			<P>(TBD)</P>
+		</TD>
+		<TD WIDTH=360>
+			<P><BR>
+			</P>
+		</TD>
+		<TD WIDTH=56>
+			<P>NodeID <BR>(6 bytes)</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The configuring node sends a Lock datagram with its NodeID. If no
+node has locked this node, indicated by zero content in the lock
+memory, the incoming NodeID is placed in the lock memory. If a node
+has locked this node, the non-zero NodeID in the lock memory is not
+changed. In either case, the content of the lock memory is returned
+in the reply. This acts as a test&amp;set operation, and informs the
+requesting node whether it successfully reserved the node. To release
+the node, repeat the lock operation with a zero NodeID. The lock
+memory is set to zero when the node is reset. 
+</P>
+<P>If receiving node doesn't implement the particular resource, it
+should reply with an error instead of Lock/Reserve Reply.  (Another
+reason to go with messages instead of datagrams, because Optional
+Interaction Rejected has better error code semantics)</P>
+<H2 CLASS="western">Remaining Issues</H2>
+<P>This grew out of the datagram-based configuration protocol, but
+should probably be just made into two messages.  That occupies the
+same space, and removes the need to acknowledge the datagrams.  The
+messages are small and have immediate execution, so there's no
+problem with having them be messages.</P>
+<P>To ease implementation, zero should not be a valid resource ID.</P>
+<HR>
+<P>Site hosted by <FONT COLOR="#000080">
+<A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
+</P>
+<P>This is SVN $Revision$ 
+</P>
+</BODY>
+</HTML>
