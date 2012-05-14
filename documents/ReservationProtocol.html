@@ -6,6 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGED" CONTENT="20120513;10455000">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<STYLE TYPE="text/css">
 	<!--
 		H2.cjk { font-family: "SimSun" }
@@ -21,14 +23,14 @@ Protocol Proposal</H1>
 <P STYLE="margin-bottom: 0cm">This is a proposal for a
 general-purpose protocol for “reserving” resources, e.g.
 reserving unique access to a locomotive node or reserving unique
-access for memory-configuration protocol.  It grew out of (and in
-some places is a cut&amp;paste from) capability in the
+access for memory-configuration protocol. It grew out of (and in some
+places is a cut&amp;paste from) capability in the
 memory-configuration protocol.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">Note that this has <U>not</U> been
-agreed to by the general OpenLCB group.  It's just a proposal. 
-Details will change.</P>
+agreed to by the general OpenLCB group. It's just a proposal. Details
+will change.</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
 <P STYLE="margin-bottom: 0cm">The basic idea is to provide a
@@ -57,7 +59,7 @@ the messages can be kept short enough).</P>
 </UL>
 <H2 CLASS="western">Discussion</H2>
 <P>To have a general-purpose protocol for reserving things, you have
-to specify what those things are.  They're accessed within a specific
+to specify what those things are. They're accessed within a specific
 node via addressed messages, so NodeID doesn't have to be part of the
 resource identification. But you need to have several, so that a
 given node can be separately locked for e.g. memory-configuration
@@ -65,14 +67,14 @@ protocol, and also 5 different times for the 5 locomotives it's
 controlling.</P>
 <UL>
 	<LI><P>Small is good, so that small nodes can deal with reservations
-	easier.  One or two bytes would be ideal.</P>
-	<LI><P>There needs to be a way to allocate it.  Using e.g. the byte
+	easier. One or two bytes would be ideal.</P>
+	<LI><P>There needs to be a way to allocate it. Using e.g. the byte
 	value of a datagram-protocol ID would be nice because it's
-	unambiuguous, and already allocated.  But it doesn't work for
+	unambiuguous, and already allocated. But it doesn't work for
 	datagram protocols that provide more than one thing to lock, nor for
 	stream-based or other non-datagram-based protocols.</P>
 	<LI><P>A full unique-ID (6 bytes) is easy to allocate, and makes it
-	easy to associate event IDs with various lock indications.  But it's
+	easy to associate event IDs with various lock indications. But it's
 	a lot of space.</P>
 	<LI><P>Compromise on two bytes: The first is flags and expansion,
 	the second is a datagram-protocol ID, stream-protocol ID, etc as
@@ -148,16 +150,55 @@ the node, repeat the lock operation with a zero NodeID. The lock
 memory is set to zero when the node is reset. 
 </P>
 <P>If receiving node doesn't implement the particular resource, it
-should reply with an error instead of Lock/Reserve Reply.  (Another
+should reply with an error instead of Lock/Reserve Reply. (Another
 reason to go with messages instead of datagrams, because Optional
 Interaction Rejected has better error code semantics)</P>
 <H2 CLASS="western">Remaining Issues</H2>
 <P>This grew out of the datagram-based configuration protocol, but
-should probably be just made into two messages.  That occupies the
-same space, and removes the need to acknowledge the datagrams.  The
+should probably be just made into two messages. That occupies the
+same space, and removes the need to acknowledge the datagrams. The
 messages are small and have immediate execution, so there's no
 problem with having them be messages.</P>
 <P>To ease implementation, zero should not be a valid resource ID.</P>
+<H3 CLASS="western">Local vs global reserved-object IDs</H3>
+<P STYLE="margin-bottom: 0cm">Reservation involves at least 3 nodes:
+the one with the resource being reserved, the one holding the
+reservation, and one or more others who'd like a reservation but
+can't get it right now.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The one holding the resource doesn't
+actually need to know about the resource ID, as the reservation
+status doesn't change its actions (it's a reservation, not a lock). 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">But the others have to agree on the
+value for the system to work. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">That indicates you need either a set of
+well-known global IDs, or a way to ask about locally defined IDs. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">The writeup above is mostly about
+former. IDs are well known and associated with a particular protocol:
+&quot;reserve use of configuration protocol&quot;. 
+</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">But you might want to have a more
+general mechanism that can reference e.g. 1-of-n objects in a node:
+&quot;reserve use of 5th virtual thing&quot;</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">That would require more protocol
+support, but certainly could be done. If you want that someday, this
+protocol should stay in datagrams to have expansion room.</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
