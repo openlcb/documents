@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20120429;20085800">
+	<META NAME="CHANGED" CONTENT="20120515;17261700">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
@@ -1202,8 +1203,51 @@ that case, the node should indicate that stream-write operations are
 not supported in its reply to Get Configuration. Since read
 operations don't have the same timing issues, they may still be
 useful in that case.</P>
+<P STYLE="margin-bottom: 0cm">Performance Note</P>
+<P STYLE="margin-bottom: 0cm">Small nodes may have only one datagram
+receive buffer and one datagram transmit buffer.  In that case,
+sending multiple reads can result in poor performance if the replies
+go after the next request, e.g.:</P>
 <P STYLE="margin-bottom: 0cm"><BR>
 </P>
+<P>Read [d] →</P>
+<P>← datagram reply</P>
+<P>← Read Reply [d]</P>
+<P>Read [d] →</P>
+<P STYLE="margin-bottom: 0cm">datagram reply →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>← datagram reply</P>
+<P>← Read Reply [d]</P>
+<P STYLE="margin-bottom: 0cm">datagram reply →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Note that the 2<SUP>nd</SUP> read
+command was sent before the reply to the Read-Reply datagram was
+sent.  This is valid, but nodes with only one buffer may not be able
+to handle that Read until the transmit buffer has been emptied by an
+acknowledgement.  In that case, the sequence may become e.g.:</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>Read [d] →</P>
+<P>← datagram reply</P>
+<P>← Read Reply [d]</P>
+<P>Read [d] →</P>
+<P>← datagram  negative reply (reject, no buffer, please resend)</P>
+<P STYLE="margin-bottom: 0cm">datagram reply →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">Read [d] (retransmit) →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P>← datagram reply</P>
+<P>← Read Reply [d]</P>
+<P STYLE="margin-bottom: 0cm">datagram reply →</P>
+<P STYLE="margin-bottom: 0cm"><BR>
+</P>
+<P STYLE="margin-bottom: 0cm">which is significantly less efficient. 
+Better to send the positive acknowledgement before sending the next
+read command.</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
