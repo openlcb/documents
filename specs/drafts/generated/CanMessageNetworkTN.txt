@@ -130,12 +130,12 @@
 
     2.7.4.2 Reject Unaddressed Optional Interaction
 
-     * Node A receives an unaddressed message from Node B.
+   An earlier version of the specification make replying with Reject Optional Addressed Interaction
+   optional, and the node could decide whether to reply or not.  To simply protocol recovery, this was made
+   mandatory.
 
-     * The MTI indicates the start of an optional interaction.
-
-   If Node A does not want to take part in the optional interaction, it silently drops the message without
-   reply.
+   Because the content of the message has varied over time, nodes should not expect any particular amount
+   of data in the message.
 
     2.7.4.3 Reject Addressed Standard Interaction Due to Error
 
@@ -157,6 +157,15 @@
    This is a very coarse mechanism.  The “most recent MTI received” values is not always sufficient to
    determine which interaction is being referred to.  Higher level protocols should define more focused and
    reliable mechanisms if they are likely to encounter errors.
+
+    2.7.4.4 Delays and Timeouts
+
+   The large difference between the required maximum response time and minimum timeout (750 msec and 3
+   seconds, respectively) is to allow for large delays in transmission over e.g. ad-hoc wireless networks.
+    Nodes can certainly wait for longer before assuming that a message is not coming.  Note that OpenLCB
+   doesn't use timeouts to convey state (e.g. wait NN seconds, then do this) in normal operation, so the
+   timeout only gets invoked when something has gone wrong in the underlying reliable network on which
+   OpenLCB is implemented.
 
                                            3 MTI allocation method
 
@@ -287,6 +296,8 @@
    2.7.4.2 Reject Unaddressed Optional Interaction
 
    2.7.4.3 Reject Addressed Standard Interaction Due to Error
+
+   2.7.4.4 Delays and Timeouts
 
    3 MTI allocation method
 
