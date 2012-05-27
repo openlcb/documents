@@ -312,37 +312,33 @@
    The state machine for assembling datagram frames needs to now when e.g. the lower levels reset, so that
    it knows to abandon a partially received datagram.  
 
-    
-
    There's no requirement to a specific response to out-of-spec transmission. If a node receives
    out-of-spec datagram fragments, what it does is up to it. This is because it's neither necessary nor
    practical to specify a unique set of logic for dealing with the semi-infinite number of possible
    out-of-spec transmissions. Nodes can use the various error replies to indicate whatever they know, but
    they don't have to.
 
-    
-
    So a node that gets a middle-segment without a first-segment can react in various ways. It might send
    various replies (but it doesn't have to).  It might ignore it. Etc.
 
-    
-
    There's an important thing to realize about that though:
-
-    
 
    Getting another valid datagram sequence while receiving one (or more) that fills the local buffers is
    _not_ an out-of-spec condition, and the protocol defines exactly how the node is to react. There's no
    flexibility there.
-
-    
 
    (Example of how overlapping datagrams might be handled in a really simple implementation, so that early
    ones are dropped due to buffer which results in out-of-sequence that's really buffer drop)
 
     
 
-    
+   Bosch is proposing a new standard called CAN-FD with increased bit-rate over the data portion allowing
+   up to 64 bytes! http://www.semiconductors.bosch.de/media/pdf/canliteratur/can_fd.pdf
+
+   Decided not to reduce max data length to fit easily within this for ease of migration in the long-term.
+   There are good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have
+   a header of N bytes on the front of 64 data bytes. All that's needed is to ensure the datagram spec can
+   work with larger frames of any length.
 
     
 
