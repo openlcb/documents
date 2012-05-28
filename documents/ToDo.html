@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20120515;11571100">
+	<META NAME="CHANGED" CONTENT="20120527;23434200">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 </HEAD>
@@ -76,7 +78,8 @@ Bootload as CAN-specific, very simple protocol? Delay is a problem,
 probably has to be driven from program source, if programming more
 than one device at a time. Microchip has one, see AN247; could use
 that? There's an Amtel bootloader for their processors with built-in
-CAN, check that protocol. Build it into same boot-loader as Arduino?</P>
+CAN, check that protocol. Build it into same boot-loader as Arduino?
+(Don GW has written a bootloader based on the Atmel CAN loader)</P>
 <P><SPAN STYLE="font-style: normal">59. [Task Done] Complete the
 “<A HREF="notes/DisplayProtocol.html">Display Protocol</A>” note
 and a sample implementation for a display, e.g. of RF or throttle
@@ -104,7 +107,7 @@ These need to be rationalized; at least one probably needs to be a
 note or even in main document area.</SPAN></P>
 <P>77. Finish notes/RouteCases.html doc and link</P>
 <P><SPAN STYLE="background: #99ccff">78. Add definition of flags
-(error, etc) in datagram, stream message documents.</SPAN></P>
+(error, etc) in [done], stream message documents.</SPAN></P>
 <P>80. Discuss mechanism for removing entries from routing tables.
 E.g. a router could remember the nodeIDs using a particular event,
 then purge those entries if no traffic seen, no response to ping for
@@ -120,18 +123,10 @@ class, needs to have implementation finished up.</P>
 <P>89. Finish up the <A HREF="notes/RFIDusage.html">RFID note</A>.
 Prototype. David will work on this. 
 </P>
-<P><SPAN STYLE="background: #00ff00">90. Need to add a lot of useful
-detail to Hobbyist intro so people can play with code.<BR>DPH: I
-suggest we novice-proof the code to some extent. Eg make the code
-insist on the user defining the node-id, etc. Also, define the
-high-order bytes of the node-id such that it will be a DIY node.
-Obviously this is easy to get around, but by then hopefully they are
-not novices :-). </SPAN>
-</P>
 <P>91. Get CAN shields made so hobbyists can use their existing
 Arduino hardware? John Plocher has laid out the Railroad Shield
-board. Document use of CAN shields available commercially? LEDuino
-production? (Task done).</P>
+board. Document use of CAN shields available commercially? [task
+done] LEDuino production? (Task done).</P>
 <P>93. Movies to tell a story!</P>
 <UL>
 	<LI><P>(done)</P>
@@ -230,7 +225,8 @@ document covers just use of identifying routing, no replies. Should
 “Identify Produced (or Consumed) Range” over full address space
 return replies for all existing Producers (or consumers)?</P>
 <P>116. Should “identify” be pulled from the full configuration
-protocol and made into something light-weight?</P>
+protocol and made into something light-weight? It's a separate item
+in PIP now.</P>
 <P>118. We have a discussion in place about developers being able to
 assign node ID numbers based on whatever mechanism CBUS uses, which
 removes an objection that some CBUS developers had. But this doesn't
@@ -252,11 +248,9 @@ prototypes/Arduino/libraries/OpenLCB/OpenLcbCanInterface.h (is that
 the current file location, or a left over? Was referred to via the
 Arduino web page)</P>
 <P>122. Should reservation be pulled from Configuration protocol and
-made into a separate mix-in? (Proposal done)</P>
+made into a separate mix-in? (Proposal done, discussion needed)</P>
 <P>123. Mike Johnson and Paul Bender have expressed interest in a
 bridge to XpressNet (Lenz) protocol.</P>
-<P>124. Jar file versioning definition in JavaDoc package.html;
-JavaDoc to web.</P>
 <P>129. Monitor app for Android</P>
 <P>135. John Plocher is thinking through the consequences of “NAT”
 for UniqueIDs, notably node IDs, but also event IDs. (Consensus seems
@@ -264,10 +258,10 @@ to be that this would require some form of “DNS” to be able to
 find the new/changes ID numbers for things, with all the undesirable
 complexity that involves, but John is a smart guy and it's an
 important question)</P>
-<P>136. Where can a name for a specific EventID be stashed? This is a
-“find a global place from lots of local places, while keeping it
-consistent” problem. Maybe stash it on each node as “here's what
-I think it means”?</P>
+<P>136. Where can a <U>global</U> name for a specific EventID be
+stashed? This is a “find a global place from lots of local places,
+while keeping it consistent” problem. Maybe stash it on each node
+as “here's what I think it means”?</P>
 <P>137. More fully develop the “left-both-right switch in the
 middle of the CAN bus” proposal for semi-automated configuration of
 a large modular layout. Can modern processors with two CAN buses help
@@ -291,7 +285,7 @@ off-board node IDs.</P>
 doc (TechnicalIntroduction.pdf) needs an update. It's from 2010, and
 footnotes are in some cases dead links. </SPAN>
 </P>
-<P>145. Make sure the CAN frame-level discussion of many-byte global
+<P>145. Make sure the CAN frame-level discussion of many-byte <U>global</U>
 messages (we don't have any yet, but mechanism documented anyway) is
 clear. (See also 142) The entire mechanism for multi-frame messages
 like Datagrams, Streams, needs to be clearer described, and
@@ -306,36 +300,21 @@ seems to strip the HTML for them.</P>
 146) (Skeleton in specs/drafts/GenGatewayTN.odt )</P>
 <P>150. Write a C++ bit of code to track alias ↔ node ID mapping &amp;
 demonstrate method. (See 143)</P>
-<P>152. Bosch is proposing a new standard called CAN-FD with
-increased bit-rate over the data portion allowing up to 64 bytes!
-<A HREF="http://www.semiconductors.bosch.de/media/pdf/canliteratur/can_fd.pdf">http://www.semiconductors.bosch.de/media/pdf/canliteratur/can_fd.pdf</A></P>
-<P>Should the Datagram spec have its max data length reduced to fit
-easily within this for ease of migration in the long-term? There are
-good reasons to retain the possibility of larger-than-64-byte
-datagrams, e.g. so you can have a header of N bytes on the front of
-64 data bytes. Perhaps all that's needed is to ensure the datagram
-spec can work with larger frames of any length.</P>
-<P>154. Write clear specification, justification of Simple Protocol
-type, a.k.a. Leaf Node Protocol Subset? (See 151)</P>
-<P>156. How is compressed vs non-compressed XML identified? [Item
-complete]</P>
 <P>157. Should documents move to e.g. MediaWiki? Problem: Offline
-consulation. Is there a way to e.g. PDF the entire wiki? An <U>easy</U>
+consul6ation. Is there a way to e.g. PDF the entire wiki? An <U>easy</U>
 offline browser? See extensions for <A HREF="http://www.mediawiki.org/wiki/Extension:Offline">Offline
 extension</A>, <A HREF="http://www.mediawiki.org/wiki/Extension:PDF_Writer">PdfWriter</A>,
 <A HREF="http://www.mediawiki.org/wiki/Extension:PdfBook">PdfBook</A>.
-</P>
+Alex Shepherd also suggested WordPress.</P>
 <P>160. Revisit the makefile build process in prototypes/C to clean
 it up, separate test &amp; build. Note there are multiple independent
 libraries (OpenLCB is one, Olcb* is the other) (see 105)</P>
-<P>162. Problem with embedded Arduino XML, see also
-http://arduino.cc/en/Guide/troubleshooting#toc4</P>
-<P>163. Update to CAN2Ethernet spec for performance</P>
-<P><SPAN STYLE="background: transparent">164. </SPAN><SPAN STYLE="background: #99ccff">LSB0
-adopted (for bits), documented, but need scan of docs to edit it into
-place.</SPAN></P>
-<P>166. 
-</P>
+<P>163. Update to CAN2Ethernet sketch for performance</P>
+<P>166. Don G-W's point that having turnout controllers send “no
+longer thrown” is a good way to turn <U>off</U> indicators on a
+mimic panel. Need something like that, because lots of events can
+cause the points to move away from thrown, and teaching them all to a
+yard-throat panel is hard.</P>
 <P>167.</P>
 <P>168.</P>
 <P>169.</P>
