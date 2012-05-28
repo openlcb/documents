@@ -64,7 +64,10 @@
    be generated.
 
    0x00 00 00 00 00 08 through 0x00 00 00 00 00 01 are reserved for control of future expansion. They'll
-   eventually be needed when there are more protocols defined than can fit in a single CAN frame.
+   eventually be needed when there are more protocols defined than can fit in a single CAN frame. One way
+   of doing the expansion is to return more than one frame, which the individual frames identified using
+   these bits. To preserve compatibility with that possibility, nodes built now must ignore frames that
+   have one or more 1 bits in that field, so that they are not confused by future expansion frames.
 
    In general, nodes using this protocol don't need to know the meaning of bits defined after the node was
    created.  A node is looking to see whether a particular protocol is present or not so that it can select
@@ -75,7 +78,12 @@
    duplicate assignments. Duplicate assignments would be obvious here, but not so much when spread across
    separate documents.
 
-    
+                                        3 Extensions and Alternatives
+
+   This protocol is optimal for requesting information from a single node, but not for requesting which
+   nodes on the entire network can provide a service.  Event-based methods, whether a capability is
+   announced via an event or the Identify Producer and Identify Consumer mechanism is used to find which
+   nodes can source the event that identifies the capability, may be more effective for that use case.
 
    Table of Contents
 
@@ -94,3 +102,5 @@
    2.5 Interactions
 
    2.6 Protocol Identification Values
+
+   3 Extensions and Alternatives
