@@ -1,0 +1,237 @@
+                                                1 Introduction
+
+   Consider a "network browser" that can show more specific information on the nodes, e.g. their type
+   information, user-given names, etc. To do that, the browser could
+
+    
+
+     * Read the configuration description information (CDI)
+
+    
+
+     * Parse out the first section(s)
+
+    
+
+     * Do memory-access configuration reads to get the information.
+
+    
+
+   That last step is very fast. The browser could do the necessary configuration reads in a small fraction
+   of a second, at least on an idle CAN segment.
+
+    
+
+   But the first two steps are not-so-fast. The CDI is a very powerful and general method to describe all
+   about the node, but it's a handful to read & parse when you just want to get some specific information.
+
+    
+
+   This Standard provides an optional protocol that allows a node implementor to say "I keep my basic
+   information in a common place", so that e.g. browser tools can pick that up quickly.
+
+    
+
+   There are two parts to this:
+
+    
+
+    1. A standardize set of basic information & its location in configuration space
+
+    2. A simple CAN protocol for returning it, perhaps in addition to use of the Memory Configuration
+       Protocol
+
+    
+
+   Why the special protocol?  To make it even easier and faster to be retrieving this from a lot of nodes
+   at once.  Memory configuration is powerful and robust for doing complex configuration, particularly for
+   writing to nodes, but it's a little heavy-weight when doing optional reads like for this purpose.  The
+   special protocol, which doesn't involve the buffering and acknowledgements of datagrams used for Memory
+   Configuration, simplifies start-up in large networks, and makes it possible for low-capability nodes to
+   gather basic information about the entire network.
+
+                                        2 Annotations to the Standard
+
+2.1 Introduction
+
+   Note that this section of the Standard is informative, not normative.
+
+2.2 Intended Use
+
+   Note that this section of the Standard is informative, not normative.
+
+2.3 Reference and Context
+
+    
+
+                                     3 Stuff to be merged into the above
+
+   This is a working note in which we are developing recommendations for “Abbreviated Configuration
+   Description Information” (ACDI).
+
+    
+
+    
+
+   Something like:
+
+    
+
+   1) A node denotes that it has this capability using a specific bit in the Protocol Identification
+   Protocol (1 CAN exchange to check that)
+
+    
+
+   2) If it does, the basic information can be found in a specific place in the configuration space
+   (specific, well-known address space, location, and format), so can be directly read via configuration
+   reads (datagram access, with small CAN overhead)
+
+    
+
+   For this to work, there needs to be a common content (so that we don't need another layer of CDI-like
+   stuff to define this content too). Hence this note. What should be in that content?
+
+    
+
+   Some fixed info:
+
+    
+
+   *) A version number, so we can extend this later
+
+   *) A manufacturer name
+
+   *) A manufacturer-issued node type name
+
+   *) Node version? (Covers hardware and software versions)
+
+    
+
+   Some variable info, which the user can change:
+
+    
+
+   *) Name
+
+   *) Location
+
+   (or a more general comment field? Or both?) These variable items don't have to be provided, but if they
+   are, they can be just the usual identification items that are accessible by the full configuration
+   protocol, configured by the user with the full configuration protocol, but then made available for a
+   quick read this way.
+
+    
+
+   It would be nice to keep this somewhat compact, with the most useful (in the sense of "people will want
+   to see this quickly") info at the front. Reading a full datagram (64 bytes payload originally, but now
+   less based on extended CAN) would let us sample about 50 nodes in a second (idle bus), which is fine.
+   Another factor of 4 larger might start to seem slow to the user, though. The whole idea is to be able to
+   get a view of even large networks faster than a user can browse through the info on an screen. The user
+   can then select a small number of specific nodes that are interesting, pull the full CDI and work with
+   the entire configuration information of those nodes.
+
+    
+
+   Proposed content:
+
+    
+
+   Spaces chosen to be right below CDI, so they leave as much contiguous as possible.
+
+    
+
+   Up to designer to decide on size (0 bytes, small, large) of icon information.
+
+    
+
+   The memory access in those three spaces doesn't mean that is has to be stored that way.
+
+    
+
+   The use of zero-terminated strings.
+
+    
+
+    
+
+   (Comment provides a longer field, not computer parsed; node name is a short thing for e.g. headings,
+   etc)
+
+   (String means zero terminated)
+
+    
+
+   Two spaces provided for simplicity in implementation, as we imagine that some will be from a permanent
+   memory and some will be user configurable.
+
+    
+
+   Strings just concatenate with null termination. A missing value is then just a null byte.
+
+    
+
+   Could get in e.g. 30 character manufacturer, 16 character node type, 8 character version into single
+   datagram. (This is just fixed data in memory)
+
+    
+
+   Protocol ID protocol specifies whether this is present, so no more confirmation information is needed.
+
+    
+
+   Later versions with higher ADCDI version numbers could contain more fields, result in more than one
+   datagram in reply, etc. But for expansion purposes, they should be proper supersets of this.
+
+    
+
+    
+
+3.1 Simple Node Identification Information
+
+   (Should this be moved to another doc?)
+
+   There is a need for something for tiny nodes, that uses a single message instead of datagrams and
+   configuration. This allows getting getting the information with a bare minimum of support at the
+   requested node end, so long as the requesting node can be sure to handle it.
+
+    
+
+    
+
+   Paragraphs for TN
+
+    
+
+   this particular area is intended to be vague and hand wavy, based on the discussions in the NMRA DCC
+   group. Manufacturers _don't_ want to be told what to call their nodes. They want a place for a
+   "Manufacturer-issued node type" where they can put whatever "node type" name they want to. No more
+   normalization of that content than that is likely to succeed. Certainly not model number; most aren't
+   numbers but some are. Some DCC decoders don't even have model names.
+
+    
+
+   (Include some XML for the basic information?)
+
+    
+
+   Basic information does not need to be present if this protocol is not marked; store anything you like.
+
+    
+
+   Table of Contents
+
+   1 Introduction
+
+   2 Annotations to the Standard
+
+   2.1 Introduction
+
+   2.2 Intended Use
+
+   2.3 Reference and Context
+
+   3 Stuff to be merged into the above
+
+   3.1 Simple Node Identification Information
+
+    
