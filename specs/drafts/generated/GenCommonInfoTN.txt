@@ -48,10 +48,7 @@
 
 2.4 Strings
 
-   OpenLCB strings are sequences of plain ASCII 7-bit values.  We want to retain the 0x80 bit in the first
-   byte as a way of eventually indicating other codings. XML strings can start with a UTF BOM (either 0xEF,
-   0xFF or 0xFE in the 1st byte, since there's no need to support UTF-32BE or UTF-32LE), or the ASCII text
-   for “<?xml” which starts with 0x3C.
+   OpenLCB strings are sequences of UTF-8 values1.
 
    OpenLCB does not prefer length-coded or null-terminated strings.  Standards should specify which is used
    in each case.
@@ -61,6 +58,11 @@
 
    There are no specific tab settings. You cannot assume a tab is any particular number of spaces. You can
    assume it counts as non-null white space.
+
+   Certain standards retain the 0x80 bit in the first byte as a way of eventually indicating other codings,
+   particularly compression of the UTF-8 text.  If this is possible, it's specified in the relevant
+   standard. For example, XML strings can start with either the UTF-8 text for “<?xml” which starts with
+   0x3C, or with a 0x80 followed by an indication of the format of the compressed UFT-8 text that follows.
 
                                                 3 Presentation
 
@@ -102,44 +104,39 @@
 
    OpenLCB messages are described in this format:
 
-   Message Type Indicator: The 16-bit value, typically in hex notation, of the full MTI
+    
 
-   Destination address present: Whether this message includes a destination address for a specific node. If
-   no, the message is global.
+                            Common                          
+   Name Dest ID Simple Node        CAN format  Data Content
+                            MTI    
+        N       N           0x0000 0x1800,0sss              
 
-   Simple subset: Whether the message is included in the “simple node subset” (defined where?)
+    
 
-   Priority group: A number from 0 to 3 that describes the line priority of the message; 0 can be sent
-   before 3.
+     * Name: Standard name of the message.
 
-   Content: Description of data bytes, if any, included after fixed fields such as MTI and destination
-   address.
+     * Dest ID: Whether this message includes a destination address for a specific node. If no, the message
+       is global.
 
-   CAN frame format: Typical CAN frame, including header and data bytes.  Source node ID alias is
-   represented by “sss”.  Destination node ID alias, if present, is represented by “ddd”.
+     * Event ID: Whether this message includes an Event ID.
+
+     * Simple Node: Whether the message is included in the “simple node subset” (defined in the Message
+       Networking TN).
+
+     * Common MTI: The 16-bit value, typically in hex notation, of the full Message Type Indicator.
+
+     * CAN format: Typical CAN frame representation of the MTI, including header and data byte if present.
+        Source node ID alias is represented by “sss”.  Destination node ID alias, if present, is
+       represented by “ddd”.
+
+     * Data Content: Summary description of data bytes, if any, included after fixed fields such as MTI and
+       destination address.
 
    Note that this information is not completely independent.  The MTI value depends on simple subset,
    priority subgroup, etc, values. We present the full set, at some risk of inconsistency, to make it
    easier to understand the containing Standard.
 
    For more information, see the various “Message Networking” Standards and Technical Notes.
-
-   Example:
-
-   Message Type Indicator: 0x32F4
-
-   Destination address present: Yes
-
-   Simple subset: Yes
-
-   Priority group: 1
-
-   Content: Six bytes containing bits identifying the OpenLCB protocols supported by the sending node; see
-   Section 6 below for coding.
-
-   CAN frame format: 0x18dd,dsss 32 E4 vv vv vv vv vv vv
-
-    
 
     
 
@@ -164,3 +161,7 @@
    3.2 Presentation of a OpenLCB message
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 C.f. http://en.wikipedia.org/wiki/UTF-8
