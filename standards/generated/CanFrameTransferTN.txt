@@ -5,7 +5,7 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  May 29, 2012                     PreliminaryDraft         
+                                                  May 30, 2012                     PreliminaryDraft         
 
                                                 1 Introduction
 
@@ -325,22 +325,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
-   associated with the same NID, and mapping tables should be reset.
-
-   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
-
-   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to reuse the local alias due to resource limitations in the mapping
-   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
-   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
-   it.
+   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
+   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
+   segment, but all gateways on the segment must act on it.
 
    Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID. Regular nodes won't need to do this. They stay active until they go
-   instantly offline due to e.g. power-off.
+   alias is allocated to a new node ID. the reuseto the segment.
+
+   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
+   mapping, e.g. because they need to
+
+   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
+   frame indicates that the alias value in the source address field may no longer be associated with the
+   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
+   until they go instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -472,11 +472,10 @@
 
 2.7 OpenLCB Message Frame Format
 
-   Format selected to allow filtering on destination address, see later section on filter use.
-
-   The OpenLCB message frame format comes in two varieties, with and without a destination address
-   included. This is included here, at frame level, to allow frame-level bridges to use the information
-   without having to be able to completely decode the OpenLCB message-level protocols.
+   Format selected to allow filtering on destination address, see later section on filter use.The OpenLCB
+   message frame format comes in two varieties, with and without a destination address included. This is
+   included here, at frame level, to allow frame-level bridges to use the information without having to be
+   able to completely decode the OpenLCB message-level protocols.
 
    The coding is a 0b000 value in the top three bits of the 15-bit variable field to indicate that the
    bottom 12 bits are OpenLCB information in a global frame; other values in those three bits indicate that
@@ -714,7 +713,7 @@
 
     CAN-specific control frames                    0x0800,0000                  0x0000,0000                 
 
-    OpenLCB format addressed to this node          0x0C00,0FFF8FF,F000          0x0C8nn,n00000,0nnn         
+    OpenLCB format addressed to this node          0x000,0FFFC8FF,F000          0x0C8nn,n00000,0nnn         
 
     OpenLCB global messages                        0x0CF00,0000                 0x0800,0000                 
 
@@ -851,4 +850,4 @@
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
    Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. ShepherdCopyright 2011. All rights reserved.
-   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 14 - 5/29/2012
+   See http://openlcb.org/Licensing.html for license terms.  Page 1 of 14 - 5/30/2012
