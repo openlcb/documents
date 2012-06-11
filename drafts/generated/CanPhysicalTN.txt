@@ -1,10 +1,10 @@
-                                                             OpenLCB Technical Note
+                                                              OpenLCB Technical Note
 
-                                                                  OpenLCB-CAN
-                                                                            
-                                                                 Physical Layer
+                                                                   OpenLCB-CAN
+                                                                             
+                                                                  Physical Layer
 
-                                                    10/07/10                           Adopted              
+                                                   Jun 11, 2012                         Adopted             
 
                                                 1 Introduction
 
@@ -18,16 +18,45 @@
 
 2.1 Intended Use
 
-   The third paragraph, discussing networks that “(u)sers can expect to be able to form”, is based on CAN
-   documentation, component-vendor specifications and application notes, and industrial experience with
-   CAN. The intent is to set expectations that can be met essentially all of the time. The Standard does
-   not restrict users from building, or attempting to build, networks that exceed these expectations.
-   Often, OpenLCB-CAN layouts that somewhat exceed these expectations will be able to operate reliably.
+   Users can expect to be able to form networks within limitations. For example, reliable operations on a
+   single CAN segment is subject to multiple limitations, including:
 
-   The expected network sizes in section 2 of the Standard are based on UTP/RJ45 wiring of equipment that
-   conforms to the Standard. Wiring and/or equipment that exceeds the Standard may result in being able to
-   reliably build larger networks; alternate wiring or equipment may work well on smaller networks, but may
-   not be able to reach the network sizes listed in that section.
+     * Maximum CAN segment cable length is 1000 ft / 300m
+
+     * The max cable length is reduced by 20 ft / 6m for each physical node attached to the segment
+
+     * The max cable length is further reduced by double the length of each stub cable attached to the
+       segment
+
+     * There may never be less than 1 ft / 30cm of cable between nodes, nor between a stub connection and a
+       node.
+
+   This implies that there is a limit of about 48 nodes on a single segment.
+
+   These expectations are based on CAN documentation, component-vendor specifications & application notes,
+   and industrial experience with CAN. The intent is to set expectations that can be met essentially all of
+   the time. The Standard does not restrict users from building, or attempting to build, networks that
+   exceed these expectations. Often, OpenLCB-CAN layouts that somewhat exceed these expectations will be
+   able to operate reliably.
+
+   These expectations are based on UTP/RJ45 wiring of equipment that conforms to the Standard. Wiring
+   and/or equipment that exceeds the Standard may result in being able to reliably build larger networks;
+   alternate wiring or equipment may work well on smaller networks, but may not be able to reach the
+   network sizes listed in that section.
+
+   Manufacturers may want to use CAN transceiver chips with either reduced load, or increased drive
+   capability relative to the CAN specification.
+
+     * The CAN specifications require the receiver input impedance R_diff must be 10k ohms or greater.
+       Transceivers with e.g. 20k ohm input impedance reduce the total bus load and can allow significantly
+       more nodes. They will generally not allow greater maximum lengths.
+
+     * The CAN transmitter output drive capability is expressed as a minimum bus resistance of 45 ohms. Bus
+       transmitters with improved drive capability, e.g. 42.5 ohms, can allow significantly more nodes
+       because the bus termination resistance provides much of the total load. Improved transmitters will
+       generally not allow greater maximum lengths.
+
+   The Standard permits, but does not require, the use of improved transceivers.
 
    The Standard discusses single CAN segments, and is silent on interconnecting multiple segments. For more
    discussion of options for interconnection, see the “Repeaters, Bridges and Gateways” section below.
@@ -61,22 +90,29 @@
    The conductor assignments are based on industry practice for RJ45 connectors on CAN networks, c.f.
    Recommendation CiA 303 (2009) of the CAN in Automation e.V. group.
 
-   The assignments to particular wire colors are for information only. These are the wire colors that users
+   High-quality RJ45 connections are reliable even after thousands of connections and disconnections. (c.f.
+   An HP survey of RJ45 use as a strain guage connector, a much more demanding application than this one:
+   http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf) It's
+   recommended that manufacturers use high-quality RJ45 jacks. They should also recommend that customers
+   assemble CAN segments using high-quality RJ45 cables and plugs. In particular, cables with strain-relief
+   boots and tab protectors will reduce connection problems for e.g. modular layouts.
+
+   The assignments of particular wire colors are for information only. These are the wire colors that users
    will encounter in the two popular ways of wiring commercial cables. When building a product using
    commercial cable, using one of these two color assignments will reduce confusion, but most OpenLCB-CAN
    users will never need to refer to the wire colors in their cables.
 
    The Standard does not require that all eight conductors be present in cables, but only the four that are
    minimally necessary for CAN communications. The reserved and power conductors are optional. This is
-   because some low-cost “Ethernet” cables have only those required pairs present. Model railroaders who
-   want to minimize cost, do not need distributed power, and are willing to forego future use of the
-   reserved conductors can use these four-conductor “Ethernet” cables between nodes.
+   because some low-cost CAT-3 “Ethernet” cables have only those required pairs present. Model railroaders
+   who want to minimize cost, do not need distributed power, and are willing to forego future use of the
+   reserved conductors can use these four-conductor CAT-3 “Ethernet” cables between nodes.
 
    The discussion of connecting in parallel is to make sure that all 8 wires go through a board, whether
    it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than one
    connection to other nodes.
 
-   The requirement to have all eight conductors present in nodes is so people can add power later, or an
+   The requirement to have all eight conductors present in nodes is so users can add power later, or an
    updated Standard can define the reserved conductors later, and still use them. The 1A requirement on
    interconnects is to make sure they're at least as robust as the connectors and cable.
 
@@ -143,8 +179,9 @@
    railroad networks will eventually use stubs to e.g. connect to handheld devices, so it's important to
    build support for a reasonable number of stubs into the network specification from the start. Note that
    many off-the-shelf CAN transceiver parts have slew rates greater than 10V/microsecond by default. The
-   recommended value for the slew rate is 4V/microsecond. The 3.5V/microsecond lower limit is specified to
-   allow some manufacturing margin below the 4V/microsecond recommendation.
+   recommended value for the slew rate is 4V/microsecond. A design range of 10V/microsecond to
+   3.5V/microsecond lower limit would allow some manufacturing margin below the 4V/microsecond
+   recommendation.
 
    The Standard only requires that termination meet the CAN requirements, which are limited to the
    differential total resistance of the terminators. Industry uses some improved termination practices
@@ -158,16 +195,36 @@
    consumption of power over the UTP cable. The Standard is written to allow nodes to use this power in a
    range of ways, including having local power regulation ranging from simple analog regulators through
    more advanced supplies that increase current and/or voltage. 12V was chosen to reduce heat loads when
-   using the simplest regulators. The current limit was required by use of one conductor in UTP wiring.
-
-   Power can be injected into the cable by simple “mid-span injector” devices, essentially just two RJ45
-   connectors and a 2.1mm jack for a wall-wart. It is not required that power comes from a full node
-   implementation.
+   using the simplest regulators. The current limit was required by use of one conductor in UTP wiring and
+   connectors.
 
    The power provisions are for low-power uses that can be conveniently handled over short lengths of
    cable. Boards are welcome to have other connectors for power. These other connectors can be anything not
    otherwise forbidden by some other standard, including terminal blocks, 2.1mm jacks, Anderson PowerPole
    connectors, or whatever else is considered useful for the specific market.
+
+   In order to prevent excessive voltage drop in the network cable, any node that draws power from the
+   network cable should not be located any further than 6m (20') of network cable length from a power
+   supply point with sufficient capacity to power all the nodes located within that section of the network
+   cable. In no case shall the total current flowing in any section of the network cable be allowed to
+   exceed 1A. The specified maximum supply from any one connector of 500mA is meant to ensure this even in
+   the presence of stub cables forming a T connection.
+
+   The requirement that “If the node does not provide power on pin 8 on all connectors, pin 8 on all
+   connectors shall be connected in parallel” is intended to allow a power-providing node to either have
+   power supplied in parallel to all connectors, or via separate supplies to each connector. For example, a
+   node could have a 500mA supply on a common conductor between two CAN connectors, or two 500mA supplies
+   separately connected to two CAN connectors. A power-providing node is required to provide power to all
+   connectors to reduce user confusion.
+
+   Nodes must be marked with their capacity to supply current and/or their current requirements in order to
+   make the power calculation simple and reliable: Just add up the numbers on the labels. The requirement
+   that the label is always present, even when zero, is to reduce user frustration when they can't find a
+   label. Simple icons may be used, such as:
+
+   Power can be injected into the cable by simple “mid-span injector” devices, essentially just two RJ45
+   connectors and a 2.1mm jack for a wall-wart. It is not required that power comes from a full node
+   implementation.
 
    The wiring system is likely to result in power-supplying nodes being connected to each other. This is
    covered by the “shall withstand” voltage requirement: power supply boards must be able to be connected
@@ -176,6 +233,10 @@
    better this will work.
 
 2.6 Consumption of Power
+
+   The labeling provision is to make the calculation of total power required simple and reliable: Just add
+   up the numbers on the labels. The requirement that the label is always present, even when zero, is to
+   reduce user frustration when they can't find a label.
 
    For their thermal calculations, node designers should assume that power is supplied at 15V.
 
@@ -188,10 +249,15 @@
 
 3.1 Bus Termination
 
-    The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies the use of a bus termination
+   The CAN specification (ISO11898-2 section 7.1 and section 7.5.2) specifies the use of a bus termination
    resistor at each end of the bus of 120 (nominal; minimum 100, maximum 130) ohms and rated for 220mW or
    more. Several alternate termination schemes have been proposed in the literature, and these alternatives
    are discussed below.   
+
+   Although the CAN specification allows the termination resistance to be below 120 ohms, this requires
+   additional drive from the CAN transceivers. Holding the termination resistance closer to 120 ohms can
+   allow a larger number of nodes on a CAN segment, but generally does not increase the maximum segment
+   length.
 
   3.1.1 Termination Circuits
 
@@ -237,7 +303,7 @@
    a separate terminator device, depending on the preferences of the manufacturer and users.
 
    Using plug-resident terminators would seem to provide the maximum flexibility, but it may be difficult
-   to built a split terminator into a RJ45 plug.
+   to build a split terminator into a RJ45 plug.
 
    If on-board terminators are provided, the Standard requires it be possible to enable or disable them
    depending on where the node is installed on the CAN segment. Termination should only occur at the two
@@ -257,11 +323,12 @@
    (http://www.ixxat.com/can_bus_tester_cbt_en.html)
    (http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html)
 
-3.2 EMC Management
+3.2 EMC Management and Noise Immunity
 
-   CAN is a robust signaling method developed for use in the difficult environment of automobiles. Issues
-   of EMC, noise reduction, etc have been discussed in numerous vendor application notes including, but not
-   limited to:
+   Electro-Magnetic Compatibility (EMC) refers to ensuring that a system, e.g. a CAN bus, does not cause
+   interference with other systems. CAN is a robust signaling method developed for use in the difficult
+   environment of automobiles. Issues of EMC, noise immunity, etc have been discussed in numerous vendor
+   application notes including, but not limited to:
 
    http://www.nxp.com/documents/application_note/AN10211.pdf
 
@@ -331,8 +398,9 @@
    much more than a bit time, usually a frame time or longer.
 
    The CAN arbitration process takes place on each segment independently, and is not shared between the
-   separate segments; frames will appear in different order on the various segments. The protocol(s)
-   running on the CAN segments must be compatible with this reordering if it's to work with bridge(s).
+   separate segments; frames will appear in different order on the various segments. RTR frames generally
+   cannot be used across bridges.The protocol(s) running on the CAN segments must be compatible with these
+   constraints if bridges are to be used.
 
    Because bridges break the timing connection between the connected segments, they can also be used for
    remote connections via non-CAN cables, wireless, etc. In this case, a bridge device is usually used at
@@ -388,23 +456,49 @@
    (http://www.tiaonline.org) sells PDF and paper copies of these. Copies can generally be found in
    engineering libraries.
 
-5.2 Application Notes
+5.2 Books
+
+   This section is an informal list of books that may or may not be useful for people building OpenLCB-CAN
+   devices. The brief reviews are just opinion, and you should make up your own mind about the correctness
+   and usefulness of the book.
+
+  5.2.1 Recommended
+
+   "Embedded Networking with CAN and CANopen", Pfeiffer, Ayre and Keydel, Copperhill Technologies, 2008 –
+   generally considered the gold standard in CAN books.
+
+   “A Comprehensible Guide to Controller Area Network”, Wilfried Voss, Copperhill Technologies, 2005
+
+   “Multiplexed Networks for Embedded Systems”, Dominique Paret, Wiley, 2007 – good coverage of CAN through
+   first half of volume, including protocol and physical layer issues.
+
+  5.2.2 Not Recommended
+
+   “Designing Embedded Systems with PIC Microcontrollers”, Tim Wilmhurst, Newnes (Elsevier), 2010 – very
+   brief coverage of CAN issues on pages 581 through 586.
+
+   “Embedded Systems Design and Applications with the 68HC12 and HCS12”, S.F. Barret and D.J. Pack, Pearson
+   Prentice Hall, 2005 – limited coverage of CAN from pages 595 through 600, with coverage of the details
+   of the specific msCAN12 controller through page 634. Of limited value unless one is writing a low-level
+   library for that controller.
+
+5.3 Application Notes
 
    A number of component manufacturers have written application notes that may be useful to OpenLCB-CAN
    developers. A list is provided here for reference, but note that none of these are normative; for
    specific values, etc, please refer to the standards listed above.
 
-  5.2.1 Anixter
+  5.3.1 Anixter
 
    “ANSI/TIA/EIA-568-B Standards Reference Guide”
    (http://www.anixter.com/AXECOM/AXEDocLib.nsf/(UnID)/8F2E0839A6190F4986257309005757CC/$file/ANSI-TIA-EIA-568-B.pdf)
 
-  5.2.2 Mohawk.com
+  5.3.2 Mohawk.com
 
    “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”
    (http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html)
 
-  5.2.3 Microchip Corp
+  5.3.3 Microchip Corp
 
    AN713 “Controller Area Network (CAN) Basics” (http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf)
 
@@ -413,13 +507,18 @@
    AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”
    (http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf)
 
-  5.2.4 Philips
+  5.3.4 ON Semiconductor
+
+   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”
+   (http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF)
+
+  5.3.5 Philips
 
    AN96116 “PCA82C250 / 251 CAN Transceiver” (http://www.nxp.com/documents/application_note/AN96116.pdf)
 
    AN10211 “TJA1040 high speed CAN transceiver” (http://www.nxp.com/documents/application_note/AN10211.pdf)
 
-  5.2.5 Texas Instruments
+  5.3.6 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
    differential signaling (LVDS)” (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
@@ -439,29 +538,29 @@
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
    transceiver” (http://focus.ti.com/lit/an/slyt249/slyt249.pdf)
 
-5.3 Component data sheets
+5.4 Component data sheets
 
    This section lists component data sheets that may be of value to the OpenLCB-CAN implementor. Inclusion
    of a component data sheet in this section is informational, and does not a imply a recommendation,
    positive or negative, for the component or data sheet. No inferences should be drawn from a component
    data sheet being or not being included in this section.
 
-  5.3.1 Microchip
+  5.4.1 Microchip
 
-   MCP 2551 High-Speed CAN Transceiver (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
+   MCP2551 High-Speed CAN Transceiver (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
 
    MCP2515 Stand-Alone CAN Controller With SPI Interface
    (http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf)
 
-  5.3.2 NXP Electronics (Philips)
+  5.4.2 NXP Electronics (Philips)
 
    PCA82C250 CAN controller interface (http://www.nxp.com/documents/data_sheet/PCA82C250.pdf)
 
-  5.3.3 STMicroelectronics
+  5.4.3 STMicroelectronics
 
    L9615 transceiver (http://www.st.com/stonline/products/literature/ds/5637.pdf)
 
-  5.3.4 Texas Instruments
+  5.4.4 Texas Instruments
 
    ISO1050 Isolated CAN Transceiver (http://focus.ti.com/lit/ds/symlink/iso1050.pdf)
 
@@ -469,19 +568,19 @@
 
    SN65HVD1050 EMC Optimized CAN Transceiver (http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf)
 
-5.4 Tools
+5.5 Tools
 
    This section lists tools and diagnostic equipment that may be of value to the OpenLCB-CAN implementor.
    Inclusion of an item in this section is informational, and does not a imply a recommendation, positive
    or negative, for the item. No inferences should be drawn from an item being or not being included in
    this section.
 
-  5.4.1 Microchip
+  5.5.1 Microchip
 
    CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”
    (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
 
-  5.4.2 IXAAT
+  5.5.2 IXAAT
 
    CANcheck “Installation tester for CAN networks”
    (http://www.ixxat.com/cancheck_en.html?markierung=cancheck)
@@ -493,82 +592,91 @@
 
    1 Introduction 1
 
-   2 Annotations to the Specification 1
+   2 Annotations to the Standard 1
 
    2.1 Intended Use 1
 
-   2.2 References and Context 1
+   2.2 References and Context 2
 
-   2.3 Physical Interconnection 1
+   2.3 Physical Interconnection 2
 
-   2.4 Data Transport 3
+   2.4 Data Transport 4
 
-   2.5 Supply of Power 4
+   2.5 Supply of Power 5
 
-   2.6 Consumption of Power 4
+   2.6 Consumption of Power 6
 
-   3 Design Issues 4
+   3 Design Issues 6
 
-   3.1 Bus Termination 4
+   3.1 Bus Termination 6
 
-   3.1.1 Termination Circuits 5
+   3.1.1 Termination Circuits 6
 
-   3.1.1.1 Passive single resistor 5
+   3.1.1.1 Passive single resistor 6
 
-   3.1.1.2 Passive split resistors bypassed to ground 5
+   3.1.1.2 Passive split resistors bypassed to ground 6
 
-   3.1.1.3 Biased split termination 5
+   3.1.1.3 Biased split termination 6
 
-   3.1.1.4 Active termination 5
+   3.1.1.4 Active termination 7
 
-   3.1.1.5 Distributed termination 5
+   3.1.1.5 Distributed termination 7
 
-   3.1.2 Terminator Placement 5
+   3.1.2 Terminator Placement 7
 
-   3.2 EMC Management 6
+   3.2 EMC Management and Noise Immunity 7
 
-   3.2.1 Chokes 6
+   3.2.1 Chokes 8
 
-   3.3 Sample Schematic 6
+   3.3 Sample Schematic 8
 
-   4 Repeaters, Bridges and Gateways 8
+   4 Repeaters, Bridges and Gateways 10
 
-   4.1 Repeaters 8
+   4.1 Repeaters 10
 
-   4.2 Bridges 8
+   4.2 Bridges 10
 
-   4.3 Gateways 9
+   4.3 Gateways 11
 
-   5 References 9
+   5 References 11
 
-   5.1 Standards 9
+   5.1 Standards 11
 
-   5.2 Application Notes 10
+   5.2 Books 12
 
-   5.2.1 Anixter 10
+   5.2.1 Recommended 12
 
-   5.2.2 Mohawk.com 10
+   5.2.2 Not Recommended 12
 
-   5.2.3 Microchip Corp 10
+   5.3 Application Notes 12
 
-   5.2.4 Philips 10
+   5.3.1 Anixter 12
 
-   5.2.5 Texas Instruments 10
+   5.3.2 Mohawk.com 13
 
-   5.3 Component data sheets 11
+   5.3.3 Microchip Corp 13
 
-   5.3.1 Microchip 11
+   5.3.4 ON Semiconductor 13
 
-   5.3.2 NXP Electronics (Philips) 11
+   5.3.5 Philips 13
 
-   5.3.3 STMicroelectronics 11
+   5.3.6 Texas Instruments 13
 
-   5.3.4 Texas Instruments 11
+   5.4 Component data sheets 13
 
-   5.4 Tools 11
+   5.4.1 Microchip 14
 
-   5.4.1 Microchip 12
+   5.4.2 NXP Electronics (Philips) 14
 
-   5.4.2 IXAAT 12
+   5.4.3 STMicroelectronics 14
 
-   Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. Shepherd Page 1 of 13 - 10/11/2010
+   5.4.4 Texas Instruments 14
+
+   5.5 Tools 14
+
+   5.5.1 Microchip 14
+
+   5.5.2 IXAAT 14
+
+   Copyright 2010-2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms. Page
+   1 of 11 - 6/11/2012
