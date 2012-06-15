@@ -32,23 +32,32 @@
 
     
 
-   There are two parts to this:
+   There are several parts to this:
 
     
 
-    1. A standardize set of basic information & its location in configuration space
+    1. A standardized set of basic information & its location in configuration space (called Abbreviated
+       Configuration Description Information ASCI; the ACDI acronym is confusingly like CDI, and perhaps a
+       better one is needed). This allows the information to be rapidly retrieved via the Memory
+       Configuration Protocol without first reading the entire CDI.
 
-    2. A simple CAN protocol for returning it, perhaps in addition to use of the Memory Configuration
-       Protocol
+    2. A simple CAN protocol for returning it: Simple Node Information Protocol SNIP, documented elsewhere.
 
     
 
-   Why the special protocol?  To make it even easier and faster to be retrieving this from a lot of nodes
-   at once.  Memory configuration is powerful and robust for doing complex configuration, particularly for
-   writing to nodes, but it's a little heavy-weight when doing optional reads like for this purpose.  The
-   special protocol, which doesn't involve the buffering and acknowledgements of datagrams used for Memory
-   Configuration, simplifies start-up in large networks, and makes it possible for low-capability nodes to
-   gather basic information about the entire network.
+   Why the dedicated simple protocol?  To make it even easier and faster to be retrieving this from a lot
+   of nodes at once.  Memory configuration is powerful and robust for doing complex configuration,
+   particularly for writing to nodes, but it's a little heavy-weight when doing optional reads like for
+   this purpose.  The special protocol, which doesn't involve the buffering and acknowledgements of
+   datagrams used for Memory Configuration, simplifies start-up in large networks, and makes it possible
+   for low-capability nodes to gather basic information about the entire network, even from nodes that
+   don't implement the full datagram-based Memory Configuration Protocol.
+
+    
+
+   These can be independently provided. ACDI can exist without SNIP; you just have to use Memory Config to
+   retrieve the data. SNIP can work without ACDI, with the content being stored at some random place in
+   memory.  But they work better together.
 
                                         2 Annotations to the Standard
 
@@ -62,18 +71,11 @@
 
 2.3 Reference and Context
 
-    
+   Must appear in PIP.
 
                                      3 Stuff to be merged into the above
 
-   This is a working note in which we are developing recommendations for “Abbreviated Configuration
-   Description Information” (ACDI).
-
-    
-
-    
-
-   Something like:
+   How it works
 
     
 
@@ -97,13 +99,15 @@
 
     
 
-   *) A version number, so we can extend this later
+   *) A version number, so we can extend this later: Initially 1.
 
    *) A manufacturer name
 
    *) A manufacturer-issued node type name
 
-   *) Node version? (Covers hardware and software versions)
+   *) Hardware version
+
+   *) Software version
 
     
 
@@ -113,12 +117,13 @@
 
    *) Name
 
-   *) Location
+   *) Description
 
-   (or a more general comment field? Or both?) These variable items don't have to be provided, but if they
-   are, they can be just the usual identification items that are accessible by the full configuration
-   protocol, configured by the user with the full configuration protocol, but then made available for a
-   quick read this way.
+    
+
+   These variable items don't have to be provided, but if they are, they can be just the usual
+   identification items that are accessible by the full configuration protocol, configured by the user with
+   the full configuration protocol, but then made available for a quick read this way.
 
     
 
@@ -132,7 +137,7 @@
 
     
 
-   Proposed content:
+   Content
 
     
 
@@ -148,7 +153,7 @@
 
     
 
-   The use of zero-terminated strings.
+   The use of zero-terminated strings within fixed size slots.
 
     
 
@@ -156,8 +161,6 @@
 
    (Comment provides a longer field, not computer parsed; node name is a short thing for e.g. headings,
    etc)
-
-   (String means zero terminated)
 
     
 
@@ -179,38 +182,100 @@
 
     
 
-   Later versions with higher ADCDI version numbers could contain more fields, result in more than one
+   Later versions with higher ACDI version numbers could contain more fields, result in more than one
    datagram in reply, etc. But for expansion purposes, they should be proper supersets of this.
 
     
 
-    
-
-3.1 Simple Node Identification Information
-
-   (Should this be moved to another doc?)
-
-   There is a need for something for tiny nodes, that uses a single message instead of datagrams and
-   configuration. This allows getting getting the information with a bare minimum of support at the
-   requested node end, so long as the requesting node can be sure to handle it.
+   Described in the XML as the <acdi version=”1”> element.  That's the equivalent of:
 
     
 
+   <segment origin='0' space='252'>
+
+       <group>
+
+           <name>Manufacturer Information</name>
+
+           <description>Manufacturer-provided fixed node description</description>
+
+           <string size='23'>
+
+               <name>Manufacturer Name</name>
+
+           </string>
+
+           <string size='23'>
+
+               <name>Node Type</name>
+
+           </string>
+
+           <string size='9'>
+
+               <name>Hardware Version</name>
+
+           </string>
+
+           <string size='9'>
+
+               <name>Software Version</name>
+
+           </string>
+
+        </group>
+
+   </segment>
+
     
 
-   Paragraphs for TN
+   <segment origin='0' space='251'>
+
+       <group>
+
+           <name>User Identification</name>
+
+           <description>Lets the user add his own description</description>
+
+           <string size='21'>
+
+               <name>Node Name</name>
+
+           </string>
+
+           <string size='43'>
+
+               <name>Node Description</name>
+
+           </string>
+
+       </group>
+
+   </segment>
 
     
 
-   this particular area is intended to be vague and hand wavy, based on the discussions in the NMRA DCC
-   group. Manufacturers _don't_ want to be told what to call their nodes. They want a place for a
-   "Manufacturer-issued node type" where they can put whatever "node type" name they want to. No more
-   normalization of that content than that is likely to succeed. Certainly not model number; most aren't
-   numbers but some are. Some DCC decoders don't even have model names.
+   All these work together, and have to be consistently done:
+
+     * ACDI is marked as present in PIP (requires memory-access, CDI be set too)
+
+     * Memory config has the two spaces available
+
+     * CDI carries the <acdi> element
 
     
 
-   (Include some XML for the basic information?)
+    
+
+3.1 Notes
+
+    
+
+   The definition of the manufacturer-provided information is intended to be vague and hand wavy, based on
+   the discussions in the NMRA DCC group. Manufacturers _don't_ want to be told what to call their nodes.
+   They want a place for a "Manufacturer-issued node type" where they can put whatever "node type" name
+   they want to. No more normalization of that content than that is likely to succeed. Certainly not model
+   number; most aren't numbers but some are. Some DCC decoders don't even have model names.
 
     
 
@@ -220,15 +285,13 @@
 
    Should there be a size limit (overall or just for each part) to allow buffer size calculations to be
    done in advance?  (This is tied to SNII etc; we're defining fixed locations in memory, so they have to
-   be fixed length strings.
+   be fixed length strings.)
 
     
 
     
 
-   Handling a second request while sending the first.  Directed, so CAN priority doesn't really help.  Just
-   reject (which kind) and have upstream resend the request, if you can't hold onto the request until it
-   happens again.
+    
 
     
 
@@ -246,6 +309,6 @@
 
    3 Stuff to be merged into the above
 
-   3.1 Simple Node Identification Information
+   3.1 Notes
 
     
