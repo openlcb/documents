@@ -23,6 +23,51 @@
 
    Cross-link to ACDI is important.
 
+2.4 Messages
+
+    
+
+                                             Common                             
+   Name                            Dest ID          CAN format     Data Content
+                                             MTI    
+   Simple Node Information Request Y         0x3520 0x1Edd,dsss 52              
+
+    
+
+                                           Common                                   
+   Name                          Dest ID          CAN format     Data Content
+                                           MTI    
+   Simple Node Information Reply Y         0x3530 0x1Edd,dsss 53 Content, see below 
+
+    
+
+   The Simple Node Information Reply message(s) carry a stream of bytes:
+
+     * The byte 1 to indicate a version
+
+     * A null-terminated string for manufacturer name
+
+     * A null-terminated string for node model name
+
+     * A null-terminated string for node hardware version
+
+     * A null-terminated string for node software version
+
+     * The byte 1 to indicate a version
+
+     * A null-terminated string for user-provided node name
+
+     * A null-terminated string for user-provided node description
+
+2.5 Interactions
+
+   When a node gets a Simple Node Information Request, if possible it shall reply with one or more Simple
+   Node Information Reply messages containing the node's information.  If it's not able to process the
+   information, it shall send an Optional Interaction Rejected with an appropriate error code.
+
+   It's recommended that the rejection message have the temporary-error bit set, so that the node sending
+   the original request will retry it.
+
                                                 3 Draft notes
 
    Handling a second request while sending the first.  Directed, so CAN priority doesn't really help.  Just
@@ -40,6 +85,10 @@
    2.2 Intended Use
 
    2.3 Reference and Context
+
+   2.4 Messages
+
+   2.5 Interactions
 
    3 Draft notes
 
