@@ -56,8 +56,9 @@
     
 
    These can be independently provided. ACDI can exist without SNIP; you just have to use Memory Config to
-   retrieve the data. SNIP can work without ACDI, with the content being stored at some random place in
-   memory.  But they work better together.
+   retrieve the data, but once PIP has told you ACDI is present, you know the format of (some of) the
+   CDI-described information. SNIP can work without ACDI, with the content being stored at some random
+   place in memory.  But they work better together.
 
                                         2 Annotations to the Standard
 
@@ -73,7 +74,48 @@
 
    Must appear in PIP.
 
-                                     3 Stuff to be merged into the above
+    
+
+                                             3 XML specification
+
+   The <acdi fixed=”1” var=”1”> element in the CDI XML file indicates that the ACDI is present.  The two
+   attributes indicate the version numbers of the fixed and variable information.  Only “1” is defines as
+   valid at this time; if the ACDI hasn't been read as part of reading CDI, version “1” must be assumed for
+   both.
+
+   Use of the <acdi> element is recommended, but not required. It saves space and transfer time. It's also
+   permissible for the CDI to indicate the equivalent content, which is:
+
+   <segment origin="0" space="252">
+
+   <name>Manufacturer Identification</name>
+
+   <string size=”20”><name>Manufacturer</name></string>
+
+   <string size=”20”><name>Model</name></string>
+
+   <string size=”12”><name>Hardware Version</name></string>
+
+   <string size=”12”><name>Software Version</name></string>
+
+   </segment>
+
+   <segment origin="0" space="251">
+
+   <name>User Identification</name>
+
+   <string size=”20”><name>Name</name></string>
+
+   <string size=”44”><name>Description</name></string>
+
+   </segment>
+
+   (the spaces are 0xFC and 0xFB respectively)
+
+   The name elements are not required, but the segment and string elements must be arranged so that the
+   memory arrangement is identical.
+
+                                     4 Stuff to be merged into the above
 
    How it works
 
@@ -166,6 +208,17 @@
 
    Two spaces provided for simplicity in implementation, as we imagine that some will be from a permanent
    memory and some will be user configurable.
+
+    
+
+   Memory-access has some special support for these spaces in the “Get Configuration Options” command, so
+   that you don't have to poll the spaces individually.  But you don't really need to do that anyway, as
+   (1) they have to be there once the ACDI bit is set in PIP and (2) you'll just get a zero-length reply if
+   they're not.
+
+    
+
+   Chosen to fix in a single 64-byte read operation.
 
     
 
@@ -267,7 +320,7 @@
 
     
 
-3.1 Notes
+4.1 Notes
 
     
 
@@ -307,8 +360,10 @@
 
    2.3 Reference and Context
 
-   3 Stuff to be merged into the above
+   3 XML specification
 
-   3.1 Notes
+   4 Stuff to be merged into the above
+
+   4.1 Notes
 
     
