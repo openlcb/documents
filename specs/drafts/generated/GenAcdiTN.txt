@@ -55,10 +55,18 @@
 
     
 
-   These can be independently provided. ACDI can exist without SNIP; you just have to use Memory Config to
-   retrieve the data, but once PIP has told you ACDI is present, you know the format of (some of) the
-   CDI-described information. SNIP can work without ACDI, with the content being stored at some random
-   place in memory.  But they work better together.
+   These can be independently provided. ACDI can exist without SNIP; once PIP has told you ACDI is present,
+   you know the format of (some of) the CDI-described information and can use Memory Config to retrieve the
+   basic node data quickly without reading the full CDI. SNIP can work without ACDI, with the content being
+   stored at some undefined place in memory; SNIP is ideal for nodes that don't have a full implementation
+   of Memory Configuration Protocol, at either end of the connection.  But they work better together.
+
+    
+
+   JMRI really likes the SNIP Request/Reply, because it's really fast:  One request queues up retrieval of
+   the entire thing, without having to deal with datagrams. JMRI is a big boy and can handle the large
+   reply volume.  But the config read mechanism (via individual datagrams) might be better for small nodes
+   making this request that already have the code in place to handle those.
 
                                         2 Annotations to the Standard
 
@@ -86,29 +94,69 @@
    Use of the <acdi> element is recommended, but not required. It saves space and transfer time. It's also
    permissible for the CDI to indicate the equivalent content, which is:
 
-   <segment origin="0" space="252">
+   <segment origin='0' space='252'>
 
-   <name>Manufacturer Identification</name>
+       <group>
 
-   <string size=”20”><name>Manufacturer</name></string>
+           <name>Manufacturer Information</name>
 
-   <string size=”20”><name>Model</name></string>
+           <description>Manufacturer-provided fixed node description</description>
 
-   <string size=”12”><name>Hardware Version</name></string>
+           <string size='22'>
 
-   <string size=”12”><name>Software Version</name></string>
+               <name>Manufacturer Name</name>
+
+           </string>
+
+           <string size='22'>
+
+               <name>Node Type</name>
+
+           </string>
+
+           <string size='10'>
+
+               <name>Hardware Version</name>
+
+           </string>
+
+           <string size='10'>
+
+               <name>Software Version</name>
+
+           </string>
+
+        </group>
 
    </segment>
 
-   <segment origin="0" space="251">
+    
 
-   <name>User Identification</name>
+   <segment origin='0' space='251'>
 
-   <string size=”20”><name>Name</name></string>
+       <group>
 
-   <string size=”44”><name>Description</name></string>
+           <name>User Identification</name>
+
+           <description>Lets the user add his own description</description>
+
+           <string size='21'>
+
+               <name>Node Name</name>
+
+           </string>
+
+           <string size='43'>
+
+               <name>Node Description</name>
+
+           </string>
+
+       </group>
 
    </segment>
+
+    
 
    (the spaces are 0xFC and 0xFB respectively)
 
@@ -169,13 +217,19 @@
 
     
 
-   It would be nice to keep this somewhat compact, with the most useful (in the sense of "people will want
-   to see this quickly") info at the front. Reading a full datagram (64 bytes memory-read payload) would
-   let us sample about 50 nodes in a second (idle bus), which is fine. Another factor of 4 larger might
-   start to seem slow to the user, though. The whole idea is to be able to get a view of even large
-   networks faster than a user can browse through the info on an screen. The user can then select a small
-   number of specific nodes that are interesting, pull the full CDI and work with the entire configuration
+   We want to keep this somewhat compact, with the most useful (in the sense of "people will want to see
+   this quickly") info at the front. Reading a full datagram (64 bytes memory-read payload) would let us
+   sample about 50 nodes in a second (idle bus), which is fine. Another factor of 4 larger might start to
+   seem slow to the user, though. The whole idea is to be able to get a view of even large networks faster
+   than a user can browse through the info on an screen. The user can then select a small number of
+   specific nodes that are interesting, pull the full CDI and work with the entire configuration
    information of those nodes.
+
+    
+
+   Reading an icon (e.g. image of the board) takes longer, and is therefore less vital.  That's also not
+   defined in this version of the document.  Lives in a 3rd address space (0xFA), which doesn't get any
+   special consideration in the Memory Configuration Protocol.
 
     
 
@@ -201,8 +255,8 @@
 
     
 
-   (Comment provides a longer field, not computer parsed; node name is a short thing for e.g. headings,
-   etc)
+   User comment provides a longer field, not computer parsed; node name is a short thing for e.g. headings,
+   etc.
 
     
 
@@ -218,16 +272,11 @@
 
     
 
-   Chosen to fix in a single 64-byte read operation.
+   Chosen to fix in a single 64-byte read operation from each of the spaces.
 
     
 
    Strings just concatenate with null termination. A missing value is then just a null byte.
-
-    
-
-   Could get in e.g. 30 character manufacturer, 16 character node type, 8 character version into single
-   datagram. (This is just fixed data in memory)
 
     
 
@@ -240,71 +289,7 @@
 
     
 
-   Described in the XML as the <acdi version=”1”> element.  That's the equivalent of:
-
     
-
-   <segment origin='0' space='252'>
-
-       <group>
-
-           <name>Manufacturer Information</name>
-
-           <description>Manufacturer-provided fixed node description</description>
-
-           <string size='23'>
-
-               <name>Manufacturer Name</name>
-
-           </string>
-
-           <string size='23'>
-
-               <name>Node Type</name>
-
-           </string>
-
-           <string size='9'>
-
-               <name>Hardware Version</name>
-
-           </string>
-
-           <string size='9'>
-
-               <name>Software Version</name>
-
-           </string>
-
-        </group>
-
-   </segment>
-
-    
-
-   <segment origin='0' space='251'>
-
-       <group>
-
-           <name>User Identification</name>
-
-           <description>Lets the user add his own description</description>
-
-           <string size='21'>
-
-               <name>Node Name</name>
-
-           </string>
-
-           <string size='43'>
-
-               <name>Node Description</name>
-
-           </string>
-
-       </group>
-
-   </segment>
 
     
 
@@ -335,10 +320,6 @@
    Basic information does not need to be present if this protocol is not marked; store anything you like.
 
     
-
-   Should there be a size limit (overall or just for each part) to allow buffer size calculations to be
-   done in advance?  (This is tied to SNII etc; we're defining fixed locations in memory, so they have to
-   be fixed length strings.)
 
     
 

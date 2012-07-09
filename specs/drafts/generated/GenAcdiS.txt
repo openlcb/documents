@@ -28,27 +28,13 @@
 
    Read from space 0xFC
 
-   Byte 0: ACDI version, default 1
-
-   Next: Manufacturer name as null-terminated string
-
-   Next: Manufacturer-issued node type name as null-terminated string
-
-   Next: Manufacturer-defined node hardware version, as null-terminated string
-
-   Next: Manufacturer-defined node software version, as null-terminated string
-
-   (size is up to manufacturer, as it's the whole space, recommended that it fits into a 64-byte read)
+   (See XML for layout)
 
 4.2 User-modifiable data
 
    Read from space 0xFB
 
-   Byte 0: ACDI version, default 1
-
-   Next: User provided node name as null-terminated string (20 byte limit, including null)
-
-   Next: User provided free-form comment as null-terminated string (40 byte limit, including null)
+   (See XML for layout)
 
 4.3 Icon data
 
@@ -58,38 +44,13 @@
 
                                        5 Retrieval Protocol (Normative)
 
-   Upon receipt of an addressed messages with a SNII Request MTI, the node returns a single message with a
-   SNII Reply MTI carrying the information of the two types listed above, concatenated.
-
-   On CAN, this is done via the usual mechanism of concatenated frames, with a short or empty one
-   indicating end.
-
-    
-
-                                            Common                             
-   Name        Dest ID Event ID Simple Node        CAN format     Data Content
-                                            MTI    
-   SNI Request Y       N        N           0x3520 0x1Edd,dsss 52 (none)       
-
-    
-
-    
-
-                                          Common                              
-   Name      Dest ID Event ID Simple Node        CAN format     Data Content
-                                          MTI    
-   SNI Reply Y       N        N           0x3530 0x1Edd,dsss 53 Up to 7 bytes 
-
-    
+   (references Memory Configuration Protocol; prefer but don't require single reads to pick up the
+   information, can also just get one item)
 
                                                6 Open Questions
 
    We're providing two retrieval methods:  Via the 0x3520/0x3530 MTIs, and via configuration read from
-   specific spaces. Are both needed?  Is that overly complex?  Should PIP show them separately?  JMRI
-   really likes the Request/Reply, because it's really fast:  One request queues up retrieval of the entire
-   thing, without having to deal with datagrams. JMRI is a big boy and can handle the large reply volume.
-    But the config read mechanism (via individual datagrams) might be better for small nodes making this
-   request.  Hence the desire for the two mechanisms.
+   specific spaces. Are both needed?  Is that overly complex?  Should PIP show them separately?  
 
    Should length limits on the manufacturer strings be provided? Total length?  
 
