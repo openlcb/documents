@@ -41,7 +41,7 @@
 
 2.3 References and Context
 
-   For more information on format and presentation, see:
+   For background information on format and presentation, see:
 
      * OpenLCB Common Information Technical Note
 
@@ -53,18 +53,16 @@
    This specification is in the context of the following OpenLCB-CAN Specifications:
 
      * The OpenLCB-CAN Frame Transfer Specification, which specifies transfer of OpenLCB messages over CAN
-       segments.
-
-   “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
-   11898-2:2003 and their successors.
+       segments. “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003
+       and ISO 11898-2:2003 and their successors.
 
    This specification is in the context of the following OpenLCB-TCP/IP Specifications:
 
      * The OpenLCB-TCP/IP Segment Transfer Specification, which specifies transfer of OpenLCB messages over
        TCP/IP links.
 
-   Conformance with a later version of a standard shall be accepted as conformance with the referenced
-   versions.
+   Conformance with a later version of a referenced standard shall be accepted as conformance with the
+   referenced versions.
 
 2.4 Message Format
 
@@ -92,7 +90,8 @@
    OpenLCB message and protocol types.
 
    (This is just informative, not normative; it's the actual MTI values that are normative, not how they
-   were picked)
+   were picked; what we're trying to do here is resolve documentation conflicts in advance, and it's not
+   really working)
 
    Because the MTI values are specified for each kind of message, the Standard just documents those
    results.  This section of the Technical Note addresses the method for choosing specific values.
@@ -144,8 +143,8 @@
 
    Table 1: Common MTI Layout
 
-   The “Off-segment flag” bit defines whether a message on a segment, e.g. a TCP/IP backbone link between
-   CAN gateways, should be propagated off that segment to others.  A 0 means that the message should not go
+   The “Special” bit defines whether a message on a segment, e.g. a TCP/IP backbone link between CAN
+   gateways, should be propagated off that segment to others.  A 0 means that the message should not go
    through gateways; a 1 indicates that it should.
 
    The next bit, the “Dest ID flag” in the least significant bit of the top nibble, indicates whether the
@@ -184,27 +183,31 @@
 
      * The next 5 bits, forming the low nibble, are used to indicate the specific message type within a
        priority group and taking into account the values of all the other bits.  This is the unique part
-       that's selected at the end of the process for designing a new OpenLCB protocol to ensure a unique
-       MTI.
+       that's selected during the process for designing a new OpenLCB protocol to ensure a unique MTI.
 
    The bottom nibble of the MTI is interpreted as flags that define the structure and format of the message
    type.
 
-     * The first bit in the nibble indicates this message carries a P/C Event ID field when set to 1.
+     * The first bit (MSB) in the nibble indicates this message carries a P/C Event ID field when set to 1.
        Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it is
        at a specific location in the message content, right after the destination address (if present) or
        right after the MTI (if no destination ID present).
 
-     * The three least-significant bits can be used as modifiers to the specific MTI, or (later) used to
+     * The two least-significant bits can be used as modifiers to the specific MTI, or (later) used to
        create additional MTI codes.  At present, unless used as MTI modifiers, these should be sent and
-       checked as all 1 bits, 0b111. Some MTIs have additional status bits defined as part of this field.
+       checked as all 1 bits, 0b11. Some MTIs have additional status bits defined as part of this field.
        For example, there are two status bits associated with “Consumer Identified” which must be kept in
-       the header since there is no room in the CAN data field. These can be consider as MTI modifier bits.
+       the header since there is no room in the CAN data field. These can be considered as MTI modifier
+       bits.
 
    This MTI organization allows nodes to do simple decoding of messages with MTIs that they don't
    recognize, perhaps because they were defined after the node was created.  For example, gateways can use
    this to control routing of messages that they don't understand, perhaps because they were defined after
    the gateway was developed.
+
+   The 0x0000 and 0x0001 MTI's are explicitly reserved.  0x0001 may be used in the future as part of a CAN
+   hold-off mechanism; it's a very high priority which nodes can send to delay other frames.  The all-zero
+   MTI is inevitably needed for internal flags, empty buffers, etc in software implementations.
 
     2.4.1.1 CAN MTI Considerations
 
@@ -233,11 +236,12 @@
     
 
    The 2, 3, 4, 5 (Datagram frames) and 7 (Stream Data) values are special cases chosen for efficient
-   processing of large amounts of data on CAN.  Most MTIs will map to 0 or 6.
+   processing of large amounts of data on CAN.  Most MTIs will map to 0 or 6. (Reference other docs for
+   datagram, streams)
 
       2.4.1.1.1 Addressed and Global CAN MTIs
 
-   Common MTIs with the “stream or datagram” bit unset are mapped to and from type 1.
+   MTIs with the “stream or datagram” bit unset are mapped to and from type 1.
 
    In this case, the next twelve bits of the CAN header are available for MTI information.  These carry the
    lowest-order 12 bits of the entire MTI, plus by implication the “stream or datagram” and “special” bits
@@ -313,11 +317,11 @@ Value(s) 3           0           See Table 1 MTI description                    
    Note that the priority bit in the CAN frame is separate from the static priority field in the MTI format
    specification.
 
-   Standard-header CAN frames don't carry the bits for the CAN MTI. Both hardware and software generally
-   carry these as 0 bits, and require that the user code check an “extended” flag to know whether it's
-   dealing with a standard or extended frame.  By ensuring that CAN header part of the MTI coding can never
-   be zero, we ensure that standard frames don't accidentally get interpreted as OpenLCB frames. (The
-   leading priority bit's default value of 1 can't be assumed to always be present)
+   Because of their length, standard-header CAN frames don't carry the bits for the CAN MTI. Both hardware
+   and software generally provide these as 0 bits, and require that the user code check an “extended” flag
+   to know whether it's dealing with a standard or extended frame.  By ensuring that CAN header part of the
+   MTI coding can never be zero, we ensure that standard frames don't accidentally get interpreted as
+   OpenLCB frames. (The leading priority bit's default value of 1 can't be assumed to always be present)
 
   2.4.2 Message Content
 
@@ -329,7 +333,7 @@ Value(s) 3           0           See Table 1 MTI description                    
 
      * If flagged as present, the destination Node ID
 
-     * If flagged as present, the Event ID
+     * If flagged as present, an Event ID
 
      * Any other content as defined for the specific message type
 
@@ -352,7 +356,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    A node in the Initialized state may transmit any message type.
 
    The Uninitialized state is only occupied when the node is first starting up.  This makes for a really
-   simple state machine: Just sent Initialization Complete message first thing on coming up.
+   simple state machine: Just send Initialization Complete message first thing on coming up.
 
    At present, there's no way to deliberately return to the Uninitialized state. No need for this has been
    identified.
@@ -387,7 +391,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    Name           Dest ID Event ID Simple Node        CAN format       Data Content
                                                MTI    
    Verify Node ID N       N        Y           0x28A7 0x1949,0sss      (optional) Node ID 
-                  Y       N        Y           0x30A0 0x1948,8sss fddd (optional) Node ID 
+                  Y       N                    0x30A0 0x1948,8sss fddd (optional) Node ID 
 
     
 
@@ -398,6 +402,7 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    The addressed form may include an optional NodeID. The addressed node must always reply, whether or not
    a Node ID is carried in the data, and whether there's a match when the optional Node ID is present.
+   (Why? This needs more explanation)
 
    (Should the discussion of replying be here, or under interactions? Might be better to have this section
    talk about the meaning of the Node ID, rather that about replies.)
@@ -414,7 +419,7 @@ Value(s) 3           0           See Table 1 MTI description                    
                                                  Common                                          
    Name             Dest ID Event ID Simple Node        CAN format  Data Content
                                                  MTI    
-   Verified Node ID N       N        N           0x28B7 0x1917,0sss Full Node ID of sending node 
+   Verified Node ID N       N        Y           0x28B7 0x1917,0sss Full Node ID of sending node 
 
    The node ID in the data is redundant on wire protocols that carry the full source ID, but can be very
    valuable for wire protocols that abbreviate (“alias”) the source ID within the messages, e.g. CAN.
@@ -430,7 +435,7 @@ Value(s) 3           0           See Table 1 MTI description                    
                                                      Common                                                 
    Name                 Dest ID Event ID Simple Node        CAN format       Data Content
                                                      MTI    
-   Optional Interaction Y       N        N           0x30C0 0x1906,8sss fddd MTI, error, optional           
+   Optional Interaction Y       N                    0x30C0 0x1906,8sss fddd MTI, error, optional           
    Rejected                                                                  information                    
 
     
@@ -458,7 +463,7 @@ Value(s) 3           0           See Table 1 MTI description                    
                                                        Common                                               
    Name                   Dest ID Event ID Simple Node        CAN format       Data Content
                                                        MTI    
-   Terminate Due to Error Y       N        N           0x30D0 0x19A0,8sss fddd MTI, error, optional         
+   Terminate Due to Error Y       N                    0x30D0 0x19A0,8sss fddd MTI, error, optional         
                                                                                information                  
 
     
@@ -475,7 +480,7 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    Nodes must process this message even if not all of the contents are provided.
 
-   Error codes:
+   Error codes:  (combine the errors flags into a single section)
 
    0x1000 bit: if set, this is known to be a temporary error, and the interaction can be retried.
 
@@ -526,7 +531,7 @@ Value(s) 3           0           See Table 1 MTI description                    
 
     2.7.2.3 Example: Confirming that a specific node can still be reached
 
-   If you have the necessary information (e.g. alia) use the addressed form, as it's less load on the
+   If you have the necessary information (e.g. node alias) use the addressed form, as it's less load on the
    entire system. Otherwise use the global form with the Node ID in the data.
 
   2.7.3 Error Handling
@@ -627,7 +632,8 @@ Value(s) 3           0           See Table 1 MTI description                    
    duplicate-ID node(s), resulting in additional “Duplicate Source ID detected” global events and causing a
    possible message loop. (Optionally, could allow to send again after e.g. 5 seconds)
 
-   Yes, this is level jumping, but it's the best way to do it within the existing structure.
+   Yes, this is level jumping, but it's the best way to do it within the existing structure. (reference
+   Event documents for more detail)
 
    To further improve the reliability of this detection, OpenLCB nodes should, but need not, emit a
    Verified Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that
@@ -718,7 +724,7 @@ Value(s) 3           0           See Table 1 MTI description                    
      * P/C Event Report – what they do for a living
 
    In the future, additional MTIs will be defined. If simple nodes need to received them, the MTI will
-   indicate that; see the MTI Allocation TN.
+   indicate that via the Simple bit; see previous section.
 
   3.1.3 Messages Not Received
 
@@ -779,6 +785,11 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    Expansion: PIP example.  CAN-based code looks at 1st frame.  To allow expansion, has to already look at
    first frame, reject/ignore if later frame.
+
+    
+
+   The idea of idempotent messages and replies, which simplifies protocols that can reject a message due to
+   buffer full.  (Just resend it, no book-keeping needed)
 
     
 
