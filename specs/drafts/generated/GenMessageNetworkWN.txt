@@ -115,31 +115,32 @@
    defined. For example, a gateway can determine whether a message is global or addressed to a particular
    node, even if the specific MTI was defined after the node was built.
 
-   Field Name       Size & Location mask Description                                                      
-                    2 bits                                                                                
-   Reserved                              0 (send and check)
-                    0xC000               
-                    1 bit                                                                                 
-   Off-segment flag                      0 means original-segment only, 1 should be forwarded throughout.
-                    0x2000               
-                    1 bit                                                                                 
-   Dest ID flag                          1 means Destination ID present, 0 not present
-                    0x1000               
-                    1 bit                                                                                 
-   Simple Node flag                      0 means for simple node, 1 means  not
-                    0x0800               
-                    2 bits               0 to 3                                                           
-   Static Priority                                                                                        
-                    0x0600               0 goes first, 3 last if priority processing is present           
-                    5 bits                                                                                
-   Qualifier                             See below
-                    0x01F0               
-                    1 bit                                                                                 
-   Event ID flag                         1 means Event ID present, 0 not present
-                    0x0008               
-                    3 bits                                                                                
-   Modifier bits                         Used in some MTIs; by default 0b111 sent and checked
-                    0x0007               
+   Field Name           Size & Location mask Description                                                    
+                        2 bits                                                                              
+   Reserved                                  Send and check as zero.
+                        0xC000               
+                        1 bit                0 means original-segment only, 1 should be forwarded           
+   Special flag                              throughout.                                                    
+                        0x2000               
+                        1 bit                                                                               
+   Stream or Datagram                         1 means stream or datagram, 0 means regular message.
+                        0x1000               
+                        2 bits               0 to 3                                                         
+   Static Priority                                                                                          
+                        0x0C00               0 goes first, 3 last if priority processing is present         
+                        5 bits                                                                              
+   Type Within Priority                       
+                        0x03E0               
+   Simple Node flag     1 bit                0 means for simple node, 1 means  not                          
+                        0x0010               
+   Address Present      1 bit                                                                               
+                        0x0008               
+                        1 bit                                                                               
+   Event ID flag                             1 means Event ID present, 0 not present
+                        0x0004               
+                        2 bits                                                                              
+   Modifier bits                             Used in some MTIs; by default 0b00 sent and checked
+                        0x0003               
 
    Table 1: Common MTI Layout
 
@@ -217,15 +218,15 @@
 
    After mapping into one or more CAN Frames, the standard MTIs are mapped to one of eight frame types:
 
-   Frame Type Meaning                                     
-   0          Unaddressed MTI                             
-   1          (Reserved)                                  
-   2          Datagram complete in frame                  
-   3          Datagram first frame                        
-   4          Datagram middle frame                       
-   5          Datagram final frame                        
-   6          Addressed MTI other than datagram or stream 
-   7          Stream Data                                 
+   Frame Type Meaning                    
+   0          (Reserved)                 
+   1          Global & Addressed MTI     
+   2          Datagram complete in frame 
+   3          Datagram first frame       
+   4          Datagram middle frame      
+   5          Datagram final frame       
+   6          (Reserved)                 
+   7          Stream Data                
 
    Table 2: MTI Type Values
 
@@ -234,12 +235,63 @@
    The 2, 3, 4, 5 (Datagram frames) and 7 (Stream Data) values are special cases chosen for efficient
    processing of large amounts of data on CAN.  Most MTIs will map to 0 or 6.
 
-      2.4.1.1.1 Addressed CAN MTIs
+      2.4.1.1.1 Addressed and Global CAN MTIs
 
-   Common MTIs with the “destination ID present” bit set are mapped to and from type 6.
+   Common MTIs with the “stream or datagram” bit unset are mapped to and from type 1.
 
-   In this case, the 12-bit destination alias is placed in the header, and the middle byte from the full
-   MTI (simple node flag, type, qualifier) is the first byte of the CAN frame.
+   In this case, the next twelve bits of the CAN header are available for MTI information.  These carry the
+   lowest-order 12 bits of the entire MTI, plus by implication the “stream or datagram” and “special” bits
+   as zeros.
+
+   If the “addressed” bit is set to 1, the destination address is placed in the 1st two bytes of the data
+   part of the CAN frame.  The top nibble of the 1st byte contains flags (see below); the lower nibble of
+   the 1st byte, and the entire 2nd byte contain the 12-bit destination alias from the CAN frame level
+   protocols.
+
+   The format of this in binary is
+
+   rrff dddd, dddd dddd
+
+   rr are two reserved bits.
+
+   The two ff bits can be used for packing and unpacking large messages to a sequence of CAN frames, see
+   below.  The coding is
+
+     * 00 Only frame
+
+     * 01 First frame of more than one
+
+     * 10 Last frame of more than one
+
+     * 11 Middle frame of more than 2.
+
+   You can think of these as active-zero start and end bits respectively.
+
+    
+
+                                 Static      Type     Simple Node Address     Event ID    Modifier                
+Field    CAN prefix  Frame Type  Priority    within   flag        Present     present     Bits        Source ID
+                                             Priority 
+Size &                                                                                                            
+location                                                                                              12 bits     
+(within  0x1800,0000 0x0700,0000 0x00C0,0000 0x003E,  0x0001,0000 0x0000,8000 0x0000,4000 0x0000,3000             
+29-bit                                       0000                                                     0x0000,0FFF
+CAN      
+Header)  
+                                                                                                      12-bit      
+Value(s) 3           0           See Table 1 MTI description                                          alias for   
+                                                                                                      source node 
+
+   Table 3: Unaddressed MTI CAN Header Format
+
+    
+
+      2.4.1.1.2 Datagram and Stream frame format
+
+   This format is used for frames made from Datagram and Stream Data messages, as described in the
+   specifications for those protocols, with values of 2 through 5 and 7 in the Type field respectively.
+
+   In this case, the 12-bit destination alias is placed in the header.
 
     
 
@@ -250,40 +302,11 @@
    Value(s)                                3           6           12-bit alias for 12-bit alias for source 
                                                                    destination node node                    
 
-   Table 3: Addressed MTI CAN Header Format
-
-   This format is also used for frames made from Datagram and Stream Data messages, as described in the
-   specifications for those protocols, with values of 2 through 5 and 7 in the Type field respectively.
-
-      2.4.1.1.2 Unaddressed CAN MTIs
-
-   Common MTIs with the “destination ID present” bit unset are mapped to and from type 0.
-
-   In this case, the next twelve bits of the CAN header are available for MTI information.  The first (most
-   significant) eight bits are used for the Message Number byte.  The last (least significant) four bits
-   are used for the Event ID present, the Flag Byte present flag, and any flag bits themselves.
+   Table 4: Addressed MTI CAN Header Format
 
     
 
-   Field    CAN prefix  Frame Type  Simple Node Static      Qualifier   Event ID    Flag Bits   Source ID   
-                                    flag        Priority                present     
-   Size &                                                                                                   
-   location                                                                                     12 bits     
-   (within  0x1800,0000 0x0700,0000 0x0080,0000 0x0060,0000 0x001F,0000 0x0000,8000 0x0000,7000             
-   29-bit                                                                                       0x0000,0FFF
-   CAN      
-   Header)  
-                                                                                                12-bit      
-   Value(s) 3           0           See Table 1 MTI description                                 alias for   
-                                                                                                source node 
-
-   Table 4: Unaddressed MTI CAN Header Format
-
     
-
-   Flag bit handling is used to get an extra 2 bits of data into the CAN frame, e.g. for certain messages
-   that contain an 8-byte Event ID plus some extra information.  If a common MTI has the “Flag Byte” bit
-   set, the low order two bits are moved from the data content into the two “flag bits” in the CAN header.
 
       2.4.1.1.3 CAN Notes
 
@@ -352,7 +375,7 @@
                                                         Common                               
    Name                    Dest ID Event ID Simple Node        CAN format  Data Content
                                                         MTI    
-   Initialization Complete N       N        N           0x2087 0x1808,7sss Sending Source ID 
+   Initialization Complete N       N        N           0x0100 0x1910,0sss Sending Source ID 
 
     
 
@@ -360,11 +383,11 @@
 
    Issued to determine which node(s) are present and can be reached.
 
-                                               Common                                   
-   Name           Dest ID Event ID Simple Node        CAN format     Data Content
+                                               Common                                     
+   Name           Dest ID Event ID Simple Node        CAN format       Data Content
                                                MTI    
-   Verify Node ID N       N        Y           0x28A7 0x188A,7sss    (optional) Node ID 
-                  Y       N        Y           0x30A0 0x1Edd,dsss 0A (optional) Node ID 
+   Verify Node ID N       N        Y           0x28A7 0x1949,0sss      (optional) Node ID 
+                  Y       N        Y           0x30A0 0x1948,8sss fddd (optional) Node ID 
 
     
 
@@ -391,7 +414,7 @@
                                                  Common                                          
    Name             Dest ID Event ID Simple Node        CAN format  Data Content
                                                  MTI    
-   Verified Node ID N       N        N           0x28B7 0x188B,7sss Full Node ID of sending node 
+   Verified Node ID N       N        N           0x28B7 0x1917,0sss Full Node ID of sending node 
 
    The node ID in the data is redundant on wire protocols that carry the full source ID, but can be very
    valuable for wire protocols that abbreviate (“alias”) the source ID within the messages, e.g. CAN.
@@ -405,10 +428,10 @@
     
 
                                                      Common                                                 
-   Name                 Dest ID Event ID Simple Node        CAN format     Data Content
+   Name                 Dest ID Event ID Simple Node        CAN format       Data Content
                                                      MTI    
-   Optional Interaction Y       N        N           0x30C0 0x1Edd,dsss 0C MTI, error, optional information 
-   Rejected             
+   Optional Interaction Y       N        N           0x30C0 0x1906,8sss fddd MTI, error, optional           
+   Rejected                                                                  information                    
 
     
 
@@ -433,10 +456,10 @@
   2.6.5 Terminate Due to Error
 
                                                        Common                                               
-   Name                   Dest ID Event ID Simple Node        CAN format     Data Content
+   Name                   Dest ID Event ID Simple Node        CAN format       Data Content
                                                        MTI    
-   Terminate Due to Error Y       N        N           0x30D0 0x1Edd,dsss 0D MTI, error, optional           
-                                                                             information                    
+   Terminate Due to Error Y       N        N           0x30D0 0x19A0,8sss fddd MTI, error, optional         
+                                                                               information                  
 
     
 
@@ -735,6 +758,30 @@
 
     
 
+   How do multi-frame addressed messages work if the receive buffer is full and the receiver has to discard
+   the frames?
+
+   The datagram protocol and stream protocol show how it can work. There are certainly other ways to handle
+   it too.
+
+   For example, the SNII protocol sends a short message and gets back a lot of data. Previously, those were
+   just a series of independent messages. SNII can still be like that, but it'll be better to add the
+   start-end bits to those messages so that the individual CAN frames become one long message. The node
+   that initiates the SNII exchange _knows_ that a reply is coming back, _knows_ the max size of that, so
+   should make sure that it has the buffer available (or can handle it some other way) when the large
+   message comes back.
+
+    
+
+   Need a few words about gateways: Buffer management is an issue (though not that big an issue, since a
+   CAN link can only provide 8kB/s of data in any case) Nodes should send only one fragmented message at a
+   time to reduce buffer use (though separate nodes can clearly interleave).
+
+   Expansion: PIP example.  CAN-based code looks at 1st frame.  To allow expansion, has to already look at
+   first frame, reject/ignore if later frame.
+
+    
+
    Table of Contents
 
    1 Introduction
@@ -753,9 +800,9 @@
 
    2.4.1.1 CAN MTI Considerations
 
-   2.4.1.1.1 Addressed CAN MTIs
+   2.4.1.1.1 Addressed and Global CAN MTIs
 
-   2.4.1.1.2 Unaddressed CAN MTIs
+   2.4.1.1.2 Datagram and Stream frame format
 
    2.4.1.1.3 CAN Notes
 
@@ -824,9 +871,9 @@
 
    2 The “simple node protocol” is an exception to this, which needs to be worked into this Standard.
 
-   3 For example, CAN delivers 9 or 13 bits of the MTI via each frame.
+   3 For example, CAN delivers 13 bits of the MTI via each frame (the special bit is known to be zero).
 
-   4 For example, CAN delivers 9 or 13 bits of the MTI via each frame.
+   4 For example, CAN delivers 13 bits of the MTI via each frame (the special bit is known to be zero).
 
    5 Simple nodes also have to do whatever is needed to function with their specific wire protocol, e.g.
    send CID/RID frames on CAN.
