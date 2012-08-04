@@ -4,7 +4,7 @@
 
                                                     Simple Node Information Protocol(title)
 
-                                                   Jul 17, 2012                        Preliminary          
+                                                    Aug 4, 2012                        Preliminary          
 
                                                 1 Introduction
 
@@ -13,7 +13,7 @@
    requested node end, so long as the requesting node can be sure to handle it.
 
    See the larger description in the ACDI TN, which should be copied here too. But note that SNII they can
-   exist independently, which needs to be handled too.
+   exist independently of whether ACDI is present in the node or not.
 
                                         2 Annotations to the Standard
 
@@ -47,21 +47,25 @@
 
      * The byte 1 to indicate the version of the following content
 
-     * A null-terminated string for manufacturer name
+     * A null-terminated string for manufacturer name of no more than 41 bytes including terminating null.
 
-     * A null-terminated string for node model name
+     * A null-terminated string for node model name of no more than 41 bytes including terminating null.
 
-     * A null-terminated string for node hardware version
+     * A null-terminated string for node hardware version of no more than 21 bytes including terminating
+       null.
 
-     * A null-terminated string for node software version
+     * A null-terminated string for node software version of no more than 21 bytes including terminating
+       null.
 
      * The byte 1 to indicate the version of the following content
 
-     * A null-terminated string for user-provided node name
+     * A null-terminated string for user-provided node name of no more than 63 bytes including terminating
+       null.
 
-     * A null-terminated string for user-provided node description
+     * A null-terminated string for user-provided node description of no more than 64 bytes including
+       terminating null.
 
-   The lengths of these are not defined.
+   Note that the total length, including version numbers and nulls, must be less than 253 bytes.
 
 2.5 Interactions
 
@@ -74,9 +78,16 @@
 
                                                 3 Draft notes
 
-   Handling a second request while sending the first. Directed, so CAN priority doesn't really help. Just
-   reject (which kind) and have upstream resend the request, if you can't hold onto the request until it
-   happens again.
+   Handling a second request while sending the first: If they can't be queued for later (immediate)
+   processing, the node can reply with OptionalInteractionRejected message that indicates the issue is
+   temporary, and that the request should be retried if the information is still desired.
+
+   (Setting of the first/last bits to make it a message; “because this version of the specification
+   predates the use of first/last bits”, nodes initiating a transfer must be able to handle a series of
+   reply messages)
+
+   Do nodes sending the response need to be able to resend it in response to a TerminateDueToError? This
+   might be needed is e.g. a gateway gets congested while merging frames.
 
    Table of Contents
 
@@ -97,4 +108,4 @@
    3 Draft notes 2
 
    Copyright 20112. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 2 - Jul 17, 2012
+   of 2 - Aug 4, 2012
