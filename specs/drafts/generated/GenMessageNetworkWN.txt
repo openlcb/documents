@@ -793,6 +793,58 @@ Value(s) 3           0           See Table 1 MTI description                    
 
     
 
+   Nodes shall not send short (less than 8 byte content) frames without the “last” bit active.
+
+   Because most frames are “only”, to simplify reading the MTI bytes, we've defined the first and last bits
+   as active-0.
+
+   How to handle expansion? E.g. what must nodes check?  Reject if final not active, but that isn't
+   expandable. Consider:
+
+     * first, last, expected content – handle as expected
+
+   Future expansion within the 1st frame, something already envisioned:
+
+     * first, last, expected content + more in frame – handle original content as expected
+
+   Future expansion to larger message via additional frames:
+
+     * first, not last, expected content + more in frame – handle content
+
+     * not first, not last – more content, you've already replied, ignore
+
+     * not first, last – end of more content, you've already replied, ignore
+
+   This works, but the reply or response (if any) goes back before the full set of frames has come in on
+   the wire. Nodes must be able to handle that.
+
+   (What we're trying to avoid here is nodes being required to have a buffer large enough to hold any
+   possible future expansion of the message size, because that's a burden of the future on nodes now.
+   Fixing a max size is only a partial answer to this)
+
+   (PIP or SNII could be an example here)
+
+   An alternate expansion is to just save the original info in a buffer that only holds that original
+   number of bytes, and then execute it when the final bit is received.  To enable this, we require that
+   any node send the frames of a single message consecutively, to prevent needing buffers for multiple
+   simultaneous messages.  That can still happen with multiple nodes sending.  (In theory, CAN arbitration
+   & the message structure would make it more likely that only one node would send the consecutive frames,
+   as they all have the same header; but a higher priority message from another node can start in the
+   middle of transmission, and we can't require than node implementations be fast enough to send
+   bit-sequential messages)
+
+   Gateways need to accumulate frames into single messages.  They might need a large amount of buffering
+   for this, in the limit one message buffer per CAN node being served (e.g. up to 50 or N*50 with
+   electrical repeaters).  Does there need to be a permanent restriction on the max size of that buffer?
+    Same size as datagram, which already has the issue?  Note that SNII is now described as up to a total
+   of 253 data bytes. Fifty buffers of 256 bytes is only 13kB, not so much. We've imagined that gateways
+   may be sold as “serving up to N nodes”, in case people want to do advanced things like mixing repeaters,
+   bridges and gateways. Somebody just needs to make a gateway that goes to 20*50...
+
+    
+
+    
+
    Table of Contents
 
    1 Introduction
