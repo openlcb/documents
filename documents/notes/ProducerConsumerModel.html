@@ -3,20 +3,23 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>OpenLCB Note: On Using Producer/Consumer Events</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.3  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20101010;20530100">
+	<META NAME="CHANGED" CONTENT="20120818;1584900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
 	<STYLE TYPE="text/css">
 	<!--
+		H2.cjk { font-family: "SimSun" }
 		H2.ctl { font-family: "Lucida Sans" }
-		TH P { margin-bottom: 0cm }
+		H3.cjk { font-family: "SimSun" }
 		H3.ctl { font-family: "Lucida Sans" }
+		TH P { margin-bottom: 0cm }
 	-->
 	</STYLE>
 </HEAD>
@@ -91,6 +94,28 @@ send an Event when “Set On” happens, and another that will send a
 different Event when “Set Off” happens. The lamp has two
 Consumers, one that will “Turn On” when its Event is received and
 another that will “Turn Off”.</P>
+<H2 CLASS="western">Status Events</H2>
+<P>In addition to consuming events for “Turn On” or “Turn Off”,
+it can be helpful for nodes with consumers produce events to describe
+their status.  This can simplify setup, particular if there are local
+controls involved.</P>
+<P>For example, say you have a lturnout controller that consumes “Set
+Straight” and “Set Diverging” events.  It also has a local
+input that can control the turnout, without going through the Layout
+Control Bus.    On the other side of the room you want to have to
+lamps that indicate the status of the turnout. They're connected to a
+consumer board, but what events should they consume?  If they consume
+just the commands to the turnout, they'll miss the changes when the
+turnout is commanded to change by the local input.   One solution is
+to have the turnout controller emit events that indicate “points
+moving”, “points set straight” and “points set diverging”. 
+Then the lamps can both turn off when they consume “points moving”,
+and turn back on for “points set straight” or “points set
+diverging” respectively.  This works even if the turnout is changed
+locally, ensuring that the lamps show a consistent state.  
+</P>
+<P>In general, emitting (or being able to emit) an event on <U>any</U>
+state change provides a lot of power to the Producer/Consumer method.</P>
 <H2 CLASS="western">Consumer Multiplicity vs Producer Multiplicity</H2>
 <P>P/C systems can be made even more powerful by having multiple
 Producers and/or multiple Consumers available for each operation. 
@@ -111,11 +136,19 @@ and either on or off):
 </P>
 <P><IMG SRC="../drawings/DayNightExample1.png" NAME="graphics1" ALIGN=LEFT WIDTH=390 HEIGHT=237 BORDER=0><BR CLEAR=LEFT><BR><BR>
 </P>
+<P>In the diagram above, the blue line is a “All Lights On”
+event, the black line is “All Lights Off”, the red one is “Set
+Lights to Day”, etc.</P>
 <P>It can also be done if you attach two Producers to each button, so
 you can send two Events when they are pushed, e.g. “on for on at
 night” and “on for on in daytime” to turn all on:</P>
 <P><IMG SRC="../drawings/DayNightExample21.png" NAME="graphics4" ALIGN=LEFT WIDTH=390 HEIGHT=274 BORDER=0><BR CLEAR=LEFT><BR><BR>
 </P>
+<P>This is a different approach to what the events mean.  In the 2<SUP>nd</SUP>
+diagram, the blue line is a “Turn on Day Lamp” event, the black
+is “Turn off Night Lamp”, etc,  The user gets to decide what the
+events mean when configuring the system, and that will determine what
+goes where.</P>
 <P>Because having multiple Producers and Consumers can make products
 more powerful, manufacturers may want to provide them in their
 products. How many to provide is up to them, though. A simple product
@@ -900,7 +933,7 @@ two Consumers. See table below.</P>
 <P><BR><BR>
 </P>
 <P>A much simpler solution is available when the turnout-controller
-can produce an event to indicate that it's been aligned.  Then, you
+can produce an event to indicate that it's been aligned. Then, you
 can separate the yard into parts:</P>
 <P><A HREF="../drawings/CompoundLadder.png"><IMG SRC="../drawings/CompoundLadder.png" NAME="graphics11" ALIGN=BOTTOM WIDTH=287 HEIGHT=198 BORDER=0></A></P>
 <P>For example, say that there's one node “X” controlling
