@@ -400,9 +400,10 @@ Value(s) 3           0           See Table 1 MTI description                    
    The global (unaddressed) format may include an optional NodeID.  If present, only nodes with a matching
    Node ID should reply.  If absent, all nodes should reply.
 
-   The addressed form may include an optional NodeID. The addressed node must always reply, whether or not
-   a Node ID is carried in the data, and whether there's a match when the optional Node ID is present.
-   (Why? This needs more explanation)
+   The addressed form may include an optional full NodeID in the data section. The addressed node must
+   always reply, whether or not a Node ID is carried in the data, and whether there's a match when the
+   optional Node ID is present. The optional NodeID idea just serves as documentation of the intent of the
+   request.  (Makes sense on CAN, not so much on other transports that don't use aliases).
 
    (Should the discussion of replying be here, or under interactions? Might be better to have this section
    talk about the meaning of the Node ID, rather that about replies.)
@@ -424,7 +425,12 @@ Value(s) 3           0           See Table 1 MTI description                    
    The node ID in the data is redundant on wire protocols that carry the full source ID, but can be very
    valuable for wire protocols that abbreviate (“alias”) the source ID within the messages, e.g. CAN.
 
-   (With the new format, there should be an addressed version of this)
+   (With the new format, should there be an addressed version of this? Can always send to the source
+   ID/alias of request, so will always work.)
+
+   This could have, we think, been an addressed message.  The source information on the Verify Node ID
+   request will be enough to get the Verified Node ID reply back to the originator.  Just in case, though,
+   we left it as a global which is defined to go everywhere, so routing of it can't fail.
 
   2.6.4 Optional Interaction Rejected
 
@@ -523,13 +529,21 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    For wire protocols like CAN, which require short node aliases to send messages, Verify Node ID can be
    used to get the CAN alias from a known node ID by sending the global form with the full node ID in the
-   data.  Only the desired node will reply, and it's alias will be in the source ID part of the message.
+   data.  Only the desired node will reply, that reply can be identified by the full node ID in the data
+   part of the message, and the desired node's alias will be in the source ID part of the message.
 
-    2.7.2.2 Example: Finding all nodes
+    2.7.2.2 Example: Finding a full node ID from a local alias
 
-   Send the global form with no node ID
+   For wire protocols like CAN, which require short node aliases to send messages, Verify Node ID can be
+   used to get the full node ID from a local alias by sending the addressed form to the alias.  Only the
+   desired node will reply, that reply can be identified by the known alias in the source ID part of the
+   message, and the full node ID will be in the data part of the message.
 
-    2.7.2.3 Example: Confirming that a specific node can still be reached
+    2.7.2.3 Example: Finding all nodes
+
+   Send the global form with no node ID.  
+
+    2.7.2.4 Example: Confirming that a specific node can still be reached
 
    If you have the necessary information (e.g. node alias) use the addressed form, as it's less load on the
    entire system. Otherwise use the global form with the Node ID in the data.
@@ -562,17 +576,15 @@ Value(s) 3           0           See Table 1 MTI description                    
    MTI has been allocated or not (it might have been built a while ago, with new optional protocols added
    since then), this should be rephrased. I'll add a to-do item for that too.)
 
-    
-
    Example:  A CAN node receives an addressed message with an unrecognized MTI:
 
-   1E2BEAAA 34
+   19EDCAAA 0123
 
    It replies with
 
-   1EAAA2BE 0C 13 40 20 00
+   19068123 0A AA 0E DC 20 00
 
-   The 0C indicates Reject Optional Interaction. The 13 40 is as much as can be reconstructed of the
+   The 0C indicates Reject Optional Interaction. The 0E DC is as much as can be reconstructed of the
    original MTI. Note that it includes an addressed bit set, 10 00. The 20 00 is the error code, which in
    this case indicates this is a permanent error.
 
@@ -893,9 +905,11 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    2.7.2.1 Example: Node obtaining local alias from full node ID
 
-   2.7.2.2 Example: Finding all nodes
+   2.7.2.2 Example: Finding a full node ID from a local alias
 
-   2.7.2.3 Example: Confirming that a specific node can still be reached
+   2.7.2.3 Example: Finding all nodes
+
+   2.7.2.4 Example: Confirming that a specific node can still be reached
 
    2.7.3 Error Handling
 
@@ -936,7 +950,8 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    3 For example, CAN delivers 13 bits of the MTI via each frame (the special bit is known to be zero).
 
-   4 For example, CAN delivers 13 bits of the MTI via each frame (the special bit is known to be zero).
+   4 For example, CAN delivers 14 bits of the MTI via each frame (the special bit is known to be zero and
+   the stream/datagram bit can be inferred).
 
    5 Simple nodes also have to do whatever is needed to function with their specific wire protocol, e.g.
    send CID/RID frames on CAN.
