@@ -11,7 +11,7 @@
    Message Network layer. It is responsible for ensuring the reliable transport of the CAN frames that make
    up OpenLCB-CAN messages. CAN
 
-   CANprovides reliable transport between any two nodes on a CAN segment within limitations:
+   CAN provides reliable transport between any two nodes on a CAN segment within limitations:
 
     1. Every CAN header must be unique by construction. Collisions between frames with identical headers
        and no data can result in lost frames; collisions between frames with identical headers that do
@@ -43,8 +43,7 @@
        and provides a frame-level indicator of which node sent the frame for the purposes of monitoring,
        debugging, etc (item 2).
 
-    2. Providing a destination address field in the CAN header or data-part allows a standard method of
-       addressed communications (item 3).
+    2. Providing a destination address that allows a standard method of addressed communications (item 3).
 
     3. Using a distributed algorithm to determine the value for that ID field prevents needing a single
        “manager” to provide it, thereby handling item 4.
@@ -54,7 +53,7 @@
    Further, OpenLCB-CAN is required to work with standard CAN components, e.g. bridges and computer
    adapters must not require customization to operate with OpenLCB. This forces a stringent requirement on
    protocol design, in that OpenLCB-CAN cannot require specific timing, deliberate creation of error cases
-   or specific error handling.
+   or non-standard error handling.
 
    OpenLCB-CAN is required to work without user intervention; user presets are neither required nor
    permitted.
@@ -97,13 +96,13 @@
 2.2 Intended Use
 
    The OpenLCB protocol suite uses 6-byte Node ID values, but this protocol layer could be useful in other
-   contexts too. The Standard is therefore written so that any Node ID length from 12 bits through 7*12 =
-   84 bits can be used in a straight-forward manner.
+   contexts too. The Standard is therefore written so that any Node ID length through 7*12 = 84 bits can be
+   used in a straight-forward manner.
 
 2.3 References and Context
 
    Note that the Standard references the Unique ID Standard, but only to the extent that each node is
-   required to have a unique ID as it's node ID. The Standard would work equally well with a Unique ID that
+   required to have a unique ID as its node ID. The Standard would work equally well with a Unique ID that
    was allocated via any mechanism, and with any length from 12 through 84 bits. OpenLCB uses a 48-bit
    unique ID as a node ID, which is assumed for the rest of this Technical Note.
 
@@ -121,7 +120,7 @@
     Allowing standard frames then allows the use of these bootloaders in parallel with OpenLCB-CAN.
     Similarly, CBUSiii uses standard frames, and therefore could coexist with OpenLCB on a CAN segment.
 
-   This proper-operational requirement could also have been phrased as “shall ignore ...”, but the current
+   This proper-operation requirement could also have been phrased as “shall ignore ...”, but the current
    phrasing is thought to be more exact.
 
    RTR frames are not used in the protocol because CAN semantics require a specific use for them, which has
@@ -226,8 +225,8 @@
    CAN transmissions are not atomic operations; a node can receive a frame between the time it tells the
    hardware to send a frame and the time that frame is actually sent. It's therefore possible for both
    nodes contending for the same alias value to back off and try again. The mechanism for generating the
-   next alias value to try must give different values in different nodes to prevent this from becoming a
-   permanent lock-step error.
+   next alias value to try must generate different values for different nodes to prevent this from becoming
+   a permanent lock-step error.
 
    The delay at the end of the algorithm is to ensure that higher latency nodes, such as software nodes
    working through USB convertors, can reply to CID frames from nodes that come up on a working link.
@@ -285,7 +284,7 @@
 
    In general, simple or regular nodes won't need to use this.  Those nodes don't need to keep track of the
    Node ID to alias mapping, because they simply respond to frames they receive that contain an alias.
-    They just work with the alias itself. They also don't need to track other nodes state, etc.
+    They just work with the alias itself. They also don't need to track other nodes' state, etc.
 
    In order to acquire the map between CANids and node IDs, a gateway needs to be able to send a CAN frame
    requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to return
@@ -341,7 +340,7 @@
 
    Simple leaf nodes don't keep internal mappings between full node IDs and aliases, so this transition
    will not cause any problems for them unless they are currently in communication with another node, e.g.
-   in the middle of a sequence of frames for a datagram or stream.  In that case, the the node may have to
+   in the middle of a sequence of frames for a datagram or stream.  In that case, the node may have to
    invoke higher-level error handling to cause the sequence to be retried.
 
    For example, a detachable throttle will detect that it's reattaching, reserve an alias value, and then
@@ -388,6 +387,10 @@
    Sending the PCER message is level jumping, in that such messages are defined at a much higher level in
    the protocol stack. We include it here because it allows a much cleaner set of error handling operations
    using the event producer/consumer techniques associated with OpenLCB. This decision can be revisited.
+
+   After sending the (optional) PCER message, the node has to go offline so that it doesn't interact
+   anymore until the user resets it to restart operation.  This is necessary to prevent the PCER itself
+   triggering additional messages back, resulting in a never-ending cycle.
 
    Example:  Nodes A and B are in Permitted mode with the same node IDs, but different aliases.  Some
    gateway node C requests a list of all nodes on the CAN segment:
@@ -472,11 +475,9 @@
    varying slightly with bit-stuffing.
 
    125Kbps with max-length extended header frames is about 900 frames/second. CAN is very good at running
-   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place.
-
-   CAN is designed to run at 100% usage without problem, and it's routine for CAN segments in other
-   contexts to run at 100% for extended times. Therefore, the CAN network does not require any inter-frame
-   spacing, limitations on bandwidth usage, etc; the segment can be allowed to run at 100%.
+   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place.The CAN
+   network itself does not require any inter-frame spacing, limitations on bandwidth usage, etc; the
+   segment can be allowed to run at 100%.
 
    OpenLCB requires that CAN-attached nodes be able to handle the full frame rate on the CAN bus. There is
    no guarantee that frames for a given node will arrive with non-zero time between then.
@@ -496,13 +497,10 @@
    (currently) no mechanism in OpenLCB to throttle the rate of frames arriving at a node, nor is it easy to
    create one in a CAN network. The stream and datagram protocol have been designed to allow a node to
    efficiently use a very limited amount of buffer memory, but don't provide mechanisms to limit the
-   arrival of frames in general.
-
-   Nodes must handle full rate frames, specifically including frames not addressed to them. (The datagram
-   and stream protocols provide ways for nodes to indicate whether or not they have sufficient buffering
-   for the next transmission, triggering retries as needed.) For long term reliability, a node must be able
-   to completely process an entire CAN frame in the time it takes to receive the next one, which may be as
-   little as 64 bit times, or about 500 microseconds (header only frame, carrying e.g. configuration info)
+   arrival of frames in general. Nodes must handle full rate frames, specifically including frames not
+   addressed to them. For long term reliability, a node must be able to completely process an entire CAN
+   frame in the time it takes to receive the next one, which may be as little as 64 bit times, or about 500
+   microseconds for a header only frame.
 
    Eventually OpenLCB may have to discuss use of Overload Frames to throttle for e.g. NVRAM writing, but
    various CAN hardware implementations may also be doing this already. This mechanism provides only a
@@ -521,10 +519,10 @@
 
   5.1.1 Addressing
 
-   The aliassize limits the number of unique nodes that can take part in communications on the CAN segment.
-   Because Node ID aliases are assigned independently on each CAN segment, the only issue is how many
-   different nodes are involved, not which ones they are or what pattern(s) are available in their address
-   numbers.
+   The alias size limits the number of unique nodes that can take part in communications on the CAN
+   segment. Because Node ID aliases are assigned independently on each CAN segment, the only issue is how
+   many different nodes are involved, not which ones they are or what pattern(s) are available in their
+   address numbers.
 
    For electrical/timing reasons, a segment itself can only support a maximum of about 100 nodes2, but
    communication also involves nodes off the segment. For example, chaining N CAN segments via bridges will
@@ -574,12 +572,10 @@
    the sequence generator maps those to very different values that are less likely to collide during
    arbitration.
 
-    
-
 6.1 Preferred alias generation algorithm
 
    The 12 bit alias has to be derived from a 48-bit sequence number in a way that keeps as much entropy
-   (variation; randomness) as possible.
+   (distinctiveness; randomness) as possible.
 
    The entropy starts in the node ID values, which cover a 48-bit space (albeit non-uniformly).  This
    provides an initial 48-bit value that can be mapped to a 12-bit value.
@@ -587,13 +583,12 @@
    To create a sequence of values, you want a computationally cheap way of sequencing through all those
    possible 48-bit values.  (Running through the 48-bit values and compressing each to a 12-bit alias value
    is less likely to get multiple nodes attempting the same sequence than just working through a 12-bit
-   sequence) A suitable pseudo-random number generator does exactly this; runs through full 48-bit
-   sequence; each node joins at separate point in the sequence, so the 48 bit values are unique.
+   sequence) A suitable pseudo-random number generator does exactly this: it runs through full 48-bit
+   sequence, with each node starting at separate point in the sequence, so the 48 bit values are unique.
 
-   The most computationally convenient way to create a 12-bit value, while preserving as much of the
-   randomness as possible, is to break the 48-bit value into four 12-bit values, align these, and
-   exclusive-or them.  Each bit-change in the original 48-bit number then becomes a change in the final
-   12-bit value.
+   A computationally convenient way to create a 12-bit value, while preserving as much of the randomness as
+   possible, is to break the 48-bit value into four 12-bit values, align these, and exclusive-or them.
+    Each bit-change in the original 48-bit number then becomes a change in the final 12-bit value.
 
    Sequentially numbered nodes will have initial seeds that differ only in the low bits of the PRNG output.
    For shift-register PRNGs, this can present a problem, as all bytes of the result are shifting together

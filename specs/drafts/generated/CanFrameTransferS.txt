@@ -40,8 +40,8 @@
 
    Nodes shall operate properly when the CAN segment carries overload frames.
 
-   The most-significant bit of each OpenLCB-CAN frame is reserved for future use. It must be transmitted as
-   a 1 bit, and ignored upon receipt.
+   The most-significant bit of each OpenLCB-CAN frame is reserved for future use. It shall be transmitted
+   as a 1 bit, and ignored upon receipt.
 
    The second-most-significant bit is the Frame Type indicator. A value of 0 indicates a CAN-specific
    Control Frame. A value of 1 indicates an OpenLCB Message.
@@ -89,21 +89,21 @@
 
    The format and contents of CAN-specific Control frames are defined in the following table:
 
-   Name                                Variable Field                                         Data Bytes    
-                                       MMM,NNNN,NNNN,NNNN                                                   
+   Name                              Variable Field                                           Data Bytes    
+                                     0bMMM,NNNN,NNNN,NNNN                                                   
                                                                                               
-                                       MMM is the frame sequence number, with valid values    
-   Check ID (CID) frame                from 0x7 through 0x4 or, for non-OpenLCB protocols,    None
-                                       down to 0x1.                                           
+                                     MMM is the frame sequence number, with valid values from 
+   Check ID (CID) frame              0x7 through 0x4 or, for non-OpenLCB protocols, down to   None
+                                     0x1.                                                     
                                                                                               
-                                       NNNN,NNNN,NNNN is the 12-bit Node ID section being     
-                                       checked                                                
-   Reserve ID (RID) frame              0x0700                                                 None          
-   Alias Map Definition (AMD) frame    0x0701                                                 Full Node ID  
-   Alias Mapping Enquiry (AME) frame   0x0702                                                 Full Node ID  
-   Alias Map Reset (AMR) frame         0x0703                                                 Full Node ID  
-   Reserved; may not be sent, and must All others                                             To be defined 
-   be ignored upon receipt             
+                                     NNNN,NNNN,NNNN is the 12-bit Node ID section being       
+                                     checked                                                  
+   Reserve ID (RID) frame            0x0700                                                   None          
+   Alias Map Definition (AMD) frame  0x0701                                                   Full Node ID  
+   Alias Mapping Enquiry (AME) frame 0x0702                                                   Full Node ID  
+   Alias Map Reset (AMR) frame       0x0703                                                   Full Node ID  
+   Reserved; shall not be sent, and  All others                                               To be defined 
+   shall be ignored upon receipt     
 
    Table 2: Control Frame Format
 
@@ -130,6 +130,8 @@
 
      * Transmit a Reserve ID frame (RID) with the tentative source Node ID alias value in the Source NID
        Alias field.
+
+   The alias is reserved when that sequence completes without error.
 
    The node shall restart the process at the top if, before completion of the process, a frame is received
    that carries the source Node ID alias value being testing in its source Node ID alias field.
@@ -160,8 +162,10 @@
   6.2.4 Transition to Inhibited State
 
    To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
-   Alias Map Reset frame with the node's reserved Node ID alias and Node ID. A node must end use of an
-   alias within 100 milliseconds of receiving an Alias Map Reset (AMR) frame referencing that alias.
+   Alias Map Reset frame with the node's reserved Node ID alias and Node ID.
+
+   A node shall end use of an alias within 100 milliseconds of receiving an Alias Map Reset (AMR) frame
+   referencing that alias.
 
   6.2.5 Node ID Alias Collision Handling
 
@@ -190,8 +194,8 @@
        other directly-visible indicator
 
      * if in Permitted state, may, but is not required to, emit a Producer-Consumer Event Report (PCER)
-       message with the reserved Event ID “Duplicate Node ID Detected” followed by going offline until
-       reset.
+       message with the reserved Event ID “Duplicate Node ID Detected”. If that message is emitted, the
+       node is then required to go offline until reset by the user.
 
 6.3 Node ID Alias Generation
 
@@ -201,7 +205,7 @@
    The first alias values generated by nodes of the same type with node ID values within 255 of each other
    shall not be identical.
 
-   An alias generation algorithm must ensure that when two different nodes using that alias generation
+   An alias generation algorithm shall ensure that when two different nodes using that alias generation
    algorithm generate the same alias value at two different points in their sequence, there shall be more
    than a 99% probability that the next alias values generated by the two nodes are different.
 
