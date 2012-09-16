@@ -5,7 +5,7 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  Jul 23, 2012                     PreliminaryDraft         
+                                                  Sep 16, 2012                     PreliminaryDraft         
 
                                                 1 Introduction
 
@@ -18,8 +18,11 @@
 
    The Frame Transfer layer of the OpenLCB-CAN stack lives above the CAN Physical Layer, and below the
    Message Network layer. It is responsible for ensuring the reliable transport of the CAN frames that make
-   up OpenLCB-CAN messages. CAN provides reliable transport between any two nodes on a CAN segment within
-   limitations:
+   up OpenLCB-CAN messages.
+
+   CAN
+
+   CAN provides reliable transport between any two nodes on a CAN segment within limitations:
 
     1. Every CAN header must be unique by construction. Collisions between frames with identical headers
        and no data can result in lost frames; collisions between frames with identical headers that do
@@ -45,17 +48,27 @@
     6. Nodes must be able to accept frames at the full CAN rate. Hardware filters must be usable to help
        with that, but even then nodes may receive adjacent frames addressed to them.
 
-   Putting a unique source ID field in each frame ensures that the frames are unique (item 1 above), and
-   provides a frame-level indicator of which node sent the frame for the purposes of monitoring, debugging,
-   etc (item 2). Providing a destination address field in the frame header allows a standard method of
-   addressed communications (item 43). Using a distributed algorithm to determine the value for that ID
-   field prevents needing a single “manager” to provide it, thereby handling item 4. The header bit fields
-   discussed below are organized to handle items 5 and 6. 5.
+1.1 CAN Specialization for OpenLCB
 
-   OpenLCB-CAN is required to work with standard CAN components, e.g. bridges and computer adapters must
-   not require customization to operate with OpenLCB. This provides a stringent requirement on protocol
-   design, in that OpenLCB-CAN cannot require specific timing, deliberate creation of error cases or
-   specific error handling.
+   CAN is adapted to OpenLCB use by a series of specifications which together mitigate the above
+   limitations:
+
+    1. Putting a unique source ID field in each frame ensures that the frames are unique (item 1 above),
+       and provides a frame-level indicator of which node sent the frame for the purposes of monitoring,
+       debugging, etc (item 2).
+
+    2. Providing a destination address field in the frameCAN header or data-part header allows a standard
+       method of addressed communications (item 43).
+
+    3. Using a distributed algorithm to determine the value for that ID field prevents needing a single
+       “manager” to provide it, thereby handling item 4.
+
+    4. The header bit fields discussed below are organized to handle items 5 and 6. 5.
+
+   Further, OpenLCB-CAN is required to work with standard CAN components, e.g. bridges and computer
+   adapters must not require customization to operate with OpenLCB. This providesforces a stringent
+   requirement on protocol design, in that OpenLCB-CAN cannot require specific timing, deliberate creation
+   of error cases or specific error handling.
 
    OpenLCB-CAN is required to work without user intervention; user presets are neither required nor
    permitted.
@@ -63,7 +76,7 @@
    It's desirable for OpenLCB-CAN nodes to detect duplicate (non-unique) Node IDs, but 100% reliable
    detection is not required.
 
-1.1 Load-Related Frame Synchronization
+1.2 Load-Related Frame Synchronization
 
    CAN networks exhibit a behavior called “load-related frame synchronization” (it also goes by other
    names).
@@ -76,14 +89,14 @@
    This behavior greatly increases the probability of collisions when multiple nodes attempt to send frames
    with the same header.
 
-   Consider 5 nodes each of which want to send the high-priority frames 1,...,5, plus one more node A that
-   wants to send the low priority frame 15. If all those nodes attempt to send at once, the frames will
-   arbitrate out and will be sent in the order 1,2,3,4,5,15. If another node, B, also wants to send a frame
-   15, and starts to send it at any point during that entire sequence, it will end up colliding with the 15
-   that is being sent by A.
+   For example, Cconsider 5 nodes each of which want to send the high-priority frames 1, ..., 5, plus one
+   more node A that wants to send the low priority frame 15. If all those nodes attempt to send at once,
+   the frames will arbitrate out and will be sent in the order 1, 2, 3, 4, 5, 15. If another node, B, also
+   wants to send a frame 15, and starts to send it at any point during that entire sequence, it will end up
+   colliding with the 15 that is being sent by A.
 
-   Particularly during layout startup, when lots of nodes have frames to send, this will result in an
-   unacceptable probability of error unless the protocols have been designed to have as few header
+   Particularly during layout startup, when lots ofmany nodes have frames to send, this will result in an
+   unacceptable probability of error, unless the protocols have been designed to have as few header
    collisions as possible, and absolutely no data collisions.
 
                                         2 Annotations to the Standard
@@ -118,11 +131,11 @@
 
    The Standard is silent on the uses for standard CAN (11-bit header) frames. The proper-operation
    requirement is so nodes will tolerate them in case they're needed for other purposes. The Atmel
-   bootloader^i uses standard frames, for example, and the Microchip bootloader^ii can use them. Allowing
-   standard frames then allows use of these bootloaders in parallel with OpenLCB-CAN. Similarly, CBUS^iii
-   uses standard frames, and could coexist with OpenLCB on a CAN segment.
+   bootloader^i uses standard frames, for example, and the Microchip bootloader^ii can also use them.
+   Allowing standard frames then allows the use of these bootloaders in parallel with OpenLCB-CAN.
+   Similarly, CBUS^iii uses standard frames, and therefore could coexist with OpenLCB on a CAN segment.
 
-   This proper-operation requirement could also have been phrased as “shall ignore ...”, but the current
+   This proper-operational requirement could also have been phrased as “shall ignore ...”, but the current
    phrasing is thought to be more exact.
 
    RTR frames are not used in the protocol because CAN semantics require a specific use for them, which has
@@ -199,7 +212,8 @@
 
    At the highest level, this algorithm is broadcasting the tentative alias to see if any other node is
    checking the same tentative alias. If it is in use, the algorithm tries additional ones until it finds
-   one that's available.
+   one that's available. The following considerations had to be taken into account when designing the alias
+   reservation algorithm.
 
    CAN arbitration reliably avoids collisions between frames with unique headers. It does not guarantee
    non-overlapping transmission from separate nodes of frames with identical headers and no data; if the
@@ -212,8 +226,8 @@
    If a node sends out an check frame containing just the alias, then it could expect that another node to
    complain if it has the same alias. This would work, except in the (admittedly unlikely) case where both
    nodes send out the identical check frame simultaneously. Neither would recognize a conflict and both
-   would consider that they own the same alias. Therefore, a method needs to be found that guarantees that
-   the check frame(s) are unique, even if they are sent simultaneously.
+   would consider that they own the same alias. Therefore, a method neededs to be found that guaranteeds
+   that the check frame(s) are unique, even if they are sent simultaneously.
 
    The CID/RID algorithm for finding aliases is designed to work with CAN arbitration, but without causing
    any CAN errors. During execution of the algorithm, some frames might have the same header. They
@@ -466,9 +480,10 @@
    Although useful criteria, they were omitted as too hard to comprehensively test.
 
    What's really necessary, but hard to describe in standard language, is that two separate nodes have
-   different sequences of generated numbers. If node A will try 3,4,5,6, then it's important that node B
-   try some other sequence. If B also has generates values in the sequence 3,4,5,6, the two nodes can get
-   locked to each other trying the same value, both rejecting it, and then trying the same new value.
+   different sequences of generated numbers. If node A will try 3, 4, 5, 6, … then it's important that node
+   B try some other sequence. If B also has generates values in the sequence 3, 4, 5, 6, … then the two
+   nodes can get locked to each other trying the same value, both rejecting it, and then trying the same
+   new value.
 
    Formally, if A_i is defined as a particular value in node A's sequence, B_i is defined as a particular
    value in B's sequence, then “if A_i = B_i, then A_i+1 != B_i+1 most of the time” is the important
@@ -538,7 +553,7 @@ OpenLCB Message Frame Format
 
    Short outages can be covered by CAN hardware buffering, so long as the node will eventually catch up
    even at full arrival rate. Outages long enough that frames are lost due to e.g. buffer overflow require
-   node to broadcast that it's back up if the hardware detected frames lost. This is because there could
+   a node to broadcast that it's back up if the hardware detected frames lost. This is because there could
    have been frames of some form that modified the OpenLCB node state, which are now lost (e.g. drop alias,
    CID/RID in absence, or even higher level events)
 
@@ -550,7 +565,7 @@ OpenLCB Message Frame Format
 
    Nodes must handle full rate frames, specifically including frames not addressed to them. (The datagram
    and stream protocols provide ways for nodes to indicate whether or not they have sufficient buffering
-   for the next transmission, triggering retries as needed) For long term reliability, a node must be able
+   for the next transmission, triggering retries as needed.) For long term reliability, a node must be able
    to completely process an entire CAN frame in the time it takes to receive the next one, which may be as
    little as 64 bit times, or about 500 microseconds (header only frame, carrying e.g. configuration info)
 
@@ -577,7 +592,7 @@ OpenLCB Message Frame Format
 
   5.1.1 Addressing
 
-   The Node ID size limits the number of unique nodes that can take part in communications on the CAN
+   The aliasNode ID size limits the number of unique nodes that can take part in communications on the CAN
    segment. Because Node ID aliases are assigned independently on each CAN segment, the only issue is how
    many different nodes are involved, not which ones they are or what pattern(s) are available in their
    address numbers.
@@ -594,9 +609,9 @@ OpenLCB Message Frame Format
    Finally, one can imagine connecting a few CAN segments in a start pattern to a central OpenLCB-CAN
    “backbone”, which must route the full cross-segment traffic.
 
-   In some cases, want 2 aliases (source and destination), plus a few more bits, in the 29 bits total
+   In some cases, we want two2 aliases (source and destination), plus a few more bits, in the 29 bits total
    available in the header. Using 12-bits for each address leaves 29-(2*12) = 5 bits for these purposes,
-   which seemed about right.
+   which seemed about right, and allows a maximum of 2^12, or 4096 nodes. .
 
   5.1.2 Collisions during Allocation
 
@@ -864,4 +879,4 @@ OpenLCB Message Frame Format
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
    Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. ShepherdCopyright 2011, 2012. All rights
-   reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 7/23/2012
+   reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 20 - 9/16/2012
