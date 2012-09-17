@@ -5,7 +5,7 @@
                                                                   OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                  Sep 16, 2012                     PreliminaryDraft         
+                                                  Sep 18, 2012                     PreliminaryDraft         
 
                                                 1 Introduction
 
@@ -57,7 +57,7 @@
        and provides a frame-level indicator of which node sent the frame for the purposes of monitoring,
        debugging, etc (item 2).
 
-    2. Providing a destination address field headerdata-partCAN header or framein the that allows a
+    2. Providing a destination address field in the frameCAN header or data-part header that allows a
        standard method of addressed communications (item 43).
 
     3. Using a distributed algorithm to determine the value for that ID field prevents needing a single
@@ -347,22 +347,22 @@
    The alias is only released if this node allows some other node to allocate it via CID/RID frames. The
    current node can still hang on to it if desired and reuse it with another Node ID.
 
-   The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
-   associated with the same NID, and mapping tables should be reset.
-
-   Gateways may have to obtain unique aliases for remote nodes they are proxying on to the segment.
-
-   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
-   mapping, e.g. because they need to reuse the local alias due to resource limitations in the mapping
-   tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
-   Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
-   it.
+   local alias due to resource limitations in the mapping tables, they must send a "Alias Map Reset" frame
+   to force nodes to drop their alias information. "Alias Map Reset" is a CAN-specific frame limited to the
+   segment, but all gateways on the segment must act on it.
 
    Gateways may not be able ensure permanent validity for alias to remote NIDs. For example, if they have a
    limited routing table, they may need to reuse local alias. Before reusing them, they have to send a
    "Alias Map Reset" frame to drop references to the old NID, followed by a "Alias Map Definition" when the
-   alias is allocated to a new node ID. Regular nodes won't need to do this. They stay active until they go
-   instantly offline due to e.g. power-off.
+   alias is allocated to a new node ID. the reuseto the segment.
+
+   Gateways maintain the mapping between remote node's node ID and local alias. If they need to break that
+   mapping, e.g. because they need to
+
+   Gateways may have to obtain unique aliases for remote nodes they are proxying onThe Alias Map Reset
+   frame indicates that the alias value in the source address field may no longer be associated with the
+   same NID, and mapping tables should be reset. Regular nodes won't need to do this. They stay active
+   until they go instantly offline due to e.g. power-off.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -498,9 +498,9 @@
    The sequence on the CAN bus will be clearer, and in some cases the allocation process will be faster, if
    nodes identify duplicate aliases in sequence, and just go on to the next one.
 
-OpenLCB Message Frame Format
-
    Format selected to allow filtering on destination address, see later section on filter use.
+
+OpenLCB Message Frame Format
 
                                       3 Gateways and segment management
 
@@ -522,14 +522,14 @@ OpenLCB Message Frame Format
    of local aliases directly. This prevents alias collisions between separate CAN segments, and allows very
    large OpenLCB networks, but requires more work from the gateway. It will allocate a pool of aliases
    using the conventional technique, and then assignment them to off-segment nodes as they need to
-   communicate on the segment. Many algorithms are possible for that assignment.(Talk about a bridge that's
-   OpenLCB-CAN aware, and can e.g. signal that it's time to rearbitrate, vs one that's not aware)
-
-   (Need to discuss the case of two segments being joined, to discover they've both arbitrated the same
-   aliases, including with gateways on one or both)
+   communicate on the segment. Many algorithms are possible for that assignment.
 
    Discuss the use of repeaters, bridges and gateways w.r.t. Timing; ref physical layer. Possibility of
-   reordering. Refer to glossary?
+   reordering. Refer to glossary?)Need to discuss the case of two segments being joined, to discover
+   they've both arbitrated the same aliases, including with gateways on one or both(
+
+   )Talk about a bridge that's OpenLCB-CAN aware, and can e.g. signal that it's time to rearbitrate, vs one
+   that's not aware(
 
    If/when a full NID is needed, it can be obtained by sending a "Alias Mapping Enquiry" frame with an
    appropriate Destination Node ID in local alias form. The reply will eventually come back with the Source
@@ -567,15 +567,15 @@ OpenLCB Message Frame Format
    efficiently use a very limited amount of buffer memory, but don't provide mechanisms to limit the
    arrival of frames in general.
 
-   . Nodes must handle full rate frames, specifically including frames not addressed to them.) . (The
-   datagram and stream protocols provide ways for nodes to indicate whether or not they have sufficient
-   buffering for the next transmission, triggering retries as needed For long term reliability, a node must
-   be able to completely process an entire CAN frame in the time it takes to receive the next one, which
-   may be as little as 64 bit times, or about 500 microseconds (for a header only frame
+   . Nodes must handle full rate frames, specifically including frames not addressed to them. (The datagram
+   and stream protocols provide ways for nodes to indicate whether or not they have sufficient buffering
+   for the next transmission, triggering retries as needed.) For long term reliability, a node must be able
+   to completely process an entire CAN frame in the time it takes to receive the next one, which may be as
+   little as 64 bit times, or about 500 microseconds (for a header only frame, carrying e.g. configuration
+   info)
 
    For long term reliability, a node must be able to completely process an entire CAN frame in the time it
-   takes to receive the next one, which may be as little as 42 (?) bit times (short parasitic frame).,
-   carrying e.g. configuration info).
+   takes to receive the next one, which may be as little as 42 (?) bit times (short parasitic frame)..
 
    Eventually OpenLCB may have to discuss use of Overload Frames to throttle for e.g. NVRAM writing, but
    various sets CAN hardware implementations may also be doing this already. This mechanism provides only a
@@ -743,24 +743,23 @@ OpenLCB Message Frame Format
 
    return (lfsr1 ^ lfsr2 ^ (lfsr1>>12) ^ (lfsr2>>12) )&0xFFF;
 
-   }
+   } frames that are of interest to them.
+
+   “nnn” refers to this node's alias.
+
+   The “OpenLCB format addressed to this node” filter will improperly pass some global messages with an
+   accidental match of the node alias nnn, but those would have been passed by the 3^rd filter for global
+   messages in any case.
+
+   “nnn” refers to this node's alias.
+
+   The “OpenLCB format addressed to this node” filter will improperly pass some global messages with an
+   accidental match of the node alias nnn, but those would have been passed by the 3^rd filter for global
+   messages in any case. only
 
                                             CAN Controller Filters
 
-   This coding has been generated such that simple nodes can use three hardware filters to select only
-   frames that are of interest to them.
-
-   “nnn” refers to this node's alias.
-
-   The “OpenLCB format addressed to this node” filter will improperly pass some global messages with an
-   accidental match of the node alias nnn, but those would have been passed by the 3^rd filter for global
-   messages in any case.
-
-   “nnn” refers to this node's alias.
-
-   The “OpenLCB format addressed to this node” filter will improperly pass some global messages with an
-   accidental match of the node alias nnn, but those would have been passed by the 3^rd filter for global
-   messages in any case.
+   This coding has been generated such that simple nodes can use three hardware filters to select
 
                                            7 Additional References
 
@@ -768,9 +767,8 @@ OpenLCB Message Frame Format
 
    B. Gaujal and N. Navet, “Fault confinement mechanisms on CAN: analysis and improvements”, IEEE
    Transactions on Vehicular Technology, pp.1103-1113, 54(3), May 2005 (An interesting analysis of how CAN
-   nodes react to error rates on the CAN bus by e.g. taking themselves offline, etc)
-
-   (Relevant ones from physical layer doc; Sections of Etschberger book)
+   nodes react to error rates on the CAN bus by e.g. taking themselves offline, etc)(Relevant ones from
+   physical layer doc; Sections of Etschberger book)
 
    “A 48-Bit Pseudo-Random Number Generator”, Heidi G. Kuehn, Communications of the ACM, Volume 4, Issue 8
    (August 1961), pages 350-352.
@@ -889,4 +887,4 @@ OpenLCB Message Frame Format
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
    Copyright 2010, by J. Day, D. Harris, B. Jacobsen, and A. ShepherdCopyright 2011, 2012. All rights
-   reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 9/16/2012
+   reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 13 - 9-18-2012
