@@ -141,7 +141,7 @@
    Modifier bits                             Used in some MTIs; by default 0b00 sent and checked
                         0x0003               
 
-   Table 1: Common MTI Layout
+   Table : Common MTI Layout
 
    The “Special” bit defines whether a message on a segment, e.g. a TCP/IP backbone link between CAN
    gateways, should be propagated off that segment to others.  A 0 means that the message should not go
@@ -231,7 +231,7 @@
    6          (Reserved)                 
    7          Stream Data                
 
-   Table 2: MTI Type Values
+   Table : MTI Type Values
 
     
 
@@ -286,7 +286,7 @@ Header)
 Value(s) 3           0           See Table 1 MTI description                                          alias for   
                                                                                                       source node 
 
-   Table 3: Unaddressed MTI CAN Header Format
+   Table : Unaddressed MTI CAN Header Format
 
     
 
@@ -306,7 +306,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    Value(s)                                3           6           12-bit alias for 12-bit alias for source 
                                                                    destination node node                    
 
-   Table 4: Addressed MTI CAN Header Format
+   Table : Addressed MTI CAN Header Format
 
     
 
@@ -492,6 +492,56 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    0x2000 bit: if set, this is known to be a permanent error, and the interaction must not be retried.
 
+    
+
+  2.6.6 Protocol Support Inquiry
+
+                                                         Common                             
+   Name                     Dest ID Event ID Simple Node        CAN format     Data Content
+                                                         MTI    
+   Protocol Support Inquiry Y       N        N           0x32E0 0x1Edd,dsss 2E (none)       
+
+    
+
+    
+
+  2.6.7 Protocol Support Reply
+
+    
+
+                                                 Common                                                     
+   Name             Dest ID Event ID Simple Node        CAN format     Data Content
+                                                 MTI    
+   Protocol Support                                                    Six or more bytes identifying the    
+   Reply            Y       N        N           0x32F0 0x1Edd,dsss 2F supported OpenLCB protocols; see     
+                                                                       Table immediately below for coding.  
+
+    
+
+   A 1 bit in a position indicates that the corresponding protocol is supported by the sending node. A 0
+   bit in a position indicates that the corresponding protocol is not supported by the sending node.
+
+    
+
+       vv vv vv vv vv vv Protocol                                                                        
+   0x80 00 00 00 00 00   Simple Protocol subset                                                          
+   0x40 00 00 00 00 00   Datagram Protocol                                                               
+   0x20 00 00 00 00 00   Stream Protocol                                                                 
+   0x10 00 00 00 00 00   Memory Configuration Protocol                                                   
+   0x08 00 00 00 00 00   Reservation Protocol                                                            
+   0x04 00 00 00 00 00   Event Exchange (Producer/Consumer) Protocol                                     
+   0x02 00 00 00 00 00   Identification Protocol                                                         
+   0x01 00 00 00 00 00   Teaching/Learning Configuration Protocol                                        
+   0x00 80 00 00 00 00   Remote Button Protocol                                                          
+   0x00 40 00 00 00 00   Abbreviated Default CDI Protocol                                                
+   0x00 20 00 00 00 00   Display Protocol                                                                
+   0x00 10 00 00 00 00   Simple Node Information Protocol                                                
+   0x00 08 00 00 00 00   Configuration Description Information (CDI)                                     
+   0x00 00 00 00 00 0F   Reserved. Shall be sent as 0 and ignored upon receipt.                          
+   All others            Reserved for future protocol bits. Shall be sent as 0 and ignored upon receipt. 
+
+    
+
 2.7 Interactions
 
    All nodes must be able to take part in all standard interactions.
@@ -650,6 +700,81 @@ Value(s) 3           0           See Table 1 MTI description                    
    To further improve the reliability of this detection, OpenLCB nodes should, but need not, emit a
    Verified Node ID message every 30 to 90 seconds. As an implementation detail, it's recommended that
    CAN-attached nodes use their NIDa to pick that interval so that messages don't bunch up.
+
+  2.7.5 Supported Protocol Inquiry and Response
+
+    
+
+   OpenLCB defines various optional protocols. If another node attempts to use a protocol that the target
+   node doesn't implement, there are well-defined rules for how the target node will either signal an error
+   or ignore the request.
+
+   For some uses, it's convenient to be able to tell whether a node implements a protocol before attempting
+   to use it.  The Protocol Support Inquiry and Protocol Support Reply messages define a method for doing
+   that.
+
+   To determine which protocols a node implements, a Protocol Support Inquiry message is sent to the
+   specific node. It will reply with a Protocol Support Reply message that contains six bytes of data. A
+   specific bit position has been reserved for each defined protocol. If the bit is zero or not present,
+   the protocol is not supported and requests to use it will result in a error. If present and 1, the
+   protocol is supported.
+
+   It is not necessary to use these messages to check whether an addressed protocol is supported by a node
+   before attempting to use the protocol. If it's not, the standard error handling mechanism will indicate
+   that.
+
+   These messages provides a way to check, without errors, whether the protocol is supported. Avoiding
+   errors provides a cleaner system.  Further, this method can check support for protocols that use global
+   (non-addressed messages); nodes are not permitted to return errors for global messages.
+
+   We don't explicitly reference all the protocol definitions that are associated with specific bits.
+    Implementors can find them from the protocol names, and we don't want to clog up this section of the
+   Standard with a set of references that we'll have to update continually.
+
+   The CAN messages were defined to be part of the “simple” subset.  Low-end nodes may want to implement
+   this protocol so that higher-function nodes can easily learn their limitations.
+
+   Generally, the node designer will just provide a simple fixed value for the reply. On CAN, the entire
+   frame is fixed except for the source and destination aliases.  The destination alias can be taken
+   directly from the request packet.
+
+   The requirement for messages of “six or more bytes” is to allow for future expansion.  Messages of more
+   than 6 bytes on CAN will be sent using the start/end message framing bits.
+
+   Other nodes can snoop on this interaction to learn the protocols supported by a node, without having to
+   send their own inquiry.  It's not expected that the protocols supported by a specific node will change
+   with time, although the Standard does not require that they be immutable. There's no mechanism for a
+   node to request an update if the list of supported protocols changes.
+
+   A node must promptly reply to the Inquiry message with the Reply message. On the other hand, the general
+   message standard requires that a node not supporting this protocol reply to the Inquiry message with a
+   Optional Interaction Rejected message.  Either way, a node sending a Protocol Id Inquiry message can
+   count on getting a rapid reply.
+
+   OpenLCB is big-endian, so these have been assigned from the MSB of the 1st byte.
+
+   In general, nodes using this interaction don't need to know the meaning of bits defined after the node
+   was created.  A node is looking to see whether a particular protocol is present or not so that it can
+   select what actions to take.  A newly-defined protocol isn't among the things that the node will try to
+   reason about.  This allows us to eventually extend the length of the reply in any one of several ways.
+
+   We define the bits here, rather than in the individual protocol definitions, to reduce the risk of
+   duplicate assignments. Duplicate assignments would be obvious here, but not so much when spread across
+   separate documents.
+
+   Before the CAN message start/end bits were defined, the 0x00 00 00 00 00 0F bits in the PIP reply
+   message were defined for expansion.  Nodes where to ignore any frames with one or more of those bits
+   set. That mechanism is no longer present, but some of those nodes exist, so for backwards compatibility
+   those bits are permanently reserved.
+
+   This interaction is optimal for requesting information from a single node, but not for requesting which
+   nodes on the entire network can provide a service.  Event-based methods, whether a capability is
+   announced via an event or the Identify Producer and Identify Consumer mechanism is used to find which
+   nodes can source the event that identifies the capability, may be more effective for that use case.
+
+   The information returned is intended to be considered static:  A node may request it and never have to
+   request it again, because it won't change.  (For development purposes, a node might be reprogrammed, so
+   it might be useful if configuration tools have a way to force rescan of this data)
 
 2.8 Delays and Timeouts
 
@@ -912,6 +1037,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    2.6.5 Terminate Due to Error
 
+   2.6.6 Protocol Support Inquiry
+
+   2.6.7 Protocol Support Reply
+
    2.7 Interactions
 
    2.7.1 Node Initialization
@@ -935,6 +1064,8 @@ Value(s) 3           0           See Table 1 MTI description                    
    2.7.3.3 Reject Addressed Standard Interaction Due to Error
 
    2.7.4 Duplicate Node ID Discovery
+
+   2.7.5 Supported Protocol Inquiry and Response
 
    2.8 Delays and Timeouts
 
