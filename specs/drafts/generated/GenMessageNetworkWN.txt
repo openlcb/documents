@@ -141,7 +141,7 @@
    Modifier bits                             Used in some MTIs; by default 0b00 sent and checked
                         0x0003               
 
-   Table : Common MTI Layout
+   Table 1: Common MTI Layout
 
    The “Special” bit defines whether a message on a segment, e.g. a TCP/IP backbone link between CAN
    gateways, should be propagated off that segment to others.  A 0 means that the message should not go
@@ -231,7 +231,7 @@
    6          (Reserved)                 
    7          Stream Data                
 
-   Table : MTI Type Values
+   Table 2: MTI Type Values
 
     
 
@@ -286,7 +286,7 @@ Header)
 Value(s) 3           0           See Table 1 MTI description                                          alias for   
                                                                                                       source node 
 
-   Table : Unaddressed MTI CAN Header Format
+   Table 3: Unaddressed MTI CAN Header Format
 
     
 
@@ -306,7 +306,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    Value(s)                                3           6           12-bit alias for 12-bit alias for source 
                                                                    destination node node                    
 
-   Table : Addressed MTI CAN Header Format
+   Table 4: Addressed MTI CAN Header Format
 
     
 
@@ -703,8 +703,6 @@ Value(s) 3           0           See Table 1 MTI description                    
 
   2.7.5 Supported Protocol Inquiry and Response
 
-    
-
    OpenLCB defines various optional protocols. If another node attempts to use a protocol that the target
    node doesn't implement, there are well-defined rules for how the target node will either signal an error
    or ignore the request.
@@ -886,8 +884,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 4.1 Longer MTIs
 
    On the expansion past 16 bit MTIs both for global and addressed messages. Easy to take up another byte,
-   harder to get optimal use out of it. Expansion needs to be indicated by something that's in the CAN
-   section, so use all zero.  
+   harder to get optimal use out of it. To preserve the CAN priority structure, an MTI with each of the
+   priority levels has been reserved.  Messages with one of these MTIs will treat the start of the data
+   second of the message (after the destination address et al, if present) as another byte of MTI. Nodes
+   created before the expanded MTIs need to be defined can just ignore them.
 
 4.2 Longer Messages
 
@@ -899,36 +899,31 @@ Value(s) 3           0           See Table 1 MTI description                    
    directed reply, so the requestor can ensure that the response will be processed on receipt. Label end
    with a non-full CAN frame (though Io code sends those in the middle), if needed a zero-length frame.
 
-    
-
    How do multi-frame addressed messages work if the receive buffer is full and the receiver has to discard
-   the frames?
+   the frames? There are several possible approaches. The datagram protocol and stream protocol demonstrate
+   two approaches: reject & retransmit, and negotiate a buffer in advance. There are certainly other ways
+   to handle it too.
 
-   The datagram protocol and stream protocol show how it can work. There are certainly other ways to handle
-   it too.
+   For example, the SNII protocol sends a short message and gets back a lot of data. The SNII reply uses
+   the start-end bits so that the individual CAN frames become one long message. The node that initiates
+   the SNII exchange _knows_ that a reply is coming back, _knows_ the max size of that, so should make sure
+   that it has the buffer available (or can handle it some other way) when the large message comes back.
 
-   For example, the SNII protocol sends a short message and gets back a lot of data. Previously, those were
-   just a series of independent messages. SNII can still be like that, but it'll be better to add the
-   start-end bits to those messages so that the individual CAN frames become one long message. The node
-   that initiates the SNII exchange _knows_ that a reply is coming back, _knows_ the max size of that, so
-   should make sure that it has the buffer available (or can handle it some other way) when the large
-   message comes back.
-
-    
+   A CAN node may only send higher priority frames while in the middle of sending the frames that make up a
+   long message.  It may not send messages with the same or lower priority.
 
    Need a few words about gateways: Buffer management is an issue (though not that big an issue, since a
    CAN link can only provide 8kB/s of data in any case) Nodes should send only one fragmented message at a
-   time to reduce buffer use (though separate nodes can clearly interleave).
+   time to reduce buffer use (though separate nodes can clearly interleave). This situation is greatly
+   simplified because the gateway is assembling onto single messages on the non-CAN side, and only
+   receiving single messages (no need to assemble them from pieces), so the buffer management can be
+   handled separately on the two sides.
 
    Expansion: PIP example.  CAN-based code looks at 1st frame.  To allow expansion, has to already look at
    first frame, reject/ignore if later frame.
 
-    
-
    The idea of idempotent messages and replies, which simplifies protocols that can reject a message due to
    buffer full.  (Just resend it, no book-keeping needed)
-
-    
 
    Nodes shall not send short (less than 8 byte content) frames without the “last” bit active.
 
@@ -959,8 +954,6 @@ Value(s) 3           0           See Table 1 MTI description                    
    possible future expansion of the message size, because that's a burden of the future on nodes now.
    Fixing a max size is only a partial answer to this)
 
-   (PIP or SNII could be an example here)
-
    An alternate expansion is to just save the original info in a buffer that only holds that original
    number of bytes, and then execute it when the final bit is received.  To enable this, we require that
    any node send the frames of a single message consecutively, to prevent needing buffers for multiple
@@ -972,13 +965,14 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    Gateways need to accumulate frames into single messages.  They might need a large amount of buffering
    for this, in the limit one message buffer per CAN node being served (e.g. up to 50 or N*50 with
-   electrical repeaters).  Does there need to be a permanent restriction on the max size of that buffer?
-    Same size as datagram, which already has the issue?  Note that SNII is now described as up to a total
-   of 253 data bytes. Fifty buffers of 256 bytes is only 13kB, not so much. We've imagined that gateways
-   may be sold as “serving up to N nodes”, in case people want to do advanced things like mixing repeaters,
-   bridges and gateways. Somebody just needs to make a gateway that goes to 20*50...
+   electrical repeaters).  
 
-    
+   Does there need to be a permanent restriction on the max size of a message to reduce the size of needed
+    buffers and to prevent stalling of e.g. CAN segments?  Same size as datagram, which already has the
+   issue?  Note that SNII is now described as up to a total of 253 data bytes. (SNII could also send its
+   reply as two smaller messages) Fifty buffers of 256 bytes is only 13kB, not so much. We've imagined that
+   gateways may be sold as “serving up to N nodes”, in case people want to do advanced things like mixing
+   repeaters, bridges and gateways. Somebody just needs to make a gateway that goes to 20*50...
 
    PIP request example:
 
@@ -992,6 +986,77 @@ Value(s) 3           0           See Table 1 MTI description                    
    expansion.  Instead, they can just process what they receive when they've received enough of it (e.g.
    the 1st frame in this case), and just know to skip the rest. So the Olcb* implementation does just that:
    Reply to frame with start bit set, whether or not stop bit set; ignore PIP frames without start bit set.
+
+  4.2.1 Long global messages
+
+   OpenLCB-CAN does not support global messages with data content longer than eight bytes.  This section is
+   a discussion of the reasoning behind that, and some of the ways that the restriction could be relaxed.
+
+   There are two problems:  Bits for coding start/end, and buffer management.  The bits are just a matter
+   of deciding to use MTI space.  Buffer management is harder.
+
+   In general, use of long global messages would require unbounded buffer space in the receiving nodes.
+   OpenLCB is a distributed, peer-to-peer system where an arbitrary number of nodes may chose to invoke a
+   specific function at any given time.  The huge layout case may involve hundreds of nodes doing the same
+   thing on an sensible time scale. If that involves long-global messages, their sequences of CAN frames
+   may be intermixed on the CAN bus.
+
+     * Gateways that move the long-global message onto the CAN bus can be required to send one message
+       entirely before starting another, but that doesn't help with priority-driven mixing of messages from
+       nodes directly on the CAN bus segment.
+
+     * One could restrict the design so that only one specific node on a layout can use a long-global
+       message, but that raises a number of complexities that don't currently seem worth it just to get
+       long-global messages.
+
+     * Specifying the maximum length of the long-global message helps reduce the size of the needed
+       buffers, though not their number.  This could be specified either absolutely (for all messages,
+       useful for gateways that might not understand the content of the message) or for a specific
+       long-global MTI (so that implementing end nodes can reserve the minimum size necessary).
+
+     * Rejecting messages that arrive without local buffer space makes the original global operation
+       complicated because either an addressed or global retry of the operation is likely to be complex and
+       error prone.  
+
+   There are also good alternatives:
+
+     * Manually send the large message as smaller ones, defined in the specific protocol being implemented.
+        This is ugly, because it moves a CAN limitation out into the larger OpenLCB, but it does the job
+       for now.
+
+     * Use a short global to get a reasonable-size list of relevant nodes, which are then send addressed
+       messages.  This generates more on-segment traffic because it doesn't use the multi-point nature of
+       global messages, but makes buffer management (including retries) straight-forward.
+
+   Still, if the decision was made to provide long globals, it could be done.  For buffer management, you'd
+   allow a node to reject the global message with a temporary error code.  That carries the Node ID of the
+   rejecting node (as an alias on CAN), so that originator of the request can resend the same request as an
+   addressed message to the rejecting node(s). Retries by resending the global request should be forbidden,
+   because they are likely to not converge as some other node runs short of buffers. The higher-level
+   protocol that uses this should, if possible, cue the node to expect the global so that it can reserve
+   buffer space.  Etc.
+
+   To find the space for the start/end flags, there are several options. Global messages (destination
+   present bit reset) with the Event ID present bit reset have the two modifier bits available as start-end
+   flags. (The Simple bit might also be involved in this)
+
+     * Excluding the MTIs with the 'Event ID present' bit set is a tradeoff.  By doing this, the
+       high-volume messages used to identify producers and consumers of events can fit in a single frame.
+        We could fix this by (for the 2nd time) redefining the MTIs for those messages to use higher bits
+       in the MTI. Or leave it like it is.
+
+     * Dedicating those two bits (for global messages types without event IDs) takes away some MTI space
+       for those specific types.  That's a tradeoff between future expansion (gateways knowing how to
+       handle MTIs they haven't seen yet) and number of available MTIs.  For example, the Identify Events
+       request is unlikely to ever grow to more than one frame.  Having those two bits in the MTI be
+       occupied anyway reduces the total number of possible MTIs.  But it does allow the addition of
+       longer-than 8 bytes global messages that can pass through current-production gateways.
+
+   Another approach would be to define specific MTIs for start/middle/end of long messages.  But this is
+   problematic for those messages once off the CAN bus, and if the bits for this are not specifically
+   allocated (e.g. like this proposal), it makes automatic disassembly and assembly of messages to frames
+   in gateways much harder. And it's a complete mess if e.g. another transport comes along that has a 14
+   byte limit.
 
     
 
@@ -1084,6 +1149,8 @@ Value(s) 3           0           See Table 1 MTI description                    
    4.1 Longer MTIs
 
    4.2 Longer Messages
+
+   4.2.1 Long global messages
 
     
 
