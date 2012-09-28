@@ -3,15 +3,24 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>The Role of Ethernet</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.2  (Unix)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.4  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
-	<META NAME="CHANGED" CONTENT="20100529;22102600">
+	<META NAME="CHANGED" CONTENT="20120927;22440800">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
 	<META NAME="Info 4" CONTENT="">
+	<META NAME="CHANGEDBY" CONTENT="Bob Jacobsen">
 	<META NAME="CHANGEDBY" CONTENT="David Harris">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.cjk { font-family: "SimSun" }
+		H2.ctl { font-family: "Lucida Sans" }
+		H3.cjk { font-family: "SimSun" }
+		H3.ctl { font-family: "Lucida Sans" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Note: The Role of Ethernet</H1>
@@ -38,8 +47,8 @@ e.g. Bonjour (a form of ZeroConf) and similar standard protocols.
 Some recommendations here would improve interoperability of
 implementing devices.</P>
 <P>The rest of this note is where we develop that.</P>
-<H2>Environment of Proposal</H2>
-<H3>Requirements</H3>
+<H2 CLASS="western">Environment of Proposal</H2>
+<H3 CLASS="western">Requirements</H3>
 <UL>
 	<LI><P>Only use well-known, publicly available, commonly implemented
 	protocols</P>
@@ -49,13 +58,13 @@ implementing devices.</P>
 	<LI><P>UDP/IP is not a sufficiently reliable protocol for use with
 	PCs.</P>
 </UL>
-<H3>Preferences</H3>
+<H3 CLASS="western">Preferences</H3>
 <UL>
 	<LI><P>Must be straightforward to implement in low cost, low
 	capability devices</P>
 	<LI><P>Conformance must be testable with reasonable infrastructure.</P>
 </UL>
-<H3>Design Choices</H3>
+<H3 CLASS="western">Design Choices</H3>
 <UL>
 	<LI><P>Use Bonjour/Zeroconf to provide DNS and IP address assignment
 	in the absence of any other network infrastructure, e.g. when
@@ -63,28 +72,28 @@ implementing devices.</P>
 	<LI><P>Use Bonjour/Zeroconf to advertise and access services.</P>
 	<LI><P>Use TCP/IP instead of UDP/IP.</P>
 </UL>
-<H2>Discussion</H2>
+<H2 CLASS="western">Discussion</H2>
 <P>In the following, “node” means an OpenLCB node with a native
-Ethernet connection.  This node might be e.g. a gateway to an entire
+Ethernet connection. This node might be e.g. a gateway to an entire
 CAN segment, but that doesn't matter to this discussion.</P>
-<P>Two types of connections are provided:  “point-to-point” and
+<P>Two types of connections are provided: “point-to-point” and
 “hub-and-spoke”.</P>
 <P>In “point-to-point”, two nodes are connected by a direct
-TCP/IP connection.  This works fine for e.g. two nodes, but using
-only point-to-point connections doesn't scale well.  If there are 10
-nodes present, each has to maintain 9 TCP/IP sessions, which is
-rapidly becoming impractical. On the other hand, it's the simplest
-possible TCP/IP code.</P>
+TCP/IP connection. This works fine for e.g. two nodes, but using only
+point-to-point connections doesn't scale well. If there are 10 nodes
+present, each has to maintain 9 TCP/IP sessions, which is rapidly
+becoming impractical. On the other hand, it's the simplest possible
+TCP/IP code.</P>
 <P>In the “hub-and-spoke” connection, one node acts as a “hub”
-and all others connect to it as “spokes”.  Each spoke node sends
+and all others connect to it as “spokes”. Each spoke node sends
 traffic to the hub, and the hub then forwards it to the N-2 other
 nodes.</P>
-<H3>Protocol</H3>
+<H3 CLASS="western">Protocol</H3>
 <P>When a node comes up, it enquires for a “_openlcb-hub._tcp.local.”
 service. If found, connect to it.</P>
 <P>If not found, and if the node can be a hub (it's not required that
 all nodes be able to do that), it configures itself to act as a hub
-and advertises the “_openlcb-hub._tcp.local.” service.  Since all
+and advertises the “_openlcb-hub._tcp.local.” service. Since all
 that takes time, it then checks again for <U>another</U> node
 advertising to be a hub. If found, it drops back to connecting to
 that and removes its service if the connection succeeds.</P>
@@ -92,6 +101,14 @@ that and removes its service if the connection succeeds.</P>
 “_openlcb-node._tcp.local.”. Then, check for any other node(s)
 advertising as “_openlcb-node._tcp.local.” and connect to as many
 as possible of the ones that are found.</P>
+<H3 CLASS="western">CAN-based Protocol</H3>
+<P>We have also used a protocol where GridConnect-format CAN frames
+are directly sent back and forth to an Arduino node, which places
+them on the CAN bus.  This is essentially an Ethernet-CAN replacement
+for the popular USB-CAN adapters.  These advertise themselves as
+“_openlcb-can._tcp.” protocol, by convention on port 12021.</P>
+<P><BR><BR>
+</P>
 <HR>
 <P>Site hosted by <FONT COLOR="#000080">
 <A HREF="http://sourceforge.net/projects/openlcb"><FONT COLOR="#000080"><IMG SRC="http://sflogo.sourceforge.net/sflogo.php?group_id=286373&amp;type=13" NAME="graphics1" ALIGN=ABSMIDDLE WIDTH=120 HEIGHT=30 BORDER=2></FONT></A></FONT>
