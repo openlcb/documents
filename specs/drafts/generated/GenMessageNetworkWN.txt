@@ -147,36 +147,24 @@
    gateways, should be propagated off that segment to others.  A 0 means that the message should not go
    through gateways; a 1 indicates that it should.
 
-   The next bit, the “Dest ID flag” in the least significant bit of the top nibble, indicates whether the
-   message carries a destination address (1) or does not carry a destination address (0). These are also
-   referred to as “addressed” or “global” messages respectively.
+   The next bit, the “Stream or Datagram” bit, is set to indicate that this MTI is the data part of the
+   stream or datagram protocols (defined elsewhere).  For efficiency sake, these are handled in a special
+   way on CAN and perhaps other wire protocols; this bit makes it easy to identify these MTIs.
 
-   Global messages shall be delivered to all nodes.2
-
-   Addressed messages shall be delivered to the node in their destination node ID.  They may, but need not,
-   be delivered to other nodes.
-
-   The contents of the top nibble is still under development.  Note that there are only four values
-   currently defined as useful: 2 and 3 for unaddressed and addressed general purpose messages that will
-   route to any CAN network; and 0 and 1 for unaddressed and addressed messages that are not propagated to
-   CAN networks.  In the future, we may want to change this nibble from bit coding to value coding but
-   those specific values (and very likely the Dest ID flag bit) will be preserved. Values 4-15 or the top 2
-   bits are not currently used and available for the future.
+   The contents of the top nibble is still under development.  Note that there are only a few values
+   currently defined as useful: 0 and 1 for messages that will route to any CAN network; and 2 for messages
+   that are not propagated to CAN networks.  In the future, we may want to change this nibble from bit
+   coding to value coding but those specific values will be preserved. Values 3-15 or the top 2 bits are
+   not currently used and available for the future.
 
    The next eight bits form a specific message type number. This has substructure:
 
-     * The top bit “Simple Node flag” is used to indicate messages meant for “simple” or minimal nodes. A 1
-       in this bit means that these simple nodes can ignore this message. A 0 in this bit means that the
-       simple nodes must process the message. See the section ??? below for more information. This bit is
-       reserved to 0 for all addressed message types, as a message specifically delivered to a node should
-       be processed.
-
-     * The next two bits are used to form static priority groups. A 0 bit is considered to have more
-       priority (can be processed first), a 1 bit less priority (can be processed later). The MSB makes a
-       larger statement about priority than the LSB of these two. Priority processing is permitted but not
-       required. This is included to allow protocol designers to ensure that CAN frame reordering (which,
-       although not always present, is a normal part of CAN that must be considered) won't result in
-       problems for communications.
+     * The most-significant two bits are used to form static priority groups. A 0 bit is considered to have
+       more priority (can be processed first), a 1 bit less priority (can be processed later). The MSB
+       makes a larger statement about priority than the LSB of these two. Priority processing is permitted
+       but not required. This is included to allow protocol designers to ensure that CAN frame reordering
+       (which, although not always present, is a normal part of CAN that must be considered) won't result
+       in problems for communications.
 
    The priority mechanism may or may not work outside the priority field; MTIs should be chosen to work in
    either case.
@@ -185,13 +173,26 @@
        priority group and taking into account the values of all the other bits.  This is the unique part
        that's selected during the process for designing a new OpenLCB protocol to ensure a unique MTI.
 
+     * The least significant bit “Simple Node flag” is used to indicate messages meant for “simple” or
+       minimal nodes. A 1 in this bit means that these simple nodes can ignore this message. A 0 in this
+       bit means that the simple nodes must process the message. See the section ??? below for more
+       information. This bit is reserved to 0 for all addressed message types, as a message specifically
+       delivered to a node should be processed.
+
    The bottom nibble of the MTI is interpreted as flags that define the structure and format of the message
    type.
 
-     * The first bit (MSB) in the nibble indicates this message carries a P/C Event ID field when set to 1.
-       Setting 0 means that the message does not carry a P/C event ID. If a P/C Event ID is present, it is
-       at a specific location in the message content, right after the destination address (if present) or
-       right after the MTI (if no destination ID present).
+     * The most significant bit, the “Address Present” flag, indicates whether the message carries a
+       destination address (1) or does not carry a destination address (0). These are also referred to as
+       “addressed” or “global” messages respectively.
+
+   Global messages shall be delivered to all nodes.2
+
+   Addressed messages shall be delivered to the node in their destination node ID.  They may, but need not,
+   be delivered to other nodes.The first bit (MSB) in the nibble indicates this message carries a P/C Event
+   ID field when set to 1. Setting 0 means that the message does not carry a P/C event ID. If a P/C Event
+   ID is present, it is at a specific location in the message content, right after the destination address
+   (if present) or right after the MTI (if no destination ID present).
 
      * The two least-significant bits can be used as modifiers to the specific MTI, or (later) used to
        create additional MTI codes.  At present, unless used as MTI modifiers, these should be sent and
