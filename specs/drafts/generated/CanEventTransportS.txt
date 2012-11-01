@@ -4,11 +4,20 @@
 
                                          2 Intended Use (Informative)
 
+   Event messages are meant to implement a general and flexible messaging between nodes, following the
+   principles of the Producer-Consumer model as used in Control System Designi.  This information is
+   carried by an event number, which in of itself does not have any explicit information.  Instead the
+   event number is assigned by the user to one specific concept, such as a specific LED lighting, or a more
+   abstract concept, such as the “start of the day” or “global stop”.   This concept can then be
+   implemented by a number of nodes, called consumer nodes, and triggered by a number of other nodes called
+   producer nodes.  
+
                                      3 References and Context (Normative)
 
    This specification is in the context of the following OpenLCB-CAN Specifications:
 
-   The OpenLCB Message Network Specification, which specifies …
+   The OpenLCB Message Network Specification, which defines the basic messages and how they interact.
+   Higher-level protocols are based on this message network, but are defined elsewhere.
 
    The OpenLCB Node Identifier Specification, which specifies …
 
@@ -28,9 +37,38 @@
 
     
 
-   “EventID with mask” relies on low order 0 or 1 bits...
+   “EventID with mask” relies on low order 0 or 1 bits to specify the active sense of the effective masking
+   operation.  If the lowest bit is a '0', then all low order contiguous '0' bits will form a mask, while
+   if the lowest bit is a '1', then the low order contiguous '1' bits will form the mask.  
 
-    
+   [[[To TN: For example, the event-mask 0xABCD0000 would form the range 0xABCD0000-ABCDFFFF, since the
+   first significant '1' bit is the first low bit of the 'D' hexdigit.  Similarly, the event-mask
+   0xFEDCBFFF would form the range 0xFEDC8000-FEDCBFFF, since 0xB = 0b1011, and the lowest significant '0'
+   bit is in the 3rd digit.    The smallest ranges are specified by 0xyyyyyyyE, which specifies a range of
+   0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives
+   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, 0x00000003 gives
+   0x00000000-0x00000003
+
+   Event-Mask Effective Mask Bits #   Resulting Range       
+   0x00000001 0xFFFFFFFE     1    2   0x00000000-0x00000001 
+   0x00000002 0xFFFFFFFE     1    2   0x00000002-0x00000003 
+   0x00000003 0xFFFFFFFC     2    4   0x00000000-0x00000003 
+   0x00000004 0xFFFFFFFC     2    4   0x00000004-0x00000007 
+   0x00000005 0xFFFFFFFE     2    4   0x00000004-0x00000005 
+   0x00ABCDEF 0xFFFFFFF0     4    16  0x00ABCDE0-0x00ABCDEF 
+   0x00ABCDF0 0xFFFFFFF0     4    16  0x00ABCDF0-0x00ABCDFF 
+   0x00ABCDE0 0xFFFFFFE0     5    32  0x00ABCDE0-0x00ABCDFF 
+   0x0000FFFF 0xFFFF0000     16   65k 0x00000000-0x0000FFFF 
+   0xABCD0000 0xFFFF0000     16   65k 0xABCD0000-0xABCDFFFF 
+   0xFFFF0000 0xFFFF0000     16   65k 0xFFFF0000-0xFFFFFFFF 
+
+   ]]]
+
+                                   5 Producer/Consumer Event Report (PCER)
+
+   This message transports an Event-number from one or more producer node(s) to zero or more unspecified
+   consumer nodes.  Gateways can route this to segments with nodes expressing interest by processing the
+   other event messages.  
 
                                                                Common                          
    Name                           Dest ID Event ID Simple Node        CAN format  Data Content
@@ -39,16 +77,20 @@
 
     
 
-    
+                                             6 Identify Consumer
+
+   This message is broadcast and requests every node to report if they consume this event ID.  
 
                                                   Common                          
    Name              Dest ID Event ID Simple Node        CAN format  Data Content
                                                   MTI    
    Identify Consumer N       Y        N           0x0000 0x1800,0sss Event ID     
 
-    
+                                            7 Consumer Identified
 
-    
+   This message is broadcast, in response to a received Identify Consumer message, from each node that
+   consumes the included event ID.  This is one of the messages that allows bridges to do automatic routing
+   of event messages.  
 
                                                     Common                          
    Name                Dest ID Event ID Simple Node        CAN format  Data Content
@@ -57,7 +99,11 @@
 
     
 
-    
+                                         8 Consumer Range Identified
+
+   This message broadcasts, in response to a received Identify Consumer message, from each node that
+   consumes event is in the range specified by the included event-ID-with-mask..  This is one of the
+   messages that allows bridges to do automatic routing of event messages.     
 
                                                           Common                                
    Name                      Dest ID Event ID Simple Node        CAN format  Data Content
@@ -66,7 +112,9 @@
 
     
 
-    
+                                             9 Identify Producer
+
+   This message is broadcast and requests every node to report whether they produce this event ID.  
 
                                                   Common                          
    Name              Dest ID Event ID Simple Node        CAN format  Data Content
@@ -75,7 +123,11 @@
 
     
 
-    
+                                            10 Producer Identified
+
+   This message is broadcast, in response to a received Identify Producer message, from each node that
+   produces the included event ID.  This is one of the messages that allows bridges to do automatic routing
+   of event messages.  
 
                                                     Common                          
    Name                Dest ID Event ID Simple Node        CAN format  Data Content
@@ -84,7 +136,11 @@
 
     
 
-    
+                                         11 Producer Range Identified
+
+   This message broadcasts, in response to a received Identify Producer message, from each node that
+   produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
+   that allows bridges to do automatic routing of event messages.
 
                                                           Common                                
    Name                      Dest ID Event ID Simple Node        CAN format  Data Content
@@ -93,7 +149,12 @@
 
     
 
-    
+                                              12 Identify Events
+
+   The two forms of this message are sent to request that the specified nodes report all the events they
+   produce or consume.  These reports can be ether Identified messages specifying individual event IDs or
+   ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
+   addressed message to a specific node  
 
                                                 Common                             
    Name            Dest ID Event ID Simple Node        CAN format     Data Content
@@ -107,7 +168,7 @@
 
    Two forms of identify events; recommendation on uses for global form
 
-                                          5 Interactions (Normative)
+                                         13 Interactions (Normative)
 
     
 
@@ -130,6 +191,25 @@
 
    4 Message Formats (Normative)
 
-   5 Interactions (Normative)
+   5 Producer/Consumer Event Report (PCER)
+
+   6 Identify Consumer
+
+   7 Consumer Identified
+
+   8 Consumer Range Identified
+
+   9 Identify Producer
+
+   10 Producer Identified
+
+   11 Producer Range Identified
+
+   12 Identify Events
+
+   13 Interactions (Normative)
 
     
+
+   i The Producer/Consumer Model and Control System Design ControlLogix 1999
+   https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
