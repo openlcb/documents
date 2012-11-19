@@ -234,7 +234,7 @@
    6          (Reserved)                 
    7          Stream Data                
 
-   Table 2: MTI Type Values
+   Table : MTI Type Values
 
     
 
@@ -784,7 +784,33 @@ Value(s) 3           0           See Table 1 MTI description                    
    request it again, because it won't change.  (For development purposes, a node might be reprogrammed, so
    it might be useful if configuration tools have a way to force rescan of this data)
 
-2.8 Delays and Timeouts
+2.8 Routing
+
+   All messages can be, but don't have to be, presented to every node for processing.
+
+   All components that forward messages may, but are not required to, forward every message.  They are
+   required to forward addressed messages in such way that the message arrives at the addressed node, and
+   that messages to that node preserve order within a given priority, and that a lower priority message
+   never passes a higher priority message.
+
+   Unless specific arrangements are made within a specific protocol, all components that forward messages
+   are required to forward unaddressed (global) messages in such a way that the messages arrive at every
+   node.  (The simple node protocol provides an example of a specific arrangement for not forwarding some
+   messages)
+
+   Global messages must be presented to and acted upon by the node sending them.  For example, a message
+   that requires global replies from all notes with a certain condition must result in a reply message from
+   the original sending node if that condition is true for that node.  (This enables passive condition
+   monitoring by other nodes on the network)
+
+   (Need to talk about buffering here.  Switching between transports is a routing issue, and has to be done
+   right, although much of it will be specified in data-link level standards)
+
+   CAN implementations must send the frames of a message together to reduce buffering.  Although
+   higher-priority messages can be sent in the middle of a lower-priority message, there are only N
+   priority levels, so receives only need to provide N buffers per node to reassemble CAN messages.
+
+2.9 Delays and Timeouts
 
    Nodes shall send messages required by OpenLCB protocols within 750 msec unless otherwise indicated in
    the documentation for the specific protocol interaction.
@@ -889,9 +915,17 @@ Value(s) 3           0           See Table 1 MTI description                    
        tools, but an individual consumer does not need to know which (if any) nodes are producing its
        consumed events.
 
-                                                 4 Expansion
+                                             4 Gateway Processing
 
-4.1 Longer MTIs
+   Idea is to gather all the info on gateway processing here; TN-level discussion of distributed data-link
+   level state machines (CAN alias handling at the remote side of the gateway); routing of global and
+   addressed traffic; desire to have addressed traffic optionally throughout the network for snooper
+   support; distributed routing based on InitializationComplete messages identifying location; handling of
+   nodes that move from segment to segment e.g. throttles.
+
+                                                 5 Expansion
+
+5.1 Longer MTIs
 
    On the expansion past 16 bit MTIs both for global and addressed messages. Easy to take up another byte,
    harder to get optimal use out of it. To preserve the CAN priority structure, an MTI with each of the
@@ -899,7 +933,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    second of the message (after the destination address et al, if present) as another byte of MTI. Nodes
    created before the expanded MTIs need to be defined can just ignore them.
 
-4.2 Longer Messages
+5.2 Longer Messages
 
    Longer than 8-byte global, 7-byte addressed messages don't fit in a single frame.  Discuss mechanism.
     Includes issues of guaranteed place for global to land in a node, e.g. memory management. (Spare frame
@@ -997,7 +1031,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    the 1st frame in this case), and just know to skip the rest. So the Olcb* implementation does just that:
    Reply to frame with start bit set, whether or not stop bit set; ignore PIP frames without start bit set.
 
-  4.2.1 Long global messages
+  5.2.1 Long global messages
 
    OpenLCB-CAN does not support global messages with data content longer than eight bytes.  This section is
    a discussion of the reasoning behind that, and some of the ways that the restriction could be relaxed.
@@ -1142,7 +1176,9 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    2.7.5 Supported Protocol Inquiry and Response
 
-   2.8 Delays and Timeouts
+   2.8 Routing
+
+   2.9 Delays and Timeouts
 
    3 Simple Node Protocol Subset
 
@@ -1154,13 +1190,15 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    3.1.3 Messages Not Received
 
-   4 Expansion
+   4 Gateway Processing
 
-   4.1 Longer MTIs
+   5 Expansion
 
-   4.2 Longer Messages
+   5.1 Longer MTIs
 
-   4.2.1 Long global messages
+   5.2 Longer Messages
+
+   5.2.1 Long global messages
 
     
 
