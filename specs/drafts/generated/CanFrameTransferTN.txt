@@ -50,21 +50,19 @@
 
     4. The header bit fields discussed below are organized to handle item 5.
 
-   Further, OpenLCB-CAN is required to work with standard CAN components, e.g. bridges and computer
-   adapters must not require customization to operate with OpenLCB. This forces a stringent requirement on
-   protocol design, in that OpenLCB-CAN cannot require specific timing, deliberate creation of error cases
-   or non-standard error handling.
+   Further, OpenLCB-CAN is required to work with standard CAN components (e.g., interface chips, bridges,
+     computer adapters).  These standard components must not require customization to operate with OpenLCB.
+    This forces a stringent requirement on protocol design, in that OpenLCB-CAN cannot require specific
+   timing, deliberate creation of error cases or non-standard error handling.  
 
-   OpenLCB-CAN is required to work without user intervention; user presets are neither required nor
-   permitted.
+   OpenLCB-CAN is required to work without user intervention; user presets are not required for the CAN
+   frame communications layer to work. The Node ID that's needed for communications is required to be
+   pre-configured into the node.
 
    It's desirable for OpenLCB-CAN nodes to detect duplicate (non-unique) Node IDs, but 100% reliable
    detection is not required.
 
-1.2 Load-Related Frame Synchronization
-
-   CAN networks exhibit a behavior called “load-related frame synchronization” (it also goes by other
-   names).
+1.2 CAN collisions in loaded networks
 
    Because of the CAN priority arbitration structure, the network can run at high utilization rates. Under
    those circumstances, all nodes attempt to send their highest-priority frame, and the node with the
@@ -144,21 +142,21 @@
    inserting a dominant bit on the line after the fifth consecutive recessive bit, and removing it at the
    receiver.
 
-   The CAN format has been allocated on nibble boundaries to make it easier to e.g. read dumps of packets.
-   The header is considered to be right (LSB) aligned.
+   The CAN format has been allocated on nibble boundaries to make it easier to read dumps of packets. The
+   header is considered to be right (LSB) aligned.
 
-   The reserved most-significant bit (MSB) is likely to be used as a priority-boost bit in the future, e.g.
-   so that a gateway can gain priority access to the CAN segment for various operations that require
-   synchronization or atomicity. CAN encodes “do first” priority as 0 and “do later” as 1, so the Standard
-   requires that a 1 bit be sent. To preserve the utility of this, nodes must not require either a 1 nor 0
-   on receipt. It is therefore not available as a protocol expansion bit.
+   The reserved most-significant bit (MSB) is likely to be used as a priority-boost bit in the future, for
+   example so that a gateway can gain priority access to the CAN segment for various operations that
+   require synchronization or atomicity. CAN encodes “do first” priority as 0 and “do later” as 1, so the
+   Standard requires that a 1 bit be sent. To preserve the utility of this, nodes must not require either a
+   1 nor 0 on receipt. It is therefore not available as a protocol expansion bit.
 
    The second-most-significant bit (0x0800,0000) when 0 indicates that the frame is for local control on
    the CAN segment.  Those frames should never leave the CAN segment. When 1, it indicates that the frame
    is carrying OpenLCB message traffic, which can leave the CAN segment to proceed to the rest of the
    network; see the message-level documentation for more information on that.
 
-   The order of the header fields is chosen to get proper priority and access disambiguation via CAN's
+   The order of the header fields was chosen to get proper priority and access disambiguation via CAN's
    standard mechanisms.
 
 2.5 States
@@ -171,11 +169,11 @@
    If a node fails, it should restart in the Inhibited state. In general, this state transition is not
    visible to other nodes until the failed node starts communicating.
 
-   Designers of nodes that maintain alias pools, e.g. gateways, need to carefully consider to what extent
-   the state applies to the entire node, and to what extent it applies to each individual alias in the
-   gateway pool. Anything that transmits OpenLCB frames on CAN needs to have an alias and have gone to
-   Permitted state using that particular alias.  It can acquire and stock-pile other aliases for later use,
-   putting them into Permitted state either immediately or at some later time.
+   Designers of nodes that maintain alias pools, for example in gateways, need to carefully consider to
+   what extent the state applies to the entire node, and to what extent it applies to each individual alias
+   in the gateway pool. Anything that transmits OpenLCB frames on CAN needs to have an alias and have gone
+   to Permitted state using that particular alias.  It can acquire and stock-pile other aliases for later
+   use, putting them into Permitted state either immediately or at some later time.
 
 2.6 CAN-specific Control Frames and Interactions
 
@@ -206,7 +204,7 @@
    eventually signal an error if two packets with the same header and different data payloads collide, but
    not all CAN interface hardware provides reliable indications about why that error occurred.
 
-   If a node sends out an check frame containing just the alias, then it could expect that another node to
+   If a node sends out a check frame containing just the alias, then it could expect that another node to
    complain if it has the same alias. This would work, except in the (admittedly unlikely) case where both
    nodes send out the identical check frame simultaneously. Neither would recognize a conflict and both
    would consider that they own the same alias. Therefore, a method needed to be found that guaranteed that
@@ -268,12 +266,13 @@
 
     2.6.2.2 Transition to Permitted State
 
-   Note that there is no requirement that the node's alias value be consistent from one run to the next.
+   Note that there is no requirement that the node's alias value be consistent from one power-up reset to
+   the next.
 
    The Alias Mapping Enquiry provides a mechanism for determining which alias is associated with each Node
-   ID.  This can be used when e.g. a new node attaches and needs the information.  Operating nodes can also
-   track this information by watching CAN segment traffic, without having to use the Alias Mapping Enquiry
-   protocol.
+   ID.  This can be used when a new node attaches and needs the information.  Operating nodes can also
+   track this information by watching CAN segment traffic for control frames, without having to use the
+   Alias Mapping Enquiry protocol.
 
     2.6.2.3 Node ID Alias validation
 
@@ -282,9 +281,10 @@
    segments that are already in operation, or a monitor node who wants to determine that all nodes have
    come up properly.
 
-   In general, simple or regular nodes won't need to use this.  Those nodes don't need to keep track of the
-   Node ID to alias mapping, because they simply respond to frames they receive that contain an alias.
-    They just work with the alias itself. They also don't need to track other nodes' state, etc.
+   In general, simple or regular nodes won't need to do node alias validation.  Those nodes don't need to
+   keep track of the Node ID to alias mapping, because they simply respond to frames they receive that
+   contain an alias.  They just work with the alias itself. They also don't need to track other nodes'
+   state, etc.
 
    In order to acquire the map between CANids and node IDs, a gateway needs to be able to send a CAN frame
    requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to return
@@ -305,7 +305,8 @@
    reachable.
 
    The alias is only released if this node allows some other node to allocate it via CID/RID frames.  The
-   current node can still hang on to it if desired and reuse it with another Node ID.
+   current node can still hang on to it if desired, for example to reuse it with another Node ID, by
+   replying to CID/RID frames from another node attempting to reserve it.
 
    Gateways have to obtain unique aliases for remote nodes they are proxying onto the segment. Gateways
    maintain the mapping between remote node's node ID and the local alias. If they need to break that
@@ -429,11 +430,11 @@
 
    Although useful criteria, they were omitted as too hard to comprehensively test.
 
-   What's really necessary, but hard to describe in standard language, is that two separate nodes have
-   different sequences of generated numbers.  If node A will try 3, 4, 5, 6, … then it's important that
-   node B try some other sequence. If B also  generates values in the sequence 3, 4, 5, 6, … then the two
-   nodes can get locked to each other trying the same value, both rejecting it, and then trying the same
-   new value.
+   What's really necessary, but hard to describe in standard language, is that two separate nodes need to
+   have different sequences of generated numbers.  If node A will try 3, 4, 5, 6, … then it's important
+   that node B try some other sequence. If B also  generates values in the sequence 3, 4, 5, 6, … then the
+   two nodes can get locked to each other trying the same value, both rejecting it, and then trying the
+   same new value.
 
    Formally, if Ai is defined as a particular value in node A's sequence, Bi is defined as a particular
    value in B's sequence, then “if Ai = Bi, then Ai+1 != Bi+1 most of the time” is the important condition.
@@ -455,16 +456,15 @@
    operation, OpenLCB-CAN frames can be transported through those bridges unchanged. While the bridge is
    active, the alias negotiation system will work properly.  If a bridge is inactive, e.g. the two segments
    are separate, while nodes are coming up and allocating their aliases, it's possible that duplicate
-   aliases will be allocated.  The best practice up bringing up the CAN bridge hardware before bringing up
-   the nodes prevents duplicate assignment.  If duplicates are assigned, e.g. due to bringing up a bridge
-   between active CAN segments, the nodes will discover the duplicates on their first transmission, and
-   will rectify the situation using the procedure defined in the “Node ID Alias Collision Handling”
-   section.
+   aliases will be allocated.  Bringing up the CAN bridge hardware before bringing up the nodes prevents
+   duplicate assignment.  If duplicates are assigned, e.g. due to bringing up a bridge between active CAN
+   segments, the nodes will discover the duplicates on their first transmission, and will rectify the
+   situation using the procedure defined in the “Node ID Alias Collision Handling” section.
 
    Higher-capability bridges, and gateways to non-CAN OpenLCB networks, will want to handle the assignment
    of local aliases directly.  This prevents alias collisions between separate CAN segments, and allows
    very large OpenLCB networks, but requires more work from the gateway.  It will allocate a pool of
-   aliases using the conventional technique, and then assignment them to off-segment nodes as they need to
+   aliases using the conventional technique, and then assign them to off-segment nodes as they need to
    communicate on the segment.  Many algorithms are possible for that assignment.
 
    If/when a full NID is needed, it can be obtained by sending a "Alias Mapping Enquiry" frame with an
@@ -711,7 +711,7 @@
 
    1.1 CAN Specialization for OpenLCB
 
-   1.2 Load-Related Frame Synchronization
+   1.2 CAN collisions in loaded networks
 
    2 Annotations to the Standard
 
