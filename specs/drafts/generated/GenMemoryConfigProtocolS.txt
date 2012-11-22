@@ -98,11 +98,11 @@ Read-Reply      0x1     ReadReply/Write (1  (2 bits)        (4 bytes) bytes)    
                                             
                         Reserved (2 bits)   
                         Stream/Datagram (1                                                                      
-                        bit) = 0                                                             
-                                            Address Space   Address   {Space} (1 Count (1
-Read            0x1     ReadReply/Write (1  (2 bits)        (4 bytes) bytes)     byte)                    
-                        bit) = 0            
-                                            
+                        bit) = 0                                                 Count (1    
+                                            Address Space   Address   {Space} (1 byte, most  
+Read            0x1     ReadReply/Write (1  (2 bits)        (4 bytes) bytes)     significant              
+                        bit) = 0                                                 bit         
+                                                                                 reserved)
                         Reserved (2 bits)   
                         Stream/Datagram (1                                                                      
 Read Stream     0x1     bit) = 1            Address Space   Address   {Space} (1 Count (4    Stream       
@@ -173,7 +173,8 @@ Reserved        0x2     0xB-0xF             Reserved (2                       
    datagram with an data length of zero.
 
    In general, a read reply may provide less than the requested data, but always at least one byte if it's
-   a valid read.
+   a valid read. The maximum read request is 64 bytes when reading via datagrams. When reading via streams,
+   any length up to 0xFF,FF,FF,FF (4GB-1) can be requested; a length of 0x0 means “read forever”.
 
     4.1.4.2 Get Configuration Options Reply
 
@@ -312,7 +313,8 @@ Reserved        0x2     0xB-0xF             Reserved (2                       
 
     4.1.4.7 Indicate
 
-   (This is likely to move to a separate protocol)
+   (This is likely to move to a separate protocol; note that “indicate” and “ident” are completely
+   different things, with “ident” in a separate protocol already)
 
    This command tells the board to somehow identify itself to the user, for example by flashing a LED or
    operating it's outputs. This allows the user to be absolutely sure that he's configuring the correct
