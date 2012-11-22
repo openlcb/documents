@@ -9,7 +9,7 @@
 
    The Frame Transfer layer of the OpenLCB-CAN stack lives above the CAN Physical Layer, and below the
    Message Network layer. It is responsible for ensuring the reliable transport of the CAN frames that make
-   up OpenLCB-CAN messages. CAN
+   up OpenLCB-CAN messages.
 
    CAN provides reliable transport between any two nodes on a CAN segment within limitations:
 
@@ -51,7 +51,7 @@
     4. The header bit fields discussed below are organized to handle item 5.
 
    Further, OpenLCB-CAN is required to work with standard CAN components (e.g., interface chips, bridges,
-     computer adapters).  These standard components must not require customization to operate with OpenLCB.
+   computer adapters).  These standard components must not require customization to operate with OpenLCB.
     This forces a stringent requirement on protocol design, in that OpenLCB-CAN cannot require specific
    timing, deliberate creation of error cases or non-standard error handling.  
 
@@ -114,26 +114,23 @@
 
    The Standard is silent on the uses for standard CAN (11-bit header) frames. The proper-operation
    requirement is so nodes will tolerate them in case they're needed for other purposes. The Atmel
-   bootloaderi uses standard frames, for example, and the Microchip bootloaderii can also use them.
+   bootloader1 uses standard frames, for example, and the Microchip bootloader2 can also use them.
     Allowing standard frames then allows the use of these bootloaders in parallel with OpenLCB-CAN.
-    Similarly, CBUSiii uses standard frames, and therefore could coexist with OpenLCB on a CAN segment.
+    Similarly, CBUS3 uses standard frames, and therefore could coexist with OpenLCB on a CAN segment.
 
    This proper-operation requirement could also have been phrased as “shall ignore ...”, but the current
    phrasing is thought to be more exact.
 
    RTR frames are not used in the protocol because CAN semantics require a specific use for them, which has
    been built into some silicon implementations. There are also some arbitration issues, see: CiA
-   Application Note 802 (2005)1 and http://www.thecanmancan.com/?tag=rtr for more information.
+   Application Note 802 (2005)4 and http://www.thecanmancan.com/?tag=rtr for more information.
 
    A CAN node can emit an overload frame when “Due to internal conditions, the node is not yet able to
    begin reception of the next (frame). A node may generate a maximum of two sequential overload frames to
-   delay the start of the next (frame).” (That's 17 to 23 extra bit times each) (from
-   http://rs232-rs485.blogspot.com/2009/11/can-bus-message-frames-overload.html) Image:
-   http://3.bp.blogspot.com/_ycHwJEosotY/SvoMDJMGF7I/AAAAAAAAA64/3Ql4_UQnoBg/s1600/Overload%2BFrame.JPG
-
-   The protocol does not specify transmission of overload frames because not all CAN controller hardware
-   can deliberately send them. We require that nodes be able to handle them because some CAN controller
-   hardware will occasionally send them automatically.
+   delay the start of the next (frame).” Those frames are 17 to 23 extra bit times each.5 The protocol does
+   not specify transmission of overload frames because not all CAN controller hardware can deliberately
+   send them. We require that nodes be able to handle them because some CAN controller hardware will
+   occasionally send them automatically.
 
    People will occasionally refer to a restriction against having seven 1 bits in the top 11 bits of the
    CAN header. There is no such restriction, and the statements are the result of a misunderstanding. There
@@ -171,9 +168,10 @@
 
    Designers of nodes that maintain alias pools, for example in gateways, need to carefully consider to
    what extent the state applies to the entire node, and to what extent it applies to each individual alias
-   in the gateway pool. Anything that transmits OpenLCB frames on CAN needs to have an alias and have gone
-   to Permitted state using that particular alias.  It can acquire and stock-pile other aliases for later
-   use, putting them into Permitted state either immediately or at some later time.
+   in the gateway pool. Anything that transmits OpenLCB frames on CAN needs to have reserved an alias and
+   have transitioned to Permitted state by transmitting an Alias Map Definition frame using that particular
+   alias.  It can acquire and stock-pile other aliases for later use, putting them into Permitted state
+   either immediately or at some later time.
 
 2.6 CAN-specific Control Frames and Interactions
 
@@ -317,6 +315,14 @@
 
    Regular nodes won't need to do this. They stay active until they go instantly offline due to e.g.
    power-off.
+
+   When a node goes to inhibited state or releases an alias by sending an Alias Map Reset frame, that's
+   telling other nodes that it can no longer be reached by using that alias.  The last paragraph in this
+   section of the Standard gives the node receiving the Alias Map Reset 100msec to finish processing and
+   stop using the alias.  If it still needs to send messages to the node that sent the Alias Map Reset, the
+   receiving node can attempt to reacquire a new alias via an Alias Map Enquire frame or higher-level
+   message(s).  If the alias has changed, that will work, but if the sending node has transitioned to
+   Inhibited state there will be no reply to the attempt to obtain the new alias.
 
     2.6.2.5 Node ID Alias Collision Handling
 
@@ -526,7 +532,7 @@
    many different nodes are involved, not which ones they are or what pattern(s) are available in their
    address numbers.
 
-   For electrical/timing reasons, a segment itself can only support a maximum of about 100 nodes2, but
+   For electrical/timing reasons, a segment itself can only support a maximum of about 100 nodes6, but
    communication also involves nodes off the segment. For example, chaining N CAN segments via bridges will
    generally make up to 100*N nodes available. We have a use case of chaining small numbers of CAN segments
    together, implying the need to address 500 or 1000 nodes.
@@ -623,7 +629,7 @@
    values and XORing them together.  This preserves the information content of every bit in the final
    result.
 
-  6.1.3 Example C implementationiv
+  6.1.3 Example C implementation7
 
    The PRNG state is stored in two 32-bit quantities:
 
@@ -767,7 +773,7 @@
 
    6.1.2 Preferred PRNG to node ID alias mapping
 
-   6.1.3 Example C implementationiv
+   6.1.3 Example C implementation7
 
    7 Additional References
 
@@ -775,21 +781,23 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 See http://www.can-cia.org/
+   1 See Atmel application note “AVR076: AVR® CAN - 4K Boot Loader”
+   http://www.atmel.com:80/dyn/resources/prod_documents/doc8247.pdf
 
-   2 The OpenLCB-CAN Physical Layer Standard says in its Intended Use section uses 50 nodes as an expected
+   2 See Microchip application note “AN247 A CAN Bootloader for PIC18F CAN Microcontrollers”
+   http://ww1.microchip.com/downloads/en/AppNotes/00247a.pdf
+
+   3 See http://www.merg.org.uk/resources/lcb.html
+
+   4 See http://www.can-cia.org/
+
+   5 See http://rs232-rs485.blogspot.com/2009/11/can-bus-message-frames-overload.html
+
+   6 The OpenLCB-CAN Physical Layer Standard says in its Intended Use section uses 50 nodes as an expected
    size. This is merely an informative statement of expectations, however, and some layouts will no doubt
    exceed that.  We use the larger number 100 here to avoid placing any stronger limitation on what can be
    achieved electrically.
 
-   i See Atmel application note “AVR076: AVR® CAN - 4K Boot Loader”
-   http://www.atmel.com:80/dyn/resources/prod_documents/doc8247.pdf
-
-   ii See Microchip application note “AN247 A CAN Bootloader for PIC18F CAN Microcontrollers”
-   http://ww1.microchip.com/downloads/en/AppNotes/00247a.pdf
-
-   iii See http://www.merg.org.uk/resources/lcb.html
-
-   iv The code in this section is from the OpenLCB C sample implementation available at
+   7 The code in this section is from the OpenLCB C sample implementation available at
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/  The specific code is available at
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp

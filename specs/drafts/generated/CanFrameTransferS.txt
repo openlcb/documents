@@ -175,8 +175,8 @@
    To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
    Alias Map Reset frame with the node's reserved Node ID alias and Node ID.
 
-   A node shall end use of an alias within 100 milliseconds of receiving an Alias Map Reset (AMR) frame
-   referencing that alias.
+   If a node receives an Alias Map Reset (AMR) frame referencing an alias for another node, the receiving
+   node shall stop using that alias to refer to the AMR-sending node within 100 milliseconds.
 
   6.2.5 Node ID Alias Collision Handling
 
@@ -204,10 +204,13 @@
      * may, but is not required to, signal the user that duplicate Node ID values exist using a other
        directly-visible indicator
 
-     * if in Permitted state, may, but is not required to, emit a Producer-Consumer Event Report (PCER)
-       message with the reserved Event ID “Duplicate Node ID Detected”. If that message is emitted, the
-       node is then required to not send any more CAN frames on the OpenLCB-CAN link until reset by the
-       user.
+     * if in Permitted state, may, but is not required to, notify other nodes of the condition by
+       transmitting the CAN frame
+
+   [195B4sss] 01.01.00.00.00.00.02.01
+
+   where 'sss' is the current alias of the transmitting node2. If that frame is emitted, the node is then
+   required to not send any more CAN frames on the OpenLCB-CAN link until reset by the user.
 
 6.3 Node ID Alias Generation
 
@@ -265,3 +268,7 @@
    1 See the Common Information OpenLCB Technical Note for detailed conventions on bit and byte numbering.
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
+
+   2 This message  a Producer-Consumer Event Report (PCER) message with the reserved Event ID “Duplicate
+   Node ID Detected”. More information is available in the OpenLCB Event Transport Standard and associated
+   documentation.
