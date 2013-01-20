@@ -29,6 +29,23 @@
 
    A few examples....
 
+   A particular PCER may be produced in response to physical input or state change on a layout, for example
+   a contact closure or the activation of a block occupancy detector, or it can be in response to a
+   non-physical change such as the arrival of a certain time,.  The same PCER can be produced by several
+   different state changes.  That PCER may result in some action at consumers.   The term 'event' includes
+   the state changes, the PCER message, and the resulting actions, and represent a specific idea or
+   concept, such as “Night has fallen”.  
+
+    
+
+   For example, the concept of  an “Emergency stop” event might include the actions of turning off track
+   power, turning on a fault-indicator, and sounding a buzzer.  The PCER may be produced by any of: a panic
+   button, a throttle button, a over-current detector, or an anticollision system.  
+
+   The aforementioned “Night has fallen” event might be triggered by a fast-clock time, a toggle switch, or
+   a control program, and its actions might include illuminating street lights, house lights, and the
+   dimming of overhead lighting.  
+
 2.3 References and Context
 
     For more information on format and presentation, see:
@@ -86,7 +103,7 @@
    during operation, it might want to determine the correct value of the distributed state. Producers can,
    but don't always, know that state.  For example, consider “On” and “Off” events for a light.  There
    might be two producers attached to toggle switch. In that case, one of them will still see their state
-   as current, and will reply with valid. Alternately, the two produces might be set to produce when two
+   as current, and will reply with valid. Alternately, the two producers might be set to produce when two
    separate pushbuttons are pressed.  In that case, at some later time neither producer knows whether the
    distributed state corresponds to its event. They both have to report as unknown. Consumers can also know
    the state.  The lamp controller that consumes the “On” and “Off” probably knows whether it's currently
@@ -116,13 +133,13 @@
 
    An example would be a fast clock node that sends a range of events to indicate the time. Since there are
    24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.  That could be expressed
-   in 17 bits, so if the range was start with an event ID of 0x12.34.56.78.00.00.00.00, the range could be
-   expressed as  0x12.34.56.78.00.01.FF.FF  using 1 bits to represent the mask.  If the range had to start
-   at  0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits would not properly represent the mask because
-    0x12.34.56.78.FF.FF.FF.FF is actually a different range. Using a 0 bit for the mask would work, giving
-    0x12.34.56.78.FF.FE.00.00 as the representation.
+   in 17 bits, so if the range was to start with an event ID of 0x12.34.56.78.00.00.00.00, the range could
+   be expressed as  0x12.34.56.78.00.01.FF.FF  using 1 bits to represent the mask.  If the range had to
+   start at  0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits would not properly represent the mask
+   because  0x12.34.56.78.FF.FF.FF.FF is actually a different range. Using a 0 bit for the mask would work,
+   giving  0x12.34.56.78.FF.FE.00.00 as the representation.
 
-   This message broadcasts, in response to a received Identify Producer message, from each node that
+   This message is broadcast, in response to a received Identify Producer message, from each node that
    produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
    that allows bridges to do automatic routing of event messages.
 
@@ -130,57 +147,64 @@
 
    Two forms of identify events; recommendation on uses for global form
 
+   In some cases, the node may want to query a specific node as to whether id produces that event, in these
+   case the directed form is appropriate.  In other cases, the node producing the Identify Event will not
+   know if any node uses that event, and therefore the global form is the more appropriate choice.  Be
+   aware that since this latter form is transmitted throughout the network, it can be relatively expensive
+   in terms of bandwidth.  
+
 2.5 States
 
-   After the IC message is sent, and before any corresponding Producer/Consumer Event Report messages are
-   sent, the node must identify all events produced or consumed on the board via zero or more Identify
-   Consumers, Identify Consumed Range, Identify Producers and Identify Consumed Range messages. These are
-   not required to be in any particular order.
+   After the IC message is sent, but before any  Producer/Consumer Event Report messages are sent, each
+   node must identify all events produced or consumed  via zero or more Identify Consumers, Identify
+   Consumed Range, Identify Producers and Identify Consumed Range messages. These are not required to be in
+   any particular order.
 
 2.6 Interactions
 
-   Nothing prevents extra IdentifyX messages. Nothing prevents combining replies to multiple requests.
-    This allows simplified implementations, for example setting a bit to indicate that a reply can be sent
-   when time/priority is available.
+   Nothing prevents extra Identify messages. Nothing prevents combining replies to multiple requests.  This
+   allows simplified implementations, for example setting a bit to indicate that a reply can be sent when
+   time/priority is available.
 
    You can sent identify/identified for automatically routed messages.  Well-known messages require
    response; there's no exemption for those.
 
-   You can query a state when you come up with the request-id message. Conflicting states can happen, and
-   have to be addressed.
+   [[?? You can query a state when you come up with the request-id message. Conflicting states can happen,
+   and have to be addressed.]]  State can be constructed from the received Identify messages and their
+   “valid”, “invalid”, “unknown” subforms.  It is possible that these will result in conflicting state, and
+   this should be recorded as unknown.  
 
-   Note that the state machine resets with the Initialiation Complete message, not the lower level link
-   (CAN or other) state machine.
+   Note that the state machine associated with these messages is reset by  the Initialiation Complete
+   message, and not by any  lower level link (CAN or other) state machine.
 
    Delay in sending the PI/PRI or CI/CRI messages after IC is OK, but there's no delivery guarantee for
-   this nodes events until those have been sent.  
+   this node's events until those have been sent.  
 
    When a node changes the events it manages, it still needs to emit the PI/PRI and/or CI/CRI messages.
     For example, reconfiguration could cause this.  It can be handled by sending individual messages, or by
-   resetting and sending them all as part of that.
+   resetting and sending them all as part of that process.
 
    There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending IC
-   again says that all are not interesting though).  This could be added, but it's much harder for gateways
-   to decide an Event ID is not interesting than that it is, because they have to keep a list of all the
-   node IDs that are interested and back that off.  Better to just let that the set of interesting event
-   IDs grow until the layout or gateway is reset.
+   again says that all events are not interesting, though).  This could be added, but it's much harder for
+   gateways to decide that an Event ID is not interesting than that it is interesting, because they have to
+   keep a list of all the node IDs that are interested,and back that off.  Better to just let  the set of
+   interesting event IDs grow until the layout or gateway is reset.
 
    To ensure that event messages are properly routed, nodes must announce when they start to produce or
    consume messages. Specifically, they must do this at two times:
 
-     * When the node is first initialized and the "Initialization Complete" message has been sent.
+     * When the node is first initialized, after  the "Initialization Complete" message has been sent.
 
-     * When a configuration change has added an event ID that can be produced or consumed.
+     * When a configuration change has added an new event ID that can be produced or consumed.
 
-   To announce new Event IDs being consumed, the node must transmit a Producer Identified message for each
-   P/C Event ID it can produce, and a Consumer Identified message for each P/C Event ID for which it is
-   listening.
+   To announce new Event IDs, the node must transmit a Producer Identified message for each P/C Event ID it
+   can produce, and a Consumer Identified message for each P/C Event ID that it can consume.  
 
   2.6.1 Event Transfer
 
    The last sentence is the key to gateway traffic reduction. See below.
 
-  2.6.2 Event Enquiry
+  2.6.2 Event Enquiry  [[[ This seems to be redundant??]]]
 
    Two forms of identify events; recommendation on uses for global form. This can be a huge load, and
    should only be used when needed.  
@@ -331,7 +355,7 @@
 
    2.6.1 Event Transfer
 
-   2.6.2 Event Enquiry
+   2.6.2 Event Enquiry  [[[ This seems to be redundant??]]]
 
    2.6.3 Producer Enquiry
 
