@@ -211,9 +211,7 @@
    The two forms of this message are sent to request that the specified nodes report all the events they
    produce or consume.  These reports can be ether Identified messages specifying individual event IDs or
    ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
-   addressed message to a specific node  
-
-    
+   addressed message to a specific node.
 
    It is useful to be able to rapidly determine which, if any, P/C Event IDs that a particular node is
    listening for and that it can emit.
@@ -273,7 +271,9 @@
 
                                           3 Background information 
 
-    This section is general information of interest to the reader, implementers, etc.
+   This section is general information of interest to the reader, implementers, etc.
+
+   Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
 
 3.1 Gateways
 
@@ -282,11 +282,18 @@
 
 3.2 Implementation hints
 
-   Buffering issues, particularly on CAN.
+   Buffering issues, particularly on CAN: You have to be able to keep up with PCER messages that can arrive
+   every millisecond.
 
-   Ordering & processing
+     * Put some attention into making sure that you don't have to do long linear searches to match an
+       incoming Event ID to internal structures.
 
-   Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
+     * Consider just decoding the Event ID and setting a “process as available” bit, then doing further
+       work outside the CAN processing loop.
+
+   There is no requirement that events be processed in any particular order. Multiple PCER messages with
+   the same Event ID may result in multiple actions inside a consumer, or may not, depending on the details
+   of the consumer.
 
 3.3 Well known events
 
