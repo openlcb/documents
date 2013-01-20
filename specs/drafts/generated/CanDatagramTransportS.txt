@@ -2,65 +2,103 @@
 
    This specification describes the protocol for transporting OpenLCB datagrams via CAN segments.
 
-                                    2 References and Context (Informative)
+                                         2 Intended Use (Informative)
+
+                                     3 References and Context (Normative)
 
    This specification is in the context of the following OpenLCB-CAN Specifications:
 
-   The OpenLCB Message Network Specification, which specifies …
+   The OpenLCB Frame Transport Standard, which specifies …
 
-   The OpenLCB Node Identifier Specification, which specifies …
+   The OpenLCB Message Network Standard, which specifies …
 
-   The OpenLCB Event Identifier Specification, which specifies ...
+   The OpenLCB Node Identifier Standard, which specifies …
 
    “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
    11898-2:2003 and their successors.
 
-   For more information on format and presentation, see:
-
-     * OpenLCB Common Information Technical Note
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
    External certification of parts shall be accepted for conformance to these standards. Conformance with a
    later version of a standard shall be accepted as conformance with the referenced versions.
 
+                                        4 Message Formats (Normative)
+
+4.1 Datagram Content
+
+                                     Common                         
+   Name             Dest ID Event ID        CAN format Data Content
+                                     MTI    
+   Datagram Content Y       N        0x1C48 N/A        0-72 bytes   
+
     
 
-   (See TN, which contains dev note content, which needs to be move here)
+  4.1.1 CAN-Datagram Content Single Frame
 
     
 
-2.1 Error Codes
+                                                  Common                          
+   Name                          Dest ID Event ID        CAN format  Data Content
+                                                  MTI    
+   Datagram Content Single Frame N       Y        N/A    0x1Add,dsss 0-8 bytes    
+
+    
+
+  4.1.2 CAN-Datagram Content First Frame
+
+                                                 Common                          
+   Name                         Dest ID Event ID        CAN format  Data Content
+                                                 MTI    
+   Datagram Content First Frame Y       N        N/A    0x1Bdd,dsss 0-8 bytes    
+
+    
+
+  4.1.3 CAN-Datagram Content Middle Frame
+
+                                                  Common                          
+   Name                          Dest ID Event ID        CAN format  Data Content
+                                                  MTI    
+   Datagram Content Middle Frame Y       N        N/A    0x1Cdd,dsss 0-8 bytes    
+
+    
+
+  4.1.4 CAN Datagram Content Last Frame
+
+                                                Common                          
+   Name                        Dest ID Event ID        CAN format  Data Content
+                                                MTI    
+   Datagram Content Last Frame Y       N        N/A    0x1Ddd,dsss 0-8 bytes    
+
+    
+
+4.2 Datagram Received OK
+
+    
+
+                                         Common                               
+   Name                 Dest ID Event ID        CAN format       Data Content
+                                         MTI    
+   Datagram Received OK Y       N        0x0A28 0x19A4,8sss fddd              
+
+    
+
+4.3 Datagram Rejected
+
+                                      Common                               
+   Name              Dest ID Event ID        CAN format       Data Content
+                                      MTI    
+   Datagram Rejected Y       N        0x0A48 0x19A4,8sss fddd Error Code   
+
+    
+
+   Nodes must accept and process Datagram Rejected messages that do not contain a full data code. Missing
+   error code bits are to be interpreted as zero.
+
+  4.3.1 Error Codes
+
+   Permanent errors
+
+   Temporary error
+
+    
 
    DATAGRAM_REJECTED                        0x0000
 
@@ -69,6 +107,8 @@
     DATAGRAM_REJECTED_INFORMATION_LOGGED     0x1010
 
     DATAGRAM_REJECTED_SOURCE_NOT_PERMITTED   0x1020
+
+    
 
     DATAGRAM_REJECTED_DATAGRAMS_NOT_ACCEPTED 0x1040
 
@@ -82,12 +122,71 @@
 
    DATAGRAM_REJECTED_TRANSPORT_ERROR_MASK   0x4000
 
+                                             5 States (Normative)
+
+   The common OpenLCB datagram protocol has no formal states.
+
+   A node implementing the OpenLCB-CAN protocol must maintain a Datagram-started state for each datagram
+   that it is receiving as a sequence of frames. If the node receives multiple overlapping datagrams, the
+   states must be independent.
+
+                                          6 Interactions (Normative)
+
+6.1 Normal Transmission
+
+   Normal transmission consists of the transmitting node sending a Datagram Content message to the
+   receiving node, followed by the receiving node sending a Datagram Received OK message to the
+   transmitting node. The receiving node shall send either a Datagram Received OK or Datagram Rejected
+   message.
+
+  6.1.1 CAN Protocol
+
+6.2 Rejected Transmission
+
+   After the transmitting node sends a Datagram Content message to the receiving node, the receiving node
+   may send a Datagram Rejected message to the transmitting node. The receiving node shall send either a
+   Datagram Received OK or Datagram Rejected message.
+
+  6.2.1 CAN Protocol
+
+    
+
    Table of Contents
 
    1 Introduction (Informative)
 
-   2 References and Context (Informative)
+   2 Intended Use (Informative)
 
-   2.1 Error Codes
+   3 References and Context (Normative)
+
+   4 Message Formats (Normative)
+
+   4.1 Datagram Content
+
+   4.1.1 CAN-Datagram Content Single Frame
+
+   4.1.2 CAN-Datagram Content First Frame
+
+   4.1.3 CAN-Datagram Content Middle Frame
+
+   4.1.4 CAN Datagram Content Last Frame
+
+   4.2 Datagram Received OK
+
+   4.3 Datagram Rejected
+
+   4.3.1 Error Codes
+
+   5 States (Normative)
+
+   6 Interactions (Normative)
+
+   6.1 Normal Transmission
+
+   6.1.1 CAN Protocol
+
+   6.2 Rejected Transmission
+
+   6.2.1 CAN Protocol
 
     

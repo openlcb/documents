@@ -14,6 +14,14 @@
 
     
 
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+    
+
+    
+
     
 
    Below this is just the content of the Datagram development doc right now.
@@ -203,6 +211,11 @@
 
                                               7 Datagram Content
 
+   The datagram length is coded by the transport medium:  There is no separate length field in the datagram
+   content itself.
+
+    
+
    There needs to be a method for identifying the content of a general datagram. OpenLCB is meant to be
    used with both very simple, low-end nodes, and high-end computers with multiple programs. In both those
    environments, it's inconvenient to have constraints like “the next datagram will carry ….” because there
@@ -226,9 +239,6 @@
    The plan is to use both. There will be a one-byte field, with certain values to escape to a two-byte
    field (reserved for future use), and to a six-byte fully-unique field. A separate spreadsheet is
    accumulating values. (spreadsheet) (pdf)
-
-   The length is coded by the transport mechanism:  There is no separate length field in the datagram
-   content itself.
 
                                                  8 Numerology
 
@@ -256,7 +266,7 @@
    Our notional decision is nine segments, 72 bytes, but developers should code this as a constant to the
    extent possible.
 
-                                                 9 Extensions
+                                             9 Future Extensions
 
    In this version of the datagram protocol, there is no provision for multiple recipients of a single
    message. Transmission is strictly one-to-one. This isn't because of addressing (making them globally
@@ -311,11 +321,9 @@
    can be frames of 8 and 1, or 1 and 8.  This is helpful for handling e.g. buffering and creation of
    dynamic content in the source node.
 
-   Overlapping sends to a single node cause problems with error detection (since there's no start bit for
-   the message). Does that need to be more explicit in the Standard?
-
    The state machine for assembling datagram frames needs to now when e.g. the lower levels reset, so that
-   it knows to abandon a partially received datagram.  
+   it knows to abandon a partially received datagram.  Can also recover upon seeing the next start/only
+   frame.
 
    There's no requirement to a specific response to out-of-spec transmission. If a node receives
    out-of-spec datagram fragments, what it does is up to it. This is because it's neither necessary nor
@@ -324,7 +332,7 @@
    they don't have to.
 
    So a node that gets a middle-segment without a first-segment can react in various ways. It might send
-   various replies (but it doesn't have to).  It might ignore it. Etc.
+   various replies (but it doesn't have to). It might ignore it. Etc.
 
    There's an important thing to realize about that though:
 
@@ -379,7 +387,7 @@
 
    8 Numerology
 
-   9 Extensions
+   9 Future Extensions
 
    10 Implementation Notes
 
