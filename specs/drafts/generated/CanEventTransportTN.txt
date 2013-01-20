@@ -3,6 +3,19 @@
    This explanatory note contains informative discussion and background for the corresponding “OpenLCB CAN
    Event Transport Specification”. This explanation is not normative in any way.
 
+   OpenLCB nodes respond to local inputs and state changes by emitting Producer/Consumer Event Report
+   (PCER) messages. When they do this, they are acting as "Producers". OpenLCB nodes receive these
+   messages, and can act on them locally if desired. If they do so, they are acting as "Consumers".
+
+   The P/C Event ID included in a PCER message is a 8-byte unique identifier. The method for assigning
+   these and ensuring their uniqueness is in the Event ID S and TN.
+
+   There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
+   particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
+   than one node may emit the same P/C Event ID (note that the NID of the emitting node is available in the
+   message). More than one node may receive and act on a PCER message with a specific P/C Event ID. The
+   only requirement is that the 8-byte quantity be unique to the event.
+
                                       2 Annotations to the Specification
 
    This section provides background information on corresponding sections of the Specification document.
@@ -10,7 +23,11 @@
 
 2.1 Introduction
 
+   More background & references would be good.i
+
 2.2 Intended Use
+
+   A few examples....
 
 2.3 References and Context
 
@@ -19,14 +36,6 @@
      * OpenLCB Common Information Technical Note
 
 2.4 Message Formats
-
-  2.4.1 Producer/Consumer Event Report (PCER)
-
-  2.4.2 Identify Consumer
-
-  2.4.3 Consumer Identified
-
-  2.4.4 Consumer Range Identified
 
    [[[To TN: For example, the event-mask 0xABCD0000 would form the range 0xABCD0000-ABCDFFFF, since the
    first significant '1' bit is the first low bit of the 'D' hexdigit.  Similarly, the event-mask
@@ -55,6 +64,42 @@
 
     
 
+  2.4.1 Producer/Consumer Event Report (PCER)
+
+   This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
+   nodes.  It's the backbone of the protocol, and forms most of the expected traffic.
+
+  2.4.2 Identify Consumer
+
+   This message is broadcast and requests every node to report if they consume this event ID.  
+
+  2.4.3 Consumer Identified
+
+   This message is broadcast, in response to a received Identify Consumer message, from each node that
+   consumes the included event ID.  Nodes also send this as part of their startup so that other nodes know
+   they want to consume particular events.
+
+   This is one of the messages that allows bridges to do automatic routing of event messages.
+
+   The “valid”, “invalid”, “unknown” subforms are used to attempt to recover the state of the overall
+   system.  In general, event transmission via PCER messages conveys state changes. If a node comes in
+   during operation, it might want to determine the correct value of the distributed state. Producers can,
+   but don't always, know that state.  For example, consider “On” and “Off” events for a light.  There
+   might be two producers attached to toggle switch. In that case, one of them will still see their state
+   as current, and will reply with valid. Alternately, the two produces might be set to produce when two
+   separate pushbuttons are pressed.  In that case, at some later time neither producer knows whether the
+   distributed state corresponds to its event. They both have to report as unknown. Consumers can also know
+   the state.  The lamp controller that consumes the “On” and “Off” probably knows whether it's currently
+   providing power to the lamp, and so can reply with valid for one event and invalid for the other.
+
+  2.4.4 Consumer Range Identified
+
+   This message broadcasts, in response to a received Identify Consumer message, from each node that
+   consumes event is in the range specified by the included event-ID-with-mask.  This is one of the
+   messages that allows bridges to do automatic routing of event messages.     
+
+   The 50% is to allow rounding up to the enclosing bit, but no further.
+
   2.4.5 Identify Producer
 
    This message is broadcast and requests every node to report whether they produce this event ID.  
@@ -67,21 +112,39 @@
 
   2.4.7 Producer Range Identified
 
-   Example of fast clock.
+   The 50% is to allow rounding up to the enclosing bit, but no further.
+
+   An example would be a fast clock node that sends a range of events to indicate the time. Since there are
+   24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.  That could be expressed
+   in 17 bits, so if the range was start with an event ID of 0x12.34.56.78.00.00.00.00, the range could be
+   expressed as  0x12.34.56.78.00.01.FF.FF  using 1 bits to represent the mask.  If the range had to start
+   at  0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits would not properly represent the mask because
+    0x12.34.56.78.FF.FF.FF.FF is actually a different range. Using a 0 bit for the mask would work, giving
+    0x12.34.56.78.FF.FE.00.00 as the representation.
+
+   This message broadcasts, in response to a received Identify Producer message, from each node that
+   produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
+   that allows bridges to do automatic routing of event messages.
 
   2.4.8 Identify Events
-
-   Coverage of status bits...
 
    Two forms of identify events; recommendation on uses for global form
 
 2.5 States
+
+   After the IC message is sent, and before any corresponding Producer/Consumer Event Report messages are
+   sent, the node must identify all events produced or consumed on the board via zero or more Identify
+   Consumers, Identify Consumed Range, Identify Producers and Identify Consumed Range messages. These are
+   not required to be in any particular order.
 
 2.6 Interactions
 
    Nothing prevents extra IdentifyX messages. Nothing prevents combining replies to multiple requests.
     This allows simplified implementations, for example setting a bit to indicate that a reply can be sent
    when time/priority is available.
+
+   You can sent identify/identified for automatically routed messages.  Well-known messages require
+   response; there's no exemption for those.
 
    You can query a state when you come up with the request-id message. Conflicting states can happen, and
    have to be addressed.
@@ -102,26 +165,124 @@
    node IDs that are interested and back that off.  Better to just let that the set of interesting event
    IDs grow until the layout or gateway is reset.
 
+   To ensure that event messages are properly routed, nodes must announce when they start to produce or
+   consume messages. Specifically, they must do this at two times:
+
+     * When the node is first initialized and the "Initialization Complete" message has been sent.
+
+     * When a configuration change has added an event ID that can be produced or consumed.
+
+   To announce new Event IDs being consumed, the node must transmit a Producer Identified message for each
+   P/C Event ID it can produce, and a Consumer Identified message for each P/C Event ID for which it is
+   listening.
+
+  2.6.1 Event Transfer
+
+   The last sentence is the key to gateway traffic reduction. See below.
+
+  2.6.2 Event Enquiry
+
+   Two forms of identify events; recommendation on uses for global form. This can be a huge load, and
+   should only be used when needed.  
+
+   The two forms of this message are sent to request that the specified nodes report all the events they
+   produce or consume.  These reports can be ether Identified messages specifying individual event IDs or
+   ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
+   addressed message to a specific node  
+
+    
+
+   It is useful to be able to rapidly determine which, if any, P/C Event IDs that a particular node is
+   listening for and that it can emit.
+
+   This can be used as a configuration diagnostic.
+
+   To determine which P/C Event IDs can be send by a particular node, the inquiring node sends an Identify
+   Events message addressed to the target node.
+
+   The node must reply with a Producer Identified message for each P/C Event ID it can produce, and a
+   Consumer Identified message for each P/C Event ID for which it is listening.
+
+  2.6.3 Producer Enquiry
+
+   It is useful to be able to determine which, if any, nodes are configured to possibly emit a specific P/C
+   Event ID message and their current state.
+
+   This can be used as a configuration diagnostic, and as a way of building filtering and routing tables.
+
+   To determine which nodes can send a particular P/C Event ID, a node sends an Identify Producers message
+   carrying the desired P/C Event ID. This is an unaddressed message addressed to all nodes.
+
+   All nodes that are listening for that P/C Event ID reply with a Producer Identified broadcast message.
+
+   The "valid" bit indicates that the node's internal condition is consistent with sending this P/C Event
+   ID. For example, assume a node sends P/C Event ID 2 when the input goes active and P/C Event ID 4 when
+   the input goes inactive. Then if the input was active and the node was asked about P/C Event ID 2, it
+   would reply "valid"; if asked about P/C Event ID 4, it would reply "not valid". Depending on the node's
+   structure, it might not always be possible to set the "valid" bit with certainty, in which case the
+   "unknown" bit must be set.
+
+   You can query a state when you come up with the request-id message. Conflicting states can happen, and
+   have to be addressed. You might also want to enquire of the consumers if you don't get a definitive
+   answer from the producers.
+
+   valid/invalid/unknown – always possible to send unknown or ignore the three sub-forms, but a lot of
+   capability is lost
+
+  2.6.4 Consumer Enquiry
+
+   It is useful to be able to determine which, if any, nodes are listening for a specific P/C Event ID
+   message.
+
+   This can be used as a configuration diagnostic, and as a way of building routing tables.
+
+   To determine which nodes are listening for a particular P/C Event ID, a node sends an Identify Consumers
+   message carrying the desired P/C Event ID. This is an unaddressed message processed by all nodes.
+
+   All nodes that are listening for that P/C Event ID reply with a Consumer Identified broadcast message.
+
+   The "valid" bit indicates that the node is currently in the state it would be if this message had been
+   received last. For example, assume a node sets its output active for P/C Event ID 2, and inactive for a
+   P/C Event ID 4. Then if the output was active and the node was asked about P/C Event ID 2, it would
+   reply "valid"; if asked about P/C Event ID 4, it would reply "not valid". Depending on the node's
+   structure, it might not always be possible to set the "valid" bit with certainty, in which case the
+   "unknown" bit must be set.
+
                                           3 Background information 
 
-    
+    This section is general information of interest to the reader, implementers, etc.
 
-   Gateways can route this to segments with nodes expressing interest by processing the other event
-   messages.   (Gateways section)
+3.1 Gateways
 
-    
+   Gateways can route PCERs only to segments with nodes expressing interest by processing the other event
+   messages.
 
-   Well known events as a mechanism.
+3.2 Implementation hints
 
-   Buffering
-
-    
+   Buffering issues, particularly on CAN.
 
    Ordering & processing
 
-   Performance at node startup; layout startup particularly on CAN. Numbers and simulations.
+   Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
 
-   History section:
+3.3 Well known events
+
+   There are a small number of cases where a globally-allocated and reserved Event ID will simplify
+   operation. These “well-known Event ID numbers” can be used to e.g. advertise that a node can provide a
+   specific capability, or to tell locomotive control hardware to stop all trains instantly, etc.
+
+   For these to be useful, they not only have to be unique (so there are no collisions that accidentally
+   trigger reactions to them), but they must also be well-known. So we have created a central spreadsheet
+   on which uses can be recorded. This will eventually provide a machine-accessible record.
+
+   All of these are assigned with a reserved ID in their upper six bytes to ensure uniqueness and simplify
+   recognition.
+
+   Nodes using these must mention them when listing the event IDs they produce and consume. Gateways may
+   filter on these, but are not required to. (For ease of implementation, a gateway may just pass all
+   events with the common top 6 bytes)
+
+3.4 History section:
 
    For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
    each time the associated P/C Event ID is sent. It is not at all clear how to do this across nodes, or
@@ -131,8 +292,6 @@
 
    There's not room in a CAN frame for both a destination NID and a EID. The protocol has therefore been
    constructed so that any message carrying an EID (and that isn't a datagram) is globally addressed.
-
-    
 
     
 
@@ -170,6 +329,25 @@
 
    2.6 Interactions
 
+   2.6.1 Event Transfer
+
+   2.6.2 Event Enquiry
+
+   2.6.3 Producer Enquiry
+
+   2.6.4 Consumer Enquiry
+
    3 Background information 
 
+   3.1 Gateways
+
+   3.2 Implementation hints
+
+   3.3 Well known events
+
+   3.4 History section:
+
     
+
+   i The Producer/Consumer Model and Control System Design ControlLogix 1999
+   https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html

@@ -5,173 +5,224 @@
                                          2 Intended Use (Informative)
 
    Transporting events provides general and flexible messaging between nodes, following the principles of
-   the Producer-Consumer modeli.  The information is carried by an event ID (number), which in of itself
+   the Producer-Consumer model.  The information is carried by an event ID (number), which in of itself
    does not have any explicit information.  Instead the event ID is assigned by the user to one specific
-   concept, such as a specific LED lighting, or a more abstract concept, such as the “start of the day” or
-   “global stop”.   That concept can then be implemented by a number of nodes, called consumer nodes, and
-   triggered by a number of other nodes called producer nodes.  
+   concept, such as a specific lighting configuration, or a more abstract concept, such as the “start of
+   the day” or “global stop”.   That concept can then be implemented by cooperative action between nodes
+   that “produce” the event by sending messages, and nodes that “consume” the event by receiving messages
+   and acting up them.  This document defines that interaction between produces and consumers in terms of
+   OpenLCB messages.
 
                                      3 References and Context (Normative)
 
    This specification is in the context of the following OpenLCB-CAN Specifications:
 
-   The OpenLCB Message Network Specification, which defines the basic messages and how they interact.
-   Higher-level protocols are based on this message network, but are defined elsewhere. Includes
-   Initialized State.
+     * The OpenLCB Message Network Standard, which defines the basic messages and how they interact.
+       Higher-level protocols are based on this message network, but are defined elsewhere. The Message
+       Network Standard defines the Initialized node state which is referenced here.
 
-   The OpenLCB Node Identifier Specification, which specifies …
-
-   The OpenLCB Event Identifier Specification, which specifies ...
+     * The OpenLCB Event Identifiers Standard, which defines the format and content of Event Identifiers
+       (Event IDs) including the class of Well-Known Event IDs and Automatically-Routed Event IDs.
 
                                         4 Message Formats (Normative)
 
-    
+   In the following, “EventID Range” in the Data Content field refers to a range of EventID values
+   specified through a compare-under-mask operation.  The low bit of the field defines the sign of the
+   mask: a 1 least-significant bit indicates the mask is represented by 1 bits, and similar for a 0 LSB.
+   The mask is made up of adjacent identical bits. If the lowest bit is a '0', then all low order
+   contiguous '0' bits will form a mask, while if the lowest bit is a '1', then the low order contiguous
+   '1' bits will form the mask.  The remaining upper bits determine the range prefix. To determine whether
+   an Event ID “E” lies within the range “R”, compute:
 
-   “EventID with mask” relies on low order 0 or 1 bits to specify the active sense of the effective masking
-   operation.  If the lowest bit is a '0', then all low order contiguous '0' bits will form a mask, while
-   if the lowest bit is a '1', then the low order contiguous '1' bits will form the mask.  
-
-    
+   inRange = ( (E & ~ mask) == (R & ~ mask) )
 
     
 
 4.1 Producer/Consumer Event Report (PCER)
 
-   This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
-   nodes.  
-
                                                                Common                          
    Name                           Dest ID Event ID Simple Node        CAN format  Data Content
                                                                MTI    
-   Producer/Consumer Event Report N       Y        N           0x0000 0x1800,0sss EventID      
+   Producer/Consumer Event Report N       Y        N           0x05B4 0x195B,4sss EventID      
 
     
 
 4.2 Identify Consumer
 
-   This message is broadcast and requests every node to report if they consume this event ID.  
-
                                                   Common                          
    Name              Dest ID Event ID Simple Node        CAN format  Data Content
                                                   MTI    
-   Identify Consumer N       Y        N           0x0000 0x1800,0sss Event ID     
+   Identify Consumer N       Y        Y           0x08F4 0x198F,4sss Event ID     
 
 4.3 Consumer Identified
-
-   This message is broadcast, in response to a received Identify Consumer message, from each node that
-   consumes the included event ID.  This is one of the messages that allows bridges to do automatic routing
-   of event messages.  
 
                                                     Common                          
    Name                Dest ID Event ID Simple Node        CAN format  Data Content
                                                     MTI    
-   Consumer Identified N       Y        N           0x0000 0x1800,0sss Event ID     
+                                                    0x04C4 0x194C,4sss              
+                                                                       
+   Consumer Identified N       Y        N           0x04C5 0x194C,5sss Event ID
+                                                                       
+                                                    0x04C7 0x194C,7sss 
 
     
 
-   Coverage of status bits...
+   This message has three sub-forms, which carry the status of the identified consumer.  They are,
+   respectively:
+
+     * Currently valid – the internal state of the consumer & associated devices is known to be same as if
+       it had just consumed this event
+
+     * Currently invalid – the internal state of the consumer & associated devices is known to not be the
+       same as it had just consumed this event
+
+     * Currently unknown – the consumer cannot determine whether either of the previous conditions is true
 
 4.4 Consumer Range Identified
 
-   This message broadcasts, in response to a received Identify Consumer message, from each node that
-   consumes event is in the range specified by the included event-ID-with-mask..  This is one of the
-   messages that allows bridges to do automatic routing of event messages.     
-
-                                                          Common                                
+                                                          Common                           
    Name                      Dest ID Event ID Simple Node        CAN format  Data Content
                                                           MTI    
-   Consumer Range Identified N       Y        N           0x0000 0x1800,0sss Event ID with mask 
+   Consumer Range Identified N       Y        N           0x04A4 0x194A,4sss EventID Range 
 
     
 
-   Limit on occupancy of reported range.
+   Nodes shall not emit Consumer Range Identified messages where more than 50% of the event IDs included in
+   the range are not consumed by the node.
 
 4.5 Identify Producer
-
-    
 
                                                   Common                          
    Name              Dest ID Event ID Simple Node        CAN format  Data Content
                                                   MTI    
-   Identify Producer N       Y        N           0x0000 0x1800,0sss Event ID     
+   Identify Producer N       Y        Y           0x0914 0x1991,4sss Event ID     
 
     
 
 4.6 Producer Identified
 
-    
-
                                                     Common                          
    Name                Dest ID Event ID Simple Node        CAN format  Data Content
                                                     MTI    
-   Producer Identified N       Y        N           0x0000 0x1800,0sss Event ID     
+                                                    0x0544 0x1954,4sss              
+                                                                       
+   Producer Identified N       Y        N           0x0545 0x1954,5sss Event ID
+                                                                       
+                                                    0x0547 0x1954,7sss 
 
-   Coverage of status bits...
+    
+
+   This message has three sub-forms, which carry the status of the identified producer.  They are,
+   respectively:
+
+     * Currently valid – the internal state of the producer & associated devices is known to that which
+       would cause them to produce the event
+
+     * Currently invalid – the internal state of the producer & associated devices is known to not be the
+       same as that which would cause them to produce the event
+
+     * Currently unknown – the producer cannot determine whether either of the previous conditions is true
 
 4.7 Producer Range Identified
 
-   This message broadcasts, in response to a received Identify Producer message, from each node that
-   produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
-   that allows bridges to do automatic routing of event messages.
-
-                                                          Common                                
+                                                          Common                           
    Name                      Dest ID Event ID Simple Node        CAN format  Data Content
                                                           MTI    
-   Producer Identified Range N       Y        N           0x0000 0x1800,0sss Event ID with mask 
+   Producer Identified Range N       Y        N           0x0524 0x1952,4sss EventID Range 
 
     
 
-   Limit on occupancy of reported range. May, but not required to, ...
+   Nodes shall not emit Producer Range Identified messages where more than 50% of the event IDs included in
+   the range are not produced by the node.
 
 4.8 Identify Events
 
-   The two forms of this message are sent to request that the specified nodes report all the events they
-   produce or consume.  These reports can be ether Identified messages specifying individual event IDs or
-   ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
-   addressed message to a specific node  
-
-                                                Common                             
-   Name            Dest ID Event ID Simple Node        CAN format     Data Content
+                                                Common                               
+   Name            Dest ID Event ID Simple Node        CAN format       Data Content
                                                 MTI    
-   Identify Events N       N        N           0x2AB7 0x18AB,7sss                 
-                   Y       N                    0x32B0 0x1Edd,dsss 2B              
+   Identify Events N       N        Y           0x0970 0x1997,0sss                   
+                   Y       N                    0x0968 0x1996,8sss fddd              
 
     
-
-   Coverage of status bits...
-
-   Two forms of identify events; recommendation on uses for global form
 
                                              5 States (Normative)
 
-    
+   Each consumer and producer of each event has two possible states:  “Unadvertised” and “Advertised”.
 
-   After the IC message is sent, and before any corresponding Producer/Consumer Event Report messages are
-   sent, the node must identify all events produced or consumed on the board via zero or more Identify
-   Consumers, Identify Consumed Range, Identify Producers and Identify Consumed Range messages. These are
-   not required to be in any particular order.
+   When the node hosting the producer or consumer is not in Initialized state, the consumer or producer
+   shall be in and remain in Unadvertised state.
+
+   A producer or consumer of a specific event moves to Advertised state when either of the following
+   happens:
+
+     * The producer or consumer sends a Producer Identified or Consumer Identified, respectively, message
+       containing the Event ID.
+
+     * The producer or consumer sends a Producer Range Identified or Consumer Range Identified,
+       respectively, message where the indicated range contains the Event ID.
+
+   The messages defined by this Standard may only be sent when the sending node is in Initialized state.
+
+   Producer/Consumer Event Report messages may only be sent when the associated producer is in Advertised
+   state.
 
                                           6 Interactions (Normative)
 
-   Startup
+   After each transition to transitions to Initialized State and before sending a Producer/Consumer Event
+   Report (PCER) message producing a specific Event ID outside the automatically-routed Event ID range, a
+   node shall emit a Producer Identified or Producer Range Identified message identifying that Event ID.
 
-   Enquiry
+   To ensure receipt of PCER messages, a node consuming a specific Event ID outside the
+   automatically-routed Event ID shall emit a Consumer Identified or Consumer Range Identified message
+   identifying that Event ID.
 
-   Before sending a PCER message, producing a specific Event ID, the node shall emit a Producer Identified
-   or Producer Range Identified message identifying that Event ID.  (This should be coded as a state
-   machine)  This must be done again each time the node transitions to Initialized State.
+6.1 Event Transfer
 
-   May not emit a PCER message unless it has emitted a PI or PRI message covering that event since the last
-   time it emitted a IC message.
+   To produce an event, the node containing the producer emits a PCER message containing the related Event
+   ID. The OpenLCB message network transports that message to all attached nodes, except as described in
+   the next paragraph. Nodes containing consumers shall check for a match between the message Event ID and
+   their consumers. If a match is found, the consumer shall perform any local operations configured into
+   it. If a match is not found, the consumer shall not perform any local operations.
 
-   (No need to send identify, etc, for automatically routed part of space.
+   Equipment that transports PCER messages shall transport them to all connected nodes from which the
+   equipment has received a Consumer Identified or Consumer Range Identified for the reported event ID.
+   Equipment that transports PCER messages shall transport all PCER messages containing Event IDs in the
+   automatically-routed range to all connected nodes. Equipment that transports PCER messages may, but is
+   not required to, omit transporting PCER messages with Event ID outside the automatically-routed range to
+   nodes from which the equipment has not received a Consumer Identified or Consumer Range Identified for
+   the reported event ID.
 
-   Does this talk about EventID assignment? Elsewhere: OpenLCB Event Identifiers Standard.
+6.2 Event Enquiry
 
-   Need a statement about “must forward to” or “must process” all PCER that cover event IDs in the
-   particular state; that becomes a standard for gateway performance.  
+   Upon receipt of either an unaddressed (global) Identify Events message or an addressed Identify Events
+   message addressed to the node, a node shall reply with Producer Identified and/or Producer Range
+   Identified messages covering all non-automatically-routed event IDs produced by the node, and Consumer
+   Identified and/or Consumer Range Identified messages covering all non-automatically-routed event IDs
+   consumed by the node.
 
-   “nodes that process or forward PCER messages need not do so unless they have received ...”
+   In response to an unaddressed (global) Identify Events message or an addressed Identify Events message
+   address to the node, a node may but is not required to include Producer Identified and/or Producer Range
+   Identified messages covering automatically-routed event IDs produced by the node, and Consumer
+   Identified and/or Consumer Range Identified messages covering automatically-routed event IDs consumed by
+   the node.
+
+6.3 Producer Enquiry
+
+   Upon receipt of an Identify Producer message, a node shall reply with Producer Identified and/or
+   Producer Range Identified messages covering all non-automatically-routed event IDs produced by the node.
+
+   In response to an Identify Producer message, a node may but is not required to include Producer
+   Identified and/or Producer Range Identified messages covering automatically-routed event IDs produced by
+   the node.
+
+6.4 Consumer Enquiry
+
+   Upon receipt of an Identify Consumer message, a node shall reply with Consumer Identified and/or
+   Consumer Range Identified messages covering all non-automatically-routed event IDs consumed by the node.
+
+   In response to an Identify Consumer message, a node may but is not required to include Consumer
+   Identified and/or Consumer Range Identified messages covering automatically-routed event IDs consumed by
+   the node.
 
     
 
@@ -205,7 +256,12 @@
 
    6 Interactions (Normative)
 
-    
+   6.1 Event Transfer
 
-   i The Producer/Consumer Model and Control System Design ControlLogix 1999
-   https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
+   6.2 Event Enquiry
+
+   6.3 Producer Enquiry
+
+   6.4 Consumer Enquiry
+
+    
