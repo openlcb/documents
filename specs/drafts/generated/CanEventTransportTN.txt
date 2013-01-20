@@ -10,17 +10,118 @@
 
 2.1 Introduction
 
-2.2 References and Context
+2.2 Intended Use
+
+2.3 References and Context
+
+    For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+2.4 Message Formats
+
+  2.4.1 Producer/Consumer Event Report (PCER)
+
+  2.4.2 Identify Consumer
+
+  2.4.3 Consumer Identified
+
+  2.4.4 Consumer Range Identified
+
+   [[[To TN: For example, the event-mask 0xABCD0000 would form the range 0xABCD0000-ABCDFFFF, since the
+   first significant '1' bit is the first low bit of the 'D' hexdigit.  Similarly, the event-mask
+   0xFEDCBFFF would form the range 0xFEDC8000-FEDCBFFF, since 0xB = 0b1011, and the lowest significant '0'
+   bit is in the 3rd digit.    The smallest ranges are specified by 0xyyyyyyyE, which specifies a range of
+   0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives
+   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, 0x00000003 gives
+   0x00000000-0x00000003
+
+   Event-Mask Effective Mask Bits #   Resulting Range          
+   0x00000001 0xFFFFFFFE     1    2   0x00000000-0x00000001    
+   0x00000002 0xFFFFFFFE     1    2   0x00000002-0x00000003    
+   0x00000003 0xFFFFFFFC     2    4   0x00000000-0x00000003    
+   0x00000004 0xFFFFFFFC     2    4   0x00000004-0x00000007    
+   0x00000005 0xFFFFFFFE     2    4   0x00000004-0x00000005    
+   0x00ABCDEF 0xFFFFFFF0     4    16  0x00ABCDE0-0x00ABCDEF    
+   0x00ABCDF0 0xFFFFFFF0     4    16  0x00ABCDF0-0x00ABCDFF    
+   0x00ABCDE0 0xFFFFFFE0     5    32  0x00ABCDE0-0x00ABCDFF    
+   0x0000FFFF 0xFFFF0000     16   65k 0x00000000-0x0000FFFF    
+                                      0xABCD0000-0xABCDFF      
+   0xABCD0000 0xFFFF0000     16   65k                          
+                                      Example of fast clock.FF 
+   0xFFFF0000 0xFFFF0000     16   65k 0xFFFF0000-0xFFFFFFFF    
+
+   ]]]
 
     
 
+  2.4.5 Identify Producer
+
+   This message is broadcast and requests every node to report whether they produce this event ID.  
+
+  2.4.6 Producer Identified
+
+   This message is broadcast, in response to a received Identify Producer message, from each node that
+   produces the included event ID.  This is one of the messages that allows bridges to do automatic routing
+   of event messages.  
+
+  2.4.7 Producer Range Identified
+
+   Example of fast clock.
+
+  2.4.8 Identify Events
+
+   Coverage of status bits...
+
+   Two forms of identify events; recommendation on uses for global form
+
+2.5 States
+
+2.6 Interactions
+
+   Nothing prevents extra IdentifyX messages. Nothing prevents combining replies to multiple requests.
+    This allows simplified implementations, for example setting a bit to indicate that a reply can be sent
+   when time/priority is available.
+
+   You can query a state when you come up with the request-id message. Conflicting states can happen, and
+   have to be addressed.
+
+   Note that the state machine resets with the Initialiation Complete message, not the lower level link
+   (CAN or other) state machine.
+
+   Delay in sending the PI/PRI or CI/CRI messages after IC is OK, but there's no delivery guarantee for
+   this nodes events until those have been sent.  
+
+   When a node changes the events it manages, it still needs to emit the PI/PRI and/or CI/CRI messages.
+    For example, reconfiguration could cause this.  It can be handled by sending individual messages, or by
+   resetting and sending them all as part of that.
+
+   There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending IC
+   again says that all are not interesting though).  This could be added, but it's much harder for gateways
+   to decide an Event ID is not interesting than that it is, because they have to keep a list of all the
+   node IDs that are interested and back that off.  Better to just let that the set of interesting event
+   IDs grow until the layout or gateway is reset.
+
+                                          3 Background information 
+
     
 
-   Below this is just a collection of pieces from other docs right now.
+   Gateways can route this to segments with nodes expressing interest by processing the other event
+   messages.   (Gateways section)
 
     
 
+   Well known events as a mechanism.
+
+   Buffering
+
     
+
+   Ordering & processing
+
+   Performance at node startup; layout startup particularly on CAN. Numbers and simulations.
+
+   History section:
 
    For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
    each time the associated P/C Event ID is sent. It is not at all clear how to do this across nodes, or
@@ -43,6 +144,32 @@
 
    2.1 Introduction
 
-   2.2 References and Context
+   2.2 Intended Use
+
+   2.3 References and Context
+
+   2.4 Message Formats
+
+   2.4.1 Producer/Consumer Event Report (PCER)
+
+   2.4.2 Identify Consumer
+
+   2.4.3 Consumer Identified
+
+   2.4.4 Consumer Range Identified
+
+   2.4.5 Identify Producer
+
+   2.4.6 Producer Identified
+
+   2.4.7 Producer Range Identified
+
+   2.4.8 Identify Events
+
+   2.5 States
+
+   2.6 Interactions
+
+   3 Background information 
 
     
