@@ -3,6 +3,18 @@
    This explanatory note contains informative discussion and background for the corresponding “OpenLCB
    Datagram Transport Specification”. This explanation is not normative in any way.
 
+   Some wire protocols can support only very short packets/frames, e.g. CAN with a limited header and data
+   payload. As OpenLCB evolves, it will inevitably need messages larger than that. Streaming provides a
+   very large payload, at some cost in setup time and complexity. "Datagram Support" is in between "small
+   enough to always be atomic" and "large enough to justify streaming overhead".
+
+   The datagram protocol on CAN links uses the same structure as the common protocol, except for the need
+   to split the message into frames.
+
+   A node may only send one datagram at a time to any given destination node. A node may interleave
+   transmission of datagrams to separate nodes, but this is not recommended because the longer transmission
+   window increases the probability of buffer collisions in recipient nodes.
+
                                       2 Annotations to the Specification
 
    This section provides background information on corresponding sections of the Specification document.
@@ -12,30 +24,138 @@
 
 2.2 References and Context
 
-    
-
    For more information on format and presentation, see:
 
      * OpenLCB Common Information Technical Note
 
-    
+2.3  Message Formats
+
+  2.3.1 Datagram Content
+
+   The datagram length is coded by the transport medium:  There is no separate length field in the datagram
+   content itself.
+
+   The CAN header values are chosen to prevent CAN priority from reordering frames in a way that would
+   damage the transmission.
+
+    2.3.1.1 CAN-Datagram Content Single Frame
+
+   Note that zero-length datagrams are valid.
+
+    2.3.1.2 CAN-Datagram Content First Frame
+
+   Note that there's no requirement that this contain 8 bytes.
+
+    2.3.1.3 CAN-Datagram Content Middle Frame
+
+   Note that there's no requirement that this contain 8 bytes. It cannot be empty, though.
+
+    2.3.1.4 CAN Datagram Content Last Frame
+
+   Note that this frame can be zero length.
+
+  2.3.2 Datagram Received OK
+
+   This is an addressed message. The destination address (full Node ID or alias) can be taken directly from
+   the received Datagram Content message.
+
+  2.3.3 Datagram Rejected
+
+    2.3.3.1 Error Codes
+
+   (These aren't the same as the Standard)
+
+   “Permanent error” - This node does not process datagrams, will not accept a datagram from this source,
+   or for some other reason will not ever be able to accept this datagram. The datagram should not be
+   retransmitted. Optionally, the node can mark the reply with one or more of several conditions:
+
+   “Invalid Datagram” - something made the datagram improper, such as longer than the max permitted length.
+   Proper datagrams might be acceptable.
+
+   “Source not permitted” - datagrams from this source will never be accepted
+
+   “Datagrams not accepted” - this node will not accept datagrams under any circumstance. A node can also
+   reject the interaction instead of sending Datagram Rejected with this code.
+
+   “Buffer shortage, resend” - The node wasn't able to receive the datagram because of a shortage of
+   buffers. The sending node should resend at its convenience.
+
+   “Datagram rejected, out of order” - Should not happen, but an internal inconsistency was found in the
+   CAN frames making up a datagram. Sender can try again if desired.
+
+2.4 States (Normative)
+
+2.5 Interactions (Normative)
+
+  2.5.1 Normal Transmission
+
+   In the base protocol a datagram is just a single message containing the Datagram MTI and the data
+   byte(s). There is a convention for a data format indicator at the start of the data bytes, see below.
+
+   Once the datagram has been successfully received, the receiving node replies to the original source node
+   with a “Datagram Received OK” message. Note that the node is not required to examine or process the
+   datagram before replying; execution errors that happen later must be signaled using another protocol.
+
+    2.5.1.1 CAN Protocol
+
+   The sender breaks the datagram content into one or more frames. The source NodeID alias and destination
+   NodeID alias are contained in the header as usual. Format indicators are used to mark the segmentation
+   into frames. The data part of the CAN frame can carry from zero to eight data bytes.
+
+   If there are more than eight bytes to the datagram, the rest are send as consecutive frames. Because CAN
+   transmission retains frame order between sender and receiver, no order information is added to the
+   frames. The first/middle/last frame is marked bin the CAN header.
+
+   There's nothing in the Standard that says that CAN frames have to be maximal size.  A 9-byte datagram
+   can be frames of 8 and 1, or 1 and 8.  This is helpful for handling e.g. buffering and creation of
+   dynamic content in the source node.
+
+   The receiving node receives the frames into a buffer. The frames from more than one datagram may arrive
+   in interleaved order, in which case the receiving node can tell them apart using their source NodeID
+   alias and store them in separate buffers. (Any given source node can only send a single datagram at a
+   time to a single destination node) If sufficient buffers are not available, the receiving node rejects
+   the datagram and it will be resent. That reject can be sent early, so that buffer space to accumulate
+   the datagram or even state bits to remember there is a data need not be allocated. Once the “datagram
+   complete” indicator is received for a datagram, the node replies to the original source node with a
+   “Datagram Received OK” or “Datagram Rejected” message.
+
+   The state machine for assembling datagram frames needs to now when e.g. the lower levels reset, so that
+   it knows to abandon a partially received datagram.  Can also recover upon seeing the next start/only
+   frame.
+
+   An interface or gateway onto a CAN link must do the datagram fragmentation and defragmentation locally.
+   Buffer retries may be either done locally by the gateway, or by reflecting the response back to the
+   original sender.
+
+  2.5.2 Rejected Transmission
+
+   Instead of “Datagram Received OK”, the receiving node may return a “Datagram Rejected” message with an
+   error code that represents the reason(s) and possible reaction(s).
+
+    2.5.2.1 CAN Protocol
+
+   There's no requirement to a specific response to out-of-spec transmission. If a node receives
+   out-of-spec datagram fragments, what it does is up to it. This is because it's neither necessary nor
+   practical to specify a unique set of logic for dealing with the semi-infinite number of possible
+   out-of-spec transmissions. Nodes can use the various error replies to indicate whatever they know, but
+   they don't have to.
+
+   So a node that gets a middle-segment without a first-segment can react in various ways. It might send
+   various replies (but it doesn't have to). It might ignore it. Etc.
+
+   There's an important thing to realize about that though:
+
+   Getting another valid datagram sequence while receiving one (or more) that fills the local buffers is
+   _not_ an out-of-spec condition, and the protocol defines exactly how the node is to react. There's no
+   flexibility there.
 
     
 
     
 
-   Below this is just the content of the Datagram development doc right now.
+                                           3 Background Information
 
-    
-
-   Some wire protocols can support only very short packets/frames, e.g. CAN with a limited header and data
-   payload. As OpenLCB evolves, it will inevitably need messages larger than that. Streaming provides a
-   very large payload, at some cost in setup time and complexity. "Datagram Support" is in between "small
-   enough to always be atomic" and "large enough to justify streaming overhead".
-
-   This note is a working draft proposal.
-
-                                                 3 Use Cases
+3.1 Use Cases
 
    Configuration: Simple one-value reads and writes of configuration data are one-to-one operations that
    need to exchange 4-8-16-32 bytes of data.
@@ -51,7 +171,7 @@
    and location information, reporting a RFID tag requires a 8-16 byte payload, and that's likely to grow
    in the future.
 
-                                                 4 Discussion
+3.2 Discussion
 
    Datagrams are a one-to-one connection between nodes. They have a source address and a single destination
    address, and only have to be delivered to that single destination. Delivery is guaranteed if the
@@ -85,136 +205,124 @@
    We're relying on CAN not reordering frames, even in the presence of error recovery. That's needed in any
    case for streams, which are so large that complete internal buffering cannot be assumed.
 
-                                           5 Base Protocol Proposal
+3.3 Examples
 
-   In the base protocol a datagram is just a single short message containing the Datagram MTI and the data
-   byte(s). There is a convention for a data format indicator at the start of the data bytes, see below.
+  3.3.1 Normal CAN case
 
-   Once the datagram has been successfully received, the receiving node replies to the original source node
-   with a “Datagram Acknowledged” message. Note that the node is not required to examine or process the
-   datagram before replying; execution errors that happen later must be signaled using another protocol.
+   Datagram First Frame →
 
-   Instead of “Datagram Acknowledged”, the receiving node may return a “Datagram Rejected” message tagged
-   to represent exactly one of several conditions:
+   Datagram Middle Frame →
 
-   “Permanent error” - This node does not process datagrams, will not accept a datagram from this source,
-   or for some other reason will not ever be able to accept this datagram. The datagram should not be
-   retransmitted. Optionally, the node can mark the reply with one or more of several conditions:
+   Datagram Middle Frame →
 
-   “Information Logged” - the node supports the logging protocol and information was logged for later
-   retrieval.
+   Datagram Last Frame →
 
-   “Invalid Datagram” - something made the datagram improper, such as longer than the max permitted length.
-   Proper datagrams might be acceptable.
+   ← Datagram Received OK
 
-   “Source not permitted” - datagrams from this source will never be accepted
+  3.3.2 Short CAN datagram case
 
-   “Datagrams not accepted” - this node will not accept datagrams under any circumstance. A node can also
-   reject the interaction instead of sending Datagram Rejected with this code.
+   Datagram Only Frame →
 
-   “Buffer shortage, resend” - The node wasn't able to receive the datagram because of a shortage of
-   buffers. The sending node should resend at its convenience.
-
-   “Datagram rejected, out of order” - Should not happen, but an internal inconsistency was found in the
-   CAN frames making up a datagram. Sender can try again if desired.
+   ← Datagram Received OK
 
     
 
-                                           6 CAN protocol proposal
-
-   The datagram protocol on CAN links uses the same structure as the base protocol, except for the need to
-   split the message into frames.
-
-   A node may only send one datagram at a time to any given destination node. A node may interleave
-   transmission of datagrams to separate nodes, but this is not recommended because the longer transmission
-   window increases the probability of buffer collisions in recipient nodes.
-
-   The sender breaks the datagram content into one or more frames. The source NodeID alias and destination
-   NodeID alias are contained in the header as usual. Two format indicators are used to mark non-final and
-   final frames. The data part of the CAN frame can carry from zero to eight data bytes.
-
-   If there are more than eight bytes to the datagram, the rest are send as consecutive frames. Because CAN
-   transmission retains frame order between sender and receiver, no order information is added to the
-   frames. The last frame is marked by a “datagram complete” format indicator.
-
-   The receiving node receives the frames into a buffer. The frames from more than one datagram may arrive
-   in interleaved order, in which case the receiving node can tell them apart using their source NodeID
-   alias and store them in separate buffers. If sufficient buffers are not available, the receiving node
-   rejects the datagram and it will be resent. Once the “datagram complete” indicator is received for a
-   datagram, the node replies to the original source node with a “Datagram Received OK” or “Datagram
-   Rejected” message.
-
-   An interface or gateway onto a CAN link must do the datagram fragmentation and defragmentation locally.
-   Buffer retries may be either done locally by the gateway, or by reflecting the response back to the
-   original sender.
-
-6.1 CAN Examples
-
-  6.1.1 Normal CAN case
-
-   Datagram Segment →
-
-   Datagram Segment →
-
-   Datagram Segment →
-
-   Datagram Segment (Complete) →
-
-    
-
-   ← Datagram Acknowledged
-
-  6.1.2 Short CAN datagram case
-
-   Datagram Segment (Complete) →
-
-   ← Datagram Acknowledged
-
-    
-
-  6.1.3 Rejected short CAN datagram case
+  3.3.3 Rejected short CAN datagram case
 
    Even a short datagram can be rejected with a “Temporarily unable to receive” if there's e.g. a shortage
    of buffers:
 
-    
-
-   Datagram Segment (Complete) →
+   Datagram Only Frame →
 
    ← Datagram Rejected, Buffer shortage, Resend
 
     
 
-  6.1.4 Rejected interleaved CAN datagram case:
+  3.3.4 Rejected interleaved CAN datagram case:
 
    Accidental interleave, at a node that can't handle that:
 
     
 
-   Datagram Segment from A →
+   Datagram First Frame from A →
 
-   Datagram Segment from B →
+   Datagram First Frame from B →
 
    ← Datagram Rejected, Buffer shortage, Resend to B
 
-   Datagram Segment from A →
+   Datagram Middle Frame from A →
 
-   Datagram Segment (Complete) from A->
+   Datagram Last Frame from A->
 
-   ← Datagram Acknowledged to A
+   ← Datagram Received OK to A
 
-   Datagram Segment from B →
+   Datagram First Frame from B →
 
-   Datagram Segment (Complete) from B->
+   Datagram Final Frame from B->
 
-   ← Datagram Acknowledged to B
+   ← Datagram Received OK to B
 
-                                              7 Datagram Content
+  3.3.5 Command/Reply Example
 
-   The datagram length is coded by the transport medium:  There is no separate length field in the datagram
-   content itself.
+   Command Datagram →
+
+   ← Datagram Received OK
+
+   ← Reply Datagram
+
+   Datagram Received OK →
+
+  3.3.6 Back and Forth Datagram Protocol
+
+   Small nodes may have only one datagram receive buffer and one datagram transmit buffer. In that case,
+   sending multiple commands can result in poor performance if the replies go after the next request, e.g.:
+
+   Command Datagram →
+
+   ← Datagram Received OK
+
+   ← Reply Datagram
+
+   Command Datagram →
+
+   Datagram Received OK →
+
+   ← Datagram Received OK
+
+   ← Reply Datagram
+
+   Datagram Received OK →
+
+   Note that the 2nd command was sent before the reply datagram was sent. This is valid, but nodes with
+   only one buffer may not be able to handle that Read until the transmit buffer has been emptied by an
+   acknowledgement. In that case, the sequence may become e.g.:
+
+   Command Datagram →
+
+   ← Datagram Received OK
+
+   ← Reply Datagram
+
+   Command Datagram →
+
+   ← Datagram Rejected (reject, no buffer, please resend)
+
+   Datagram Received OK →
+
+   Command Datagram (retransmit) →
+
+   ← Datagram Received OK
+
+   ← Reply Datagram
+
+   Datagram Received OK →
 
     
+
+   which is significantly less efficient. Better to send the positive acknowledgement to the read reply
+   datagram before sending the next read command.
+
+3.4 Datagram Content
 
    There needs to be a method for identifying the content of a general datagram. OpenLCB is meant to be
    used with both very simple, low-end nodes, and high-end computers with multiple programs. In both those
@@ -238,9 +346,9 @@
 
    The plan is to use both. There will be a one-byte field, with certain values to escape to a two-byte
    field (reserved for future use), and to a six-byte fully-unique field. A separate spreadsheet is
-   accumulating values. (spreadsheet) (pdf)
+   accumulating values.
 
-                                                 8 Numerology
+3.5 Numerology
 
    This section discusses how big the maximum datagram payload can be. This is a decision that must balance
    buffer size versus utility of the protocol. Memory is scarce in a small node. Although it's possible to
@@ -266,7 +374,7 @@
    Our notional decision is nine segments, 72 bytes, but developers should code this as a constant to the
    extent possible.
 
-                                             9 Future Extensions
+3.6 Future Extensions
 
    In this version of the datagram protocol, there is no provision for multiple recipients of a single
    message. Transmission is strictly one-to-one. This isn't because of addressing (making them globally
@@ -291,7 +399,15 @@
    knows how many "many" is. Global broadcast, like events, is hard because the transmitter's buffer
    management gets complicated unless it knows how many nodes are listening for it's reply.
 
-                                           10 Implementation Notes
+   Bosch is proposing a new standard called CAN-FD with increased bit-rate over the data portion allowing
+   up to 64 bytes! http://www.semiconductors.bosch.de/media/pdf/canliteratur/can_fd.pdf
+
+   Decided not to reduce max data length to fit easily within this for ease of migration in the long-term.
+   There are good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have
+   a header of N bytes on the front of 64 data bytes. All that's needed is to ensure the datagram spec can
+   work with larger frames of any length.
+
+3.7 Implementation Notes
 
    A resource-constrained node can get along with a single datagram buffer for both sending and receiving,
    but this may require that the node be able to abandon and recreate a datagram that it is trying to
@@ -315,43 +431,7 @@
 
     
 
-                                     11  (Still to be merged into above)
-
-   There's nothing in the Standard that says that CAN frames have to be maximal size.  A 9-byte datagram
-   can be frames of 8 and 1, or 1 and 8.  This is helpful for handling e.g. buffering and creation of
-   dynamic content in the source node.
-
-   The state machine for assembling datagram frames needs to now when e.g. the lower levels reset, so that
-   it knows to abandon a partially received datagram.  Can also recover upon seeing the next start/only
-   frame.
-
-   There's no requirement to a specific response to out-of-spec transmission. If a node receives
-   out-of-spec datagram fragments, what it does is up to it. This is because it's neither necessary nor
-   practical to specify a unique set of logic for dealing with the semi-infinite number of possible
-   out-of-spec transmissions. Nodes can use the various error replies to indicate whatever they know, but
-   they don't have to.
-
-   So a node that gets a middle-segment without a first-segment can react in various ways. It might send
-   various replies (but it doesn't have to). It might ignore it. Etc.
-
-   There's an important thing to realize about that though:
-
-   Getting another valid datagram sequence while receiving one (or more) that fills the local buffers is
-   _not_ an out-of-spec condition, and the protocol defines exactly how the node is to react. There's no
-   flexibility there.
-
-   (Example of how overlapping datagrams might be handled in a really simple implementation, so that early
-   ones are dropped due to buffer which results in out-of-sequence that's really buffer drop)
-
     
-
-   Bosch is proposing a new standard called CAN-FD with increased bit-rate over the data portion allowing
-   up to 64 bytes! http://www.semiconductors.bosch.de/media/pdf/canliteratur/can_fd.pdf
-
-   Decided not to reduce max data length to fit easily within this for ease of migration in the long-term.
-   There are good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have
-   a header of N bytes on the front of 64 data bytes. All that's needed is to ensure the datagram spec can
-   work with larger frames of any length.
 
     
 
@@ -365,32 +445,62 @@
 
    2.2 References and Context
 
-   3 Use Cases
+   2.3  Message Formats
 
-   4 Discussion
+   2.3.1 Datagram Content
 
-   5 Base Protocol Proposal
+   2.3.1.1 CAN-Datagram Content Single Frame
 
-   6 CAN protocol proposal
+   2.3.1.2 CAN-Datagram Content First Frame
 
-   6.1 CAN Examples
+   2.3.1.3 CAN-Datagram Content Middle Frame
 
-   6.1.1 Normal CAN case
+   2.3.1.4 CAN Datagram Content Last Frame
 
-   6.1.2 Short CAN datagram case
+   2.3.2 Datagram Received OK
 
-   6.1.3 Rejected short CAN datagram case
+   2.3.3 Datagram Rejected
 
-   6.1.4 Rejected interleaved CAN datagram case:
+   2.3.3.1 Error Codes
 
-   7 Datagram Content
+   2.4 States (Normative)
 
-   8 Numerology
+   2.5 Interactions (Normative)
 
-   9 Future Extensions
+   2.5.1 Normal Transmission
 
-   10 Implementation Notes
+   2.5.1.1 CAN Protocol
 
-   11  (Still to be merged into above)
+   2.5.2 Rejected Transmission
+
+   2.5.2.1 CAN Protocol
+
+   3 Background Information
+
+   3.1 Use Cases
+
+   3.2 Discussion
+
+   3.3 Examples
+
+   3.3.1 Normal CAN case
+
+   3.3.2 Short CAN datagram case
+
+   3.3.3 Rejected short CAN datagram case
+
+   3.3.4 Rejected interleaved CAN datagram case:
+
+   3.3.5 Command/Reply Example
+
+   3.3.6 Back and Forth Datagram Protocol
+
+   3.4 Datagram Content
+
+   3.5 Numerology
+
+   3.6 Future Extensions
+
+   3.7 Implementation Notes
 
     
