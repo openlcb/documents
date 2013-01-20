@@ -65,6 +65,90 @@
    The following table shows available configuration operation formats. All others reserved. They must not
    be skipped during identification. Items in {} are optional.
 
+                                      Write     Write Under Write Stream Read      Read-Reply Read Stream   
+                                                Mask        
+   Datagram Type Byte                 0x20      0x20        0x20         0x20      0x20       0x20          
+                   Command Type       0b00      0b00        0b00         0b01      0b01       0b01          
+                   (2 bits)           
+                   Stream/Datagram (1 0b0       0b1         0b1          0b0       0b0        0b1           
+                   bit)               
+                   ReadReply/Write (1 0b0       0b0         0b0          0b0       0b1        0b0           
+   Command Byte    bit)               
+   (Upper is MSB,  Under Mask         0b0       0b1         0b0                                             
+   lower is LSB)   (1 bit)            
+                   Reserved (1 bit)                                      0b0       0b0        0b0           
+                   Reserved (1 bit)   0b0       0b0         0b0          0b0       0b0        0b0           
+                   Address Space      0b00-0b11 0b00-0b11   0b00-0b11    0b00-0b11 0b00-0b11  0b00-0b11     
+                   (2 bits)           
+                   Full byte value    0x00-0x03 0x18-0x1B   0x20-0x23    0x40-0x43 0x50-0x53  0x70-0x73     
+   4 bytes                            Address   Address     Address      Address   Address    Address       
+   Optional byte, present when        Address   Address     Address      Address   Address    Address Space 
+   Address Space bits above == 0b00   Space     Space       Space        Space     Space      
+                                                Data and                                      Count         
+                                      Data      Mask        Stream       Count     Data       (4 bytes),    
+   Remainder                          (1-64     (2-64       Definition   (1 byte,  (1-64      then Stream   
+                                      bytes)    bytes)      Info         0-64)     bytes)     Definition    
+                                                                                              Info          
+
+    
+
+                                 Get Config Get Config       Get Addr   Get Address Space Info Freeze/      
+                                 Options    Options Reply    Space Info Reply                  Unfreeze     
+   Datagram Type Byte            0x20       0x20             0x20       0x20                   0x20         
+                  Command Type   0b10       0b10             0b10       0b10                   0b10         
+                  Operation Type 0b0000     0b0000           0b0001     0b0001                 0b1000       
+   Command Byte   Reply          0b0        0b1              0b0        0b1                                 
+   (Upper is MSB, Reserved       0b0        0b0              0b0        0b0                    0b0          
+   lower is LSB)  Freeze/                                                                      Freeze 0b1   
+                  Unfreeze                                                                     Unfreeze 0b0 
+                  Byte value     0x80       0x82             0x84       0x86                   0xA0-0xA1    
+   Byte 2                                   Available        Address    Address Space                       
+                                            Commands (2      Space      
+   Byte 3                                   bytes)                                                          
+   Byte 4                                   Write Lengths                                                   
+   Byte 5                                   Highest Address             Largest Address (4                  
+                                            Space                       bytes)
+   Byte 6                                   Lowest Address                                                  
+                                            Space (0-1 byte) 
+                                                                        Requires Alignment (4               
+                                                                        bits) Low Address      
+                                                                        Non-zero (1 bit)       
+                                            Name (0-N bytes,            Read-Only (1 bit)      
+   Remainder                                optional                    {Lowest Address } (4    
+                                                                        bytes)                 
+                                                                        {Desc }                
+                                                                                               
+                                                                        (0-N bytes)            
+
+    
+
+                                   Lock/      Lock/   Get Unique Get                Update   Reset/ Reinit/ 
+                                   Reserve    Reserve ID         Unique   Indicate  Complete Reboot Factory 
+                                              Reply              ID Reply                           Reset   
+   Datagram Type Byte              0x20       0x20    0x20       0x20     0x20      0x20     0x20   0x20    
+                      Command Type 0b10       0b10    0b10       0b10     0b10      0b10     0b10   0b10    
+                      Operation    0b0010     0b0010  0b0011     0b0011   0b1001    0b1010   0b1010 0b1010  
+                      Type         
+                      Reply        0b0        0b1     0b0        0b1                                        
+   Command Byte       Reserved     0b0        0b0     0b0        0b0                                        
+   (Upper is MSB,                                                         Start 0b1                         
+   lower is LSB)      Start/Stop                                                                     
+                                                                          Stop 0b0  
+                      Sub                                                           0b00     0b01   0b10    
+                      Command      
+                      Byte value   0x80       0x8A    0x8C       0x8D     0xA2-0xA3 0xA8     0xA9   0xAA    
+                                                      Number to  New                                        
+                                                      reserve (3 Unique                                     
+   Byte 2                                             bits, 1-8) EventI D                     
+                                                                          
+                                   Requesting Locking            (8                                 Target
+   Byte 3                          NodeID     NodeID             bytes,                             NodeID
+   Byte 4                                                        1-8                                
+   Byte 5                                                        times)                             
+   Byte 6                                                                                           
+   Byte 7                                                                                           
+   Remainder                                                                                                
+
     
 
                 Command                                                                                         
