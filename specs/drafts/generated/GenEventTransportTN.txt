@@ -6,13 +6,21 @@
    OpenLCB nodes respond to local inputs and state changes by emitting Producer/Consumer Event Report
    (PCER) messages. When they do this, they are acting as "Producers". OpenLCB nodes receive these
    messages, and can act on them locally if desired. If they do so, they are acting as "Consumers".
+   Together, this is called the Producer-Consumer Model of system control.  In this model a particular
+   concept, or event, is the sum of the inputs that trigger the production of the PCER by the producer(s)
+   and the action(s) taken by the consumer(s).  Its main advantage is the knowledge independence it imparts
+   between all of the nodes involved in an event.  Expressed in more anthropomorphic terms, neither the
+   producers nor consumers or a PCER are aware of each other.  This adds flexibility to the system, since
+   more producers or consumers of the PCER can be added to implement the associated event, without concern
+   of side effects to the the other nodes involved in the event.   More background & references would be
+   good.i1
 
    The P/C Event ID included in a PCER message is a 8-byte unique identifier. The method for assigning
-   these and ensuring their uniqueness is in the Event ID S and TN.
+   these and ensuring their uniqueness is in the Event ID Standard and Technical Note.
 
    There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
    particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
-   than one node may emit the same P/C Event ID (note that the NID of the emitting node is available
+   than one node may emit the same P/C Event ID (note that the Node ID of the emitting node is available
    separately in the message). More than one node may receive and act on a PCER message with a specific P/C
    Event ID. The only requirement is that the 8-byte quantity be unique to the event.
 
@@ -23,14 +31,7 @@
 
 2.1 Introduction
 
-   PCERs implement what has been called the Producer-Consumer Model of system control.  In this model a
-   particular concept, or event, is the sum of the inputs that trigger the production of the PCER by the
-   producer(s) and the action(s) taken by the consumer(s).  Its main advantage is the knowledge
-   independence it imparts between all of the nodes involved in an event.  Expressed in more
-   anthropomorphic terms, neither the producers nor consumers or a PCER are aware of each other.  This adds
-   flexibility to the system, since more producers or consumers of the PCER can be added to implement the
-   associated event, without concern of side effects to the the other nodes involved in the event.   More
-   background & references would be good.i1
+    
 
 2.2 Intended Use
 
@@ -93,6 +94,9 @@
 
    This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
    nodes.  It's the backbone of the protocol, and forms most of the expected traffic.
+
+   The source node ID allows identification of which node sent the event. This can be used for diagnostic
+   and status purposes, but nodes must act on the event without regard to where it came from.
 
   2.4.2 Identify Consumer
 
@@ -283,10 +287,21 @@
 
    Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
 
+   The distributed-state model of a layout.  “Events” broadcast state transitions, which individual
+   producers and consumers use to change their knowledge of the distributed state.  
+
+   Include some examples and figures from
+   http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html ?
+
 3.1 Gateways
 
    Gateways can route PCERs only to segments with nodes expressing interest by processing the other event
    messages.
+
+   The automatically-routed event range has to be routed. This can be done by making a permanent entry in
+   routing tables, or any other implementation method.
+
+   Merge the example in http://openlcb.org/trunk/documents/examples/CAN-TCP-CAN-TCP-example.html
 
 3.2 Implementation hints
 
