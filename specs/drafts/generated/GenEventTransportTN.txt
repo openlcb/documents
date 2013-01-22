@@ -12,9 +12,9 @@
 
    There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
    particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
-   than one node may emit the same P/C Event ID (note that the NID of the emitting node is available in the
-   message). More than one node may receive and act on a PCER message with a specific P/C Event ID. The
-   only requirement is that the 8-byte quantity be unique to the event.
+   than one node may emit the same P/C Event ID (note that the NID of the emitting node is available
+   separately in the message). More than one node may receive and act on a PCER message with a specific P/C
+   Event ID. The only requirement is that the 8-byte quantity be unique to the event.
 
                                       2 Annotations to the Specification
 
@@ -23,11 +23,18 @@
 
 2.1 Introduction
 
-   More background & references would be good.i
+   PCERs implement what has been called the Producer-Consumer Model of system control.  In this model a
+   particular concept, or event, is the sum of the inputs that trigger the production of the PCER by the
+   producer(s) and the action(s) taken by the consumer(s).  Its main advantage is the knowledge
+   independence it imparts between all of the nodes involved in an event.  Expressed in more
+   anthropomorphic terms, neither the producers nor consumers or a PCER are aware of each other.  This adds
+   flexibility to the system, since more producers or consumers of the PCER can be added to implement the
+   associated event, without concern of side effects to the the other nodes involved in the event.   More
+   background & references would be good.i1
 
 2.2 Intended Use
 
-   A few examples....
+    
 
    A particular PCER may be produced in response to physical input or state change on a layout, for example
    a contact closure or the activation of a block occupancy detector, or it can be in response to a
@@ -36,8 +43,6 @@
    the state changes, the PCER message, and the resulting actions, and represent a specific idea or
    concept, such as “Night has fallen”.  
 
-    
-
    For example, the concept of  an “Emergency stop” event might include the actions of turning off track
    power, turning on a fault-indicator, and sounding a buzzer.  The PCER may be produced by any of: a panic
    button, a throttle button, a over-current detector, or an anticollision system.  
@@ -45,6 +50,9 @@
    The aforementioned “Night has fallen” event might be triggered by a fast-clock time, a toggle switch, or
    a control program, and its actions might include illuminating street lights, house lights, and the
    dimming of overhead lighting.  
+
+   In addition, ranges of PCERs can be used for specific purposes.  For example, a fast clock's messages
+   can be implemented as a range of PCERs, where the low order bytes are the time.  
 
 2.3 References and Context
 
@@ -173,7 +181,7 @@
    messages and their “valid”, “invalid”, “unknown” subforms.  It is possible that these will result in
    conflicting and/or ambiguous state.
 
-   Note that the Advertised/Not-Advertised state machine  is reset by  the Initialiation Complete message,
+   Note that the Advertised/Not-Advertised state machine  is reset by  the Initialization Complete message,
    and not by any  lower level link (CAN or other) state machine.
 
    Delay in sending the PI/PRI or CI/CRI messages after IC is OK, but there's no delivery guarantee for
@@ -194,7 +202,7 @@
 
      * When the node is first initialized, after  the "Initialization Complete" message has been sent.
 
-     * When a configuration change has added anotherevent ID that can be produced or consumed.
+     * When a configuration change has added another event ID that can be produced or consumed.
 
    To announce new Event IDs, the node must transmit a Producer Identified message for each P/C Event ID it
    can newly produce, and a Consumer Identified message for each P/C Event ID that it can newly consume.  
@@ -378,6 +386,11 @@
    3.4 History section:
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 D. Miorandi and S. Vitturi,  "Performance analysis of producer/consumer protocols over IEEE 802.11
+   wireless links",  Proc. IEEE Workshop Factory Communication Systems (WFCS),  2004
 
    i The Producer/Consumer Model and Control System Design ControlLogix 1999
    https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
