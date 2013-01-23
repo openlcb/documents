@@ -38,6 +38,10 @@
    The CAN header values are chosen to prevent CAN priority from reordering frames in a way that would
    damage the transmission.
 
+   The general Datagram message is broken into a First frame, one or more Middle frames, and a Last frame.
+    In the degenerate case of a very short message that can fir into one frame, there is also an
+   Only-frame.  These are described below.  
+
     2.3.1.1 CAN-Datagram Content Single Frame
 
    Note that zero-length datagrams are valid.
@@ -104,7 +108,7 @@
 
    If there are more than eight bytes to the datagram, the rest are send as consecutive frames. Because CAN
    transmission retains frame order between sender and receiver, no order information is added to the
-   frames. The first/middle/last frame is marked bin the CAN header.
+   frames. The first/middle/last frame is marked in the CAN header.
 
    There's nothing in the Standard that says that CAN frames have to be maximal size.  A 9-byte datagram
    can be frames of 8 and 1, or 1 and 8.  This is helpful for handling e.g. buffering and creation of
@@ -119,8 +123,8 @@
    complete” indicator is received for a datagram, the node replies to the original source node with a
    “Datagram Received OK” or “Datagram Rejected” message.
 
-   The state machine for assembling datagram frames needs to now when e.g. the lower levels reset, so that
-   it knows to abandon a partially received datagram.  Can also recover upon seeing the next start/only
+   The state machine for assembling datagram frames needs to know when e.g. the lower levels reset, so that
+   it knows to abandon a partially received datagram.  It can also recover upon seeing the next start/only
    frame.
 
    An interface or gateway onto a CAN link must do the datagram fragmentation and defragmentation locally.
@@ -134,20 +138,20 @@
 
     2.5.2.1 CAN Protocol
 
-   There's no requirement to a specific response to out-of-spec transmission. If a node receives
+   There's no requirement for a specific response to out-of-spec transmissions. If a node receives
    out-of-spec datagram fragments, what it does is up to it. This is because it's neither necessary nor
    practical to specify a unique set of logic for dealing with the semi-infinite number of possible
    out-of-spec transmissions. Nodes can use the various error replies to indicate whatever they know, but
    they don't have to.
 
-   So a node that gets a middle-segment without a first-segment can react in various ways. It might send
+   So, a node that gets a middle-segment without a first-segment can react in various ways. It might send
    various replies (but it doesn't have to). It might ignore it. Etc.
 
-   There's an important thing to realize about that though:
+   There's an important thing to realize about that behaviour, though:
 
    Getting another valid datagram sequence while receiving one (or more) that fills the local buffers is
    _not_ an out-of-spec condition, and the protocol defines exactly how the node is to react. There's no
-   flexibility there.
+   flexibility in this case.
 
     
 
@@ -219,6 +223,8 @@
 
    ← Datagram Received OK
 
+    
+
   3.3.2 Short CAN datagram case
 
    Datagram Only Frame →
@@ -236,13 +242,9 @@
 
    ← Datagram Rejected, Buffer shortage, Resend
 
-    
-
   3.3.4 Rejected interleaved CAN datagram case:
 
    Accidental interleave, at a node that can't handle that:
-
-    
 
    Datagram First Frame from A →
 
@@ -317,8 +319,6 @@
 
    Datagram Received OK →
 
-    
-
    which is significantly less efficient. Better to send the positive acknowledgement to the read reply
    datagram before sending the next read command.
 
@@ -335,14 +335,14 @@
    We also want those “datagram content IDs” to be small, unique, unambiguous, easily assigned, etc. To do
    that, there are two basic approaches:
 
-   We define a small (one-byte) ID field with a central sequential method of assignment. It's called the
-   “Datagram Protocol ID”. This is small, so doesn't use much space on CAN, but requires central recording
-   of IDs.
+     * We define a small (one-byte) ID field with a central sequential method of assignment. It's called
+       the “Datagram Protocol ID”. This is small, so doesn't use much space on CAN, but requires central
+       recording of IDs.
 
-   We considered using a 6 byte field assigned the same way that node unique identifiers are. The protocol
-   designer(s) uses a unique ID they control to identify the new protocol they are defining. This takes
-   significantly more space, particularly on CAN, but is simple to maintain and requires no central
-   registration.
+     * We considered using a 6 byte field assigned the same way that node unique identifiers are. The
+       protocol designer(s) uses a unique ID they control to identify the new protocol they are defining.
+       This takes significantly more space, particularly on CAN, but is simple to maintain and requires no
+       central registration.
 
    The plan is to use both. There will be a one-byte field, with certain values to escape to a two-byte
    field (reserved for future use), and to a six-byte fully-unique field. A separate spreadsheet is
@@ -411,12 +411,12 @@
 
    A resource-constrained node can get along with a single datagram buffer for both sending and receiving,
    but this may require that the node be able to abandon and recreate a datagram that it is trying to
-   transmit. This can happen when e.g.
+   transmit. This can happen when e.g.:
 
-   Node A creates a datagram for node B in its buffer and starts to send it.
+     * Node A creates a datagram for node B in its buffer and starts to send it.
 
-   Before starting to receive the datagram from A, node B creates a datagram for Node A in its buffer and
-   starts to send it.
+     * Before starting to receive the datagram from A, node B creates a datagram for Node A in its buffer
+       and starts to send it.
 
    Both datagrams now need a place to put the incoming datagram, but only have one buffer in this example.
    They can both send “Datagram rejected; buffer shortage”, but then their peer will just repeat the
