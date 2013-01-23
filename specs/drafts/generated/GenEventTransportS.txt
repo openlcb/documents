@@ -74,7 +74,7 @@
        it had just consumed this event
 
      * Currently invalid – the internal state of the consumer & associated devices is known to not be the
-       same as it had just consumed this event
+       same as if it had just consumed this event
 
      * Currently unknown – the consumer cannot determine whether either of the previous conditions is true
 
@@ -152,8 +152,7 @@
    When the node hosting the producer or consumer is not in Initialized state, the consumer or producer
    shall be in and remain in Unadvertised state.
 
-   A producer or consumer of a specific event moves to Advertised state when either of the following
-   happens:
+   A producer or consumer of a specific event moves to Advertised state when any of the following happens:
 
      * The producer or consumer sends a Producer Identified or Consumer Identified, respectively, message
        containing the Event ID.
@@ -161,16 +160,20 @@
      * The producer or consumer sends a Producer Range Identified or Consumer Range Identified,
        respectively, message where the indicated range contains the Event ID.
 
-   The messages defined by this Standard may only be sent when the sending node is in Initialized state.
+     * Producers and consumers of Event IDs in the automatically-advertised range are in the Advertised
+       state once the node is in the Initialized state.
+
+   The messages defined by this Standard shall only be sent when the sending node is in Initialized state.
 
    Producer/Consumer Event Report messages may only be sent when the associated producer is in Advertised
-   state.
+   state.  OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a consumer of a
+   particular Event ID when that consumer is in Unadvertised state.
 
                                           6 Interactions (Normative)
 
-   After each transition to transitions to Initialized State and before sending a Producer/Consumer Event
-   Report (PCER) message producing a specific Event ID outside the automatically-routed Event ID range, a
-   node shall emit a Producer Identified or Producer Range Identified message identifying that Event ID.
+   After each transition to Initialized State and before sending a Producer/Consumer Event Report (PCER)
+   message producing a specific Event ID outside the automatically-routed Event ID range, a node shall emit
+   a Producer Identified or Producer Range Identified message identifying that Event ID.
 
    To ensure receipt of PCER messages, a node consuming a specific Event ID outside the
    automatically-routed Event ID shall emit a Consumer Identified or Consumer Range Identified message
