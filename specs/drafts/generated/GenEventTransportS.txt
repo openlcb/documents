@@ -5,13 +5,13 @@
                                          2 Intended Use (Informative)
 
    Transporting events provides general and flexible messaging between nodes, following the principles of
-   the Producer-Consumer model.  The information is carried by an event ID (number), which in of itself
-   does not have any explicit information.  Instead the event ID is assigned by the user to one specific
-   concept, such as a specific lighting configuration, or a more abstract concept, such as the “start of
-   the day” or “global stop”.   That concept can then be implemented by cooperative action between nodes
-   that “produce” the event by sending messages, and nodes that “consume” the event by receiving messages
-   and acting up them.  This document defines that interaction between produces and consumers in terms of
-   OpenLCB messages.
+   the Producer-Consumer model.  The information is carried by an Event Identifier (Event ID ornumber),
+   which in of itself does not have any explicit information.  Instead the Event ID is assigned by the user
+   to one specific concept, such as a specific lighting configuration, or a more abstract concept, such as
+   the “start of the day” or “global stop”.   That concept can then be implemented by cooperative action
+   between nodes that “produce” the event by sending messages, and nodes that “consume” the event by
+   receiving messages and acting up them.  This document defines that interaction between produces and
+   consumers in terms of OpenLCB messages.
 
                                      3 References and Context (Normative)
 
@@ -21,15 +21,15 @@
        Higher-level protocols are based on this message network, but are defined elsewhere. The Message
        Network Standard defines the Initialized node state which is referenced here.
 
-     * The OpenLCB Event Identifiers Standard, which defines the format and content of Event Identifiers
-       (Event IDs) including the class of Well-Known Event IDs and Automatically-Routed Event IDs.
+     * The OpenLCB Event Identifiers Standard, which defines the format and content of  Event IDs including
+       the class of Well-Known Event IDs and Automatically-Routed Event IDs.
 
                                         4 Message Formats (Normative)
 
    In the following, “EventID Range” in the Data Content field refers to a range of EventID values
    specified through a compare-under-mask operation.  The low bit of the field defines the sign of the
-   mask: a 1 least-significant bit indicates the mask is represented by 1 bits, and similar for a 0 LSB.
-   The mask is made up of adjacent identical bits. If the lowest bit is a '0', then all low order
+   mask: a 1 least-significant bit indicates the mask is represented by 1 bits, and similarly for a 0 LSB.
+   The mask is made up of the adjacent identical bits: if the lowest bit is a '0', then all low order
    contiguous '0' bits will form a mask, while if the lowest bit is a '1', then the low order contiguous
    '1' bits will form the mask.  The remaining upper bits determine the range prefix. To determine whether
    an Event ID “E” lies within the range “R”, compute:
@@ -40,30 +40,31 @@
 
 4.1 Producer/Consumer Event Report (PCER)
 
-                                                               Common                          
-   Name                           Dest ID Event ID Simple Node        CAN format  Data Content
-                                                               MTI    
-   Producer/Consumer Event Report N       Y        N           0x05B4 0x195B,4sss EventID      
+                                                               Common                                
+   Name                           Dest ID Event ID Simple Node        CAN Header Format Data Content
+                                                               MTI*   
+   Producer/Consumer Event Report N       Y        N           0x05B4 0x195B,4sss§      EventID      
 
-    
+                                                  * This is the MTI field common to all transports
+                                                 § sss is the 12-bit source alias field
 
 4.2 Identify Consumer
 
-                                                  Common                          
-   Name              Dest ID Event ID Simple Node        CAN format  Data Content
+                                                  Common                                
+   Name              Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                   MTI    
-   Identify Consumer N       Y        Y           0x08F4 0x198F,4sss Event ID     
+   Identify Consumer N       Y        Y           0x08F4 0x198F,4sss       Event ID     
 
 4.3 Consumer Identified
 
-                                                    Common                          
-   Name                Dest ID Event ID Simple Node        CAN format  Data Content
+                                                    Common                                
+   Name                Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                     MTI    
-                                                    0x04C4 0x194C,4sss              
-                                                                       
-   Consumer Identified N       Y        N           0x04C5 0x194C,5sss Event ID
-                                                                       
-                                                    0x04C7 0x194C,7sss 
+                                                    0x04C4 0x194C,4sss                    
+                                                                             
+   Consumer Identified N       Y        N           0x04C5 0x194C,5sss       Event ID
+                                                                             
+                                                    0x04C7 0x194C,7sss       
 
     
 
@@ -80,35 +81,35 @@
 
 4.4 Consumer Range Identified
 
-                                                          Common                           
-   Name                      Dest ID Event ID Simple Node        CAN format  Data Content
+                                                          Common                                 
+   Name                      Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                           MTI    
-   Consumer Range Identified N       Y        N           0x04A4 0x194A,4sss EventID Range 
+   Consumer Range Identified N       Y        N           0x04A4 0x194A,4sss       EventID Range 
 
     
 
-   Nodes shall not emit Consumer Range Identified messages where more than 50% of the event IDs included in
+   Nodes shall not emit Consumer Range Identified messages where more than 50% of the Event IDs included in
    the range are not consumed by the node.
 
 4.5 Identify Producer
 
-                                                  Common                          
-   Name              Dest ID Event ID Simple Node        CAN format  Data Content
+                                                  Common                                
+   Name              Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                   MTI    
-   Identify Producer N       Y        Y           0x0914 0x1991,4sss Event ID     
+   Identify Producer N       Y        Y           0x0914 0x1991,4sss       Event ID     
 
     
 
 4.6 Producer Identified
 
-                                                    Common                          
-   Name                Dest ID Event ID Simple Node        CAN format  Data Content
+                                                    Common                                
+   Name                Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                     MTI    
-                                                    0x0544 0x1954,4sss              
-                                                                       
-   Producer Identified N       Y        N           0x0545 0x1954,5sss Event ID
-                                                                       
-                                                    0x0547 0x1954,7sss 
+                                                    0x0544 0x1954,4sss                    
+                                                                             
+   Producer Identified N       Y        N           0x0545 0x1954,5sss       Event ID
+                                                                             
+                                                    0x0547 0x1954,7sss       
 
     
 
@@ -125,25 +126,25 @@
 
 4.7 Producer Range Identified
 
-                                                          Common                           
-   Name                      Dest ID Event ID Simple Node        CAN format  Data Content
+                                                          Common                                 
+   Name                      Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                           MTI    
-   Producer Identified Range N       Y        N           0x0524 0x1952,4sss EventID Range 
+   Producer Identified Range N       Y        N           0x0524 0x1952,4sss       EventID Range 
 
     
 
-   Nodes shall not emit Producer Range Identified messages where more than 50% of the event IDs included in
+   Nodes shall not emit Producer Range Identified messages where more than 50% of the Event IDs included in
    the range are not produced by the node.
 
 4.8 Identify Events
 
-                                                Common                               
-   Name            Dest ID Event ID Simple Node        CAN format       Data Content
+                                                Common                                
+   Name            Dest ID Event ID Simple Node        CAN Header Format Data Content
                                                 MTI    
-   Identify Events N       N        Y           0x0970 0x1997,0sss                   
-                   Y       N                    0x0968 0x1996,8sss fddd              
+   Identify Events N       N        Y           0x0970 0x1997,0sss                    
+                   Y       N                    0x0968 0x1996,8sss       fddd*        
 
-    
+               * fddd is a 12-byte destination alias, with a preceding 4-bits of flags.  
 
                                              5 States (Normative)
 
@@ -188,43 +189,43 @@
    it. If a match is not found, the consumer shall not perform any local operations.
 
    Equipment that transports PCER messages shall transport them to all connected nodes from which the
-   equipment has received a Consumer Identified or Consumer Range Identified for the reported event ID.
+   equipment has received a Consumer Identified or Consumer Range Identified for the reported Event ID.
    Equipment that transports PCER messages shall transport all PCER messages containing Event IDs in the
    automatically-routed range to all connected nodes. Equipment that transports PCER messages may, but is
    not required to, omit transporting PCER messages with Event ID outside the automatically-routed range to
    nodes from which the equipment has not received a Consumer Identified or Consumer Range Identified for
-   the reported event ID.
+   the reported Event ID.
 
 6.2 Event Enquiry
 
    Upon receipt of either an unaddressed (global) Identify Events message or an addressed Identify Events
-   message addressed to the node, a node shall reply with Producer Identified and/or Producer Range
-   Identified messages covering all non-automatically-routed event IDs produced by the node, and Consumer
-   Identified and/or Consumer Range Identified messages covering all non-automatically-routed event IDs
+   message addressed to the node, that node shall reply with Producer Identified and/or Producer Range
+   Identified messages covering all non-automatically-routed Event IDs produced by the node, and Consumer
+   Identified and/or Consumer Range Identified messages covering all non-automatically-routed Event IDs
    consumed by the node.
 
    In response to an unaddressed (global) Identify Events message or an addressed Identify Events message
-   address to the node, a node may but is not required to include Producer Identified and/or Producer Range
-   Identified messages covering automatically-routed event IDs produced by the node, and Consumer
-   Identified and/or Consumer Range Identified messages covering automatically-routed event IDs consumed by
+   address to the node, that node may but is not required to include Producer Identified and/or Producer
+   Range Identified messages covering automatically-routed Event IDs produced by the node, and Consumer
+   Identified and/or Consumer Range Identified messages covering automatically-routed Event IDs consumed by
    the node.
 
 6.3 Producer Enquiry
 
    Upon receipt of an Identify Producer message, a node shall reply with Producer Identified and/or
-   Producer Range Identified messages covering all non-automatically-routed event IDs produced by the node.
+   Producer Range Identified messages covering all non-automatically-routed Event IDs produced by the node.
 
    In response to an Identify Producer message, a node may but is not required to include Producer
-   Identified and/or Producer Range Identified messages covering automatically-routed event IDs produced by
+   Identified and/or Producer Range Identified messages covering automatically-routed Event IDs produced by
    the node.
 
 6.4 Consumer Enquiry
 
    Upon receipt of an Identify Consumer message, a node shall reply with Consumer Identified and/or
-   Consumer Range Identified messages covering all non-automatically-routed event IDs consumed by the node.
+   Consumer Range Identified messages covering all non-automatically-routed Event IDs consumed by the node.
 
    In response to an Identify Consumer message, a node may but is not required to include Consumer
-   Identified and/or Consumer Range Identified messages covering automatically-routed event IDs consumed by
+   Identified and/or Consumer Range Identified messages covering automatically-routed Event IDs consumed by
    the node.
 
     

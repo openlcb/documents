@@ -12,8 +12,7 @@
    between all of the nodes involved in an event.  Expressed in more anthropomorphic terms, neither the
    producers nor consumers or a PCER are aware of each other.  This adds flexibility to the system, since
    more producers or consumers of the PCER can be added to implement the associated event, without concern
-   of side effects to the the other nodes involved in the event.   More background & references would be
-   good.i1
+   of side effects to the the other nodes involved in the event.i1
 
    The P/C Event ID included in a PCER message is a 8-byte unique identifier. The method for assigning
    these and ensuring their uniqueness is in the Event ID Standard and Technical Note.
@@ -39,14 +38,14 @@
 
    A particular PCER may be produced in response to physical input or state change on a layout, for example
    a contact closure or the activation of a block occupancy detector, or it can be in response to a
-   non-physical change such as the arrival of a certain time,.  The same PCER can be produced by several
+   non-physical change such as the arrival of a certain time.  The same PCER can be produced by several
    different state changes.  That PCER may result in some action at consumers.   The term 'event' includes
    the state changes, the PCER message, and the resulting actions, and represent a specific idea or
    concept, such as “Night has fallen”.  
 
    For example, the concept of  an “Emergency stop” event might include the actions of turning off track
    power, turning on a fault-indicator, and sounding a buzzer.  The PCER may be produced by any of: a panic
-   button, a throttle button, a over-current detector, or an anticollision system.  
+   button, a throttle button, an over-current detector, or an anti-collision system.  
 
    The aforementioned “Night has fallen” event might be triggered by a fast-clock time, a toggle switch, or
    a control program, and its actions might include illuminating street lights, house lights, and the
@@ -63,15 +62,15 @@
 
 2.4 Message Formats
 
-   [ Should the following be an appendix? ]  [[[To TN: The range mask is implemented as a combined base
-   value and mask, where the mask bits are the lowest n bits of the same value as the lowest bit.  For
-   example, the event-mask 0xABCD0000 would form the range 0xABCD0000-ABCDFFFF, since the lowest bit is a
-   “0”and extends to the first “1” bit, in this case the the  low bit of the 'D' hexdigit.  Similarly, the
-   event-mask 0xFEDCBFFF would form the range 0xFEDC8000-FEDCBFFF, since the low-bit is a “1”, and lowest
-   “0” bit is in the 0xB = 0b1011, and the lowest significant '0' bit is in the 3rd digit.    The smallest
-   ranges are specified by 0xyyyyyyyE, which specifies a range of 0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD
-   which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives 0x00000000-0x00000001, and 0x00000002 gives
-   0x00000000-0x00000002, 0x00000003 gives 0x00000000-0x00000003
+   The range mask is implemented as a combined base value and mask, where the mask bits are the lowest n
+   bits of the same value as the lowest bit.  For example, the event-mask 0xABCD0000 would form the range
+   0xABCD0000-ABCDFFFF, since the lowest bit is a “0”and the mask bits extends to the first “1” bit, in
+   this case the the  low bit of the 'D' hex-digit.  Similarly, the event-mask 0xFEDCBFFF would form the
+   range 0xFEDC8000-FEDCBFFF, since the low-bit is a “1”, and lowest “0” bit is in the 0xB = 0b1011, and at
+   the third bit position.      The smallest ranges are specified by 0xyyyyyyyE, which specifies a range of
+   0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives
+   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, 0x00000003 gives
+   0x00000000-0x00000003
 
    Event-Mask Effective Mask Bits #   Resulting Range          
    0x00000001 0xFFFFFFFE     1    2   0x00000000-0x00000001    
@@ -88,7 +87,7 @@
                                       Example of fast clock.FF 
    0xFFFF0000 0xFFFF0000     16   65k 0xFFFF0000-0xFFFFFFFF    
 
-   ]]]
+    
 
     
 
@@ -102,12 +101,12 @@
 
   2.4.2 Identify Consumer
 
-   This message is broadcast and requests every node to report if they consume this event ID.  
+   This message is broadcast and requests every node to report if they consume this Event ID.  
 
   2.4.3 Consumer Identified
 
    This message is broadcast, in response to a received Identify Consumer message, from each node that
-   consumes the included event ID.  Nodes also send this as part of their startup so that other nodes know
+   consumes the includedEvent ID.  Nodes also send this as part of their startup so that other nodes know
    they want to consume particular events.
 
    This is one of the messages that allows bridges to do automatic routing of event messages.
@@ -133,25 +132,25 @@
 
   2.4.5 Identify Producer
 
-   This message is broadcast and requests every node to report whether they produce this event ID.  
+   This message is broadcast and requests every node to report whether they produce this Event ID.  
 
   2.4.6 Producer Identified
 
    This message is broadcast, in response to a received Identify Producer message, from each node that
-   produces the included event ID.  This is one of the messages that allows bridges to do automatic routing
+   produces the included Event ID.  This is one of the messages that allows bridges to do automatic routing
    of event messages.  
 
   2.4.7 Producer Range Identified
 
    The 50% is to allow rounding up to the enclosing bit, but no further.
 
-   An example would be a fast clock node that sends a range of events to indicate the time. Since there are
-   24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.  That could be expressed
-   in 17 bits, so if the range was to start with an event ID of 0x12.34.56.78.00.00.00.00, the range could
-   be expressed as  0x12.34.56.78.00.01.FF.FF  using 1 bits to represent the mask.  If the range had to
-   start at  0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits would not properly represent the mask
-   because  0x12.34.56.78.FF.FF.FF.FF is actually a different range. Using a 0 bit for the mask would work,
-   giving  0x12.34.56.78.FF.FE.00.00 as the representation.
+   An example of a producer range would be a fast clock node that sends a range of events to indicate the
+   time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.
+    That could be expressed in 17 bits, so if the range was to start with an Event ID of
+   0x12.34.56.78.00.00.00.00, the range could be expressed as  0x12.34.56.78.00.01.FF.FF  using 1 bits to
+   represent the mask.  If the range had to start at  0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits
+   would not properly represent the mask because  0x12.34.56.78.FF.FF.FF.FF is actually a different range.
+   Using a 0 bit for the mask would work, giving  0x12.34.56.78.FF.FE.00.00 as the representation.
 
    This message is broadcast, in response to a received Identify Producer message, from each node that
    produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
@@ -201,14 +200,14 @@
    again says that all events are not interesting, though).  This could be added, but it's much harder for
    gateways to decide that an Event ID is not interesting than that it is interesting, because they have to
    keep a list of all the node IDs that are interested,and back that off.  Better to just let  the set of
-   interesting event IDs grow until the layout or gateway is reset.
+   interesting Event IDs grow until the layout or gateway is reset.
 
    To ensure that event messages are properly routed, nodes must announce when they start to produce or
    consume messages. Specifically, they must do this at two times:
 
      * When the node is first initialized, after  the "Initialization Complete" message has been sent.
 
-     * When a configuration change has added another event ID that can be produced or consumed.
+     * When a configuration change has added another Event ID that can be produced or consumed.
 
    To announce new Event IDs, the node must transmit a Producer Identified message for each P/C Event ID it
    can newly produce, and a Consumer Identified message for each P/C Event ID that it can newly consume.  
@@ -223,7 +222,7 @@
    should only be used when needed.  
 
    The two forms of this message are sent to request that the specified nodes report all the events they
-   produce or consume.  These reports can be ether Identified messages specifying individual event IDs or
+   produce or consume.  These reports can be ether Identified messages specifying individual Event IDs or
    ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
    addressed message to a specific node.
 
@@ -261,8 +260,8 @@
    have to be addressed. You might also want to enquire of the consumers if you don't get a definitive
    answer from the producers.
 
-   valid/invalid/unknown – always possible to send unknown or ignore the three sub-forms, but a lot of
-   capability is lost
+   In regard to valid/invalid/unknown, it is  always possible to send only unknown, or to ignore the three
+   sub-forms, but a lot of capability is then lost.  
 
   2.6.4 Consumer Enquiry
 
@@ -307,18 +306,17 @@
 
 3.2 Implementation hints
 
-   Buffering issues, particularly on CAN: You have to be able to keep up with PCER messages that can arrive
-   every millisecond.
+   Buffering issues, particularly on CAN: a node has to be able to keep up with PCER messages that can
+   arrive about every millisecond (125000 bps / 120 bits per message)
 
-     * Put some attention into making sure that you don't have to do long linear searches to match an
-       incoming Event ID to internal structures.
+     * Don't  do long linear searches to match an incoming Event ID to internal structures.
 
-     * Consider just decoding the Event ID and setting a “process as available” bit, then doing further
-       work outside the CAN processing loop.
+     * Instead, consider just decoding the Event ID and setting a “process as available” bit, and then
+       doing further work outside the CAN receive loop.
 
-   There is no requirement that events be processed in any particular order. Multiple PCER messages with
-   the same Event ID may result in multiple actions inside a consumer, or may not, depending on the details
-   of the consumer.
+   [[ Is this true, see Don's comments: There is no requirement that events be processed in any particular
+   order. Multiple PCER messages with the same Event ID may result in multiple actions inside a consumer,
+   or may not, depending on the details of the consumer. ]]
 
 3.3 Well known events
 
@@ -335,9 +333,9 @@
 
    Nodes using these must mention them when listing the event IDs they produce and consume. Gateways may
    filter on these, but are not required to. (For ease of implementation, a gateway may just pass all
-   events with the common top 6 bytes)
+   events with the common top 6 bytes).
 
-3.4 History section:
+3.4 History section
 
    For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
    each time the associated P/C Event ID is sent. It is not at all clear how to do this across nodes, or
@@ -400,14 +398,14 @@
 
    3.3 Well known events
 
-   3.4 History section:
+   3.4 History section
 
     
 
      ----------------------------------------------------------------------------------------------------
 
-   1 D. Miorandi and S. Vitturi,  "Performance analysis of producer/consumer protocols over IEEE 802.11
-   wireless links",  Proc. IEEE Workshop Factory Communication Systems (WFCS),  2004
+   1 D. Miorandi and S. Vitturi, "Performance analysis of producer/consumer protocols over IEEE 802.11
+   wireless links", Proc. IEEE Workshop Factory Communication Systems (WFCS), 2004
 
    i The Producer/Consumer Model and Control System Design ControlLogix 1999
    https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
