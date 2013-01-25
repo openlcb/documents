@@ -33,68 +33,32 @@
 
 4.1 Datagram Content
 
-                                     Common                         
-   Name             Dest ID Event ID        CAN format Data Content
-                                     MTI    
-   Datagram Content Y       N        0x1C48 N/A        0-72 bytes   
-
-    
-
-  4.1.1 CAN-Datagram Content Single Frame
-
-    
-
-                                                  Common                          
-   Name                          Dest ID Event ID        CAN format  Data Content
-                                                  MTI    
-   Datagram Content Single Frame N       Y        N/A    0x1Add,dsss 0-8 bytes    
-
-    
-
-  4.1.2 CAN-Datagram Content First Frame
-
-                                                 Common                          
-   Name                         Dest ID Event ID        CAN format  Data Content
+                                                 Common              
+   Name             Dest ID Event ID Simple Node        Data Content
                                                  MTI    
-   Datagram Content First Frame Y       N        N/A    0x1Bdd,dsss 0-8 bytes    
+   Datagram Content Y       N        N           0x1C48 0-72 bytes   
 
     
 
-  4.1.3 CAN-Datagram Content Middle Frame
-
-                                                  Common                          
-   Name                          Dest ID Event ID        CAN format  Data Content
-                                                  MTI    
-   Datagram Content Middle Frame Y       N        N/A    0x1Cdd,dsss 0-8 bytes    
-
-    
-
-  4.1.4 CAN Datagram Content Last Frame
-
-                                                Common                          
-   Name                        Dest ID Event ID        CAN format  Data Content
-                                                MTI    
-   Datagram Content Last Frame Y       N        N/A    0x1Ddd,dsss 0-8 bytes    
-
-    
+  4.1.1
 
 4.2 Datagram Received OK
 
     
 
-                                         Common                               
-   Name                 Dest ID Event ID        CAN format       Data Content
-                                         MTI    
-   Datagram Received OK Y       N        0x0A28 0x19A4,8sss fddd              
+                                                     Common              
+   Name                 Dest ID Event ID Simple Node        Data Content
+                                                     MTI    
+   Datagram Received OK Y       N        N           0x0A28              
 
     
 
 4.3 Datagram Rejected
 
-                                      Common                               
-   Name              Dest ID Event ID        CAN format       Data Content
-                                      MTI    
-   Datagram Rejected Y       N        0x0A48 0x19A4,8sss fddd Error Code   
+                                                  Common              
+   Name              Dest ID Event ID Simple Node        Data Content
+                                                  MTI    
+   Datagram Rejected Y       N        N           0x0A48 Error Code   
 
     
 
@@ -148,18 +112,7 @@
    transmitting node. The receiving node shall send either a Datagram Received OK or Datagram Rejected
    message in reply.
 
-  6.1.1 CAN Protocol
-
-   Normal transmission of a datagram over CAN consists of the transmitting node sending the Datagram
-   Content message using one of two sequences of Datagram frames:
-
-     * One Datagram Content Single Frame
-
-     * One Datagram Content First Frame, followed by zero or more Datagram Content Middle Frame, followed
-       by one Datagram Content Last Frame
-
-   A receiving node receiving either of the above sequences shall send either a Datagram Received OK or
-   Datagram Rejected message in reply.
+  6.1.1
 
 6.2 Rejected Transmission
 
@@ -177,7 +130,56 @@
    Upon receipt of a Datagram Rejected message with the Resend_OK bit resent, the original transmitting
    node shall abandon the transmission attempt and not resend the original Datagram Content message.
 
-  6.2.1 CAN Protocol
+  6.2.1
+
+                                        7 Adaptation to CAN Transport
+
+   Due to the limitations of CAN, namely a 29-bit header and 8-byte data-part, the format of CAN Event
+    messages have been adapted, as per the following table.  
+
+   Name                 Dest ID Event ID Simple Node Header Format          Data-part Content 
+                                                     0x1Add,dsss1 — Single2                   
+                                                                            
+                                                     0x1Bdd,dsss — First    
+   Datagram Content     Y       N        N                                  0–8 bytes
+                                                     0x1Cdd,dsss — Middle   
+                                                                            
+                                                     0x1Ddd,dsss — Last     
+   Datagram Received OK Y       N        N           0x19A2,8sss fddd3                        
+   Datagram Rejected    Y       N        N           0x19A4,8sss fddd       Error Code        
+
+    
+
+               
+               
+               
+               
+               
+               
+               
+               
+               
+               
+     
+
+    
+
+7.1 Interactions
+
+  7.1.1 Normal Transmission
+
+   Normal transmission of a datagram over CAN consists of the transmitting node sending the Datagram
+   Content message using one of two sequences of Datagram frames:
+
+     * One Datagram Content Single Frame
+
+     * One Datagram Content First Frame, followed by zero or more Datagram Content Middle Frame, followed
+       by one Datagram Content Last Frame
+
+   A receiving node receiving either of the above sequences shall send either a Datagram Received OK or
+   Datagram Rejected message in reply.
+
+7.2 Rejected Transmission
 
    If a receiving node receives a sequence of Datagram frames other than one of
 
@@ -187,10 +189,6 @@
        by one Datagram Content Last Frame
 
    the receiving node shall send a Datagram Rejected message with the Out-of-Sequence error bit set.
-
-    
-
-    
 
    Table of Contents
 
@@ -204,13 +202,7 @@
 
    4.1 Datagram Content
 
-   4.1.1 CAN-Datagram Content Single Frame
-
-   4.1.2 CAN-Datagram Content First Frame
-
-   4.1.3 CAN-Datagram Content Middle Frame
-
-   4.1.4 CAN Datagram Content Last Frame
+   4.1.1
 
    4.2 Datagram Received OK
 
@@ -224,10 +216,28 @@
 
    6.1 Normal Transmission
 
-   6.1.1 CAN Protocol
+   6.1.1
 
    6.2 Rejected Transmission
 
-   6.2.1 CAN Protocol
+   6.2.1
+
+   7 Adaptation to CAN Transport
+
+   7.1 Interactions
+
+   7.1.1 Normal Transmission
+
+   7.2 Rejected Transmission
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 sss —The 12-bit source alias field
+
+   2 Quality — Because CAN frames are limited to 8 bytes, datagrams larger than 8 bytes must be broken up
+   among multiple messages. Thus, four distinct message types are defined to aid in flow control.
+
+   3 0ddd — First two bytes of the data-part, representing the 12-bit destination Alias, the top 4 bits are
+   zero.
