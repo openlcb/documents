@@ -33,10 +33,8 @@
 
 4.1 Datagram Content
 
-                                                 Common              
-   Name             Dest ID Event ID Simple Node        Data Content
-                                                 MTI    
-   Datagram Content Y       N        N           0x1C48 0-72 bytes   
+   Name             Dest ID Event ID Common MTI Data Content 
+   Datagram Content Y       N        0x1C48     0-72 bytes   
 
     
 
@@ -46,19 +44,15 @@
 
     
 
-                                                     Common              
-   Name                 Dest ID Event ID Simple Node        Data Content
-                                                     MTI    
-   Datagram Received OK Y       N        N           0x0A28              
+   Name                 Dest ID Event ID Common MTI Data Content 
+   Datagram Received OK Y       N        0x0A28                  
 
     
 
 4.3 Datagram Rejected
 
-                                                  Common              
-   Name              Dest ID Event ID Simple Node        Data Content
-                                                  MTI    
-   Datagram Rejected Y       N        N           0x0A48 Error Code   
+   Name              Dest ID Event ID Common MTI Data Content 
+   Datagram Rejected Y       N        0x0A48     Error Code   
 
     
 
@@ -122,12 +116,12 @@
 
    If a receiving node receives a 2nd Datagram Content message before sending a reply to the the 1st
    Datagram Content message, it may, but is not required to, reject the 2nd Datagram by sending a Datagram
-   Rejected message with the Out-of-Sequence error flag bit set.
+   Rejected message with the Transport error and Resend OK error flag bits set.
 
-   Upon receipt of a Datagram Rejected message with the Resend_OK bit sent, the original transmitting node
+   Upon receipt of a Datagram Rejected message with the Resend OK bit sent, the original transmitting node
    may resend the same Datagram Content message, or may abandon the transmission attempt.
 
-   Upon receipt of a Datagram Rejected message with the Resend_OK bit resent, the original transmitting
+   Upon receipt of a Datagram Rejected message with the Resend OK bit resent, the original transmitting
    node shall abandon the transmission attempt and not resend the original Datagram Content message.
 
   6.2.1
@@ -137,16 +131,16 @@
    Due to the limitations of CAN, namely a 29-bit header and 8-byte data-part, the format of CAN Event
     messages have been adapted, as per the following table.  
 
-   Name                 Dest ID Event ID Simple Node Header Format          Data-part Content 
-                                                     0x1Add,dsss1 — Single2                   
-                                                                            
-                                                     0x1Bdd,dsss — First    
-   Datagram Content     Y       N        N                                  0–8 bytes
-                                                     0x1Cdd,dsss — Middle   
-                                                                            
-                                                     0x1Ddd,dsss — Last     
-   Datagram Received OK Y       N        N           0x19A2,8sss fddd3                        
-   Datagram Rejected    Y       N        N           0x19A4,8sss fddd       Error Code        
+   Name                 Dest ID Event ID Header Format          Data-part Content 
+                                         0x1Add,dsss1 — Single2                   
+                                                                
+                                         0x1Bdd,dsss — First    
+   Datagram Content     Y       N                               0–8 bytes
+                                         0x1Cdd,dsss — Middle   
+                                                                
+                                         0x1Ddd,dsss — Last     
+   Datagram Received OK Y       N        0x19A2,8sss fddd3                        
+   Datagram Rejected    Y       N        0x19A4,8sss fddd       Error Code        
 
     
 
@@ -188,7 +182,8 @@
      * One Datagram Content First Frame, followed by zero or more Datagram Content Middle Frame, followed
        by one Datagram Content Last Frame
 
-   the receiving node shall send a Datagram Rejected message with the Out-of-Sequence error bit set.
+   the receiving node shall send a Datagram Rejected message with the Transport error and Resend OK bits
+   set.
 
    Table of Contents
 
