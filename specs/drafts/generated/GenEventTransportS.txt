@@ -40,31 +40,29 @@
 
 4.1 Producer/Consumer Event Report (PCER)
 
-                                                               Common                                
-   Name                           Dest ID Event ID Simple Node        CAN Header Format Data Content
-                                                               MTI*   
-   Producer/Consumer Event Report N       Y        N           0x05B4 0x195B,4sss§      EventID      
+                                                               Common              
+   Name                           Dest ID Event ID Simple Node        Data Content
+                                                               MTI    
+   Producer/Consumer Event Report N       Y        N           0x05B4 EventID      
 
-                                                  * This is the MTI field common to all transports
-                                                 § sss is the 12-bit source alias field
+    
 
 4.2 Identify Consumer
 
-                                                  Common                                
-   Name              Dest ID Event ID Simple Node        CAN Header Format Data Content
+                                                  Common              
+   Name              Dest ID Event ID Simple Node        Data Content
                                                   MTI    
-   Identify Consumer N       Y        Y           0x08F4 0x198F,4sss       Event ID     
+   Identify Consumer N       Y        Y           0x08F4 Event ID     
 
 4.3 Consumer Identified
 
-                                                    Common                                
-   Name                Dest ID Event ID Simple Node        CAN Header Format Data Content
-                                                    MTI    
-                                                    0x04C4 0x194C,4sss                    
-                                                                             
-   Consumer Identified N       Y        N           0x04C5 0x194C,5sss       Event ID
-                                                                             
-                                                    0x04C7 0x194C,7sss       
+                                                    Common                         
+   Name                Dest ID Event ID Simple Node                   Data Content
+                                                    MTI               
+                                                    0x04C4 – Valid                 
+   Consumer Identified N       Y        N           0x04C5 – Invalid  Event ID
+                                                    0x04C6 – Reserved 
+                                                    0x04C7 – Unknown  
 
     
 
@@ -81,10 +79,8 @@
 
 4.4 Consumer Range Identified
 
-                                                          Common                                 
-   Name                      Dest ID Event ID Simple Node        CAN Header Format Data Content
-                                                          MTI    
-   Consumer Range Identified N       Y        N           0x04A4 0x194A,4sss       EventID Range 
+   Name                      Dest ID Event ID Simple Node CommonMTI Data Content  
+   Consumer Range Identified N       Y        N           0x04A4    EventID Range 
 
     
 
@@ -93,23 +89,18 @@
 
 4.5 Identify Producer
 
-                                                  Common                                
-   Name              Dest ID Event ID Simple Node        CAN Header Format Data Content
-                                                  MTI    
-   Identify Producer N       Y        Y           0x0914 0x1991,4sss       Event ID     
+   Name              Dest ID Event ID Simple Node Common MTI Data Content 
+   Identify Producer N       Y        Y           0x0914     Event ID     
 
     
 
 4.6 Producer Identified
 
-                                                    Common                                
-   Name                Dest ID Event ID Simple Node        CAN Header Format Data Content
-                                                    MTI    
-                                                    0x0544 0x1954,4sss                    
-                                                                             
-   Producer Identified N       Y        N           0x0545 0x1954,5sss       Event ID
-                                                                             
-                                                    0x0547 0x1954,7sss       
+   Name                Dest ID Event ID Simple Node Common MTI        Data Content 
+                                                    0x0544 – Valid                 
+   Producer Identified N       Y        N           0x0545 – Invalid  Event ID
+                                                    0x0546 – Reserved 
+                                                    0x0547-- Unknown  
 
     
 
@@ -126,10 +117,10 @@
 
 4.7 Producer Range Identified
 
-                                                          Common                                 
-   Name                      Dest ID Event ID Simple Node        CAN Header Format Data Content
+                                                          Common               
+   Name                      Dest ID Event ID Simple Node        Data Content
                                                           MTI    
-   Producer Identified Range N       Y        N           0x0524 0x1952,4sss       EventID Range 
+   Producer Identified Range N       Y        N           0x0524 EventID Range 
 
     
 
@@ -138,13 +129,13 @@
 
 4.8 Identify Events
 
-                                                Common                                
-   Name            Dest ID Event ID Simple Node        CAN Header Format Data Content
+                                                Common              
+   Name            Dest ID Event ID Simple Node        Data Content
                                                 MTI    
-   Identify Events N       N        Y           0x0970 0x1997,0sss                    
-                   Y       N                    0x0968 0x1996,8sss       fddd*        
+   Identify Events N       N        Y           0x0970              
+                   Y       N        N           0x0968              
 
-               * fddd is a 12-byte destination alias, with a preceding 4-bits of flags.  
+    
 
                                              5 States (Normative)
 
@@ -228,6 +219,48 @@
    Identified and/or Consumer Range Identified messages covering automatically-routed Event IDs consumed by
    the node.
 
+                                        7 Adaptation to CAN Transport
+
+   Due to the limitations of CAN, namely a 29-bit header and 8-byte data-part, the format of CAN Event
+    messages have been adapted, as per the following table.  
+
+    
+
+   Message                                                                                                  
+                                    Dest ID   Event ID Simple Node Header Format          Data-part Content
+   Name                             
+   Producer/Consumer Event Report   N         Y        N           0x195B,4sss  1         EventID           
+   (PCER)                           
+   Identify Consumer                N         Y        Y           0x198F,4sss            Event ID          
+                                                                   0x194C,4sss - Valid2                     
+                                                                                          
+                                                                                          
+                                                                   0x194C,5sss - Invalid  
+   Consumer Identified              N         Y        N                                  Event ID
+                                                                                          
+                                                                   0x194C,6sss - Reserved 
+                                                                                          
+                                                                   0x194C,7sss - Unknown  
+   Consumer Range Identified        N         Y        N           0x194A,4sss            EventID Range     
+   Identify Producer                N         Y        Y           0x1991,4sss            Event ID          
+                                                                   0x1954,4sss - Valid                      
+                                                                                          
+                                                                   0x1954,5sss - Invalid  
+   Producer Identified              N         Y        N                                  Event ID
+                                                                   0x1954,6sss - Reserved 
+                                                                                          
+                                                                   0x1954,7sss - Unknown  
+   Producer Identified Range        N         Y        N           0x1952,4sss            EventID Range     
+   Identify Events                  N         N        Y           0x1997,0sss                              
+                                    Y         N        N           0x1996,8sss            0ddd3             
+   Footnotes:                       
+   1  sss - The 12-bit source alias field.
+   2  Quality - Producer and Consumer Identified messages are flagged with the validity of the reply.
+   3 0ddd - First two bytes of the data-part, representing the 12-bit destination Alias, the top 4 bits are
+   zero.                            
+
+    
+
     
 
    Table of Contents
@@ -267,5 +300,7 @@
    6.3 Producer Enquiry
 
    6.4 Consumer Enquiry
+
+   7 Adaptation to CAN Transport
 
     
