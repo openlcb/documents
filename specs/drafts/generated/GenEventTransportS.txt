@@ -13,6 +13,12 @@
    receiving messages and acting up them.  This document defines that interaction between produces and
    consumers in terms of OpenLCB messages.
 
+   This document describes the required message formats for event transport. §4 gives an overview of the
+   message types with an abstract numeric description intended as a normative guide to the construction of
+   concrete message types over specific physical transport media. §§7–ff. describe in concrete detail the
+   implementation of the event transport message formats for the specific physical transport media that
+   have been adopted as normative standards.
+
                                      3 References and Context (Normative)
 
    This specification is in the context of the following OpenLCB-CAN Standards:
@@ -29,13 +35,17 @@
 
                                         4 Message Formats (Normative)
 
-   In the following, “EventID Range” in the Data Content field refers to a range of EventID values
-   specified through a compare-under-mask operation.  The low bit of the field defines the sign of the
-   mask: a 1 least-significant bit indicates the mask is represented by 1 bits, and similarly for a 0 LSB.
-   The mask is made up of the adjacent identical bits: if the lowest bit is a '0', then all low order
-   contiguous '0' bits will form a mask, while if the lowest bit is a '1', then the low order contiguous
-   '1' bits will form the mask.  The remaining upper bits determine the range prefix. To determine whether
-   an Event ID “E” lies within the range “R”, compute:
+   In the following, the “Common MTI” column specifies the the MTI value to be used when communicating in
+   OpenLCB common format. The Common MTI is an abstract numeric description intended as a normative guide
+   to the construction of concrete message formats over specific physical transport media.
+
+   “EventID Range” in the Data Content field refers to a range of EventID values specified through a
+   compare-under-mask operation.  The low bit of the field defines the sign of the mask: a 1
+   least-significant bit indicates the mask is represented by 1 bits, and similarly for a 0 LSB. The mask
+   is made up of the adjacent identical bits: if the lowest bit is a '0', then all low order contiguous '0'
+   bits will form a mask, while if the lowest bit is a '1', then the low order contiguous '1' bits will
+   form the mask.  The remaining upper bits determine the range prefix. To determine whether an Event ID
+   “E” lies within the range “R”, compute:
 
    inRange = ( (E & ~ mask) == (R & ~ mask) )
 
@@ -43,25 +53,19 @@
 
 4.1 Producer/Consumer Event Report (PCER)
 
-                                                               Common              
-   Name                           Dest ID Event ID Simple Node        Data Content
-                                                               MTI    
-   Producer/Consumer Event Report N       Y        N           0x05B4 EventID      
+   Name                           Dest ID Event ID Simple Node Common MTI Data Content 
+   Producer/Consumer Event Report N       Y        N           0x05B4     EventID      
 
     
 
 4.2 Identify Consumer
 
-                                                  Common              
-   Name              Dest ID Event ID Simple Node        Data Content
-                                                  MTI    
-   Identify Consumer N       Y        Y           0x08F4 Event ID     
+   Name              Dest ID Event ID Simple Node Common MTI Data Content 
+   Identify Consumer N       Y        Y           0x08F4     Event ID     
 
 4.3 Consumer Identified
 
-                                                    Common                        
-   Name                Dest ID Event ID Simple Node                  Data Content
-                                                    MTI              
+   Name                Dest ID Event ID Simple Node Common MTI       Data Content 
                                                     0x04C4 – Valid                
    Consumer Identified N       Y        N           0x04C5 – Invalid Event ID
                                                     0x04C7 – Unknown 
@@ -81,8 +85,8 @@
 
 4.4 Consumer Range Identified
 
-   Name                      Dest ID Event ID Simple Node CommonMTI Data Content  
-   Consumer Range Identified N       Y        N           0x04A4    EventID Range 
+   Name                      Dest ID Event ID Simple Node Common MTI Data Content  
+   Consumer Range Identified N       Y        N           0x04A4     EventID Range 
 
     
 
@@ -222,43 +226,38 @@
 
                                         7 Adaptation to CAN Transport
 
+   This section describes the CAN implementation of the datagram transport message formats.
+
    Due to the limitations of CAN, namely a 29-bit header and 8-byte data-part, the format of CAN Event
-    messages have been adapted, as per the following table.  
+    messages have been adapted, as per the following table.
+
+   Message                                                                                                  
+                                     Dest ID Event ID Simple Node Header Format           Data-part Content
+   Name                              
+   Producer/Consumer Event Report    N       Y        N           0x195B,4sss1            EventID           
+   (PCER)                            
+   Identify Consumer                 N       Y        Y           0x198F,4sss             Event ID          
+                                                                  0x194C,4sss — Valid2                      
+                                                                                          
+   Consumer Identified               N       Y        N           0x194C,5sss — Invalid   Event ID
+                                                                                          
+                                                                  0x194C,7sss — Unknown   
+   Consumer Range Identified         N       Y        N           0x194A,4sss             EventID Range     
+   Identify Producer                 N       Y        Y           0x1991,4sss             Event ID          
+                                                                  0x1954,4sss — Valid                       
+                                                                                          
+   Producer Identified               N       Y        N           0x1954,5sss — Invalid   Event ID
+                                                                                          
+                                                                  0x1954,7sss — Unknown   
+   Producer Identified Range         N       Y        N           0x1952,4sss             EventID Range     
+   Identify Events                   N       N        Y           0x1997,0sss                               
+                                     Y       N        N           0x1996,8sss             fddd3             
 
     
 
-   Message                                                                                  Data-part       
-                                 Dest ID    Event ID   Simple Node   Header Format          Content         
-   Name                          
-   Producer/Consumer Event       N          Y          N             0x195B,4sss  1         EventID         
-   Report (PCER)                 
-   Identify Consumer             N          Y          Y             0x198F,4sss            Event ID        
-                                                                     0x194C,4sss - Valid2                   
-                                                                                            
-                                                                                            
-   Consumer Identified           N          Y          N             0x194C,5sss - Invalid  Event ID
-                                                                                            
-                                                                                            
-                                                                     0x194C,7sss - Unknown  
-   Consumer Range Identified     N          Y          N             0x194A,4sss            EventID Range   
-   Identify Producer             N          Y          Y             0x1991,4sss            Event ID        
-                                                                     0x1954,4sss - Valid                    
-                                                                                            
-   Producer Identified           N          Y          N             0x1954,5sss - Invalid  Event ID
-                                                                                            
-                                                                     0x1954,7sss - Unknown  
-   Producer Identified Range     N          Y          N             0x1952,4sss            EventID Range   
-   Identify Events               N          N          Y             0x1997,0sss                            
-                                 Y          N          N             0x1996,8sss            fddd3           
-   Footnotes:                    
-   1  sss - The 12-bit source alias field.
-   2 Quality - Producer and Consumer Identified messages are flagged with the validity of the reply.
-   3 fddd - First two bytes of the data-part, representing the flag bits and 12-bit destination Alias, see
-   the OpenLCB-CAN Frame Transport Standard.  
+7.1 Interactions
 
-    
-
-    
+   There are no CAN-specific modifications to the interactions described in §6 above.
 
    Table of Contents
 
@@ -300,4 +299,15 @@
 
    7 Adaptation to CAN Transport
 
+   7.1 Interactions
+
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 sss — The 12-bit source alias field.
+
+   2 Quality — Producer and Consumer Identified messages are flagged with the validity of the reply.
+
+   3 fddd — First two bytes of the data-part, representing the flag bits and 12-bit destination Alias. See
+   the OpenLCB-CAN Frame Transport Standard.  

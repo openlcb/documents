@@ -18,12 +18,14 @@
 
                                      3 References and Context (Normative)
 
-   This specification is in the context of the following OpenLCB-CAN Specifications:
+   This specification is in the context of the following OpenLCB-CAN Standards:
 
-   The OpenLCB Frame Transport Standard, which specifies the use and format of CAN frames for OpenLCB
-   communications.
+     * The OpenLCB Message Network Standard, which defines the basic messages and how they interact.
+       Higher-level protocols are based on this message network, but are defined elsewhere. The Message
+       Network Standard defines the Initialized node state which is referenced here.
 
-   The OpenLCB Message Network Standard, which specifies the OpenLCB message transport mechanism.
+     * The OpenLCB Frame Transport Standard, which specifies the use and format of CAN frames for OpenLCB
+       communications.
 
                                         4 Message Formats (Normative)
 
@@ -128,19 +130,21 @@
 
                                         7 Adaptation to CAN Transport
 
+   This section describes the CAN implementation of the datagram transport message formats.
+
    Due to the limitations of CAN, namely a 29-bit header and 8-byte data-part, the format of CAN Event
     messages have been adapted, as per the following table.  
 
-   Name                 Dest ID Event ID Header Format          Data-part Content 
-                                         0x1Add,dsss1 — Single2                   
+   Name                 Dest ID Event ID Header Format          Data-part Content  
+                                         0x1Add,dsss1 — Single2                    
                                                                 
                                          0x1Bdd,dsss — First    
    Datagram Content     Y       N                               0–8 bytes
                                          0x1Cdd,dsss — Middle   
                                                                 
                                          0x1Ddd,dsss — Last     
-   Datagram Received OK Y       N        0x19A2,8sss fddd3                        
-   Datagram Rejected    Y       N        0x19A4,8sss fddd       Error Code        
+   Datagram Received OK Y       N        0x19A2,8sss            0xfddd3            
+   Datagram Rejected    Y       N        0x19A4,8sss            0xfddd, Error Code 
 
     
 
@@ -234,5 +238,5 @@
    2 Quality — Because CAN frames are limited to 8 bytes, datagrams larger than 8 bytes must be broken up
    among multiple messages. Thus, four distinct message types are defined to aid in flow control.
 
-   3 0ddd — First two bytes of the data-part, representing the 12-bit destination Alias, the top 4 bits are
-   zero.
+   3 0ddd — First two bytes of the data-part, representing the 12-bit destination Alias. See the
+   OpenLCB-CAN Frame Transport Standard.
