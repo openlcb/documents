@@ -316,7 +316,27 @@
 
    There is no requirement that events be processed in any particular order. Multiple PCER messages with
    the same Event ID may result in multiple actions inside a consumer, or may not, depending on the details
-   of the consumer.   
+   of the consumer. There's a whole range of ways that events could be handled.  A consumer might always
+   handle them in the order received, and with the inter-event time intervals as received, down to the
+   microsecond.  Or it might do them in-order on a time-available basis, and generally be able to do them
+   in 50 milliseconds.  Or it might do them in the order that lets it get done fastest.  Or whatever.
+   Similar discussion goes for repeated events:  Does the hardware have to do something twice?  That
+   depends. In some cases, it's not even clear what it means. Specifying this is the node manufacturers
+   job, because they have uses in mind, and they make nodes to meet those uses.  OpenLCB just arranges to
+   deliver events for them their processing. Node manufacturers should certainly specify the performance of
+   their nodes.  More knowledge is good, but the standard doesn't compel anything because it's hard to
+   write a testable requirement. The range of possible behaviors is so wide. Similar discussion goes for
+   repeated events:  Does the hardware have to do something twice?  That depends. In some cases, it's not
+   even clear what it means. Specifying this is the node manufacturers job, because they have uses in mind,
+   and they make nodes to meet those uses.  OpenLCB just arranges to deliver events for them their
+   processing.
+
+   The Standard doesn't make any statements about delivery performance because it's specific to the
+   link-types, arrangement of OpenLCB nodes & links, etc that make up a specific OpenLCB network.  In
+   general, OpenLCB is going to provide sub-millisecond, millisecond, or perhaps even 10's of millisecond
+   timing quality, for example.  Nor can it guarantee absolute order of events.  (If Node A and Node B emit
+   events at the same time on different segments, there's no guarantee of when node C will receive them,
+   nor in what order, nor that Node D will receive it at the same time & in the same order as Node C).
 
 3.3 Well known events
 
