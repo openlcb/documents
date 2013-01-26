@@ -48,6 +48,15 @@
 
   2.4.3 Datagram Rejected
 
+   This is an addressed message. The destination address (full Node ID or alias) can be taken directly from
+   the received Datagram Content message.
+
+   Rejecting datagrams is meant for cases where the actual transmission and reception of the datagram has
+   failed.  It's not meant for higher level errors, such as “The command to move the points did not succeed
+   because they were stuck”. The decision whether to reply with Datagram Received OK or Datagram Rejected
+   needs to be made promptly, so that the reply can be sent, buffers can be cleared and communications can
+   continue.
+
     2.4.3.1 Error Codes
 
    “Permanent error” — This node does not process datagrams, will not accept a datagram from this source,
@@ -77,19 +86,24 @@
 
 2.5 States (Normative)
 
+   A datagram receive buffer is a form of state information, in that it's either full with a message being
+   processed, or empty and ready to accept a new datagram.  The protocols are written so that
+   implementations can use just one buffer, or many.  Depending on the connection to the physical OpenLCB
+   network being used, it may be possible for overlapping reception of datagrams.  This works even with one
+   buffer, because datagrams that arrive while the first is still in process can be rejected temporarily.
+   More buffers can make that more efficient.
+
 2.6 Interactions (Normative)
 
   2.6.1 Normal Transmission
 
-   In the base protocol a datagram is just a single message containing the Datagram MTI and the data
-   byte(s). There is a convention for a data format indicator at the start of the data bytes for use with
-   application layer protocols transported over datagrams, see §3.4 below.
+   A datagram is just a single message containing the Datagram MTI and the data byte(s). There is a
+   convention for a data format indicator at the start of the data bytes for use with application layer
+   protocols transported over datagrams, see §3.4 below.
 
    Once the datagram has been successfully received, the receiving node replies to the original source node
    with a “Datagram Received OK” message. Note that the node is not required to examine or process the
    datagram before replying; execution errors that happen later must be signaled using another protocol.
-
-    
 
   2.6.2 Rejected Transmission
 
@@ -98,7 +112,9 @@
 
     
 
-2.7 Adaptation to CAN Transport
+2.7 Implementation via CAN Transport
+
+  2.7.1 CAN Message Formats
 
    For CAN, the Datagram Content message is broken into a First frame, one or more Middle frames, and a
    Last frame.  In the degenerate case of a very short message that can fit into one frame, there is also
@@ -114,9 +130,23 @@
 
    CAN Datagram Content Last Frame — Note that this frame can be zero length.
 
-  2.7.1 Interactions
+  2.7.2 CAN States
 
-    2.7.1.1 Normal Transmission
+   The CAN implementation allows more than one datagram to arrive at a node at the same time, since
+   datagram fragments from node A and node B can arrive interleaved at their destination node C.  Datagram
+   implementations need to track this in their internal state.  Approaches include:
+
+     * Having a single buffer, in which the fragments that go with the first-received Datagram Content
+       First Frame are accumulated.  Other datagrams can then be rejected immediately when their Datagram
+       Content First Frame or Datagram Content Single Frame arrive.  
+
+     * Having multiple buffers in which the datagrams are separately accumulated.
+
+   Any implementation that obeys the protocol constraints in the Standard is acceptable.
+
+  2.7.3 CAN Interactions
+
+    2.7.3.1 Normal Transmission
 
    The sender breaks the datagram content into one or more frames. The source NodeID alias and destination
    NodeID alias are, unlike other addressed messages, both contained in the header. Format indicators are
@@ -150,7 +180,7 @@
    Buffer retries may be either done locally by the gateway, or by reflecting the response back to the
    original sender.
 
-    2.7.1.2 Rejected Transmission
+    2.7.3.2 Rejected Transmission
 
    There's no requirement for a specific response to out-of-spec transmissions. If a node receives
    out-of-spec datagram fragments, what it does is up to the receiving node. This is because it is neither
@@ -256,21 +286,13 @@
    Accidental interleave, at a node that can't handle that:
 
    Datagram First Frame from A →
-
    Datagram First Frame from B →
-
    ← Datagram Rejected, Resend OK to B
-
    Datagram Middle Frame from A →
-
    Datagram Last Frame from A →
-
    ← Datagram Received OK to A
-
    Datagram First Frame from B →
-
    Datagram Final Frame from B →
-
    ← Datagram Received OK to B
 
   3.3.5 Command/Reply Example
@@ -467,13 +489,17 @@
 
    2.6.2 Rejected Transmission
 
-   2.7 Adaptation to CAN Transport
+   2.7 Implementation via CAN Transport
 
-   2.7.1 Interactions
+   2.7.1 CAN Message Formats
 
-   2.7.1.1 Normal Transmission
+   2.7.2 CAN States
 
-   2.7.1.2 Rejected Transmission
+   2.7.3 CAN Interactions
+
+   2.7.3.1 Normal Transmission
+
+   2.7.3.2 Rejected Transmission
 
    3 Background Information
 
