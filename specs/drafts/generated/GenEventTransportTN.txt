@@ -60,11 +60,13 @@
 
      * OpenLCB Common Information Technical Note
 
-     * http://openlcb.org/trunk/specs/MtiAllocations.pdf
+   For more information on MTI values and how they are laid out, see:
+
+     * OpenLCB Message Network Standard3
+
+     * MTI allocation table4.
 
 2.4 Message Formats
-
-   Range Masks
 
    The range mask is implemented as a combined base value and mask in order to save space.  The base value
    takes the form 0bv...0 and the mask 0b0...m.  If the lowest bit of the base value is a one, then the
@@ -101,17 +103,18 @@
 
    Ranges can only be specified in powers of 2, ie they can specify ranges of 2, 4, 8, … .Therefore, if a
    range of n is required, then the next larger power of two is used.  Ranges should not be over specified,
-   and this specified in the standard.  
+   so the standard requires that a range not extend past the next power of two by requiring that at least
+   50% of the EventIDs in the range be relevant.   
 
    Encoding a range is done by determining how many values are required, choosing the next higher power of
-   two, choosing a base value, and the mask, and combining the two, inverting the mask if necessary.  For
-   example, a range 0x1234xx would require a mask of the form 0x0000FF, and the combined form would be
+   two, choosing a base value and the mask, and finally combining the two, inverting the mask if necessary.
+    For example, a range 0x1234xx would require a mask of the form 0x0000FF, and the combined form would be
    0x1234FF.  A range of 0x1235xx would also require a mask of 0x0000FF, but the combined form would be
    0x123500, since the mask is inverted.  
 
-   Decoding a range involves indentifying the mask as lowest contiguous bits of the same value as the
-   lowest bit.  The base value is the remaining high order bits.  For example, the combined form 0x987650
-   would yield a mask of 0x00000F and a base of 0x98765, whereas 0x98764F would yield a mask of 0x00000F
+   Decoding a range involves identifying the mask as lowest contiguous bits of the same value as the lowest
+   bit.  The base value is the remaining high order bits.  For example, the combined form 0x987650 would
+   yield a mask of 0x00000F and a base of 0x98765, whereas 0x98764F would yield a mask of 0x00000F
    (inverted) and a base of 0x987640.  
 
     
@@ -483,5 +486,10 @@
 
    2 The Producer/Consumer Model and Control System Design ControlLogix 1999
    https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
+
+   3 As of the time of this writing, the OpenLCB Message Network Standard was still in preparation. See the
+   OpenLCB web site documents page for current status: http://openlcb.org/trunk/specs/index.html
+
+     * 4 http://openlcb.org/trunk/specs/MtiAllocations.pdf
 
    i  
