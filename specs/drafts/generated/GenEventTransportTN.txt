@@ -343,13 +343,27 @@
 
    This section is general information of interest to the reader, implementers, etc.
 
+   An OpenLCB Event represents the sum of all the causes and actions associated with particular concept ,
+   such as “Night is falling”, and implements a many-to-many relationship.  It has been referred to,
+   alternately, as the Producer-Consumer Model, the Peer-to-Peer Model, or the Publish-Subscribe Model, in
+   opposition to the Master-Slave Model.5  Each Event is abstracted into a single unique event-number.  An
+   Event-message contains only this event-number.   An advantage of this model is that new triggers or new
+   causes which cause the production of the event-number, or new actions resulting from the consumption the
+   event-number, can be implemented by a node without reference to other producers or consumers, which
+   makes this model very flexible and extensible.  
+
+   Events are most often used to advertise changes in system state, for example a occupancy detector's
+   state.  The model maintains the distributed-state model of a layout because Events-messages are
+   broadcast6 to all nodes, and this allows individual producers and consumers to use them to change their
+   knowledge of the distributed state.  
+
+   Other important, and perhaps not obvious, uses include: publishing a capability using an event from a
+   list of well-known such event#s; transmitting well-known ranges of data, such as fast-clock time; and
+   embedding an other system's message into an event#, for example a DCC accessory message. Notice that
+   these latter uses allows any node to respond to these messages using its usual event-handling.  For
+   example, a node can activate an output in response to a specific fast-clock time.
+
    Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
-
-   The distributed-state model of a layout.  “Events” broadcast state transitions, which individual
-   producers and consumers use to change their knowledge of the distributed state.  
-
-   Include some examples and figures from
-   http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html ?
 
 3.1 Gateways
 
@@ -491,5 +505,12 @@
    OpenLCB web site documents page for current status: http://openlcb.org/trunk/specs/index.html
 
      * 4 http://openlcb.org/trunk/specs/MtiAllocations.pdf
+
+   5  For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html
+   and http://openlcb.org/trunk/scratchpads/JohnSL/Tech_Note_Introduction_to_the_PC_Model_2007-10-10.pdf
+
+   6  OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
+   those bus segments on which a node has expressed interest.  Event-ranges are used to express interest in
+   a classes of events.   
 
    i  
