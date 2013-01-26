@@ -1,7 +1,7 @@
                                                 1 Introduction
 
    This Technical Note contains informative discussion and background for the corresponding “OpenLCB
-   Datagram Transport Specification”. This explanation is not normative in any way.
+   Datagram Transport Standard”. This explanation is not normative in any way.
 
    Some wire protocols can support only very short packets/frames, e.g. CAN with a limited header and data
    payload. OpenLCB needs to be able to move larger chunks of data than that. OpenLCB streaming provides a
@@ -17,8 +17,8 @@
 
                                       2 Annotations to the Specification
 
-   This section provides background information on corresponding sections of the Specification document. It
-   is expected that two documents will be read together.
+   This section provides background information on corresponding sections of the Standard document. It is
+   expected that two documents will be read together.
 
 2.1 Introduction
 
@@ -72,10 +72,8 @@
    connection with an exclusive set of nodes.
 
    “Datagrams not accepted” — This node will not accept datagrams under any circumstance. A node can also
-   reject the interaction with an Optional Interation Rejected message (see “OpenLCB Message Network
+   reject the interaction with an Optional Interaction Rejected message (see “OpenLCB Message Network
    Standard”) instead of sending Datagram Rejected with this code.
-
-    
 
 2.5 States (Normative)
 
@@ -200,7 +198,9 @@
    data. The maximum datagram size must be short enough that nodes can afford to have a fixed
    receive-and-process buffer for datagrams allocated, unlike streams that can be too large to buffer as a
    whole. As a balance between these, and to optimize certain layouts on CAN links, a size of 72 bytes has
-   been selected.
+   been selected. The OpenLCB protocols have been designed such that this can be extended to 128 bytes for
+   specific application protocols if needed, while still maintaining backward compatibility with devices
+   that only implement a 72-byte datagram size.
 
    At the low end, datagrams should go all the way down to zero bytes, because they are distinct from
    Events (which have a fixed 8-byte payload).
@@ -253,7 +253,9 @@
 
   3.3.4 Rejected interleaved CAN datagram case:
 
-   Accidental interleave, at a node that can't handle that: Datagram First Frame from A →
+   Accidental interleave, at a node that can't handle that:
+
+   Datagram First Frame from A →
 
    Datagram First Frame from B →
 
@@ -374,7 +376,7 @@
 
    For external protocols, e.g. support for LocoNet, XpressNet, DCC, etc., it is a great simplification if
    the datagrams can carry any basic message of the external protocol in a single datagram. Is 64 data
-   bytes then enough? The evidence at hand suggests that 64 data bytes is more than sufficient.It is
+   bytes then enough? The evidence at hand suggests that 64 data bytes is more than sufficient.
 
    Thus the decision for nine segments, 72 bytes, and developers should code this as a constant to the
    extent possible.
