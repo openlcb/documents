@@ -65,6 +65,77 @@
    The following table shows available configuration operation formats. All others reserved. They must not
    be skipped during identification. Items in {} are optional.
 
+   Read Command
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6                           
+                                                           (optional)    
+          0x43 Space in byte 6                                           Read Count (1-64)                  
+   0x20   0x42 Space 0xFD      Starting Address            Address Space                                    
+          0x41 Space 0xFE                                                Upper bit reserved, must be        
+          0x40 Space 0xFF                                                ignored                            
+
+    
+
+   Read Reply
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6    
+                                                           (optional)    
+          0x53 Space in byte 6                                                       
+   0x20   0x52 Space 0xFD      Starting Address            Address Space Data (1-64)
+          0x51 Space 0xFE      
+          0x50 Space 0xFF      
+
+    
+
+   Read Stream Command
+
+   Byte 0 Byte 1             Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes                      
+                                                         (optional)    
+          0x43 Space in byte                                                                                
+          6                                                            Read Count (4 bytes), followed by    
+   0x20   0x42 Space 0xFD    Starting Address            Address Space stream definition information
+          0x41 Space 0xFE    
+          0x40 Space 0xFF    
+
+    
+
+   Write Command
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes   
+                                                           (optional)    
+          0x03 Space in byte 6                                                             
+   0x20   0x02 Space 0xFD      Starting Address            Address Space Data (1-64 bytes)
+          0x01 Space 0xFE      
+          0x00 Space 0xFF      
+
+    
+
+   Write Under Mask Command
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder               
+                                                           (optional)    
+          0x1B Space in byte 6                                                                   
+   0x20   0x1A Space 0xFD      Starting Address            Address Space Data pairs (2-64 bytes)
+          0x19 Space 0xFE      
+          0x18 Space 0xFF      
+
+    
+
+   Write Stream Command
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder              
+                                                           (optional)    
+          0x23 Space in byte 6                                                                  
+   0x20   0x22 Space 0xFD      Starting Address            Address Space Stream Definition Info
+          0x21 Space 0xFE      
+          0x20 Space 0xFF      
+
+    
+
+    
+
+    
+
                                       Write     Write Under Write Stream Read      Read-Reply Read Stream   
                                                 Mask        
    Datagram Type Byte                 0x20      0x20        0x20         0x20      0x20       0x20          
@@ -87,8 +158,113 @@
                                                 Data and                                      Count         
                                       Data      Mask        Stream       Count     Data       (4 bytes),    
    Remainder                          (1-64     (2-64       Definition   (1 byte,  (1-64      then Stream   
-                                      bytes)    bytes)      Info         0-64)     bytes)     Definition    
+                                      bytes)    bytes)      Info         1-64)     bytes)     Definition    
                                                                                               Info          
+
+    
+
+    
+
+    
+
+   Get Configuration Options Command
+
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6     Remainder   
+                                             (Optional) (Optional)  
+   0x20   0x80                                          Name String 
+
+    
+
+   Get Configuration Reply
+
+   Byte 0 Byte 1 Byte 2    Byte 3   Byte 4        Byte 5                Byte 6               Remainder   
+                                                                        (Optional)           (Optional)  
+   0x20   0x82   Available Commands Write Lengths Highest Address Space Lowest Address Space Name String 
+
+    
+
+   Get Address Space Information Command
+
+   Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
+   0x20   0x84   Address Space                                       
+
+    
+
+   Get Address Space Information Reply
+
+   Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 Byte 9 Byte 10 Byte 11 Byte 12     
+   0x20   0x86   Address Space Highest Address             Flags  Lowest Address                Description 
+
+    
+
+   Freeze Command
+
+   Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
+   0x20   0xA1   Address Space                                       
+
+    
+
+   Unfreeze Command
+
+   Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
+   0x20   0xA0   Address Space                                       
+
+    
+
+   Lock/Reserve Command
+
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
+   0x20   0x88   Reserving Node ID
+
+    
+
+   Lock/Reserve Reply
+
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
+   0x20   0x8A   Reserved Node ID
+
+    
+
+   Get Unique ID Command
+
+   Byte 0 Byte 1 Byte 2                                                                  
+   0x20   0x8C   Number requested (1-8, 3 bits); upper bits reserved and must be ignored 
+
+    
+
+   Get Unique ID Reply
+
+   Byte 0 Byte 1 Remainder                                     
+   0x20   0x8D   1-8 requested EventIDs, a total of 8-64 bytes 
+
+    
+
+   Indicate Command
+
+   Byte 0 Byte 1   
+   0x20   0xA3 on  
+          0xA2 off 
+
+    
+
+   Update Complete Command
+
+   Byte 0 Byte 1 
+   0x20   0xA8   
+
+    
+
+   Reset/Reboot Command
+
+   Byte 0 Byte 1 
+   0x20   0xA9   
+
+    
+
+   Reinitialize/Factory Reset Command
+
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
+   0x20   0xAA   Node ID
 
     
 
@@ -136,7 +312,7 @@
                                                                           Stop 0b0  
                       Sub                                                           0b00     0b01   0b10    
                       Command      
-                      Byte value   0x80       0x8A    0x8C       0x8D     0xA2-0xA3 0xA8     0xA9   0xAA    
+                      Byte value   0x88       0x8A    0x8C       0x8D     0xA2-0xA3 0xA8     0xA9   0xAA    
                                                       Number to  New                                        
                                                       reserve (3 Unique                                     
    Byte 2                                             bits, 1-8) EventI D                     
