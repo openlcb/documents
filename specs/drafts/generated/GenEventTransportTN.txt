@@ -25,8 +25,8 @@
 
                                         2 Annotations to the Standard
 
-   This section provides background information on corresponding sections of the Specification document. It
-   is expected that two documents will be read together.
+   This section provides background information on corresponding sections of the Standard document. It is
+   expected that two documents will be read together.
 
 2.1 Introduction
 
@@ -60,7 +60,29 @@
 
      * OpenLCB Common Information Technical Note
 
+     * http://openlcb.org/trunk/specs/MtiAllocations.pdf
+
 2.4 Message Formats
+
+   The range mask is implemented as a combined base value and mask in order to save space.  The base value
+   takes the form 0bv...0 and the mask 0b0...m.  If the lowest bit of the base value is a one, then the
+   combined form is 0bv...0.  However, if the lowest bit of the base value is a zero, then the mask is
+   inverted and the combined form becomes 0bv...1.  
+
+   Ranges can only be specified in powers of 2, ie they can specify ranges of 2, 4, 8, … .Therefore, if a
+   range of n is required, then the next larger power of two is used.  Ranges should not be over specified,
+   and this specified in the standard.  
+
+   Encoding a range is done by determining how many values are required, choosing the next higher power of
+   two, choosing a base value, and the mask, and combining the two, inverting the mask if necessary.  For
+   example, a range 0x1234xx would require a mask of the form 0x0000FF, and the combined form would be
+   0x1234FF.  A range of 0x1235xx would also require a mask of 0x0000FF, but the combined form would be
+   0x123500, since the mask is inverted.  
+
+   Decoding a range involves indentifying the mask as lowest contiguous bits of the same value as the
+   lowest bit.  The base value is the remaining high order bits.  For example, the combined form 0x987650
+   would yield a mask of 0x00000F and a base of 0x98765, whereas 0x98764F would yield a mask of 0x00000F
+   (inverted) and a base of 0x987640.  
 
    The range mask is implemented as a combined base value and mask, where the mask bits are the lowest n
    bits of the same value as the lowest bit.  For example, the event-mask 0xABCD0000 would form the range
@@ -69,8 +91,8 @@
    range 0xFEDC8000-FEDCBFFF, since the low-bit is a “1”, and lowest “0” bit is in the 0xB = 0b1011, and at
    the third bit position.      The smallest ranges are specified by 0xyyyyyyyE, which specifies a range of
    0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives
-   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, 0x00000003 gives
-   0x00000000-0x00000003
+   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, and 0x00000003 gives
+   0x00000000-0x00000003.  
 
    Event-Mask Effective Mask Bits #   Resulting Range          
    0x00000001 0xFFFFFFFE     1    2   0x00000000-0x00000001    
