@@ -103,7 +103,8 @@
 
    Once the datagram has been successfully received, the receiving node replies to the original source node
    with a “Datagram Received OK” message. Note that the node is not required to examine or process the
-   datagram before replying; execution errors that happen later must be signaled using another protocol.
+   datagram before replying; execution errors that happen later are required to be signaled using another
+   protocol.
 
   2.6.2 Rejected Transmission
 
@@ -162,6 +163,11 @@
    can be frames of 8 and 1, or 1 and 8.  This is helpful for handling, e.g., buffering and creation of
    dynamic content in the source node.
 
+   It is preferred that the frames making up a datagram be transmitted in a group, adjacent on the CAN bus.
+    It is permitted to interrupt that to send higher-priority frames, either for CAN segment-level control,
+   or for higher priority messages.  It is not permitted to send lower priority frames, nor to interleave
+   multiple datagrams, so that the buffering requirements at the receiving nodes stay bounded.
+
    The receiving node receives the frames into a buffer. The frames from more than one datagram may arrive
    in interleaved order, in which case the receiving node can tell them apart using their source NodeID
    alias and store them in separate buffers. (Any given source node can only send a single datagram at a
@@ -194,8 +200,8 @@
 
    Notice, however, that receiving a second valid datagram sequence while receiving one (or more) that
    fills the local buffers is not an out-of-spec condition, and the protocol defines exactly how the node
-   is to react. There's no flexibility in this case. The receiving node must send a Datagram Rejected
-   message usually (but not necessarily) with the “Resend OK” error code.
+   is to react. There's no flexibility in this case. The receiving node is required to send a Datagram
+   Rejected message usually (but not necessarily) with the “Resend OK” error code.
 
                                            3 Background Information
 
