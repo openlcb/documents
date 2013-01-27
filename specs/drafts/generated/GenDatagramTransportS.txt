@@ -1,6 +1,6 @@
                                          1 Introduction (Informative)
 
-   This specification describes the protocol for transporting OpenLCB datagrams via CAN segments.
+   This specification defines the protocol for transporting OpenLCB datagrams via CAN segments.
 
                                          2 Intended Use (Informative)
 
@@ -24,8 +24,8 @@
        Higher-level protocols are based on this message network, but are defined elsewhere. The Message
        Network Standard defines the Initialized node state which is referenced here.
 
-     * The OpenLCB Frame Transport Standard, which specifies the use and format of CAN frames for OpenLCB
-       communications.
+     * The OpenLCB-CAN Frame Transport Standard, which specifies the use and format of CAN frames for
+       OpenLCB communications.
 
                                         4 Message Formats (Normative)
 
@@ -61,17 +61,21 @@
 
   4.3.1 Error Codes
 
-   The Error Code field contains 16 bits.  The following bits are independent flags:
+   The Error Code field contains 16 bits.  
+
+   Zero or one of the two following bits shall be set:
 
      * 0x1000 Permanent error – The received datagram will always invoke the same error.
 
-     * 0x2000 Resend OK – The error condition may be cleared, so a resend of the original datagram can be
+     * 0x2000 Resend OK – The error condition may be cleared, so a resend of the original datagram may be
        attempted.
+
+   When the “Resend OK” bit is set, the following bit is defined:
 
      * 0x4000 Transport error – The error could have been due to a failure in message/frame transport. May
        be combined with Resend OK flag.
 
-   Additional flag values for the 16-bit field:
+   When the “Permanent error” bit is set, the following bits are defined:
 
      * 0x0020 – Source not permitted – this node will not accept datagrams of this type from the
        transmitting node
@@ -79,7 +83,7 @@
      * 0x0040 – Datagrams not accepted – this node will not accept datagrams of this type from any node
 
    Nodes may, but are not required to, use the low five bits of the error code field to define specific
-   error codes in concert with independent flag bits defined above.
+   error codes in concert with the flag bits defined above.
 
    All other bits and bit combinations are reserved.
 
@@ -87,24 +91,22 @@
 
    The common OpenLCB datagram protocol has no formal states.
 
-   A node implementing the OpenLCB-CAN protocol shall maintain a Datagram-started state for each datagram
-   that it is receiving as a sequence of frames. If the node receives multiple overlapping datagrams, the
-   states shall be independent.
-
                                           6 Interactions (Normative)
+
+   A node that receives a valid Datagram Content message shall send either a Datagram Received OK or
+   Datagram Rejected message in reply. A node the receives a Datagram Content message that does not comply
+   with this Standard may, but is not required to, reply with a Datagram Rejected message.
 
 6.1 Normal Transmission
 
    Normal transmission consists of the transmitting node sending a Datagram Content message to the
    receiving node, followed by the receiving node sending a Datagram Received OK message to the
-   transmitting node. The receiving node shall send either a Datagram Received OK or Datagram Rejected
-   message in reply.
+   transmitting node.
 
 6.2 Rejected Transmission
 
    After the transmitting node sends a Datagram Content message to the receiving node, the receiving node
-   may send a Datagram Rejected message to the transmitting node. The receiving node shall send either a
-   Datagram Received OK or Datagram Rejected message in reply.
+   may send a Datagram Rejected message to the transmitting node.
 
    If a receiving node receives a 2nd Datagram Content message before sending a reply to the the 1st
    Datagram Content message, it may, but is not required to, reject the 2nd Datagram by sending a Datagram
@@ -116,7 +118,7 @@
    Upon receipt of a Datagram Rejected message with the Resend OK bit resent, the original transmitting
    node shall abandon the transmission attempt and not resend the original Datagram Content message.
 
-                                        7 Adaptation to CAN Transport
+                                  7 Adaptation to CAN Transport (Normative)
 
    This section describes the CAN implementation of the datagram transport message formats.
 
@@ -126,24 +128,26 @@
    messages are carried across CAN networks. Following those specifications, the Datagram Transport
    messages used on CAN are as defined in the following table.
 
-   Name                 Dest ID Event ID Header Format         Data-part Content  
-                                         0x1Add,dsss1  Single2                    
-                                                               
-                                         0x1Bdd,dsss — First   
-   Datagram Content     Y       N                              0–8 bytes
-                                         0x1Cdd,dsss — Middle  
-                                                               
-                                         0x1Ddd,dsss — Last    
-   Datagram Received OK Y       N        0x19A2,8sss           0xfddd3            
-   Datagram Rejected    Y       N        0x19A4,8sss           0xfddd, Error Code 
+   Name                 Dest ID Event ID Header Format          Data-part Content  
+                                         0x1Add,dsss1 — Single2                    
+                                                                
+                                         0x1Bdd,dsss — First    
+   Datagram Content     Y       N                               0–8 bytes
+                                         0x1Cdd,dsss — Middle   
+                                                                
+                                         0x1Ddd,dsss — Last     
+   Datagram Received OK Y       N        0x19A2,8sss            0xfddd3            
+   Datagram Rejected    Y       N        0x19A4,8sss            0xfddd, Error Code 
 
-   CAN States
+7.2 CAN States
 
-   There are no CAN-specific modifications to the states described in §5 above.
+   A node implementing the OpenLCB-CAN protocol shall maintain a Datagram-started state for each datagram
+   that it is receiving as a sequence of frames. If the node receives multiple overlapping datagrams, the
+   states shall be independent.
 
-7.2 CAN Interactions
+7.3 CAN Interactions
 
-  7.2.1 Normal Transmission
+  7.3.1 Normal Transmission
 
    Normal transmission of a datagram over CAN consists of the transmitting node sending the Datagram
    Content message using one of two sequences of Datagram frames:
@@ -160,7 +164,7 @@
    A receiving node receiving either of the above sequences shall send either a Datagram Received OK or
    Datagram Rejected message in reply.
 
-  7.2.2 Rejected Transmission
+  7.3.2 Rejected Transmission
 
    If a receiving node receives a sequence of Datagram frames other than one of
 
@@ -171,6 +175,8 @@
 
    the receiving node shall send a Datagram Rejected message with the Transport error and Resend OK bits
    set.
+
+    
 
    Table of Contents
 
@@ -198,15 +204,17 @@
 
    6.2 Rejected Transmission
 
-   7 Adaptation to CAN Transport
+   7 Adaptation to CAN Transport (Normative)
 
    7.1 CAN Message Formats
 
-   7.2 CAN Interactions
+   7.2 CAN States
 
-   7.2.1 Normal Transmission
+   7.3 CAN Interactions
 
-   7.2.2 Rejected Transmission
+   7.3.1 Normal Transmission
+
+   7.3.2 Rejected Transmission
 
     
 
