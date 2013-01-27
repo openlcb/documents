@@ -8,14 +8,16 @@
    messages, and can act on them locally if desired. If they do so, they are acting as “Consumers”.
    Together, this is called the Producer-Consumer Model of system control.  In this model a particular
    concept, or event, is the sum of the inputs that trigger the production of the PCER by the producer(s)
-   and the action(s) taken by the consumer(s).  Its main advantage is the knowledge independence it imparts
-   between all of the nodes involved in an event.  Expressed in more anthropomorphic terms, neither the
-   producers nor consumers or a PCER are aware of each other.  This adds flexibility to the system, since
-   more producers or consumers of the PCER can be added to implement the associated event, without concern
-   of side effects to the the other nodes involved in the event.i12
+   and the action(s) taken by the consumer(s).
+
+   Its main advantage is the knowledge independence it imparts between all of the nodes involved in an
+   event.  Expressed in more anthropomorphic terms, neither the producers nor consumers or a PCER are aware
+   of each other.  This adds flexibility to the system, since more producers or consumers of the PCER can
+   be added to implement the associated event, without concern of side effects to the the other nodes
+   involved in the event.12
 
    The P/C Event ID included in a PCER message is a 8-byte unique identifier. The method for assigning
-   these and ensuring their uniqueness is in the Event ID Standard and Technical Note.
+   these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical Note.
 
    There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
    particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
@@ -34,8 +36,6 @@
 
 2.2 Intended Use
 
-    
-
    A particular PCER may be produced in response to physical input or state change on a layout, for example
    a contact closure or the activation of a block occupancy detector, or it can be in response to a
    non-physical change such as the arrival of a certain time.  The same PCER can be produced by several
@@ -52,7 +52,7 @@
    dimming of overhead lighting.  
 
    In addition, ranges of PCERs can be used for specific purposes.  For example, a fast clock's messages
-   can be implemented as a range of PCERs, where the low order bytes are the time.  
+   can be implemented as a range of PCERs, where the low order bytes code the time.  
 
 2.3 References and Context
 
@@ -117,37 +117,6 @@
    yield a mask of 0x00000F and a base of 0x98765, whereas 0x98764F would yield a mask of 0x00000F
    (inverted) and a base of 0x987640.  
 
-    
-
-   The range mask is implemented as a combined base value and mask, where the mask bits are the lowest n
-   bits of the same value as the lowest bit.  For example, the event-mask 0xABCD0000 would form the range
-   0xABCD0000-ABCDFFFF, since the lowest bit is a “0”and the mask bits extends to the first “1” bit, in
-   this case the the  low bit of the 'D' hex-digit.  Similarly, the event-mask 0xFEDCBFFF would form the
-   range 0xFEDC8000-FEDCBFFF, since the low-bit is a “1”, and lowest “0” bit is in the 0xB = 0b1011, and at
-   the third bit position.      The smallest ranges are specified by 0xyyyyyyyE, which specifies a range of
-   0xyyyyyyyE-0xyyyyyyyF, and 0xyyyyyyyD which specifies 0xyyyyyyyC-0xyyyyyyyF.   0X00000001 gives
-   0x00000000-0x00000001, and 0x00000002 gives 0x00000000-0x00000002, and 0x00000003 gives
-   0x00000000-0x00000003.  
-
-   Event-Mask Effective Mask Bits #   Resulting Range          
-   0x00000001 0xFFFFFFFE     1    2   0x00000000-0x00000001    
-   0x00000002 0xFFFFFFFE     1    2   0x00000002-0x00000003    
-   0x00000003 0xFFFFFFFC     2    4   0x00000000-0x00000003    
-   0x00000004 0xFFFFFFFC     2    4   0x00000004-0x00000007    
-   0x00000005 0xFFFFFFFE     2    4   0x00000004-0x00000005    
-   0x00ABCDEF 0xFFFFFFF0     4    16  0x00ABCDE0-0x00ABCDEF    
-   0x00ABCDF0 0xFFFFFFF0     4    16  0x00ABCDF0-0x00ABCDFF    
-   0x00ABCDE0 0xFFFFFFE0     5    32  0x00ABCDE0-0x00ABCDFF    
-   0x0000FFFF 0xFFFF0000     16   65k 0x00000000-0x0000FFFF    
-                                      0xABCD0000-0xABCDFF      
-   0xABCD0000 0xFFFF0000     16   65k                          
-                                      Example of fast clock.FF 
-   0xFFFF0000 0xFFFF0000     16   65k 0xFFFF0000-0xFFFFFFFF    
-
-    
-
-    
-
   2.4.1 Producer/Consumer Event Report (PCER)
 
    This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
@@ -185,7 +154,9 @@
    consumes event is in the range specified by the included event-ID-with-mask.  This is one of the
    messages that allows bridges to do automatic routing of event messages.     
 
-   The 50% is to allow rounding up to the enclosing bit, but no further.  
+   The requirement that 50% or more of the Event IDs in a range are consumed is to allow rounding the range
+   up to the enclosing bit, but no further. This keeps the Event ID ranges in the complete OpenLCB system
+   compact and is intended to make the task of gateways more manageable.
 
   2.4.5 Identify Producer
 
@@ -199,7 +170,9 @@
 
   2.4.7 Producer Range Identified
 
-   The 50% is to allow rounding up to the enclosing bit, but no further.
+   The requirement that 50% or more of the Event IDs in a range are produced is to allow rounding the range
+   up to the enclosing bit, but no further. This keeps the Event ID ranges in the complete OpenLCB system
+   compact and is intended to make the task of gateways more manageable.
 
    An example of a producer range would be a fast clock node that sends a range of events to indicate the
    time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.
@@ -217,11 +190,14 @@
 
    Two forms of identify events; recommendation on uses for global form
 
-   In some cases, the node may want to query a specific node as to whether id produces that event, in these
-   case the directed form is appropriate.  In other cases, the node producing the Identify Event will not
-   know if any node uses that event, and therefore the global form is the more appropriate choice.  Be
-   aware that since this latter form is transmitted throughout the network, it can be relatively expensive
-   in terms of bandwidth.  
+   In some cases, the node may want to query a specific node as to whether it produces or consumes that
+   event, in these case the directed form is appropriate.
+
+   In other cases, the node producing the Identify Event will not know if any node uses that event, and
+   therefore the global form is the more appropriate choice. Be aware that since this latter form is
+   transmitted throughout the network, it can be relatively expensive in terms of bandwidth. The global
+   form of Identify Event is similar to the combination of an Identify Producers and an Identify Consumers
+   message.
 
 2.5 States
 
@@ -236,8 +212,12 @@
    multiple requests.  This allows simplified implementations, for example setting a bit to indicate that a
    reply can be sent when time/priority is available.
 
-   You can send identify/identified messages for automatically-routed Event IDs.  Identify
-   Producer/Consumer for well-known Event IDs require response; there's no exemption for those.
+   Nodes can send identify/identified messages for automatically-routed Event IDs. Nodes aren't required to
+   reply to Identify Producer/Consumer messages for automatically-advertised Event IDs to simplify node
+   programming, but it is useful if they do.
+
+   Identify Producer/Consumer messages for well-known Event IDs require response; there's no exemption for
+   those.
 
    The state of the system can sometimes  be constructed from the received Producer/Consumer Identified
    messages and their “valid”, “invalid”, “unknown” subforms.  It is possible that these will result in
@@ -246,8 +226,9 @@
    Note that the Advertised/Not-Advertised state machine  is reset by  the Initialization Complete message,
    and not by any  lower level link (CAN or other) state machine.
 
-   Delay in sending the PI/PRI or CI/CRI messages after IC is OK, but there's no delivery guarantee for
-   this node's events until those have been sent.  
+   Delay in sending the Producer Identified/Producer Range Identified and Consumer Identified/Consumer
+   Identified Range messages after Initialization Complete is allowed, but there's no delivery guarantee
+   for this node's events until those have been sent and the state has transitioned to Advertised.
 
    When a node changes the events it manages, it still needs to emit the PI/PRI and/or CI/CRI messages.
     For example, reconfiguration could cause this.  It can be handled by sending individual messages, or by
@@ -271,7 +252,7 @@
 
   2.6.1 Event Transfer
 
-   The last sentence is the key to gateway traffic reduction. See below.
+   The last sentence is the key to gateway traffic reduction. See §3.1 below.
 
   2.6.2 Event Enquiry
 
@@ -296,10 +277,9 @@
 
   2.6.3 Producer Enquiry
 
-   It is useful to be able to determine which, if any, nodes are configured to possibly emit a specific P/C
-   Event ID message and their current state.
-
-   This can be used as a configuration diagnostic, and as a way of building filtering and routing tables.
+   It is useful to be able to determine which, if any, nodes are configured to possibly transmit a specific
+   PCER message and the current state of those producers. This can be used as a configuration diagnostic,
+   and as a way of building filtering and routing tables.
 
    To determine which nodes can send a particular P/C Event ID, a node sends an Identify Producers message
    carrying the desired P/C Event ID. This is an unaddressed message addressed to all nodes.
@@ -344,13 +324,12 @@
    This section is general information of interest to the reader, implementers, etc.
 
    An OpenLCB Event represents the sum of all the causes and actions associated with particular concept ,
-   such as “Night is falling”, and implements a many-to-many relationship.  It has been referred to,
-   alternately, as the Producer-Consumer Model, the Peer-to-Peer Model, or the Publish-Subscribe Model, in
-   opposition to the Master-Slave Model.5  Each Event is abstracted into a single unique event-number.  An
-   Event-message contains only this event-number.   An advantage of this model is that new triggers or new
-   causes which cause the production of the event-number, or new actions resulting from the consumption the
-   event-number, can be implemented by a node without reference to other producers or consumers, which
-   makes this model very flexible and extensible.  
+   such as “Night is falling”, and implements a many-to-many relationship.  It has been referred to as the
+   Producer-Consumer Model, in opposition to the Master-Slave Model.5  Each Event is abstracted into a
+   single unique event-number.  An Event-message contains only this event-number.   An advantage of this
+   model is that new triggers or new causes which cause the production of the event-number, or new actions
+   resulting from the consumption the event-number, can be implemented by a node without reference to other
+   producers or consumers, which makes this model very flexible and extensible.  
 
    Events are most often used to advertise changes in system state, for example a occupancy detector's
    state.  The model maintains the distributed-state model of a layout because Events-messages are
@@ -358,27 +337,103 @@
    knowledge of the distributed state.  
 
    Other important, and perhaps not obvious, uses include: publishing a capability using an event from a
-   list of well-known such event#s; transmitting well-known ranges of data, such as fast-clock time; and
-   embedding an other system's message into an event#, for example a DCC accessory message. Notice that
-   these latter uses allows any node to respond to these messages using its usual event-handling.  For
-   example, a node can activate an output in response to a specific fast-clock time.
-
-   Performance & loading at node startup, layout startup particularly on CAN. Numbers and simulations.
+   list of well-known Event IDs; transmitting well-known ranges of data, such as fast-clock time; and
+   embedding an other system's message into the bytes of the Event ID, for example a DCC accessory message.
+   Notice that these latter uses allows any node to respond to these messages using its usual
+   event-handling.  For example, a node can activate an output in response to a specific fast-clock time.
 
 3.1 Gateways
 
    Gateways can route PCERs only to segments with nodes expressing interest by processing the other event
    messages.
 
-   The automatically-routed event range has to be routed. This can be done by making a permanent entry in
-   routing tables, or any other implementation method.
+   The automatically-routed event range always has to be routed. This can be done by making a permanent
+   entry in routing tables, or any other implementation method.
 
-   Merge the example in http://openlcb.org/trunk/documents/examples/CAN-TCP-CAN-TCP-example.html
+3.2 Examples
 
-3.2 Implementation hints
+   Consider a OpenLCB installation with two CAN segments A and B connected via gateways and a TCP/IP link.
+   In addition, a program is attached via a TCP/IP link and additional gateway to CAN segment B.
 
-   Buffering issues, particularly on CAN: a node has to be able to keep up with PCER messages that can
-   arrive about every millisecond (125000 bps / 120 bits per message)
+    graphics2
+
+   Figure 1 – Example OpenLCB Network
+
+   The program has to be able to fully communicate with all OpenLCB nodes on both segments A and B. These
+   examples shows how the gateways can make that happen. For simplicity, the labels on the figure will be
+   used as if they were the full NID of the node, e.g. "GB1" for the left gateway on segment B. Frames and
+   messages are represented by [“source address”, “content”, “optional destination address”] triplets. Not
+   all messages are shown. Note that there are many ways that gateways can manage traffic, and this is just
+   one approach.
+
+   Before the cases below, both segments come up, assign the numbers 1,2,3 as aliases to their local nodes,
+   10 to gateway 1 and 20 to gateway 2 on segment B. For simplicity, A1 produces event X, which A2 and B2
+   want to consume. A1 also produces Y, which no other node wants to consume.
+
+  3.2.1 Case 1: All nodes initialized before link established, event X is sent
+
+   The A-B gateways initialize their internal tables.
+
+   A1 sends X. GA receives it. Because GA hasn't seen X before, X is forwarded across the link to GB,
+   followed by an “Identify Consumers of X” message.
+
+   GB puts the X message on the CAN segment, and B2 consumes it.
+
+   GB puts the “Identify Consumers of X” message on the CAN segment.
+
+   B2 responds with “Consumer of X Identified”
+
+   GB receives “Consumer of X Identified”, forwards to GA, which marks its tables to continue forwarding
+   these. GA forwards that message on the CAN segment in case there are other listeners for it.
+
+  3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above
+
+   The gateways are up, but don't know about B2. GA has seen X sent by A1, but has marked it as “do not
+   forward” because there was no consumer for it on B.
+
+   B2 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   B2 sends “Consumer of X Identified”. GB forwards that to GA.
+
+   GA remembers that event X must be forwarded across this link if seen.
+
+   A1 sends X, GA receives it, forwards it across link.
+
+  3.2.3 Case 3: Node A1 comes up, then event X is sent
+
+   The gateways are up, but don't know about A1 or X.
+
+   A1 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   A1 sends “Producer of X Identified”. GA forwards that to GB.
+
+   GA notes that event X currently must be forwarded across this link if/when seen.
+
+   A1 sends X. GA receives it. Because GA hasn't seen X before, X is forwarded across the link to GB,
+   followed by an “Identify Consumers of X” message.
+
+   The rest of this proceeds like case 1.
+
+  3.2.4 Case 4: Node A1 comes up, then event Y is sent
+
+   The gateways are up, but don't know about A1 or Y.
+
+   A1 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   A1 sends “Producer of Y Identified”. GA forwards that to GB.
+
+   GA notes that event Y currently must be forwarded across this link if seen.
+
+   A1 sends X. GA receives it. Because GA hasn't seen Y before, Y is forwarded across the link to GB,
+   followed by an “Identify Consumers of Y” message.
+
+   No “Consumer of Y Identified” message is received back, so after a short timeout GA marks it's tables to
+   not forward Y.  (If a not later comes up that consumes Y, a sequence similar to Case 2 occurs.)
+
+3.3 Node Implementation hints
+
+   Buffering issues, particularly on CAN, have to be carefully considered. All nodes have to be able to
+   keep up with PCER messages that can arrive about every millisecond (125000 bps / 120 bits per message)
 
      * Don't  do long linear searches to match an incoming Event ID to internal structures.
 
@@ -405,28 +460,30 @@
    The Standard doesn't make any statements about delivery performance because it's specific to the
    link-types, arrangement of OpenLCB nodes & links, etc that make up a specific OpenLCB network.  In
    general, OpenLCB is going to provide sub-millisecond, millisecond, or perhaps even 10's of millisecond
-   timing quality, for example.  Nor can it guarantee absolute order of events.  (If Node A and Node B emit
+   timing quality, for example.  Nor can it guarantee absolute order of events.  If Node A and Node B emit
    events at the same time on different segments, there's no guarantee of when node C will receive them,
-   nor in what order, nor that Node D will receive it at the same time & in the same order as Node C).
+   nor in what order, nor that Node D will receive it at the same time & in the same order as Node C.
 
-3.3 Well known events
+3.4 Well known events
 
    There are a small number of cases where a globally-allocated and reserved Event ID will simplify
    operation. These “well-known Event ID numbers” can be used to e.g. advertise that a node can provide a
    specific capability, or to tell locomotive control hardware to stop all trains instantly, etc.
 
    For these to be useful, they not only have to be unique (so there are no collisions that accidentally
-   trigger reactions to them), but they must also be well-known. So we have created a central spreadsheet
-   on which uses can be recorded. This will eventually provide a machine-accessible record.
+   trigger reactions to them), but they must also be well-known.  All of these are assigned with the
+   01.00.00.00.00.00 or 01.01.00.00.00.00 reserved IDs in their upper six bytes to ensure uniqueness and
+   simplify recognition.  The OpenLCB group maintains a central list of the individual assigned Event IDs.7
 
-   All of these are assigned with a reserved ID in their upper six bytes to ensure uniqueness and simplify
-   recognition.
+   The Event IDs that start 01.00.00.00.00.00 are the automatically-routed events, a subset of the
+   well-known events.
 
-   Nodes using these must mention them when listing the event IDs they produce and consume. Gateways may
-   filter on these, but are not required to. (For ease of implementation, a gateway may just pass all
-   events with the common top 6 bytes).
+   Except for the automatically-events, nodes producing or consuming well-known events must mention them
+   when identifying the event IDs they produce and consume. Gateways may filter on these, but are not
+   required to. (For ease of implementation, a gateway may just pass all events with the common values of
+   the top 6 bytes).
 
-3.4 History section
+3.5 History section
 
    For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
    each time the associated P/C Event ID is sent. It is not at all clear how to do this across nodes, or
@@ -434,8 +491,10 @@
    P/C Event ID to be sent by a single board;. We decided this would cause more problems than it solved,
    and omitted it.
 
-   There is not room in a CAN frame for both a destination NID and a EID. The protocol has therefore been
-   constructed so that any message carrying an EID (and that isn't a datagram) is globally addressed.
+   There is not room in a CAN frame for both a destination NID and a EID. This protocol has therefore been
+   constructed so that any message carrying an EID is globally addressed.
+
+    
 
     
 
@@ -485,11 +544,21 @@
 
    3.1 Gateways
 
-   3.2 Implementation hints
+   3.2 Examples
 
-   3.3 Well known events
+   3.2.1 Case 1: All nodes initialized before link established, event X is sent
 
-   3.4 History section
+   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above
+
+   3.2.3 Case 3: Node A1 comes up, then event X is sent
+
+   3.2.4 Case 4: Node A1 comes up, then event Y is sent
+
+   3.3 Node Implementation hints
+
+   3.4 Well known events
+
+   3.5 History section
 
     
 
@@ -504,7 +573,7 @@
    3 As of the time of this writing, the OpenLCB Message Network Standard was still in preparation. See the
    OpenLCB web site documents page for current status: http://openlcb.org/trunk/specs/index.html
 
-     * 4 http://openlcb.org/trunk/specs/MtiAllocations.pdf
+   4 http://openlcb.org/trunk/specs/MtiAllocations.pdf
 
    5  For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html
    and http://openlcb.org/trunk/scratchpads/JohnSL/Tech_Note_Introduction_to_the_PC_Model_2007-10-10.pdf
@@ -513,4 +582,4 @@
    those bus segments on which a node has expressed interest.  Event-ranges are used to express interest in
    a classes of events.   
 
-   i  
+   7 See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions

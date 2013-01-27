@@ -1,6 +1,6 @@
                                          1 Introduction (Informative)
 
-   This OpenLCB Standard describes the protocol for transporting OpenLCB events across the OpenLCB network.
+   This OpenLCB Standard defines the protocol for transporting OpenLCB events across the OpenLCB network.
 
                                          2 Intended Use (Informative)
 
@@ -112,7 +112,7 @@
    This message has three sub-forms, which carry the status of the identified producer.  They are,
    respectively:
 
-     * Currently valid – the internal state of the producer & associated devices is known to that which
+     * Currently valid – the internal state of the producer & associated devices is known to be that which
        would cause them to produce the event
 
      * Currently invalid – the internal state of the producer & associated devices is known to not be the
@@ -169,20 +169,21 @@
                                           6 Interactions (Normative)
 
    After each transition to Initialized State and before sending a Producer/Consumer Event Report (PCER)
-   message producing a specific Event ID outside the automatically-routed Event ID range, a node shall emit
-   a Producer Identified or Producer Range Identified message identifying that Event ID.
+   message producing a specific Event ID outside the automatically-routed Event ID range, a node shall
+   transition to Advertised state for that Event ID by emitting a Producer Identified or Producer Range
+   Identified message identifying that Event ID.
 
    To ensure receipt of PCER messages, a node consuming a specific Event ID outside the
-   automatically-routed Event ID shall emit a Consumer Identified or Consumer Range Identified message
-   identifying that Event ID.
+   automatically-routed Event ID shall transition to Advertised state for that EventID by emitting a
+   Consumer Identified or Consumer Range Identified message identifying that Event ID.
 
 6.1 Event Transfer
 
-   To produce an event, the node containing the producer emits a PCER message containing the related Event
-   ID. The OpenLCB message network transports that message to all attached nodes, except as described in
-   the next paragraph. Nodes containing consumers shall check for a match between the message Event ID and
-   their consumers. If a match is found, the consumer shall perform any local operations configured into
-   it. If a match is not found, the consumer shall not perform any local operations.
+   To produce an event, the node containing the producer shall emit a PCER message containing the related
+   Event ID. The OpenLCB message network shall transport that message to all attached nodes, except as
+   described in the next paragraph. Nodes containing consumers shall check for a match between the message
+   Event ID and their consumers. If a match is found, the consumer shall perform any local operations
+   configured into it. If a match is not found, the consumer shall not perform any local operations.
 
    Equipment that transports PCER messages shall transport them to all connected nodes from which the
    equipment has received a Consumer Identified or Consumer Range Identified for the reported Event ID.
@@ -208,25 +209,25 @@
 
 6.3 Producer Enquiry
 
-   Upon receipt of an Identify Producer message, a node shall reply with Producer Identified and/or
-   Producer Range Identified messages covering all non-automatically-routed Event IDs produced by the node.
+   Any node receiving an Identify Producer message that includes a non-automatically-routed Event ID
+   produced by the node shall reply with one or more Producer Identified messages containing that EventID.
 
-   In response to an Identify Producer message, a node may but is not required to include Producer
-   Identified and/or Producer Range Identified messages covering automatically-routed Event IDs produced by
-   the node.
+   Any node receiving an Identify Producer message that includes an automatically-routed Event ID produced
+   by the node may, but is not required to, reply with one or more Producer Identified messages containing
+   that EventID.
 
 6.4 Consumer Enquiry
 
-   Upon receipt of an Identify Consumer message, a node shall reply with Consumer Identified and/or
-   Consumer Range Identified messages covering all non-automatically-routed Event IDs consumed by the node.
+   Any node receiving an Identify Consumer message that includes a non-automatically-routed Event ID
+   consumed by the node shall reply with one or more Consumer Identified messages containing that EventID.
 
-   In response to an Identify Consumer message, a node may but is not required to include Consumer
-   Identified and/or Consumer Range Identified messages covering automatically-routed Event IDs consumed by
-   the node.
+   Any node receiving an Identify Consumer message that includes an automatically-routed Event ID consumed
+   by the node may, but is not required to, reply with one or more Consumer Identified messages containing
+   that EventID.
 
-                                      7 Implementation via CAN Transport
+                                7 Implementation via CAN Transport (Normative)
 
-   This section describes the CAN implementation of the event  transport message formats.
+   This section describes the CAN implementation of the event transport message formats.
 
 7.1 CAN Message Formats
 
@@ -266,6 +267,8 @@
 
    There are no CAN-specific modifications to the interactions described in §6 above.
 
+    
+
    Table of Contents
 
    1 Introduction (Informative)
@@ -304,7 +307,7 @@
 
    6.4 Consumer Enquiry
 
-   7 Implementation via CAN Transport
+   7 Implementation via CAN Transport (Normative)
 
    7.1 CAN Message Formats
 
