@@ -72,20 +72,33 @@
 
    Optionally, the node can mark the reply with one or more of several conditions:
 
-   “Transport Error” — Something appears to have gone wrong between the sender and the recipient, perhaps
-   because the recipient received datagram fragments out of order, or a sequence of datagrams was received
-   out of order (at the application layer). This error flag does not by itself imply that the sender should
-   retransmit; rather, this flag should be combined with the “Resend OK” flag to explicitly request
-   retransmission.
+    
 
    “Source not permitted” — Datagrams from this source will never be accepted. Generally, this flag is only
    meaningful in conjunction with the “Permanent Error” flag, as there is no sense is retransmission in
    this context. This flag might be used to indicate that a receiving node is only willing to establish a
-   connection with an exclusive set of nodes.
+   connection with an exclusive set of nodes that doesn't include the sender.
 
-   “Datagrams not accepted” — This node will not accept datagrams under any circumstance. A node can also
-   reject the interaction with an Optional Interaction Rejected message (see “OpenLCB Message Network
-   Standard”) instead of sending Datagram Rejected with this code.
+   “Datagrams not accepted” — This node will not accept datagrams of this type under any circumstance. If
+   the node implements the Datagram Transport protocol, it should use this to reject datagrams that it
+   cannot process because they are of an unknown type. Rejecting the interaction with an Optional
+   Interaction Rejected message (see “OpenLCB Message Network Standard”) should only be used by nodes that
+   don't implement the Datagram Transport protocol because it carries the notion that the Datagram Protocol
+   isn't supported.
+
+   “Transport Error” — Something appears to have gone wrong between the sender and the recipient, perhaps
+   because the recipient received datagram fragments out of order, or a sequence of datagrams was received
+   out of order (at the application layer). This error flag does not by itself imply that the sender should
+   retransmit; rather, this flag is be combined with the “Resend OK” flag to explicitly request
+   retransmission.
+
+   “Buffer shortage” - The node wasn't able to receive the datagram because of a shortage of buffers. This
+   can happen during normal operation due to overlapping traffic to a node. Setting this bit helps diagnose
+   when datagram traffic is overwhelming the node's ability to buffer and process it
+
+   “Out of Order” - Should not happen, but an internal inconsistency was found in the OpenLCB message
+   sequence and/or in the CAN frames making up a datagram. This is probably a subset of the Transport error
+   cases.
 
    The least-significant bits can be used for code for the specific condition that lead the receiving node
    to reject the Datagram Content message.  This is a good idea, because it helps debug persistent
@@ -208,12 +221,13 @@
    know, but they don't have to.
 
    For example, a node that receives a Middle datagram without a First datagram can react in various ways.
-   It might send “Resend OK”, with or without “Transport error”, or simply ignore the message entirely.
+   It might send “Resend OK”, with or without “Transport error” and/or “Out of order”, or simply ignore the
+   message entirely.
 
-   Notice, however, that receiving a second valid datagram sequence while receiving one (or more) that
-   fills the local buffers is not an out-of-spec condition, and the protocol defines exactly how the node
-   is to react. There's no flexibility in this case. The receiving node is required to send a Datagram
-   Rejected message usually (but not necessarily) with the “Resend OK” error code.
+   Notice, however, that receiving a second valid datagram sequence from yet another node while receiving
+   one (or more) that fills the local buffers is not an out-of-spec condition, and the protocol defines
+   exactly how the node is to react. There's no flexibility in this case. The receiving node is required to
+   send a Datagram Rejected message usually (but not necessarily) with the “Resend OK” error code.
 
                                            3 Background Information
 
