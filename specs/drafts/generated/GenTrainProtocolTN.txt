@@ -1,6 +1,9 @@
                                                 1 Introduction
 
-   Put a strong introduction here that lays out the parts of the protocol and gives an overview.
+   This is about long term operation of really cool trains, not just “better control over DCC”.  Still, DCC
+   is an important test case, both with new control hardware (OpenLCB native throttles connected to an
+   OpenLCB-native command station that's generating the DCC signal) and when connected to legacy throttles
+   and/or command stations.
 
                                         2 Annotations to the Standard
 
@@ -17,6 +20,87 @@
    For more information on format and presentation, see:
 
      * OpenLCB Common Information Technical Note
+
+2.4 Speed Control
+
+   Rationale: The use of a 16-bit floating point permits relatively precise speed commands, especially at
+   lower speeds; such fine granulatity ensures not just fine-grained control over the locomotive, but helps
+   avoid aliasing issue that arise during the conversion to lower resolution system-specific speed commands
+   (i.e. DCC's 14 or 28-step commands).
+
+   The use of meters per second is somewhat arbitrary, and reflects standard velocity units used throughout
+   the metric-speaking world. By standardizing on m/s, we avoid any future unit conversion issues.
+
+   The use of scale meters per second has two distinct advantages. First, it permits us to transmit speed
+   commands in a scale-independent way. Second, and because of this, it reduces the number of parameters
+   that must be estimated when controlling a locomotive that has not yet been speed-calibrated (which, for
+   new users using existing digital control systems, will be all of their models). For example, on a DCC
+   system, if I issue a command to proceed at 30mph, the command station must convert the value in the
+   speed command from 30mph to an interger in the range [0-26] (for 28-speed-step control). The command
+   station need only estimate what a reasonable top speed for a locomotive might be: Let us say, 100mph.
+   Thus, the command station could reasonably estimate that 30mph translates to speed step 8.
+
+   The alternative possibilities considered to date are absolute speed using real units (as opposed to
+   scale units), and relative speed units. The difficulty with relative speed units (i.e., percentage of
+   full throttle), is that they are ambiguous, and preclude the possibility of performing physical
+   simulations in the cab controller, at least without completely abandoning the particular interpretations
+   assigned to sped values. The difficulty with using real (as opposed to scale) units is that it requires
+   the estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale.
+   If I issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only
+   understand what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1
+   m/s might be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use
+   as a default, users must configure their digital command station to set the scale for either the entire
+   layout, or on a per-model basis—an additional configuration step that is easily avoided by the mechanism
+   for scale units described above.
+
+2.5 Function Control
+
+   "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
+   they're also configuration-like, in that they effect the operation of the device.
+
+   How to handle them for a native OpenLCB piece of rolling stock, and for legacy ones via e.g. DCC?
+
+   We could take the purist approach and say "configuration is configuration, it's all the same". But that
+   ignores that many people are going to want "Bell" to appear (automatically) on their throttle, but not
+   so many are going to want "Kp back-emf correction factor" to appear there.
+
+   People just think about operating and configuring their locomotives as separate things. (Though e.g.
+   "Master Volume" can cross the line)
+
+   This doesn't mean that we can't use the same protocol for all other of them. A mixture of memory
+   configuration and CDI should do just fine. It just means that we need to find a way to include clueing
+   information for the throttles on e.g. what to present.
+
+   Outputs vs Functions
+
+   Tools like DecoderPro and its decoder-definition files make a distinction between "functions", which are
+   the control commands sent via e.g. DCC, and "outputs", which are the things that a decoder can do:
+   Control an electrical output, make a sound, etc. This distinction is useful because one of the
+   configuration options in (some) DCC decoders is a mapping between the functions and the outputs, useful
+   in a world where throttles generally have only about a dozen buttons, but decoders have many output
+   options.
+
+   OpenLCB makes a clean separation between functions, which are the control operations, and all
+   configuration & physical information, which lives in the memory configuration and CDI. If there's to be
+   a mapping, it's defined through the CDI.
+
+2.6 Train Configuration
+
+2.7 Train Identification
+
+2.8 Legacy Train Operations
+
+  2.8.1 Node Assignment
+
+  2.8.2 Speed and Function Control
+
+  2.8.3 Configuration
+
+   For DCC trains, there are two parts:
+
+     * CV access (with the added complexity of indexed and double-indexed Cvs)
+
+     * Programmer (main, programming track) control.
 
                                             3 General Information
 
@@ -35,6 +119,22 @@
    2.2 Intended Use
 
    2.3 Reference and Context
+
+   2.4 Speed Control
+
+   2.5 Function Control
+
+   2.6 Train Configuration
+
+   2.7 Train Identification
+
+   2.8 Legacy Train Operations
+
+   2.8.1 Node Assignment
+
+   2.8.2 Speed and Function Control
+
+   2.8.3 Configuration
 
    3 General Information
 
