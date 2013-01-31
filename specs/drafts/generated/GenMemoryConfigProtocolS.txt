@@ -91,11 +91,11 @@
 
    Byte 0 Byte 1             Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes                      
                                                          (optional)    
-          0x43 Space in byte                                                                                
+          0x63 Space in byte                                                                                
           6                                                            Read Count (4 bytes), followed by    
-   0x20   0x42 Space 0xFD    Starting Address            Address Space stream definition information
-          0x41 Space 0xFE    
-          0x40 Space 0xFF    
+   0x20   0x62 Space 0xFD    Starting Address            Address Space stream definition information
+          0x61 Space 0xFE    
+          0x60 Space 0xFF    
 
     
 
@@ -114,10 +114,10 @@
 
    Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder               
                                                            (optional)    
-          0x1B Space in byte 6                                                                   
-   0x20   0x1A Space 0xFD      Starting Address            Address Space Data pairs (2-64 bytes)
-          0x19 Space 0xFE      
-          0x18 Space 0xFF      
+          0x0B Space in byte 6                                                                   
+   0x20   0x0A Space 0xFD      Starting Address            Address Space Data pairs (2-64 bytes)
+          0x09 Space 0xFE      
+          0x08 Space 0xFF      
 
     
 
@@ -129,39 +129,6 @@
    0x20   0x22 Space 0xFD      Starting Address            Address Space Stream Definition Info
           0x21 Space 0xFE      
           0x20 Space 0xFF      
-
-    
-
-    
-
-    
-
-                                      Write     Write Under Write Stream Read      Read-Reply Read Stream   
-                                                Mask        
-   Datagram Type Byte                 0x20      0x20        0x20         0x20      0x20       0x20          
-                   Command Type       0b00      0b00        0b00         0b01      0b01       0b01          
-                   (2 bits)           
-                   Stream/Datagram (1 0b0       0b1         0b1          0b0       0b0        0b1           
-                   bit)               
-                   ReadReply/Write (1 0b0       0b0         0b0          0b0       0b1        0b0           
-   Command Byte    bit)               
-   (Upper is MSB,  Under Mask         0b0       0b1         0b0                                             
-   lower is LSB)   (1 bit)            
-                   Reserved (1 bit)                                      0b0       0b0        0b0           
-                   Reserved (1 bit)   0b0       0b0         0b0          0b0       0b0        0b0           
-                   Address Space      0b00-0b11 0b00-0b11   0b00-0b11    0b00-0b11 0b00-0b11  0b00-0b11     
-                   (2 bits)           
-                   Full byte value    0x00-0x03 0x18-0x1B   0x20-0x23    0x40-0x43 0x50-0x53  0x70-0x73     
-   4 bytes                            Address   Address     Address      Address   Address    Address       
-   Optional byte, present when        Address   Address     Address      Address   Address    Address Space 
-   Address Space bits above == 0b00   Space     Space       Space        Space     Space      
-                                                Data and                                      Count         
-                                      Data      Mask        Stream       Count     Data       (4 bytes),    
-   Remainder                          (1-64     (2-64       Definition   (1 byte,  (1-64      then Stream   
-                                      bytes)    bytes)      Info         1-64)     bytes)     Definition    
-                                                                                              Info          
-
-    
 
     
 
@@ -265,174 +232,6 @@
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    0x20   0xAA   Node ID
-
-    
-
-   Flipped Table
-
-                                 Get Config Get Config       Get Addr   Get Address Space Info Freeze/      
-                                 Options    Options Reply    Space Info Reply                  Unfreeze     
-   Datagram Type Byte            0x20       0x20             0x20       0x20                   0x20         
-                  Command Type   0b10       0b10             0b10       0b10                   0b10         
-                  Operation Type 0b0000     0b0000           0b0001     0b0001                 0b1000       
-   Command Byte   Reply          0b0        0b1              0b0        0b1                                 
-   (Upper is MSB, Reserved       0b0        0b0              0b0        0b0                    0b0          
-   lower is LSB)  Freeze/                                                                      Freeze 0b1   
-                  Unfreeze                                                                     Unfreeze 0b0 
-                  Byte value     0x80       0x82             0x84       0x86                   0xA0-0xA1    
-   Byte 2                                   Available        Address    Address Space                       
-                                            Commands (2      Space      
-   Byte 3                                   bytes)                                                          
-   Byte 4                                   Write Lengths                                                   
-   Byte 5                                   Highest Address             Largest Address (4                  
-                                            Space                       bytes)
-   Byte 6                                   Lowest Address                                                  
-                                            Space (0-1 byte) 
-                                                                        Requires Alignment (4               
-                                                                        bits) Low Address      
-                                                                        Non-zero (1 bit)       
-                                            Name (0-N bytes,            Read-Only (1 bit)      
-   Remainder                                optional                    {Lowest Address } (4    
-                                                                        bytes)                 
-                                                                        {Desc }                
-                                                                                               
-                                                                        (0-N bytes)            
-
-    
-
-                                   Lock/      Lock/   Get Unique Get                Update   Reset/ Reinit/ 
-                                   Reserve    Reserve ID         Unique   Indicate  Complete Reboot Factory 
-                                              Reply              ID Reply                           Reset   
-   Datagram Type Byte              0x20       0x20    0x20       0x20     0x20      0x20     0x20   0x20    
-                      Command Type 0b10       0b10    0b10       0b10     0b10      0b10     0b10   0b10    
-                      Operation    0b0010     0b0010  0b0011     0b0011   0b1001    0b1010   0b1010 0b1010  
-                      Type         
-                      Reply        0b0        0b1     0b0        0b1                                        
-   Command Byte       Reserved     0b0        0b0     0b0        0b0                                        
-   (Upper is MSB,                                                         Start 0b1                         
-   lower is LSB)      Start/Stop                                                                     
-                                                                          Stop 0b0  
-                      Sub                                                           0b00     0b01   0b10    
-                      Command      
-                      Byte value   0x88       0x8A    0x8C       0x8D     0xA2-0xA3 0xA8     0xA9   0xAA    
-                                                      Number to  New                                        
-                                                      reserve (3 Unique                                     
-   Byte 2                                             bits, 1-8) EventI D                     
-                                                                          
-                                   Requesting Locking            (8                                 Target
-   Byte 3                          NodeID     NodeID             bytes,                             NodeID
-   Byte 4                                                        1-8                                
-   Byte 5                                                        times)                             
-   Byte 6                                                                                           
-   Byte 7                                                                                           
-   Remainder                                                                                                
-
-    
-
-                   Cmd                                                                                       
-                   Type  Op Type Field   Lower Bits      
-   Operatn Name    Field (4 bits)                                                                      
-                   (2                    (2 bits)
-                   bits) 
-                   Command Byte                          Additional Bytes
-                         Stream/                                                                             
-                         Datagram (1                               
-                         bit) = 0        
-                                         
-                         ReadReply/      
-   Write           0x0   Write (1 bit) = Address Space   Address   {Space}(1) Data (1-N)               
-                         0               (2 bits)        (4 bytes)
-                                         
-                         Under Mask (1   
-                         bit)            
-                         Reserved (1     
-                         bit)            
-                         Stream/                                                                             
-                         Datagram (1                                                      
-                         bit) = 1        
-                         Reserved (1     Address Space   Address   {Space} (1 Stream
-   Write Stream    0x0   bit) = 0        (2 bits)        (4 bytes) bytes)     information              
-                         Under Mask (1   
-                         bit)            
-                         Reserved (1     
-                         bit)            
-                         Stream=1/                                                                           
-                         Datagram=0 (1                                                    
-                         bit)            
-   Read-Reply      0x1   ReadReply/      Address Space   Address   {Space} (1 Data (1-N                
-                         Write (1 bit) = (2 bits)        (4 bytes) bytes)     bytes)
-                         1               
-                         Reserved (2     
-                         bits)           
-                         Stream/Datagram                                                                     
-                         (1 bit) = 0                                          Count (1    
-                         ReadReply/      Address Space   Address   {Space} (1 byte, most  
-   Read            0x1   Write (1 bit) = (2 bits)        (4 bytes) bytes)     significant              
-                         0                                                    bit         
-                         Reserved (2                                          reserved)
-                         bits)           
-                         Stream/                                                                             
-                         Datagram (1     Address Space   Address   {Space} (1 Count (4    Stream      
-   Read Stream     0x1   bit) = 1        (2 bits)        (4 bytes) bytes)     bytes)      information  
-                         Reserved (3     
-                         bits)           
-   Get                                   Reply=0 (1 bit)                                                     
-   Configuration   0x2   0x0             Reserved (1                                                   
-   Options                               bit)            
-                                                         Available Write                                     
-                                                         commands  lengths                            
-   Get                                   Reply=1 (1 bit) (2 bytes, (1 byte,   Highest     Lowest      
-   Configur-ation  0x2   0x0             Reserved (1     see       see        Space       Space       {Name}
-   Options Reply                         bit)            section   section    (1 byte)    (1 byte)
-                                                           4.1.4.2   4.1.4.2  
-                                                         coding)   coding)    
-   Get Address                           Reply=0 (1 bit) Space ID                                            
-   Space Info      0x2   0x1             Reserved (1     (1 byte)                                      
-                                         bit)            
-                                                                              Requires                       
-                                                                              Alignment               
-   Get Address                           Reply=1 (1 bit)           Largest    (4 bits)    {Lowest     
-   Space Info      0x2   0x1             Present/Absent  Space ID  Address (4 Low Address Address} (4 {Desc}
-   Reply                                 (1 bit)         (1 byte)  bytes)     Non-zero (1 bytes)
-                                                                              bit)        
-                                                                              Read-Only   
-                                                                              (1 bit)     
-                                         Reply=0 (1 bit) NodeID                                              
-   Lock/Reserve    0x2   0x2             Reserved (1     (6 bytes)                                     
-                                         bit)            
-   Lock/Reserve                          Reply=1 (1 bit) NodeID                                              
-   Reply           0x2   0x2             Reserved (1     (6 bytes)                                     
-                                         bit)            
-                                         Reply=0 (1 bit) Number to                                           
-   Get Unique ID   0x2   0x3             Reserved (1     reserve                                       
-                                         bit)            (3 bits,  
-                                                         1-7)      
-                                                         New                                                 
-                                         Reply=1 (1 bit) Unique    
-   Get Unique ID   0x2   0x3             Reserved (1     EventID                                       
-   Reply                                 bit)            (8 bytes, 
-                                                         1-7       
-                                                         times)    
-   Reserved        0x2   0x4-0x7         Reserved (2                                                         
-                                         bits)           
-                                         Reserved (1                                                         
-   Freeze/Unfreeze 0x2   0x8             bit)                                                          
-                                         Freeze/Unfreeze 
-                                         (1bit)          
-                                                         (somehow                                            
-                                         Reserved (1     identify  
-   Indicate        0x2   0x9             bit)            outputs,                                      
-                                         Start/Stop (1   LEDs, etc 
-                                         bit)            to        
-                                                         drive?)   
-   Update Complete 0x2   0xA             0x0                                                                 
-   Reset/Reboot    0x2   0xA             0x1                                                                 
-   Reinitialize/                                         Target                                              
-   Factory Reset   0x2   0xA             0x2             NodeID (6                                     
-                                                         bytes)    
-   Reserved        0x2   0xA             0x3                                                                 
-   Reserved        0x2   0xB-0xF         Reserved (2                                                         
-                                         bits)           
 
     
 
