@@ -4,7 +4,7 @@
 
                                                       Memory Access Configuration Protocol
 
-                                                    Sep 2, 2012                        Preliminary          
+                                                   Jan 31, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -80,11 +80,146 @@
 
    This is likely to move to another standard.
 
-                                     3 Stuff to be merged into the above
+                                                      3
 
-3.1 Environment of Protocol
+                                                  4 General
 
-  3.1.1 Requirements
+4.1 Message Structure
+
+   This section is about helping implementors see how to decode the message format.
+
+                                     Write      Write       Write       Read       Read-Reply  Read Stream  
+                                                Under Mask  Stream      
+
+    Datagram Type Byte                 0x20        0x20        0x20       0x20        0x20        0x20      
+
+    Command Byte   Command Type        0b00        0b00        0b00       0b01        0b01        0b01      
+    (Upper is      (2 bits)          
+    MSB, lower is  
+    LSB)           Stream/Datagram      0b0        0b0         0b1         0b0        0b0          0b1      
+                   (1 bit)           
+
+                   ReadReply/Write      0b0        0b0         0b0         0b0        0b1          0b0      
+                   (1 bit)           
+
+                   Under Mask           0b0        0b1         0b0      
+                   (1 bit)           
+
+                   Reserved (1 bit)                                        0b0        0b0          0b0      
+
+                   Reserved (1 bit)     0b0        0b0         0b0         0b0        0b0          0b0      
+
+                   Address Space     0b00-0b11  0b00-0b11   0b00-0b11   0b00-0b11  0b00-0b11    0b00-0b11   
+                   (2 bits)          
+
+                   Full byte value   0x00-0x03  0x18-0x1B   0x20-0x23   0x40-0x43  0x50-0x53    0x70-0x73   
+
+    4 bytes                           Address    Address     Address     Address    Address      Address    
+
+    Optional byte, present when       Address    Address     Address     Address    Address      Address    
+    Address Space bits above ==        Space      Space       Space       Space      Space        Space     
+    0b00           
+
+    Remainder                          Data      Data and     Stream      Count       Data        Count     
+                                       (1-64       Mask     Definition  (1 byte,     (1-64     (4 bytes),   
+                                      bytes)      (2-64        Info       1-64)      bytes)    then Stream  
+                                                  bytes)                                       Definition   
+                                                                                                  Info      
+
+                                  Get Config  Get Config      Get Addr    Get Address Space   Freeze/       
+                                  Options     Options Reply   Space Info  Info Reply          Unfreeze      
+
+    Datagram Type Byte               0x20          0x20          0x20            0x20             0x20      
+
+    Command Byte  Command Type       0b10          0b10          0b10            0b10             0b10      
+    (Upper is     
+    MSB, lower    Operation Type    0b0000        0b0000        0b0001          0b0001           0b1000     
+    is LSB)       
+                  Reply              0b0           0b1           0b0             0b1          
+
+                  Reserved           0b0           0b0           0b0             0b0              0b0       
+
+                  Freeze/                                                                      Freeze 0b1   
+                  Unfreeze                                                                    Unfreeze 0b0  
+
+                  Byte value         0x80          0x82          0x84            0x86          0xA0-0xA1    
+
+    Byte 2                                      Available      Address      Address Space     
+                                               Commands (2      Space     
+                                                  bytes)      
+    Byte 3                                                                Largest Address (4  
+                                                                                bytes)        
+    Byte 4                                    Write Lengths   
+
+    Byte 5                                       Highest      
+                                              Address Space   
+
+    Byte 6                                    Lowest Address  
+                                                Space (0-1    
+                                                  byte)       
+
+    Remainder                                   Name (0-N                 Requires Alignment  
+                                                  bytes,                     (4 bits) Low     
+                                                 optional                  Address Non-zero   
+                                                                          (1 bit) Read-Only   
+                                                                               (1 bit)        
+
+                                                                          {Lowest Address }   
+                                                                              (4 bytes)       
+
+                                                                               {Desc }        
+                                                                                              
+                                                                             (0-N bytes)      
+
+                               Lock/       Lock/    Get       Get     Indicate   Update    Reset/  Reinit/  
+                               Reserve     Reserve  Unique    Unique             Complete  Reboot  Factory  
+                                           Reply    ID        ID                                   Reset    
+                                                              Reply   
+
+    Datagram Type Byte            0x20      0x20      0x20     0x20     0x20       0x20     0x20    0x20    
+
+    Command Byte   Command        0b10      0b10      0b10     0b10     0b10       0b10     0b10    0b10    
+    (Upper is      Type        
+    MSB, lower is  
+    LSB)           Operation     0b0010    0b0010    0b0011   0b0011   0b1001     0b1010   0b1010  0b1010   
+                   Type        
+
+                   Reply          0b0        0b1      0b0      0b1    
+
+                   Reserved       0b0        0b0      0b0      0b0    
+
+                   Start/Stop                                         Start 0b1  
+                                                                                 
+                                                                      Stop 0b0   
+
+                   Sub                                                             0b00     0b01    0b10    
+                   Command     
+
+                   Byte value     0x88      0x8A      0x8C     0x8D   0xA2-0xA3    0xA8     0xA9    0xAA    
+
+    Byte 2                     Requesting  Locking   Number    New                                 Target   
+                                 NodeID    NodeID      to     Unique                               NodeID   
+                                                    reserve   EventI  
+                                                    (3 bits,    D     
+                                                      1-8)            
+                                                              (8      
+    Byte 3                                                    bytes,  
+                                                              1-8     
+    Byte 4                                                    times)  
+
+    Byte 5         
+
+    Byte 6         
+
+    Byte 7         
+
+    Remainder      
+
+                                     5 Stuff to be merged into the above
+
+5.1 Environment of Protocol
+
+  5.1.1 Requirements
 
      * Nodes must carry enough context that a stand-alone configuration tool can provide a useful human
        interface without getting any data from an external source, e.g. needing an Internet download to
@@ -143,7 +278,7 @@
    away, some will require a reset, etc. Need flexibility for node developer, yet consistency for
    configuration tool builder.
 
-  3.1.2 CAN Aspects
+  5.1.2 CAN Aspects
 
    CAN configuration datagrams have seven payload bytes in the 1^st frame (the first byte identifies that
    it's a configuration transfer). See the “Datagram Protocol” document for more info. Read operations and
@@ -152,16 +287,16 @@
    Read-Stream and Write-Stream need to rendezvous on the stream IDs to know which stream is carrying the
    data. See Examples section below.
 
-3.2 Implementation Notes
+5.2 Implementation Notes
 
    This section is non-normative notes and suggestions for implementors.
 
-  3.2.1 Example CAN Operations
+  5.2.1 Example CAN Operations
 
    These are over CAN and includes some information from the datagram protocol to make traffic clearer. [d]
    is a single datagram; [di][di][de] is a datagram that's in multiple frames.
 
-    3.2.1.1 Get initial information
+    5.2.1.1 Get initial information
 
    Get Configuration Info [d] →
 
@@ -171,13 +306,13 @@
 
    datagram reply →
 
-    3.2.1.2 Write byte
+    5.2.1.2 Write byte
 
    Write [d] →
 
    ← datagram reply
 
-    3.2.1.3 Write 64 bytes
+    5.2.1.3 Write 64 bytes
 
    Write [di] →
 
@@ -187,7 +322,7 @@
 
    ← datagram reply
 
-    3.2.1.4 Read byte
+    5.2.1.4 Read byte
 
    Read [d] →
 
@@ -197,7 +332,7 @@
 
    datagram reply →
 
-    3.2.1.5 Read 64 bytes
+    5.2.1.5 Read 64 bytes
 
    Read [d] →
 
@@ -211,7 +346,7 @@
 
    datagram reply →
 
-    3.2.1.6 Large read via stream
+    5.2.1.6 Large read via stream
 
    Read [di] →
 
@@ -235,7 +370,7 @@
 
    ← Stream Data Complete
 
-    3.2.1.7 Large write via stream
+    5.2.1.7 Large write via stream
 
    Write [d] →
 
@@ -253,7 +388,7 @@
 
    Stream Data Complete →
 
-    3.2.1.8 Performance Note
+    5.2.1.8 Performance Note
 
    Small nodes may have only one datagram receive buffer and one datagram transmit buffer. In that case,
    sending multiple reads can result in poor performance if the replies go after the next request, e.g.:
@@ -301,7 +436,7 @@
    which is significantly less efficient. Better to send the positive acknowledgement to the read reply
    datagram before sending the next read command.
 
-  3.2.2 Delays Due to Non-Volatile Memory
+  5.2.2 Delays Due to Non-Volatile Memory
 
    Some microcontrollers can't continue to operate while writing configuration information to non-volatile
    memory.
@@ -329,7 +464,7 @@
    smaller than the memory write size (page size), the node can ensure that the stream will pause during a
    write operation.
 
-  3.2.3 Large Volume Operations
+  5.2.3 Large Volume Operations
 
    The stream protocol is meant for large reads and writes, but the datagram protocol can also work well on
    a single CAN segment. The difference in performance comes from the (potential) larger datagram buffer
@@ -347,7 +482,7 @@
    Configuration. Since read operations don't have the same timing issues, streams may still be useful in
    that case.
 
-                                                4 To Be Merged
+                                                6 To Be Merged
 
    Various OpenLCB capabilities and protocols will define memory spaces starting at the highest numbers.
    Other uses should start with the low numbered spaces, and should not use spaces with the highest bit
@@ -433,4 +568,4 @@
    3.2.3 Large Volume Operations 7
 
    Copyright 2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   9 - 9/2/2012
+   25 - 1/31/2013
