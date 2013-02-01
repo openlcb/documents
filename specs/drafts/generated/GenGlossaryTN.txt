@@ -65,10 +65,16 @@
 
    Bridge
 
-   Connects two OpenLCB segments with minimal changes to the content of the messages. For example, a bridge
-   between two CAN segments would allow more nodes to be attach to the combined segments as if they were
-   one; a bridge between a CAN segment and Ethernet segment would transform message format, but transfer
-   every message.
+   Usually a bridge works on the data link layer of the OSI model, and therefore has knowledge only about
+   those CAN frames transferred, but not about the meaning of the messages as they are defined in a higher
+   layer of the OSI model, such as the transport layer. Similarly to a repeater, a bridge may be used to
+   allow the connection of more nodes than is possible on one CAN segment, but this is not its main
+   purpose. Usually a bridge does not translate between different wire protocols, and for that a gateway is
+   used.  A bridge differs from a repeater in that a bridge can forward CAN frames to different segments
+   based on Node ID. To do this, the bridge listens to, and interprets, the frames transferred in order to
+   learn which nodes are connected to which segment. For OpenLCB the bridge may also support different node
+   aliases on the different segments to which it is connected. It this case, it would translate the node
+   alias before forwarding that frame to another segment.
 
    CDI
 
@@ -92,8 +98,8 @@
 
    Device
 
-   Not really something that occurs in OpenLCB itself, we need to talk about how the common term "device"
-   maps onto OpenLCB. E.g. A node (board) may connect to several things (devices) on the layout..
+   "Device" has no precise meaning in OpenLCB. It generally refers to a single piece of equipment on a
+   layout connected to a Node.
 
    Destination Node ID (DID)
 
@@ -115,10 +121,11 @@
 
    Gateway
 
-   Connects two segments of the OpenLCB while translating to a different wire protocol. For example, a
-   gateway can change NodeIDs on one side of the Router into aliases on the other side. The use of unique
-   identifiers in OpenLCB is meant to reduce the need for gateways. They generally only appear to connect
-   the wider network to a CAN link.
+   A Gateway translates between different wire protocols (e.g. CAN and ethernet), or even different network
+   architectures (e.g. OpenLCB and Loconet). They repackage and convert data going from one environment to
+   another so that each environment can understand the other's data. Since OpenLCB uses unique identifiers,
+   and these are meant to be used unchanged on most wire protocols, this should reduce the necessity of
+   Gateways.  
 
    Global
 
@@ -156,13 +163,19 @@
 
    Repeater
 
-   Connects two segments of the same type at the physical level, without transformation of message format.
+   Connects two segments of the same type at the pysical layer of the OSI model. It regenerates the
+   received signals and then retransmits the regenerated (or conditioned) signals on the other segment. It
+   has no knowledge of the information transfered. It is usually used to connect two CAN segments to allow
+   more nodes to be attach to the combined segments as if they were one.  
 
    Router
 
-   OpenLCB routers forward traffic from one link to another without reformatting. This can be a simple as
-   receiving on one link and forwarding on N, or it could involve tracking e.g. event usage and only
-   forwarding needed messages.
+   Routers work at the Network layer of the OSI model, meaning that they can route frames across multiple
+   segments based only on information contained in messages. They do not have knowledge about protocols of
+   (higher) transport layer. Routers are usually used in complex network situations because they provide
+   better traffic management than bridges, and do not pass broadcast traffic. Routers can share status and
+   routing information with one another, and can use this information to bypass slow or malfunctioning
+   segments.  
 
    Source Node ID (SID)
 
@@ -170,8 +183,8 @@
 
    Segment
 
-   Subset of an overall OpenLCB installation which is reached via path or gateway. A segment typically uses
-   a specific wire protocol.
+   Subset of an overall OpenLCB installation which uses a specific wire protocol.   A segment never spans
+   over Bridges, Gateways, Repeaters or Routers.
 
    Simple Node
 
@@ -228,9 +241,8 @@
 
    Segment
 
-   A single CAN segment is the set of CAN nodes that share CAN arbitration.
-
-    
+   See general definition.  Note that a nodes on a single CAN segment share CAN arbitration and a set of
+   aliases.   
 
    Table of Contents
 
