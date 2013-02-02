@@ -1,19 +1,19 @@
+   PowerPlusWaterMarkObject1
+
                                                                 OpenLCB Standard
 
                                                                    OpenLCB-CAN
                                                                  Frame Transfer
 
-                                                   Dec 1, 2012                       DraftAdopted           
+                                                   Feb 2, 2013                    PreliminaryAdopted        
 
                                          1 Introduction (Informative)
 
-   This specification describes the mechanism for sending OpenLCB-CAN messages via frames on a CAN segment.
-   It ensures unique headers to prevent CAN arbitration errors and frame loss, message traceability, node
-   addressing and priority management.The OpenLCB suite of protocols can be used on multiple physical
-   transports; this document describes the specifics that relate to using a CAN bus segment as a transport
-   layer. The CAN protocol is frame based, so OpenLCB messages on a CAN bus segment are expressed as
-   frames. This specification defines unique headers to prevent CAN arbitration errors and frame loss, and
-   to provide message traceability, node addressing and priority management.
+   The OpenLCB suite of protocols can be used on multiple physical transports; this document
+   describesdefines the specifics that relate to using a CAN bus segment as a transport layer. The CAN
+   protocol is frame based, so OpenLCB messages on a CAN bus segment are expressed as frames. This
+   specification defines unique headers to prevent CAN arbitration errors and frame loss, and to provide
+   message traceability, node addressing and priority management.
 
                                          2 Intended Use (Informative)
 
@@ -25,8 +25,8 @@
    In this document, the term "OpenLCB-CAN" refers to details of OpenLCB nodes that are specific to using a
    CAN transport, as opposed to generic OpenLCB protocol or OpenLCB using other transports.
 
-   This specification should be interpreted in theis in the context of the following OpenLCB-CAN
-   Specifications:
+   This specification should be interpreted in the the context of the following OpenLCB-CAN
+   SpecificationsStandards:
 
      * The OpenLCB-CAN Physical Layer Standard, which specifies the physical layer for transporting
        OpenLCB-CAN frames
@@ -35,51 +35,47 @@
        identifier for each node
 
    “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
-   11898-2:2003 and their successors.External certification of parts shall be accepted for conformance to
-   these standards. Conformance with a later version of a standard shall be accepted as conformance with
-   the referenced versions.
+   11898-2:2003 and their successors.
 
-   Each OpenLCB-CAN node shall have a unique identifier which it shall use as its node identifier (Node
-   ID).Each OpenLCB node (independent of transport layer in use) shall have a unique identifier. When using
-   a CAN bus transport, that identifier shall be used as its node identifier (NodeID).
+   Each OpenLCB node (independent of transport layer in use) shall have a unique identifier. When using a
+   CAN bus transport, that identifier shall be used as its node identifier (NodeID).
 
                                           4 Frame Format (Normative)
 
-   OpenLCB-CAN frames shall be sent and received using only the CAN extended format (29-bit header) only.
+   OpenLCB-CAN frames shall be sent and received using only the CAN extended format (29-bit header).
 
-   OpenLCB-CAN nodes shall operate properly when the CAN segment carries propererror-free standard-format
-   (11-bit header) frames.
+   OpenLCB-CAN nodes shall operate properly when the CAN segment carries error-free standard-format (11-bit
+   header) frames.
 
    OpenLCB-CAN nodes shall not transmit extended-format remote frames (frames with RTR set). Nodes shall
    operate properly when the CAN segment carries extended-format remote frames.
 
    Nodes shall operate properly when the CAN segment carries overload frames.
 
-   The most-significant bit of each OpenLCB-CAN frame is reserved for future use. It mustshall be
-   transmitted as a 1 bit, and ignored upon receipt.
+   The most-significant bit of each OpenLCB-CAN frame is reserved for future use. It shall be transmitted
+   as a 1 bit, and ignored upon receipt.
 
    The second-most-significant bit is the Frame Type indicator. A value of 0 indicates a CAN-specific
    Control Frame. A value of 1 indicates an OpenLCB Message.
 
    The next 15 bits are the Variable Field. The format and contents of the Variable Field depends on the
-   Frame Type and are defined in later sectionsbit value. Section 6.1 of this document defines the Variable
-   Field content for CAN Control Frames. .The OpenLCB Message content is defined in the OpenLCB Message
-   Standard(s).
+   Frame Type bit value. Section 6.1 of this document defines the Variable Field content for CAN Control
+   Frames. The OpenLCB Message content is defined in the OpenLCB Message Standard(s).
 
    The least significant twelve bits are the Source Node ID Alias value of the source (sending) node.
 
-    Bit number^1^2:  Bit 28               Bit 27                      Bits 26-12          Bits 11-0         
+    Bit number^1:  Bit 28               Bit 27                        Bits 26-12          Bits 11-0         
 
-    Content:         Reserved:            Frame Type                  Variable Field      Source NID Alias  
-                     Send as 1,                                       
-                     ignore upon receipt  1: OpenLCB Message          
+    Content:       Reserved:            Frame Type                    Variable Field      Source NID Alias  
+                   Send as 1,                                         
+                   ignore upon receipt  1: OpenLCB Message            
                                                                       
-                                          0: CAN Control Frame        
+                                        0: CAN Control Frame          
 
-    Mask:            0x1000,0000          0x0800,0000                 0x07FF,F000         0x0000,0FFF       
+    Mask:          0x1000,0000          0x0800,0000                   0x07FF,F000         0x0000,0FFF       
 
-    Location:        Solo top bit         Top bit of 6^th nibble      3 bits, then three  Right-most three  
-                                          from right                  nibbles             nibbles           
+    Location:      Solo top bit         Top bit of 6^th nibble from   3 bits, then three  Right-most three  
+                                        right                         nibbles             nibbles           
 
                                             Table 1: Frame Format
 
@@ -109,21 +105,21 @@
 
    The format and contents of CAN-specific Control frames are defined in the following table:
 
-    Name                                 Variable Field                                      Data Bytes     
-                                         0bMMM,NNNN,NNNN,NNNN                                               
+    Name                                    Variable Field                                   Data Bytes     
+                                            0bMMM,NNNN,NNNN,NNNN                                            
                                                                                              
-                                         MMM is the frame sequence number, with valid        
-    Check ID (CID) frame                 values from 0x7 through 0x4 or, for non-OpenLCB     None
-                                         protocols, down to 0x1.                             
+                                            MMM is the frame sequence number, with valid     
+    Check ID (CID) frame                    values from 0x7 through 0x4 or, for non-OpenLCB  None
+                                            protocols, down to 0x1.                          
                                                                                              
-                                         NNNN,NNNN,NNNN is the 12-bit Node ID section being  
-                                         checked                                             
-    Reserve ID (RID) frame               0x0700                                              None           
-    Alias Map Definition (AMD) frame     0x0701                                              Full Node ID   
-    Alias Mapping Enquiry (AME) frame    0x0702                                              Full Node ID   
-    Alias Map Reset (AMR) frame          0x0703                                              Full Node ID   
-    Reserved; mayshall not be sent, and  All others                                          To be defined  
-    mustshall be ignored upon receipt    
+                                            NNNN,NNNN,NNNN is the 12-bit Node ID section     
+                                            being checked                                    
+    Reserve ID (RID) frame                  0x0700                                           None           
+    Alias Map Definition (AMD) frame        0x0701                                           Full Node ID   
+    Alias Mapping Enquiry (AME) frame       0x0702                                           Full Node ID   
+    Alias Map Reset (AMR) frame             0x0703                                           Full Node ID   
+    Reserved; shall not be sent, and shall  All others                                       To be defined  
+    be ignored upon receipt                 
 
                                         Table 2: Control Frame Format
 
@@ -137,9 +133,9 @@
 
      * Generate a tentative source Node ID alias value
 
-     * Transmit a Check ID frame (CID) with MMM = 0x7, the least -significant 12 bits of the full Node ID
-       in the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node
-       ID alias value in the Source NID Alias field.
+     * Transmit a Check ID frame (CID) with MMM = 0x7, the least-significant 12 bits of the full Node ID in
+       the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node ID
+       alias value in the Source NID Alias field.
 
      * Transmit a Check ID frame (CID) with MMM = 0x6, the next-to-least significant 12 bits of the full
        Node ID in the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative
@@ -151,11 +147,7 @@
 
      * Transmit a Check ID frame (CID) with MMM = 0x4, the most-significant 12 bits of the full Node ID in
        the NNNN, NNNN, NNNN remaining twelve bits of the Variable Field, and the tentative source Node ID
-       alias value in the Source NID Alias field.Repeat that three more times with MMM = 0x6, x5 and 0x4,
-       respectively, with each frame carrying the next higher 12 bits of the full Node ID value, and the
-       frames carrying the same tentative source Node ID alias value in the Source NID Alias field.
-       (Protocols with a Unique ID length different from 6 bytes will do this as many times as necessary to
-       carry the entire Unique ID)
+       alias value in the Source NID Alias field.
 
      * Wait at least 200 milliseconds
 
@@ -164,12 +156,12 @@
 
    The alias is reserved when that sequence completes without error.
 
-   The node shall restart the process at the topbeginning if, before completion of the process, a frame is
-   received that carries thea source Node ID alias value being testing in its source Node ID alias
-   fieldthat is identical to the alias value being tested by this procedure.
+   The node shall restart the process at the beginning if, before completion of the process, a frame is
+   received that carries a source Node ID alias value that is identical to the alias value being tested by
+   this procedure.
 
-   The node shall restart the process at the topbeginning if, before completion of the process, any error
-   is encountered during frame transmission.
+   The node shall restart the process at the beginning if, before completion of the process, any error is
+   encountered during frame transmission.
 
   6.2.2 Transition to Permitted State
 
@@ -177,7 +169,7 @@
 
      * Have or obtain a validly reserved Node ID alias
 
-     * Transmit an Alias Map Definition (AMD) frame with the node's reserved Node ID alias and Node ID
+     * Transmit an Alias Map Definition (AMD) frame with the node's Node ID alias and Node ID
 
   6.2.3 Node ID Alias validation
 
@@ -196,9 +188,8 @@
    To transition from the Permitted state to the Inhibited state, a node shall successfully transmit an
    Alias Map Reset frame with the node's reserved Node ID alias and Node ID.
 
-   A node must end use of an alias within 100 milliseconds of rIf a node eceivingreceives an Alias Map
-   Reset (AMR) frame referencing that alias.an alias for another node, the receiving node shall stop using
-   that alias to refer to the AMR-sending node within 100 milliseconds.
+   If a node receives an Alias Map Reset (AMR) frame referencing an alias for another node, the receiving
+   node shall stop using that alias to refer to the AMR-sending node within 100 milliseconds.
 
   6.2.5 Node ID Alias Collision Handling
 
@@ -208,14 +199,14 @@
      * If the frame is a Check ID (CID) frame, send a Reserve ID (RID) frame in response.
 
      * If the frame is not a Check ID (CID) frame, the node is in Permitted state, and the received source
-       Node ID alias is the current Node ID alias of thise node, thise node shall immediately transition to
+       Node ID alias is the current Node ID alias of the node, the node shall immediately transition to
        Inhibited state and release the current Node ID alias.
 
      * If the frame is not a Check ID (CID) frame and the node is not in Permitted state, the node shall
-       immediately release the matching nNode ID alias.
+       immediately release the matching Node ID alias.
 
      * If the frame is not a Check ID (CID) frame and the received source Node ID alias is not the current
-       Node ID alias of thise node, the node shall immediately release the matching node ID alias.
+       Node ID alias of the node, the node shall immediately release the matching node ID alias.
 
   6.2.6 Duplicate Node ID Handling
 
@@ -223,18 +214,16 @@
    Should they match, in addition to any other actions that may be required by the incoming message, the
    node
 
-     * may, but is not required to, signal the user that duplicate Node ID values exist using alamp or
-       other directly-visible indicator
+     * may, but is not required to, signal the user that duplicate Node ID values exist using a other
+       directly-visible indicator
 
-     * if in Permitted state, may, but is not required to, emitnotify other nodes of the condition by
-       transmit a Producer-Consumer Event Report (PCER) message with the reserved Event ID “Duplicate Node
-       ID Detected” ting the CAN frame
+     * if in Permitted state, may, but is not required to, notify other nodes of the condition by
+       transmitting the CAN frame
 
    [195B4sss] 01.01.00.00.00.00.02.01
 
-   where 'sss' is the current alias of the transmitting node^3. If that frame is emitted, the node is
-   followed by goingthen required to offline not send any more CAN frames on the OpenLCB-CAN link until
-   reset. by the user.
+   where 'sss' is the current alias of the transmitting node^2. If that frame is emitted, the node is then
+   required to not send any more CAN frames on the OpenLCB-CAN link until reset by the user.
 
 6.3 Node ID Alias Generation
 
@@ -244,7 +233,7 @@
    The first alias values generated by nodes of the same type with node ID values within 255 of each other
    shall not be identical.
 
-   An alias generation algorithm mustshall ensure that when two different nodes using that alias generation
+   An alias generation algorithm shall ensure that when two different nodes using that alias generation
    algorithm generate the same alias value at two different points in their sequence, there shall be more
    than a 99% probability that the next alias values generated by the two nodes are different.
 
@@ -287,13 +276,9 @@
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
 
-   2See the Common Information OpenLCB Technical Note for detailed conventions on bit and byte numbering.
-   Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
-   that other technologies may use other conventions.
-
-   3This message a Producer-Consumer Event Report (PCER) message with the reserved Event ID “Duplicate Node
+   2This message a Producer-Consumer Event Report (PCER) message with the reserved Event ID “Duplicate Node
    ID Detected”. More information is available in the OpenLCB Event Transport Standard and associated
    documentation.
 
    Copyright 2011, 2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 6 - 12/1/2012
+   Page 1 of 6 - 2/2/2013
