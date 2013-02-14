@@ -359,10 +359,10 @@ Value(s) 3           0           See Table 1 MTI description                    
    Indicates that the sending node initialization is complete, and once the message is delivered, reachable
    on the network.
 
-                                                        Common                               
-   Name                    Dest ID Event ID Simple Node        CAN format  Data Content
+                                                        Common                   
+   Name                    Dest ID Event ID Simple Node        Data Content
                                                         MTI    
-   Initialization Complete N       N        N           0x0100 0x1910,0sss Sending Source ID 
+   Initialization Complete N       N        N           0x0100 Sending Source ID 
 
     
 
@@ -370,11 +370,11 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    Issued to determine which node(s) are present and can be reached.
 
-                                               Common                                     
-   Name           Dest ID Event ID Simple Node        CAN format       Data Content
+                                               Common                    
+   Name           Dest ID Event ID Simple Node        Data Content
                                                MTI    
-   Verify Node ID N       N        Y           0x28A7 0x1949,0sss      (optional) Node ID 
-                  Y       N                    0x30A0 0x1948,8sss fddd (optional) Node ID 
+   Verify Node ID N       N        Y           0x28A7 (optional) Node ID 
+                  Y       N                    0x30A0 (optional) Node ID 
 
     
 
@@ -400,10 +400,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 
     
 
-                                                 Common                                          
-   Name             Dest ID Event ID Simple Node        CAN format  Data Content
+                                                 Common                              
+   Name             Dest ID Event ID Simple Node        Data Content
                                                  MTI    
-   Verified Node ID N       N        Y           0x28B7 0x1917,0sss Full Node ID of sending node 
+   Verified Node ID N       N        Y           0x28B7 Full Node ID of sending node 
 
    The node ID in the data is redundant on wire protocols that carry the full source ID, but can be very
    valuable for wire protocols that abbreviate (“alias”) the source ID within the messages, e.g. CAN.
@@ -421,11 +421,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 
     
 
-                                                     Common                                                 
-   Name                 Dest ID Event ID Simple Node        CAN format       Data Content
-                                                     MTI    
-   Optional Interaction Y       N                    0x30C0 0x1906,8sss fddd Error codes, MTI, optional     
-   Rejected                                                                  information                    
+                                                              Common                                        
+   Name                          Dest ID Event ID Simple Node        Data Content
+                                                              MTI    
+   Optional Interaction Rejected Y       N                    0x30C0 Error codes, MTI, optional information 
 
     
 
@@ -449,11 +448,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 
   2.4.5 Terminate Due to Error
 
-                                                 Common                                                     
-   Name             Dest ID Event ID Simple Node        CAN format       Data Content
-                                                 MTI    
-   Terminate Due to Y       N                    0x30D0 0x190A,8sss fddd Error code, MTI, optional          
-   Error                                                                 information                        
+                                                       Common                                       
+   Name                   Dest ID Event ID Simple Node        Data Content
+                                                       MTI    
+   Terminate Due to Error Y       N                    0x30D0 Error code, MTI, optional information 
 
     
 
@@ -479,10 +477,10 @@ Value(s) 3           0           See Table 1 MTI description                    
 
   2.4.6 Protocol Support Inquiry
 
-                                                         Common                             
-   Name                     Dest ID Event ID Simple Node        CAN format     Data Content
+                                                         Common              
+   Name                     Dest ID Event ID Simple Node        Data Content
                                                          MTI    
-   Protocol Support Inquiry Y       N        N           0x32E0 0x1Edd,dsss 2E (none)       
+   Protocol Support Inquiry Y       N        N           0x32E0 (none)       
 
     
 
@@ -492,12 +490,12 @@ Value(s) 3           0           See Table 1 MTI description                    
 
     
 
-                                                 Common                                                     
-   Name             Dest ID Event ID Simple Node        CAN format     Data Content
-                                                 MTI    
-   Protocol Support                                                    One or more bytes identifying the    
-   Reply            Y       N        N           0x32F0 0x1Edd,dsss 2F supported OpenLCB protocols; see     
-                                                                       Table immediately below for coding.  
+                                                       Common                                               
+   Name                   Dest ID Event ID Simple Node        Data Content
+                                                       MTI    
+                                                              One or more bytes identifying the supported   
+   Protocol Support Reply Y       N        N           0x32F0 OpenLCB protocols; see Table immediately      
+                                                              below for coding.                             
 
     
 
@@ -1083,6 +1081,144 @@ Value(s) 3           0           See Table 1 MTI description                    
    in gateways much harder. And it's a complete mess if e.g. another transport comes along that has a 14
    byte limit.
 
+                                              6 CAN Adaptations
+
+  6.1.1 Initialization Complete
+
+   Indicates that the sending node initialization is complete, and once the message is delivered, reachable
+   on the network.
+
+                                                        Common                               
+   Name                    Dest ID Event ID Simple Node        CAN format  Data Content
+                                                        MTI    
+   Initialization Complete N       N        N           0x0100 0x1910,0sss Sending Source ID 
+
+    
+
+  6.1.2 Verify Node ID
+
+   Issued to determine which node(s) are present and can be reached.
+
+                                               Common                                     
+   Name           Dest ID Event ID Simple Node        CAN format       Data Content
+                                               MTI    
+   Verify Node ID N       N        Y           0x28A7 0x1949,0sss      (optional) Node ID 
+                  Y       N                    0x30A0 0x1948,8sss fddd (optional) Node ID 
+
+    
+
+   There are multiple forms of the Verify Node ID message.
+
+   The global (unaddressed) format may include an optional NodeID.  If present, only nodes with a matching
+   Node ID should reply.  If absent, all nodes should reply.
+
+   The addressed form may include an optional full NodeID in the data section. The addressed node must
+   always reply, whether or not a Node ID is carried in the data, and whether there's a match when the
+   optional Node ID is present. The optional NodeID idea just serves as documentation of the intent of the
+   request.  (Makes sense on CAN, not so much on other transports that don't use aliases).
+
+   (Should the discussion of replying be here, or under interactions? Might be better to have this section
+   talk about the meaning of the Node ID, rather that about replies.)
+
+   (In the TN, add an example of the full format messages, which can include two copies of the Node ID due
+   to the way destination alias mapping works)
+
+  6.1.3 Verified Node ID
+
+   Reply to the Verify Node ID message.
+
+    
+
+                                                 Common                                          
+   Name             Dest ID Event ID Simple Node        CAN format  Data Content
+                                                 MTI    
+   Verified Node ID N       N        Y           0x28B7 0x1917,0sss Full Node ID of sending node 
+
+   The node ID in the data is redundant on wire protocols that carry the full source ID, but can be very
+   valuable for wire protocols that abbreviate (“alias”) the source ID within the messages, e.g. CAN.
+
+  6.1.4 Optional Interaction Rejected
+
+    
+
+                                                     Common                                                 
+   Name                 Dest ID Event ID Simple Node        CAN format       Data Content
+                                                     MTI    
+   Optional Interaction Y       N                    0x30C0 0x1906,8sss fddd Error codes, MTI, optional     
+   Rejected                                                                  information                    
+
+    
+
+   The contents are, in order:
+
+     * Two bytes of error code.
+
+     * Two bytes of MTI.  If the frame transport only delivered part of the MTI6, that content is returned
+       with the rest of the MTI bits set to zero.
+
+     * Any extra bytes that the node wishes to include. There can be zero or more of these. These must be
+       described in the node documentation.
+
+   Nodes must process this message even if not all of the contents are provided.
+
+   Error codes:
+
+   0x1000 bit: if set, this is known to be a temporary error, and the interaction can be retried.
+
+   0x2000 bit: if set, this is known to be a permanent error, and the interaction must not be retried.
+
+  6.1.5 Terminate Due to Error
+
+                                                 Common                                                     
+   Name             Dest ID Event ID Simple Node        CAN format       Data Content
+                                                 MTI    
+   Terminate Due to Y       N                    0x30D0 0x190A,8sss fddd Error code, MTI, optional          
+   Error                                                                 information                        
+
+    
+
+   The contents are, in order:
+
+     * Two bytes of error code.
+
+     * Two bytes of MTI.  If the frame transport only delivered part of the MTI7, that content is returned
+       with the rest of the MTI bits set to zero.
+
+     * Any extra bytes that the node wishes to include. There can be zero or more of these. These must be
+       described in the node documentation.
+
+   Nodes must process this message even if not all of the contents are provided.
+
+   Error codes:  (combine the errors flags into a single section)
+
+   0x1000 bit: if set, this is known to be a temporary error, and the interaction can be retried.
+
+   0x2000 bit: if set, this is known to be a permanent error, and the interaction must not be retried.
+
+    
+
+  6.1.6 Protocol Support Inquiry
+
+                                                         Common                             
+   Name                     Dest ID Event ID Simple Node        CAN format     Data Content
+                                                         MTI    
+   Protocol Support Inquiry Y       N        N           0x32E0 0x1Edd,dsss 2E (none)       
+
+    
+
+    
+
+  6.1.7 Protocol Support Reply
+
+    
+
+                                                 Common                                                     
+   Name             Dest ID Event ID Simple Node        CAN format     Data Content
+                                                 MTI    
+   Protocol Support                                                    One or more bytes identifying the    
+   Reply            Y       N        N           0x32F0 0x1Edd,dsss 2F supported OpenLCB protocols; see     
+                                                                       Table in general description.        
+
     
 
     
@@ -1177,6 +1313,22 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    5.2.1 Long global messages
 
+   6 CAN Adaptations
+
+   6.1.1 Initialization Complete
+
+   6.1.2 Verify Node ID
+
+   6.1.3 Verified Node ID
+
+   6.1.4 Optional Interaction Rejected
+
+   6.1.5 Terminate Due to Error
+
+   6.1.6 Protocol Support Inquiry
+
+   6.1.7 Protocol Support Reply
+
     
 
      ----------------------------------------------------------------------------------------------------
@@ -1193,3 +1345,8 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    5 Simple nodes also have to do whatever is needed to function with their specific wire protocol, e.g.
    send CID/RID frames on CAN.
+
+   6 For example, CAN delivers 13 bits of the MTI via each frame (the special bit is known to be zero).
+
+   7 For example, CAN delivers 14 bits of the MTI via each frame (the special bit is known to be zero and
+   the stream/datagram bit can be inferred).
