@@ -182,6 +182,9 @@
    The coding is done to allow up to 7 separate CID sequence numbers, for use by protocols with longer node
    IDs.
 
+   The coding of the 0x07NN field was selected to allow expansion of control fields in the 0x070N range,
+   and expansion of error indications in the 0x071N range.
+
   2.6.2 Interactions
 
    Communications protocols are about more than formats. The protocols must also specify the interactions
@@ -412,6 +415,30 @@
    0x0101,0000,0000,0201 )
 
    If the two nodes have also assigned the same alias value, that interaction is also invoked here.
+
+    2.6.2.7 Reporting CAN Link Status
+
+   The CAN Standard defines the “Error Active”, “Error Inactive” and “bus off” states, along with extensive
+   fault-confinement rules.  By using qualified CAN implementations, OpenLCB-CAN nodes pick these behaviors
+   up. The interactions in this section are then about reporting the results of the CAN Standard
+   operations. The “Error Information Report 0” through “Error Information Report 1” control frames
+   indicate specific transitions in the node's state.  No OpenLCB-CAN node is required to react to those
+   reports. The reports only provide information.
+
+   Designers of monitoring equipment that attaches to the CAN link can use this information directly.
+   Designers of gateway nodes that connect CAN segments together or connect CAN segments to other types of
+   OpenLCB links may want to convert these control frames (which are not allowed to go off their original
+   CAN segment) to higher level messages.  There are well-known EventIDs for this purpose, but that use is
+   beyond the scope of this Standard and Technical Note.
+
+   Since CAN nodes are required by the CAN standard to initialize in Bus Active state, no Error Information
+   N frame(s) can be emitted at startup.  They cannot be emitted until there's an actual state transition
+   in the interface.
+
+   It's not possible for a node to emit a frame to indicate that it has entered the “Bus Off” state, so
+   there's no message corresponding to that.
+
+    
 
   2.6.3 Node ID Alias Generation
 
@@ -748,6 +775,8 @@
    2.6.2.5 Node ID Alias Collision Handling
 
    2.6.2.6 Duplicate Node ID Handling
+
+   2.6.2.7 Reporting CAN Link Status
 
    2.6.3 Node ID Alias Generation
 
