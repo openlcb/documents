@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl"?>
+
+<!-- XML Schema for OpenLCB Function Description Information (FDI),     -->
+<!-- part of the Traction Control Protocol                              -->
+
+<xs:schema xmlns:xs  ="http://www.w3.org/2001/XMLSchema"
+           xmlns:xsi ="http://www.w3.org/2001/XMLSchema-instance"
+           >
+
+   <xs:complexType name="mapType">
+       <xs:annotation>
+         <xs:documentation>
+           A map relates one or more property elements (keys) to specific values.
+         </xs:documentation>
+       </xs:annotation>
+       <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="relation" minOccurs="0" maxOccurs="unbounded">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element name="property" minOccurs="1" maxOccurs="1"/>
+                    <xs:element name="value" minOccurs="1" maxOccurs="1"/>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+       </xs:sequence>
+    </xs:complexType>
+
+   <xs:complexType name="groupType">
+            <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="repname" minOccurs="0" maxOccurs="1"/>
+              <xs:choice minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Allows any sequence of the contained element types
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="bit" type="bitType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="string" type="stringType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="int" type="intType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="eventid" type="eventidType" minOccurs="0" maxOccurs="1"/>
+              </xs:choice>
+            </xs:sequence>
+            <xs:attribute name="offset" type="xs:int" default="0">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Positive or negative offset between the address of the previous element and the start of this group's contents.
+                    </xs:documentation>
+                  </xs:annotation>
+                </xs:attribute>
+            <xs:attribute name="replication" type="xs:int"  default="1"/>
+    </xs:complexType>
+
+   <xs:complexType name="eventidType">
+            <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="offset" type="xs:int" default="0">
+              <xs:annotation>
+                <xs:documentation>
+                      Positive or negative offset between the address of the end of previous element and the start of this elements's contents.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+    </xs:complexType>
+
+   <xs:complexType name="intType">
+            <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="min" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="max" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="default" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation>
+                          The 'value' of each entry is displayed, and the 'property' content (number) is sent to/from the node
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="size" type="xs:int" default="1">
+              <xs:annotation>
+                <xs:documentation>
+                      Storage size of this variable in bytes.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="offset" type="xs:int" default="0">
+              <xs:annotation>
+                <xs:documentation>
+                      Positive or negative offset between the address of the end of previous element and the start of this elements's contents.
+                      Offset of zero means that this element starts immediately after the previous one.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+    </xs:complexType>
+
+   <xs:complexType name="bitType">
+            <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+                  <xs:annotation>
+                    <xs:documentation>
+                          The 'value' of each entry is displayed, and the 'property' content (number) is sent to/from the node
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:element>
+            </xs:sequence>
+            <xs:attribute name="size" type="xs:int" default="1">
+              <xs:annotation>
+                <xs:documentation>
+                      Storage size of this variable in bytes.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="offset" type="xs:int" default="0">
+              <xs:annotation>
+                <xs:documentation>
+                      Positive or negative offset between the address of the previous element and the start of this group's contents.
+                      Offset of zero means that this element starts immediately after the previous one.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+    </xs:complexType>
+
+   <xs:complexType name="stringType">
+            <xs:sequence>
+              <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+              <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1"/>
+            </xs:sequence>
+            <xs:attribute name="size" type="xs:int" use="required">
+              <xs:annotation>
+                <xs:documentation>
+                      Storage size of this variable in bytes. 
+                      This includes the trailing null byte that terminates the string content.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+            <xs:attribute name="offset" type="xs:int" default="0">
+              <xs:annotation>
+                <xs:documentation>
+                      Positive or negative offset between the address of the previous element and the start of this group's contents.
+                      Offset of zero means that this element starts immediately after the previous one.
+                </xs:documentation>
+              </xs:annotation>
+            </xs:attribute>
+    </xs:complexType>
+
+    <xs:element name="fdi">
+      <xs:annotation>
+        <xs:documentation>
+          This is the schema for Function Description Information (FDI)
+        </xs:documentation>
+      </xs:annotation>
+      <xs:complexType>
+        <xs:sequence>
+
+          <xs:element name="acfdi" minOccurs="0" maxOccurs="1">
+            <xs:annotation>
+              <xs:documentation>
+                Element that identifies that memory information is available as defined by
+                the Abbreviated Common Function Description Information (ACFDI) standard.
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:attribute name="fixed" type="xs:int" default="1">
+                  <xs:annotation>
+                    <xs:documentation>
+                      The decimal version number of the format for the fixed definition information; "1"
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:attribute>
+              <xs:attribute name="var" type="xs:int" default="1">
+                  <xs:annotation>
+                    <xs:documentation>
+                      The decimal version number of the format for the variable definition information; "1"
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+
+          <xs:element name="segment" minOccurs="0" maxOccurs="unbounded">
+            <xs:annotation>
+              <xs:documentation>
+                Define the contents of a memory space
+              </xs:documentation>
+            </xs:annotation>
+            <xs:complexType>
+              <xs:sequence>
+                <xs:element name="name" minOccurs="0" maxOccurs="1"/>
+                <xs:element name="description" minOccurs="0" maxOccurs="1"/>
+                <xs:choice minOccurs="0" maxOccurs="unbounded">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Allows any sequence of the contained element types
+                    </xs:documentation>
+                  </xs:annotation>
+                  <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="bit" type="bitType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="string" type="stringType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="int" type="intType" minOccurs="0" maxOccurs="1"/>
+                  <xs:element name="eventid" type="eventidType" minOccurs="0" maxOccurs="1"/>
+                </xs:choice>
+              </xs:sequence>
+              <xs:attribute name="space" type="xs:int" use="required">
+                  <xs:annotation>
+                    <xs:documentation>
+                      The decimal number of the address space where the information is found.
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:attribute>
+              <xs:attribute name="origin" type="xs:int" default="0">
+                  <xs:annotation>
+                    <xs:documentation>
+                      Starting address of the segment's contents within the memory space.
+                    </xs:documentation>
+                  </xs:annotation>
+              </xs:attribute>
+            </xs:complexType>
+          </xs:element>
+
+        </xs:sequence>
+      </xs:complexType>
+    </xs:element>
+</xs:schema>
