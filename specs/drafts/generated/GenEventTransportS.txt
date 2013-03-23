@@ -142,6 +142,15 @@
 
     
 
+4.9 Learn Event
+
+                                            Common              
+   Name        Dest ID Event ID Simple Node        Data Content
+                                            MTI    
+   Learn Event N       Y        Y           0x0594 Event ID     
+
+    
+
                                              5 States (Normative)
 
    Each consumer and producer of each event has two possible states:  “Unadvertised” and “Advertised”.
@@ -165,6 +174,9 @@
    Producer/Consumer Event Report messages may only be sent when the associated producer is in Advertised
    state.  OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a consumer of a
    particular Event ID when that consumer is in Unadvertised state.
+
+   Consumers and Producers may, but are not required to, have additional state associated with the use of
+   the Learn Event message.
 
                                           6 Interactions (Normative)
 
@@ -225,6 +237,23 @@
    by the node may, but is not required to, reply with one or more Consumer Identified messages containing
    that Event ID.
 
+6.5 Teach/Learn Configuration
+
+   A node may, but is not required to, send a Teach Event message containing an Event ID.
+
+   A node receiving a Teach Event message may, but is not required to, configure the contained Event ID
+   into some or all of the producers and consumers it contains.
+
+6.6 Resetting to Default
+
+   Nodes shall ensure that every producer and consumer within the node contains a valid and unique Event ID
+   after the node is reset to defaults. For this purpose, the producers and consumers may contain either
+   well-known Event IDs or Event IDs defined based on this node's unique ID.
+
+   If a producer or consumer within the node contains an Event ID based on the node's unique ID, and if
+   that Event ID could have been copied from the node, resetting the node to default shall reload that
+   producer or consumer with a newly-defined Event ID that has not been used before.
+
                                 7 Implementation via CAN Transport (Normative)
 
    This section describes the CAN implementation of the event transport message formats.
@@ -256,6 +285,7 @@
    Producer Identified Range         N       Y        N           0x1952,4sss             Event ID Range    
    Identify Events                   N       N        Y           0x1997,0sss                               
                                      Y       N        N           0x1996,8sss             fddd2             
+   Teach Event                       N       Y        Y           0x1959,4sss             Event ID          
 
     
 
@@ -295,6 +325,8 @@
 
    4.8 Identify Events
 
+   4.9 Learn Event
+
    5 States (Normative)
 
    6 Interactions (Normative)
@@ -306,6 +338,10 @@
    6.3 Producer Enquiry
 
    6.4 Consumer Enquiry
+
+   6.5 Teach/Learn Configuration
+
+   6.6 Resetting to Default
 
    7 Implementation via CAN Transport (Normative)
 

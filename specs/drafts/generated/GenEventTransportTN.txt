@@ -188,7 +188,7 @@
 
   2.4.8 Identify Events
 
-   Two forms of identify events; recommendation on uses for global form
+   Identify events comes in both addressed and global forms. They are intended for different use cases.
 
    In some cases, the node may want to query a specific node as to whether it produces or consumes that
    event, in these case the directed form is appropriate.
@@ -198,6 +198,13 @@
    transmitted throughout the network, it can be relatively expensive in terms of bandwidth. The global
    form of Identify Event is similar to the combination of an Identify Producers and an Identify Consumers
    message.
+
+  2.4.9 Learn Event
+
+   This message is part of a communication-based method for configuring various producers and consumers
+   across the OpenLCB network to respond to a single Event ID. After those producers and consumers have
+   been selected via some other process, this message broadcast to carry a specific Event ID to all of
+   them.
 
 2.5 States
 
@@ -319,13 +326,64 @@
    structure, it might not always be possible to set the “valid” bit with certainty, in which case the
    “unknown” bit must be set.
 
+  2.6.5 Teach/Learn Configuration
+
+   Entry-level OpenLCB users should be able to buy two OpenLCB nodes and configure them to do something
+   useful with only the pushbutton(s) and LED(s) on them, without requiring a separate configuration tool,
+   computer, etc.
+
+   Producers (in nodes that connect to buttons, toggle switches, occupancy detectors, etc) and consumers
+   (in nodes connected to signals, LEDs, displays, layout lighting, etc) need to be configured to use a
+   common EventID, such that activating a producer will send the common EventID, which will cause one or
+   more consumers to activate.
+
+   The Teach/Learn Configuration interaction provides communications support for that. It works without any
+   central configuration mechanism, nor even any global knowledge of which producers and consumers are
+   being configured.
+
+   The configuration starts by using external mechanisms, e.g. walking around and pushing buttons, to
+   select producers and consumers which will learn the common EventID. These are colloquially called
+   "Learners".  The Standard does not discuss how a node defines its local user interface for doing that
+   selection process5. A single producer or consumer then provides the EventID that is to be learned in a
+   “Teach Event” message. If the taught Event ID is a new unique ID, only the selected producers and
+   consumers will share it.  If producers and/or consumers are already using that Event ID, the newly
+   configured producers and/or consumers will be tied into the existing network of producers and consumers.
+
+  2.6.6 Resetting to Default
+
+   Nodes are responsible for ensuring that a Event ID is really unique if required.  This has implications
+   for how event IDs are defined when the node is reset to “factory defaults”.  
+
+   For example, say that a node has Node ID 1.2.3.4.5.6 and therefore starts with its first producer
+   containing the  1.2.3.4.5.6.0.1 Event ID.  As it comes from the factory, this Event ID is guaranteed to
+   be unique because it comes from the node's unique ID.
+
+   This Event ID can be then be configured into several other nodes, which are using it for some particular
+   purpose, say “start of day”.  The node 1.2.3.4.5.6 producer can then be reconfigured to contain some
+   other event ID, say 6.5.4.3.2.1.99.99 which is used to mean “end of day”.
+
+   If the node is reset to defaults and returns to 1.2.3.4.5.6, that's no longer a “unique” Event ID.  It's
+   being used by another part of the system for “start of day”. Node 1.2.3.4.5.6 will not be behaving as
+   expected for a reset node, as it'll be responding to events taking place on the network.  Further, it's
+   1.2.3.4.5.6.0.1 Event ID is not safe to be copied out into other producers and consumers.
+
+   One way to do this is to maintain a counter of created unique Event IDs, and use the next set when doing
+   a reset to defaults. There are 65,538 different Event IDs possible for a node, so even one that uses 512
+   Event IDs can be reset to defaults a lot of times before its are risk of running out.
+
+   Alternately, the node can keep track of which Event IDs might have left the node and been reused.  This
+   includes any of the messages that carry the Event ID, including but not limited to Teach Event, plus
+   configuration memory reads and perhap other methods.  If the Event ID in a producer or consumer has been
+   retrieved and used, then it needs to be given a new Event ID.  If not, it can keep it's existing Event
+   ID.
+
                                           3 Background information 
 
    This section is general information of interest to the reader, implementers, etc.
 
    An OpenLCB Event represents the sum of all the causes and actions associated with particular concept ,
    such as “Night is falling”, and implements a many-to-many relationship.  It has been referred to as the
-   Producer-Consumer Model, in opposition to the Master-Slave Model.5  Each Event is abstracted into a
+   Producer-Consumer Model, in opposition to the Master-Slave Model.6  Each Event is abstracted into a
    single unique event-number.  An Event-message contains only this event-number.   An advantage of this
    model is that new triggers or new causes which cause the production of the event-number, or new actions
    resulting from the consumption the event-number, can be implemented by a node without reference to other
@@ -333,7 +391,7 @@
 
    Events are most often used to advertise changes in system state, for example a occupancy detector's
    state.  The model maintains the distributed-state model of a layout because Events-messages are
-   broadcast6 to all nodes, and this allows individual producers and consumers to use them to change their
+   broadcast7 to all nodes, and this allows individual producers and consumers to use them to change their
    knowledge of the distributed state.  
 
    Other important, and perhaps not obvious, uses include: publishing a capability using an event from a
@@ -473,7 +531,7 @@
    For these to be useful, they not only have to be unique (so there are no collisions that accidentally
    trigger reactions to them), but they must also be well-known.  All of these are assigned with the
    01.00.00.00.00.00 or 01.01.00.00.00.00 reserved IDs in their upper six bytes to ensure uniqueness and
-   simplify recognition.  The OpenLCB group maintains a central list of the individual assigned Event IDs.7
+   simplify recognition.  The OpenLCB group maintains a central list of the individual assigned Event IDs.8
 
    The Event IDs that start 01.00.00.00.00.00 are the automatically-routed events, a subset of the
    well-known events.
@@ -528,6 +586,8 @@
 
    2.4.8 Identify Events
 
+   2.4.9 Learn Event
+
    2.5 States
 
    2.6 Interactions
@@ -539,6 +599,10 @@
    2.6.3 Producer Enquiry
 
    2.6.4 Consumer Enquiry
+
+   2.6.5 Teach/Learn Configuration
+
+   2.6.6 Resetting to Default
 
    3 Background information 
 
@@ -575,11 +639,15 @@
 
    4 http://openlcb.org/trunk/specs/MtiAllocations.pdf
 
-   5  For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html
+   5 Having conventions for the user interface would make it easier for users to work with multiple OpenLCB
+   products. Some work has gone into a system for doing this with two buttons and two LEDs, called the
+   “Blue/Gold configuration”, but this has not become a consensus solution as of the time of this writing.
+
+   6  For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html
    and http://openlcb.org/trunk/scratchpads/JohnSL/Tech_Note_Introduction_to_the_PC_Model_2007-10-10.pdf
 
-   6  OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
+   7  OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
    those bus segments on which a node has expressed interest.  Event-ranges are used to express interest in
    a classes of events.   
 
-   7 See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
+   8 See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
