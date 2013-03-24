@@ -300,6 +300,23 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    In this case, the 12-bit destination alias is placed in the header.
 
+   Since Datagram and Stream Data messages are broken into multiple frames for transmission, it's possible
+   that errors will cause the last frame(s) to be lost.  Disconnection or crashing of a node or gateway
+   could cause this, for example.  Although higher-level timeouts will protect the Datagram and Stream
+   protocols, the message-level specification needs to cover how the frame-to-message process recovers.
+    The most straightforward would be a "may, but are not required to" that relies on adjacent transfer:
+    "if more than 500 milliseconds elapses after the receipt of a first or middlr datagram frame without
+   receipt of a middle or end frame, the node may, but is not required to, initiate error recovery by
+   forwarding the message, marked as received in error, for further internal processing."  CAN segments
+   carry lots of traffic, so there probably needs to be something in there that allows for time lost to
+   higher priority frames. That needs to be developed. For definiteness, the error recovery should probably
+   be specified.  It's true that a disconnected network might not transport it if the receiving node sends
+   an error reply, but the receiving node should probably send it anyway.  That allows other nodes to see
+   what the receiver is thinking.  And if it was just a transient loss, this will help keep state machines
+   in synch. So, the node is required to send a Datagram Rejected with a specific error code, perhaps
+   "Resend OK", "Transport Error", "Out of Order". That needs to go into the Datagram and Stream protocol
+   specifications.
+
     
 
    Field                                   CAN prefix  Frame Type  Destination ID   Source ID               
