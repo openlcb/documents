@@ -25,6 +25,17 @@
    separately in the message). More than one node may receive and act on a PCER message with a specific P/C
    Event ID. The only requirement is that the 8-byte quantity be unique to the event.
 
+   OpenLCB event IDs carry no specific information about whether they are coding “on” or “off”, “active” or
+   “inactive” for some output state.  It's possible for multiple consumers to do different things in
+   response to a single event:  A event that means “set nightime lighting” might turn some outputs off and
+   turn others on.  Simple nodes will often use two producers to represent “input line N went on” and
+   “input line N went off”; they will often use two consumers to represent “turn on output line N” and
+   “turn off output line N”.
+
+   OpenLCB events therefore do not directly represent states.  Rather, they represent state transitions.
+   One event might be interpreted as “go to output N on”, another as “go to output N off”, and only by
+   seeing which transition happened most recently can the state of output N be recovered.
+
                                         2 Annotations to the Standard
 
    This section provides background information on corresponding sections of the Standard document. It is
