@@ -32,7 +32,7 @@ mysql_connect($opts['hn'],$opts['un'],$opts['pw']);
 
 function value($result, $j, $index) {
     if (255 == mysql_result($result,$j,"uniqueid_byte".$index."_mask")) return "*";
-    else return mysql_result($result,$j,"uniqueid_byte".$index."_value");
+    else return strtoupper(dechex(mysql_result($result,$j,"uniqueid_byte".$index."_value")));
 }
 
 $query = "SELECT * FROM UniqueIDs LEFT JOIN Person USING (person_id)
