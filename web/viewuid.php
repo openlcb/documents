@@ -16,6 +16,7 @@
 <h1>View OpenLCB Unique ID Ranges</h1>  
 
 This page shows the ranges of OpenLCB Unique ID's that have been assigned to date.
+The numbers below are in hexadecimal.
 <P>
 For more information on OpenLCB, please see the <a href="../documents/index.html">documentation page</a>.
 For more information on OpenLCB unique ID assignment, please see the current draft
@@ -32,7 +33,7 @@ mysql_connect($opts['hn'],$opts['un'],$opts['pw']);
 
 function value($result, $j, $index) {
     if (255 == mysql_result($result,$j,"uniqueid_byte".$index."_mask")) return "*";
-    else return mysql_result($result,$j,"uniqueid_byte".$index."_value");
+    else return dechex( int mysql_result($result,$j,"uniqueid_byte".$index."_value"));
 }
 
 $query = "SELECT * FROM UniqueIDs LEFT JOIN Person USING (person_id)
