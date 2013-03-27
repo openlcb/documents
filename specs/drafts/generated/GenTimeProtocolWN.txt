@@ -196,9 +196,11 @@
 
 2.6 Interactions
 
-   A Set/Report Rate event is produced every real 60(?) seconds while the clock is running to update the
-   layout.  (Should it also be sent when the clock is not running? Sometimes nice to be able to stop all
-   traffic on the network, which you can do if it doesn't send while the clock is stopped)
+   A Set/Report Rate event for which there are one or more consumers  are produced every real 60(?) seconds
+   while the clock is running to update the layout.  (Should the current one also be produced when the
+   clock is not running? Sometimes nice to be able to stop all traffic on the network, which you can do if
+   it doesn't send while the clock is stopped)(This is written in a way that makes options are available
+   for e.g. low-bandwidth clocks, see below.)
 
    The Set/Report Date event is produced how often? Every 60 seconds? Nodes that want it, e.g. to
    initialize a display, can ask for it from the (known) clock-producer node using IdentifyEvents. There's
@@ -206,8 +208,8 @@
    Set/Report Date event if they receive one but do not update their internal date.
 
    A Set/Report Time event is produced every time the current time changes, e.g. every fast minute.
-    (Should it be periodically sent, e.g. every real minute, when the clock is stopped? That updates recent
-   joiners, but it's nice to be able to stop all network traffic).
+    (Should it be periodically produced, e.g. every real minute, when the clock is stopped? That updates
+   recent joiners, but it's nice to be able to stop all network traffic).
 
    Note that nodes should not assumed that they will receive any time event only once.  As time is set,
    it's possible for a node to receive the current time more than once.
@@ -219,8 +221,8 @@
    event. The run/stop bits are ignored. If the clock does not support the requested rate, it moves to the
    closest non-zero supported rate, and produces a Set/Report Rate event containing the current rate.  Rate
    can be set while the clock is running or stopped.  The clock producer node may, but is not required to,
-   produce a  Set/Report Time immediately after the rate is sent to ensure that all agree on the exact
-   time.  
+   produce a  Set/Report Time immediately after the rate event is produced to ensure that all agree on the
+   exact time.  
 
    The use of the same event to broadcast the rate and to set the rate should perhaps be revisited. Is that
    consistent with event semantics? Or should a “rate set event” do the set and cause the clock source to
@@ -334,7 +336,31 @@
    protocol needs to be defined for alarm events, as they're just regular produced events: When A is
    produced, produce B and C.  That's a generally-useful thing to have, even for non-time events.
 
-3.4 History and Numerology
+3.4 Low-Bandwidth Clock Producers
+
+   The Standard specifies that only time events with consumers need to be produced.  Small clock-producing
+   nodes can use this to reduce the bandwidth used by the clock events, particularly at high rate.  The
+   producing node can automatically generate and maintain a list of consumed event IDs, and produce only
+   those.
+
+   Once the clock-producing node is up and running, it can listen for ConsumerIdentified messages and
+   include any Set/Report Time event IDs seen in its list. Nodes that newly attach or restart will emit
+   these automatically.  So long as the clock-producing node isn't marked as a Simple node, these will be
+   forwarded to it.
+
+   The process to find all consumers when the clock-producing node becomes active on an already existing
+   OpenLCB network is similar, it just involves querying the entire network:
+
+     * Send a Verify Node Global, and construct a list of nodes from the response
+
+     * At a suitably metered interval, send a IdentifyEvent to each node.
+
+     * Construct the list of consumed event IDs from the response.
+
+   There is currently no support to do a network-parallel query such as “Identify All Consumers of EventIDs
+   in the following Range” due to buffer-management and network-load-scaling issues with it.
+
+3.5 History and Numerology
 
    There are slightly more than 216 seconds in a day, and just less than 211 minutes. A 17-bit “seconds
    since midnight” format could be used, but it would still take three bytes, and is somewhat harder to
@@ -366,7 +392,7 @@
    handle 3-4 messages/second for a fast clock with second resolution, it seems simplest to just broadcast
    the seconds.
 
-3.5 Future Work
+3.6 Future Work
 
     
 
@@ -410,9 +436,11 @@
 
    3.3 Alarms
 
-   3.4 History and Numerology
+   3.4 Low-Bandwidth Clock Producers
 
-   3.5 Future Work
+   3.5 History and Numerology
+
+   3.6 Future Work
 
     
 
