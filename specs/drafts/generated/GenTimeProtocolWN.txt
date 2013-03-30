@@ -7,7 +7,28 @@
    This Working Note is intended to become the Standard and Technical Note on the OpenLCB Time Broadcast
    Protocol.
 
-1.1 Use cases
+   Model railroad layouts sometime have their own time displayed via visible clocks that people refer to
+   when operating the layout.  These might display a different time of day from the current real clock
+   time, so that an evening train can be run during the day.  They might run at a different rate, so that
+   the shorter distances of the model are covered by a train in the right number of “fast minutes”.
+
+   Layouts that have multiple clock faces might want to synchronize them by running them from a single time
+   generator.  OpenLCB should provide a way to do that over existing OpenLCB infrastructure.
+
+   Producer/Consumer events, one per second or minute, could certainly meet this need.  Since event IDs are
+   arbitrary, in the absence of any other support, the clocks would have to have 24*60 or 24*60*60 separate
+   event IDs configured between clock time producers and consumers.  This is untenable.  Hence, the primary
+   reason for this Standard is to create well-defined ranges of event IDs that can be used to represent
+   time for driving clock displays.
+
+   A secondary purpose is to allow producers on the layout to control the clock operation by producing
+   certain events.
+
+   A tertiary purpose is to allow other consumers on the layout to be controlled via the time signal by
+   interpreting the events or event ranges specified here.  Not all timing-related purposes will be met by
+   the contents of this Standard, and other ways of handling timing formation will be needed for those.
+
+1.1 Served use cases
 
    Fast clocks distributed around the layout all show the fast time. They start and stop together. Start
    and stop controls are distributed around the layout. The rate can be varied as needed. The display
@@ -38,6 +59,10 @@
    off on a detailed cycle.
 
    Simple nodes should be able to respond to timed events without any additional cost.
+
+   Modular layout sections developed and configured in separate locations can be brought together and
+   operated without prior management/allocation of magic numbers, and with only minimal (at most one node
+   and one operation) reconfiguration.
 
 1.2 Unserved use cases
 
@@ -109,26 +134,24 @@
 
 2.4 Message Formats
 
-   Specific event ranges has been reserved for these messages.
+   In addition to the following Event IDs, the well-known event ID “Delivers Clock Protocol” is defined.  
 
-   Time Event Upper Part refers to 01.01.02.00
+   The upper (number TBD) bytes of the following messages comes from an OpenLCB range that is allocated to
+   the creator (or perhaps configurer?) of the clock generator node.
 
-   Date Event Upper Part refers to 01.01.02.01
+   Note that there are no well-defined values of the clock event IDs.  You locate the clock generators and
+   their event spaces via the usual IdentifyEvent/IdentifyProducer mechanisms starting with the “Delivers
+   Clock Protocol” event ID.
 
-   Rate Event Upper Part refers to 01.01.02.02
-
-   1
-
-   Clock number is 0 to 15 to allow multiple clocks.  Two upper bits reserved:  Send as zero, ignore; to be
-   used as flags. 16, 32 bit is send as zero, check; can be used either as either clock number expansion or
-   for coding changes.
+   The details of the following are still being worked out.  In particular, reducing the number of bytes
+   needed down to three or even better two would simplify allocation.
 
   2.4.1 Set/Report Time Event ID
 
     
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4       Byte 5 Byte 6  Byte 7 
-   Time Event Upper Part       Clock Number Hours  Minutes 0      
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4           Byte 5 Byte 6  Byte 7 
+   Specific Upper Part         (some key value) Hours  Minutes 0      
 
     
 
@@ -140,8 +163,8 @@
 
     
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4       Byte 5          Byte 6 Byte 7 
-   Date Event Upper Part       Clock Number Year since 1800 Month  Day    
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4           Byte 5          Byte 6 Byte 7 
+   Specific Upper Part         (some key value) Year since 1800 Month  Day    
 
     
 
@@ -156,8 +179,8 @@
 
     
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4       Byte 5       Byte 6 Byte 7 
-   Rate Event Upper Part       Clock Number 1/0 Run/Stop Rate   
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4           Byte 5       Byte 6 Byte 7 
+   Specific Upper Part         (some key value) 1/0 Run/Stop Rate   
 
     
 
@@ -175,8 +198,8 @@
 
     
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4       Byte 5           Byte 6 Byte 7 
-   Rate Event Upper Part       Clock Number 05/04 Start/Stop 0      0      
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4           Byte 5           Byte 6 Byte 7 
+   Specific Upper Part         (some key value) 05/04 Start/Stop 0      0      
 
     
 
@@ -188,13 +211,18 @@
 
 2.5 States
 
-   Each clock has an independent running/stopped state and independent rate.
+   Each clock has an independent running/stopped state and an independent rate.
 
    When the clock is in stopped state, its internal time is not changing.
 
    When the clock is in running state, its internal time is advancing (rate X) as fast as normal time.  
 
 2.6 Interactions
+
+   The well-known event ID “Delivers Clock Protocol” shall be produced by every node when it first starts
+   to operate as a clock generator. When enquired about, the node has to return “valid” if the clock is
+   operating, and “invalid” if it is not.  (Note that this is operating, not running; if it's serving as a
+   clock generator and will produce and consume the appropriate event IDs)
 
    A Set/Report Rate event for which there are one or more consumers  are produced every real 60(?) seconds
    while the clock is running to update the layout.  (Should the current one also be produced when the
@@ -277,6 +305,42 @@
 
      * The reply will contain IdentifyProducedEvent messages that show the current clock producer state via
        their active/valid status.
+
+  2.6.2 Slaving Clock Generators
+
+   For modular layout use cases (still being identified), it's useful to have a set of time events be
+   created in synch with some other clock generator.  For example, a modular segment has a clock generator
+   and multiple nodes that are configured to together do complex automation.  You want to include it in a
+   larger modular layout without having to reconfigure this.  
+
+   One way to do that is to slave the modular clock generator to another master clock generator, so that
+   the master clock generator controls and specifies the time, and the modular clock generator produces its
+   own events to represent that time.  The consuming nodes then act on the modular clock events they are
+   configured with.
+
+   Operationally, this slaving consists of reissuing the events with different top-end bytes, translating
+   the top-end bytes from the master clock generators values to the slaved modular clock generator values.
+
+   Mechanically, this can be done by having a mode in the clock generator node that does this, having a
+   gateway onto the modular OpenLCB segment that does the translation (and removing the original modular
+   clock generator), or some other mechanism.  The standard is about protocol, not implementation, and so
+   is silent about this.
+
+   If a modular clock generator is to be configured to follow some other clock event range, that raises the
+   question of how to do it.  The Standard is silent about this too, but it's important that there be a way
+   to do it within the Standard.  Choices include:
+
+     * Configure it via the memory configuration protocol to listen for a particular value of the top
+       bytes.
+
+     * Many layouts just have one clock generator. If that's true, a button on the clock that says “Slave
+       to master” will get the right one. If there's more than one, pushing that button could just go to
+       the next one.
+
+     * Use teach/learn or blue/gold to teach an event from the master clock, or some producer or consumer
+       of the master clock, to the slave.  For example, if there's a master “clock stop” button, teach that
+       to the slave so that it knows that's the range to listen to.  This can be done even if there are
+       multiple clocks operating on the layout.
 
                                            3 Background Information
 
@@ -400,7 +464,7 @@
 
    1 Introduction
 
-   1.1 Use cases
+   1.1 Served use cases
 
    1.2 Unserved use cases
 
@@ -428,6 +492,8 @@
 
    2.6.1 Event Identification and Reporting
 
+   2.6.2 Slaving Clock Generators
+
    3 Background Information
 
    3.1 Multiple Clocks
@@ -443,8 +509,3 @@
    3.6 Future Work
 
     
-
-     ----------------------------------------------------------------------------------------------------
-
-   1 The prototype Event Range definition was 0x01.01.99.01.01.01.xx.xx but that is in the Lenz XpressNet
-   range now.
