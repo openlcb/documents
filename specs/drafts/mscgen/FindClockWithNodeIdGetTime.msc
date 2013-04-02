@@ -1,0 +1,31 @@
+# MSC for a clock display starting up
+msc {
+  wordwraparcs = "true";
+
+  d [ label="Clock Display" ], g [ label="Clock Generator"]  ;
+
+   # Small gap 
+   |||;
+   
+  d->g [ label = "IdentifyProducers(global): Clock Event" ] ;
+  d<-g [ label = "ProducerIdentified(global): Clock Event" ] ;
+  
+  --- [ label = "Display now has node ID for clock generator, request current status" ] ;
+  
+  d->g [ label = "IdentifyEvents" ] ;
+  d<-g [ label = "ProducerRangeIdentified(global) : all produced events" ] ;
+  d<-g [ label = "ProducerIdentifiedValid(global) : current time" ] ;
+  d<-g [ label = "ProducerIdentifiedValid(global) : current date" ] ;
+  d<-g [ label = "ProducerIdentifiedValid(global) : current year" ] ;
+  d<-g [ label = "ProducerIdentifiedValid(global) : current rate" ] ;
+
+  d note g [ label = "Note that this assumes that no other events are produced from this node, which could be confused with time events", textbgcolour="#ff7f7f"];
+  
+  --- [ label = "Display now proper time, date and rate event IDs with arbitrary upper part. Wait for time events." ] ;
+  
+  ... ;
+  g->* [ label = "ProducerConsumerEventReport(global) : Time Event" ] ;
+  ... ;
+  g->* [ label = "ProducerConsumerEventReport(global) : Time Event" ] ;
+  
+}
