@@ -1,0 +1,27 @@
+# MSC for normal datagram send (without a higher protocol)
+msc {
+
+  s [label="Sender"], sb [label="Send Buffer"], rb [label="Receive Buffer"], r [label="Receiver"];
+
+  s rbox sb [label="Sending Node"];
+  rb rbox r [label="Receiving Node"];
+  
+  s=>sb [label="Content"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "First frame" ] ;
+  rb box rb [label="In Use"];
+  sb->rb [ label = "Mid frame" ] ;
+  sb->rb [ label = "Last frame" ] ;
+
+  rb=>r [label="Content"];
+  r=>rb [label="Complete"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+  
+}
