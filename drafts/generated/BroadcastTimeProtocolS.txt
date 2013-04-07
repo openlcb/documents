@@ -1,84 +1,245 @@
-file deleted with last contents:
    PowerPlusWaterMarkObject1
 
                                                                 OpenLCB Standard
 
-                                                              Time Protocol(title)
+                                                            Time Broadcast Protocol
 
-                                                    Mar 4, 2013                        Preliminary          
+                                                    Apr 7, 2013                        Preliminary          
 
                                          1 Introduction (Informative)
 
-   Minimal introductory material, only the stuff that's absolutely needed to understand the Standard.This
-   note suggests methods for using OpenLCB to provide “fast clock” features for a layout.
+   A layout control bus can do a number of useful things with fast-time information:
+
+     * Connect a number of clock displays to keep them synchronized.
+
+     * Provide time displays on plug-in devices, e.g. throttles.
+
+     * Provide cueing for time-based occurrences, such as lights turning on and off at specific modeled
+       times.
+
+   Generally, existing fast clock systems have one unit that produces time information, and one or more
+   units that consume it. Existing fast clocks typically only report minutes, not seconds or finer time
+   divisions. Some existing fast clock systems track a day/date, in addition to time.
+
+   Fast clocks run at various rates, and can be controlled by the user either at the producer node or from
+   other locations. Some fast clock systems broadcast run/stop and rate information, which can also be
+   useful when interpolating within a fast-minute.
+
+   OpenLCB broadcasts time information by producing Event IDs. Specific Event IDs correspond to specific
+   times with the day, for example “08:10:00”, so that consumers can be taught to react to time-of-day. The
+   year and date are handled separately, for those installations that choose to use it.
 
                                          2 Intended Use (Informative)
 
-   Any limitations to the area of use of the Standard.
+   The primary use of this information is to display it on clock faces around the layout.
+
+   Since remote control of the fast clock is desired, a set-protocol using produced and consumed events is
+   defined. This makes it possible for throttles and other user-interface nodes to have a general
+   fast-clock-control capability built in.
+
+   In addition, simple nodes can use specific EventIDs to trigger their actions at specific times. For
+   example, lights in buildings in a model town can be sequenced to come on at various times by configuring
+   consumers in a node to react to time events by changing output lines.
 
                                      3 References and Context (Normative)
 
-   Citations to other docs, as needed.
+     * OpenLCB Event Transport Standard
+
+     * OpenLCB Unique Identifiers Standard
 
    For more information on format and presentation, see:
 
      * OpenLCB Common Information Technical Note
 
-     * Event spec
+                                        4 Message Formats (Normative)
 
-                                               4 Section Title
+   In addition to the following Event IDs, the well-known event ID “Delivers Clock Protocol” is defined.
 
-   Quisque sollicitudin tempor bibendum.^1 Donec consectetur condimentum sollicitudin. Sed dignissim velit
-   id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id
-   lectus aliquet luctus.
+   The upper six bytes of the following messages must be the valid Node ID of the clock producing node.
 
-                                               5 Section Title
+   Note that there are no well-defined values of the clock event IDs. You locate the clock generators and
+   their event spaces via the usual IdentifyEvent/IdentifyProducer mechanisms starting with the “Delivers
+   Clock Protocol” event ID.
 
-5.1 Subsection Title
+   The details of the following formats are still being worked out.
 
-  5.1.1 Sub-subsection Title
+   The values are packed into two bytes to make it easier to allocate the unique “Specific Upper Part”; it
+   is required to be the Node ID of the clock generator.
 
-   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
-   odio.
+4.1 Set/Report Time Event ID
 
-     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
 
-     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
-       sed massa.
+    Specific Upper Part                                                           Hours        Minutes      
+                                                                                  0-23         0-59         
 
-                                               6 Section Title
+   The upper nibble of byte 6 is only 0 or 1, which can be used to distinguish this format.
 
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+4.2 Set/Report Date Event ID
 
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+    Byte 0       Byte 1       Byte 2       Byte 3      Byte 4      Byte 5      Byte 6           Byte 7      
 
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+    Specific Upper Part                                                        0x40+Month       Day         
+                                                                               0x41-0x0x4C      1-31        
 
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+   The upper nibble of byte 6 is 4, which can be used to distinguish this format.
 
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+4.3 Set/Report Year Event ID
+
+    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+
+    Specific Upper Part                                                           0x3000+Year  
+                                                                                               
+                                                                                  0x3000-0x3FFF
+
+   The upper nibble of byte 6 is 3, which can be used to distinguish this format.
+
+   The lower twelve bits are the year, 0AD to 4095AD. (It's been proposed that these instead be in some BCD
+   format, which represents 999 years around some epoch)
+
+4.4 Set/Report Rate Event ID
+
+    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+
+    Specific Upper Part                                                           0x5000+Rate  
+
+   The upper nibble of byte 6 is 5, which can be used to distinguish this format.
+
+   Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -511.75, -511.00, …, -1.00, …, -.025, .00, 0.25,
+   0.50, ..., 511.75 (Is that the right range? Enough granularity? Would something simpler be easier?)
+
+   A rate of zero is valid. The stop/start clock event should be used to stop and start the clock, because
+   that doesn't require resetting, or even knowing, the current rate.
+
+   (should one bit be reserved, perhaps in the high nibble, to carry the run/stop state when reporting the
+   rate? That was in an earlier proposal, makes it easier to look for the entire state in a single event,
+   but it's got messy semantics)
+
+4.5 Stop/Start Clock
+
+    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+
+    Specific Upper Part                                                           Stop 0x6001  
+                                                                                               
+                                                                                  Start 0x6002 
+
+   The upper nibble of byte 6 is 5, which can be used to distinguish this format. (Could have also put into
+   higher part of e.g. month message, to save this code space)
+
+   Having a separate start/stop mechanism, instead of just setting rate to zero, makes distributed
+   start/stop control easier. There's no need for everybody to remember the current rate while the clock is
+   stopped.
+
+                                             5 States (Normative)
+
+   Each clock has an independent running/stopped state and an independent rate.
+
+   When the clock is in stopped state, its internal time is not changing.
+
+   When the clock is in running state, its internal time is advancing (rate X) as fast as normal time.
+
+                                          6 Interactions (Normative)
+
+   The well-known event ID “Delivers Clock Protocol” shall be produced by every node when it first starts
+   to operate as a clock generator. When enquired about, the node has to return “valid” if the clock is
+   operating, and “invalid” if it is not. (Note that this is operating, not running; if it's serving as a
+   clock generator and will produce and consume the appropriate event IDs)
+
+   A Set/Report Rate event for which there are one or more consumers are produced every real 60(?) seconds
+   while the clock is running to update the layout. (Should the current one also be produced when the clock
+   is not running? Sometimes nice to be able to stop all traffic on the network, which you can do if it
+   doesn't send while the clock is stopped)
+
+   The Set/Report Date event is produced when the date changes. The Set/Report Date event is produced when
+   the year changes. (Should these also be produced periodically? How often?)
+
+   Clock producer nodes shall produce a Set/Report Date event if they receive one but do not update their
+   internal date. Clock producer nodes shall produce a Set/Report Year event if they receive one but do not
+   update their internal date.
+
+   A Set/Report Time event is produced every time the current time changes, e.g. every fast minute. (Should
+   it be periodically produced, e.g. every real minute, when the clock is stopped? That updates recent
+   joiners, but it's nice to be able to stop all network traffic).
+
+   When a Set/Report Time event is received at a clock-producer node, it may, but is not required to, set
+   the time in the clock producer node. If the time is not set, the current time event is produced
+   immediately after.
+
+   If a Set/Report Rate event is received, the clock-producer's rate is set to the rate embedded in the
+   event. The run/stop bits are ignored. If the clock does not support the requested rate, it moves to the
+   closest non-zero supported rate, and produces a Set/Report Rate event containing the current rate. Rate
+   can be set while the clock is running or stopped. The clock producer node may, but is not required to,
+   produce a Set/Report Time immediately after the rate event is produced to ensure that all agree on the
+   exact time.
+
+   The use of the same event to broadcast the rate and to set the rate should perhaps be revisited. Is that
+   consistent with event semantics? Or should a “rate set event” do the set and cause the clock source to
+   emit a “current rate” event? There's no security issue here, because we receive the Node ID of the
+   set-sending node either way. And a clock receiving a set command, no matter what the format, can still
+   decide not to do it (if the protocol allows rejecting that, see above)
+
+6.1 Event Identification and Reporting
+
+   When a clock producer node receives an Identify Events message, it replies with an IdentifyProducedRange
+   and an IdentifyConsumedRange that covers the entire set of time event IDs.
+
+   In addition, the node will reply with:
+
+     * An IdentifyProducedEvent message for the current rate (and start/stop state?), showing valid &
+       active (if start/stop not in the event, also a stop/start event for the valid case)
+
+     * An IdentifyProducedEvent message for the current year showing valid & active
+
+     * An IdentifyProducedEvent message for the current date, showing valid & active
+
+     * An IdentifyProducedEvent message for the current time, showing valid & active
+
+     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
+
+   All of the preceding may be in any order, but the given order is recommended.
+
+   (There's actually an standards issue here – with the current coding, the Date events don't occupy more
+   than half of the reported range)
+
+   When a clock producer node receives an IdentifyProducers message that covers any of the events it
+   handles (Set/Report Time, Set/Report Date, Set/Report Year, Set/Report Rate, Stop/Start Clock) it will
+   reply with a ProducerIdentified message showing valid. If the queried event is the current state (same
+   time, same date, same year, same rate & start/stop status, or same start/stop status respectively), the
+   reply will be marked active. Otherwise, it will be marked inactive.
+
+   When a clock producer node receives an IdentifyConsumers message that covers any of the events it
+   handles (Set/Report Time, Set/Report Date, Set/Report Year, Set/Report Rate, Stop/Start Clock) it will
+   reply with a ConsumerIdentified message showing valid. If the queried event is the current state (same
+   time, same date, same year, same rate & start/stop status, or same start/stop status respectively), the
+   reply will be marked active. Otherwise, it will be marked inactive.
 
    Table of Contents
 
-   Title 1
+   1 Introduction (Informative) 1
 
-   Section Title 2
+   2 Intended Use (Informative) 1
 
-   Section Title 2
+   3 References and Context (Normative) 1
 
-   1See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte numbering.
-   Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
-   that other technologies may use other conventions.
+   4 Message Formats 2
 
-   Copyright 2010, 220131. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 2 - Mar 4, 20133/4/2013
+   4.1 Set/Report Time Event ID 2
+
+   4.2 Set/Report Date Event ID 2
+
+   4.3 Set/Report Year Event ID 2
+
+   4.4 Set/Report Rate Event ID 3
+
+   4.5 Stop/Start Clock 3
+
+   5 States 3
+
+   6 Interactions 4
+
+   6.1 Event Identification and Reporting 5
+
+   6.2 Slaving Clock Generators 5
+
+   Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
+   6 - Apr 7, 2013
