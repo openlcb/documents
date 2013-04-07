@@ -17,13 +17,14 @@
      * Provide cueing for time-based occurrences, such as lights turning on and off at specific modeled
        times.
 
-   Generally, existing fast clock systems have one unit that produces time information, and one or more
-   units that consume it. Existing fast clocks typically only report minutes, not seconds or finer time
-   divisions. Some existing fast clock systems track a day/date, in addition to time.
+   Generally, existing fast clock systems have one unit that produces time information, here called a clock
+   generator, and one or more units that consume it. Existing fast clock systems typically only report
+   minutes, not seconds or finer time divisions. Some existing fast clock systems track a day/date, in
+   addition to time.
 
-   Fast clocks run at various rates, and can be controlled by the user either at the producer node or from
-   other locations. Some fast clock systems broadcast run/stop and rate information, which can also be
-   useful when interpolating within a fast-minute.
+   Fast clocks run at various rates, and can be controlled by the user either at the producer nodeclock
+   generator or from other locations. Some fast clock systems broadcast run/stop and rate information,
+   which can also be useful when interpolating within a fast-minute.
 
    OpenLCB broadcasts time information by producing Event IDs. Specific Event IDs correspond to specific
    times with the day, for example “08:10:00”, so that consumers can be taught to react to time-of-day. The
@@ -33,9 +34,9 @@
 
    The primary use of this information is to display it on clock faces around the layout.
 
-   Since remote control of the fast clock is desired, a set-protocol using produced and consumed events is
-   defined. This makes it possible for throttles and other user-interface nodes to have a general
-   fast-clock-control capability built in.
+   Since remote control of the fast clock is desired, a set-protocolprotocol for setting using produced and
+   consumed events is defined. This makes it possible for throttles and other user-interface nodes to have
+   a general fast-clock-control capability built in.
 
    In addition, simple nodes can use specific EventIDs to trigger their actions at specific times. For
    example, lights in buildings in a model town can be sequenced to come on at various times by configuring
@@ -43,9 +44,16 @@
 
                                      3 References and Context (Normative)
 
-     * OpenLCB Event Transport Standard
+   This specification is in the context of the following OpenLCB-CAN Standards:
 
-     * OpenLCB Unique Identifiers Standard
+     * OpenLCB Event Transport Standard, which defines messages for transporting Event IDs and identifying
+       producers and consumers.
+
+     * The OpenLCB Event Identifiers Standard, which defines the format and content of Event IDs including
+       the class of Well-Known Event IDs and Automatically-Routed Event IDs.
+
+     * OpenLCB Unique Identifiers Standard, which defines the allocation of OpenLCB 48-bit unique
+       identifiers
 
    For more information on format and presentation, see:
 
@@ -53,18 +61,37 @@
 
                                         4 Message Formats (Normative)
 
-   In addition to the following Event IDs, the well-known event ID “Delivers Clock Protocol” is defined.
+   This Standard defines a number of Event IDs.
 
-   The upper six bytes of the following messages must be the valid Node ID of the clock producing node.
+   In addition to the following Event IDs, tThe well-known event ID “Delivers Clock Protocol” is defined.
+   as 0x01.01.00.00.00.00.05.01.
+
+   The upper six bytes of the event IDs defined in the following subsections must be one of the following:
+
+     * 01.01.00.00.01.00 – referred to as “Default Fast Clock”
+
+     * 01.01.00.00.01.01 – referred to as “Default Real-time Clock”
+
+     * 01.01.00.00.01.02
+
+     * 01.01.00.00.01.
+
+     * The upper six bytes of the following messages must be the valid Node ID of the clock producing node.
 
    Note that there are no well-defined values of the clock event IDs. You locate the clock generators and
    their event spaces via the usual IdentifyEvent/IdentifyProducer mechanisms starting with the “Delivers
    Clock Protocol” event ID.
 
-   The details of the following formats are still being worked out.
+     * The details of the following formats are still being worked out. 03
+
+     * a valid unique ID under the control of the manufacturer of the clock generator node
+
+     * a valid Unique ID under the control of the person or organization configuring the clock generator
+       node
 
    The values are packed into two bytes to make it easier to allocate the unique “Specific Upper Part”; it
-   is required to be the Node ID of the clock generator.
+   is required to be the Node ID of the clock generator.The upper six bytes are referred to as “Specific
+   Upper Part” in the subsections below.
 
 4.1 Set/Report Time Event ID
 
@@ -105,7 +132,7 @@
 
    The upper nibble of byte 6 is 5, which can be used to distinguish this format.
 
-   Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -511.75, -511.00, …, -1.00, …, -.025, .00, 0.25,
+   Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -511.75, -511.00, …, -1.00, …, -.025, .00, 0.0, 0.25,
    0.50, ..., 511.75 (Is that the right range? Enough granularity? Would something simpler be easier?)
 
    A rate of zero is valid. The stop/start clock event should be used to stop and start the clock, because
@@ -123,8 +150,8 @@
                                                                                                
                                                                                   Start 0x6002 
 
-   The upper nibble of byte 6 is 5, which can be used to distinguish this format. (Could have also put into
-   higher part of e.g. month message, to save this code space)
+   The upper nibble of byte 6 is 56, which can be used to distinguish this format. (Could have also put
+   into higher part of e.g. month message, to save this code space)
 
    Having a separate start/stop mechanism, instead of just setting rate to zero, makes distributed
    start/stop control easier. There's no need for everybody to remember the current rate while the clock is
@@ -132,7 +159,7 @@
 
                                              5 States (Normative)
 
-   Each clock has an independent running/stopped state and an independent rate.
+   Each clock has an independent current time, independent running/stopped state and an independent rate.
 
    When the clock is in stopped state, its internal time is not changing.
 
@@ -141,14 +168,15 @@
                                           6 Interactions (Normative)
 
    The well-known event ID “Delivers Clock Protocol” shall be produced by every node when it first starts
-   to operate as a clock generator. When enquired about, the node has to return “valid” if the clock is
-   operating, and “invalid” if it is not. (Note that this is operating, not running; if it's serving as a
-   clock generator and will produce and consume the appropriate event IDs)
+   to operate as a clock generator. When an enquiry about “Delivers Clock Protocol” is enquired
+   aboutreceived, the node has to return “valid” if the clock is operating, and “invalid” if it is not.
+   (Note that this is operating, not running; if it's serving as a clock generator and will produce and
+   consume the appropriate event IDs)
 
-   A Set/Report Rate event for which there are one or more consumers are produced every real 60(?) seconds
-   while the clock is running to update the layout. (Should the current one also be produced when the clock
-   is not running? Sometimes nice to be able to stop all traffic on the network, which you can do if it
-   doesn't send while the clock is stopped)
+   A Set/Report Rate event for which there are one or more consumers areshall be produced every real 60(?)
+   seconds while the clock is running to update the layout. (Should the current one also be produced when
+   the clock is not running? Sometimes nice to be able to stop all traffic on the network, which you can do
+   if it doesn't send while the clock is stopped) .
 
    The Set/Report Date event is produced when the date changes. The Set/Report Date event is produced when
    the year changes. (Should these also be produced periodically? How often?)
@@ -183,7 +211,11 @@
    When a clock producer node receives an Identify Events message, it replies with an IdentifyProducedRange
    and an IdentifyConsumedRange that covers the entire set of time event IDs.
 
-   In addition, the node will reply with:
+   In addition, the node will reply with, in order:
+
+     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
+
+     * An IdentifyProducedEvent message for the current start or stop state, showing valid & active
 
      * An IdentifyProducedEvent message for the current rate (and start/stop state?), showing valid &
        active (if start/stop not in the event, also a stop/start event for the valid case)
@@ -196,10 +228,10 @@
 
      * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
 
-   All of the preceding may be in any order, but the given order is recommended.
+     * All of the preceding may be in any order, but the given order is recommended.
 
-   (There's actually an standards issue here – with the current coding, the Date events don't occupy more
-   than half of the reported range)
+     * (There's actually an standards issue here – with the current coding, the Date events don't occupy
+       more than half of the reported range)
 
    When a clock producer node receives an IdentifyProducers message that covers any of the events it
    handles (Set/Report Time, Set/Report Date, Set/Report Year, Set/Report Rate, Stop/Start Clock) it will
@@ -221,25 +253,23 @@
 
    3 References and Context (Normative) 1
 
-   4 Message Formats 2
+   4 Message Formats (Normative) 2
 
    4.1 Set/Report Time Event ID 2
 
    4.2 Set/Report Date Event ID 2
 
-   4.3 Set/Report Year Event ID 2
+   4.3 Set/Report Year Event ID 3
 
    4.4 Set/Report Rate Event ID 3
 
    4.5 Stop/Start Clock 3
 
-   5 States 3
+   5 States (Normative) 3
 
-   6 Interactions 4
+   6 Interactions (Normative) 3
 
-   6.1 Event Identification and Reporting 5
-
-   6.2 Slaving Clock Generators 5
+   6.1 Event Identification and Reporting 4
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   6 - Apr 7, 2013
+   5 - Apr 7, 2013
