@@ -57,22 +57,22 @@
 
    The well-known event ID “Delivers Clock Protocol” is defined as 0x01.01.00.00.00.00.05.01.
 
-   The upper six bytes of the event IDs defined in the following subsections must be one of the following:
+   The upper six bytes of the event IDs defined in the following subsections shall be one of the following:
 
      * 01.01.00.00.01.00 – referred to as “Default Fast Clock”
 
      * 01.01.00.00.01.01 – referred to as “Default Real-time Clock”
 
-     * 01.01.00.00.01.02
+     * 01.01.00.00.01.02 – referred to as “Alternate Clock 1”
 
-     * 01.01.00.00.01.03
+     * 01.01.00.00.01.03 – referred to as “Alternate Clock 2”
 
      * a valid unique ID under the control of the manufacturer of the clock generator node
 
      * a valid Unique ID under the control of the person or organization configuring the clock generator
        node
 
-   The upper six bytes are referred to as “Specific Upper Part” in the subsections below.
+   The upper six bytes are referred to as the “Specific Upper Part” in the subsections below.
 
 4.1 Set/Report Time Event ID
 
@@ -131,31 +131,35 @@
                                           6 Interactions (Normative)
 
    The well-known event ID “Delivers Clock Protocol” shall be produced by every node when it first starts
-   to operate as a clock generator. When an enquiry about “Delivers Clock Protocol” is received, the node
-   has to return “valid” if the clock is operating, and “invalid” if it is not.
+   to operate as a clock generator. When a IdentifyProducers enquiry about “Delivers Clock Protocol” is
+   received, the node shall return a ProducerIdentified message with “valid” if the clock is operating, and
+   “invalid” if it is not.
 
    A Set/Report Rate event for which there are one or more consumers shall be produced every real 60
    seconds while the clock is running.
 
-   The Set/Report Date event is produced when the date changes. The Set/Report Date event is produced when
-   the year changes.
+   A Set/Report Date event shall be produced when the date changes. The Set/Report Year event shall be
+   produced when the year changes.
 
-   Clock producer nodes shall produce a Set/Report Date event if they receive one but do not update their
-   internal date. Clock producer nodes shall produce a Set/Report Year event if they receive one but do not
-   update their internal date.
+   When clock producer nodes receive a Set/Report Date event they may, but are not required to, update
+   their internal state to the date in the event. If they do not update their internal date to the received
+   one, they shall produce a Set/Report Date event with their current date.
 
-   A Set/Report Time event is produced every time the current time changes, e.g. every fast minute.   
+   When clock producer nodes receive a Set/Report Year event they may, but are not required to, update
+   their internal state to the year in the event. If they do not update their internal year to the received
+   one, they shall produce a Set/Report Year event with their current year.
 
-   When  a Set/Report Time event is received at a clock-producer node, it may, but is not required to, set
-   the time in the clock producer node. If the time is not set, the current time event is produced
+   A Set/Report Time event shall be produced every time the current time changes, e.g. every fast minute.
+     
+
+   When a Set/Report Time event is received at a clock-producer node, it may, but is not required to, set
+   the time in the clock producer node. If the time is not set, the current time event shall be produced
    immediately after.
 
-   If a Set/Report Rate event is received, the clock-producer's rate is set to the rate embedded in the
-   event. The run/stop bits are ignored. If the clock does not support the requested rate, it moves to the
-   closest non-zero supported rate, and produces a Set/Report Rate event containing the current rate.  Rate
-   can be set while the clock is running or stopped.  The clock producer node may, but is not required to,
-   produce a  Set/Report Time immediately after the rate event is produced to ensure that all agree on the
-   exact time.  
+   If a Set/Report Rate event is received, the clock-producer's rate may be, but is not required to be, set
+   to the rate embedded in the event. If the clock producer does not support the requested rate, it shall
+   move to the closest non-zero supported rate, and produces a Set/Report Rate event containing the current
+   rate.  The rate may be set while the clock is running or stopped.   
 
 6.1 Event Identification and Reporting
 
