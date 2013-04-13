@@ -53,22 +53,41 @@
 
     2.4.4.1 Read, Read-Reply
 
-    2.4.4.2 Get Configuration Options Reply
+   The figure shows a typical read operation. The Read Command is carried to the device being configured by
+   a datagram, the read operation takes place, and the results are returned in another datagram.  
 
-    2.4.4.3 Get Address Space Information Reply
+   graphics2
 
-    2.4.4.4 Lock/Reserve and Freeze/Unfreeze
+    2.4.4.2 Write, Write-Reply
 
-    2.4.4.5 Get Unique EventID
+   The first figure shows a typical write operation.  The Write Command and data are carried to the node
+   being configured in a single datagram.  Since the write operation succeeds immediately, the only reply
+   needed is the datagram reply.
+
+   graphics3
+
+   The second figure shows a delayed response, either because the write takes significant time or could
+   fail for some reason. The datagram reply to the Write Command carries the reply pending bit set, and a
+   reply datagram is send from the configured node back to the configuring node with the reply.
+
+   graphics4
+
+    2.4.4.3 Get Configuration Options Reply
+
+    2.4.4.4 Get Address Space Information Reply
+
+    2.4.4.5 Lock/Reserve and Freeze/Unfreeze
+
+    2.4.4.6 Get Unique EventID
 
    Nodes maintain a list of unique EventIDs for use in configuration. These are allocated based on the
    node's unique NodeID. This command allows a configuration tool to get new unique EventIDs from the
    node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
    a different EventID, without repeat, even through node resets and factory resets.
 
-    2.4.4.6 Update Complete/Reset/Reboot/Reinitialize
+    2.4.4.7 Update Complete/Reset/Reboot/Reinitialize
 
-    2.4.4.7 Indicate
+    2.4.4.8 Indicate
 
    This is likely to move to another standard.
 
@@ -76,32 +95,72 @@
 
 3.1 Message Structure
 
-   This section is about helping implementors see how to decode the message format.
+   This section is about helping implementors see how to decode the message format. It's not normative; if
+   this section differs from the Standard, the Standard rules.
 
-                                      Write     Write Under Write Stream Read      Read-Reply Read Stream   
-                                                Mask        
-   Datagram Type Byte                 0x20      0x20        0x20         0x20      0x20       0x20          
-                   Command Type       0b00      0b00        0b00         0b01      0b01       0b01          
-                   (2 bits)           
-                   Stream/Datagram (1 0b0       0b0         0b1          0b0       0b0        0b1           
-                   bit)               
-                   ReadReply/Write (1 0b0       0b0         0b0          0b0       0b1        0b0           
-   Command Byte    bit)               
-   (Upper is MSB,  Under Mask         0b0       0b1         0b0                                             
-   lower is LSB)   (1 bit)            
-                   Reserved (1 bit)                                      0b0       0b0        0b0           
-                   Reserved (1 bit)   0b0       0b0         0b0          0b0       0b0        0b0           
-                   Address Space      0b00-0b11 0b00-0b11   0b00-0b11    0b00-0b11 0b00-0b11  0b00-0b11     
-                   (2 bits)           
-                   Full byte value    0x00-0x03 0x18-0x1B   0x20-0x23    0x40-0x43 0x50-0x53  0x70-0x73     
-   4 bytes                            Address   Address     Address      Address   Address    Address       
-   Optional byte, present when        Address   Address     Address      Address   Address    Address Space 
-   Address Space bits above == 0b00   Space     Space       Space        Space     Space      
-                                                Data and                                      Count         
-                                      Data      Mask        Stream       Count     Data       (4 bytes),    
-   Remainder                          (1-64     (2-64       Definition   (1 byte,  (1-64      then Stream   
-                                      bytes)    bytes)      Info         1-64)     bytes)     Definition    
-                                                                                              Info          
+   Byte 1 has a number of decodable fields.  The top two bits of byte 1 separate the basic types:
+
+     * 0b00 – Write operations
+
+     * 0b01 – Read operations
+
+     * 0b10 – Control operations
+
+     * 0b11 – Not used / reserved
+
+    
+
+                                              Write         Write Under    Write Stream      Write Reply    
+                                                            Mask           
+   Datagram Type Byte                         0x20          0x20           0x20              0x20           
+                       Command Type           0b00          0b00           0b00              0b00           
+                       (2 bits)               
+                       Stream/Datagram (1     0b0           0b0            0b1               0b0            
+                       bit)                   
+                       Reply (1 bit)          0b0           0b0            0b0               0b1            
+                       Under Mask             0b0           0b1            0b0                              
+                       (1 bit)                
+   Command Byte (Upper                                                                       0b1 Fail       
+   is MSB, lower is    Fail/OK                                                                              
+   LSB)                                                                                      0b0 OK         
+                       Reserved (1 bit)       0b0           0b0            0b0               0b0            
+                       Address Space          0b00-0b11     0b00-0b11      0b00-0b11         0b00-0b11      
+                       (2 bits)               
+                                                                                             0x18 – 0x1B    
+                       Full byte value        0x00-0x03     0x18-0x1B      0x20-0x23         Fail           
+                                                                                                            
+                                                                                             0x10 – 0x13 OK 
+   4 bytes                                    Address       Address        Address           Address        
+   Optional byte, present when Address Space  Address Space Address Space  Address Space     Address Space  
+   bits above == 0b00  
+                                              Data          Data and Mask  Stream Definition Count          
+   Remainder                                  (1-64 bytes)  (2-64 bytes)   Info              (1 byte,       
+                                                                                             1-64)          
+
+    
+
+                                                      Read          Read-Reply       Read Stream            
+   Datagram Type Byte                                 0x20          0x20             0x20                   
+                              Command Type            0b01          0b01             0b01                   
+                              (2 bits)                
+                              Stream/Datagram (1 bit) 0b0           0b0              0b1                    
+                              ReadReply/Write (1 bit) 0b0           0b1              0b0                    
+                                                                    0b1 Fail                                
+                              Fail/OK                                                 
+   Command Byte (Upper is                                           0b0 OK           
+   MSB, lower is LSB)         Reserved (1 bit)        0b0                            0b0                    
+                              Reserved (1 bit)        0b0           0b0              0b0                    
+                              Address Space           0b00-0b11     0b00-0b11        0b00-0b11              
+                              (2 bits)                
+                                                                    0x58 – 0x5B Fail                        
+                              Full byte value         0x40-0x43                      0x70-0x73
+                                                                    0x50 – 0x53 OK   
+   4 bytes                                            Address       Address          Address                
+   Optional byte, present when Address Space bits     Address Space Address Space    Address Space          
+   above == 0b00              
+                                                      Count         Data             Count                  
+   Remainder                                          (1 byte,      (1-64 bytes)     (4 bytes), then Stream 
+                                                      1-64)                          Definition Info        
 
     
 
@@ -113,9 +172,10 @@
                   Command Type   0b10       0b10             0b10       0b10                   0b10         
                   Operation Type 0b0000     0b0000           0b0001     0b0001                 0b1000       
    Command Byte   Reply          0b0        0b1              0b0        0b1                                 
-   (Upper is MSB, Reserved       0b0        0b0              0b0        0b0                    0b0          
+   (Upper is MSB, Reserved                                                                     0b0          
    lower is LSB)  Freeze/                                                                      Freeze 0b1   
                   Unfreeze                                                                     Unfreeze 0b0 
+                  Reserved       0b0        0b0              0b0        0b0                                 
                   Byte value     0x80       0x82             0x84       0x86                   0xA0-0xA1    
    Byte 2                                   Available        Address    Address Space                       
                                             Commands (2      Space      
@@ -450,14 +510,11 @@
 
     
 
-   No timing requirement on read-reply – might take a long time if backed by e.g. a CV read. Can't send
-   another request until reply received. (How recover? Is that state subject to “in Initialized”?)
+   No timing requirement on read-reply or write reply – might take a long time if backed by e.g. a CV read.
+   Can't send another request until reply received. (How recover? Is that state subject to “in
+   Initialized”?)
 
    If data not available, just return zero bytes on read.
-
-   How is a failed write indicated?
-
-   Writes are thought to be fast enough that the datagram reply provides throttling.
 
     
 
@@ -485,17 +542,19 @@
 
    2.4.4.1 Read, Read-Reply
 
-   2.4.4.2 Get Configuration Options Reply
+   2.4.4.2 Write, Write-Reply
 
-   2.4.4.3 Get Address Space Information Reply
+   2.4.4.3 Get Configuration Options Reply
 
-   2.4.4.4 Lock/Reserve and Freeze/Unfreeze
+   2.4.4.4 Get Address Space Information Reply
 
-   2.4.4.5 Get Unique EventID
+   2.4.4.5 Lock/Reserve and Freeze/Unfreeze
 
-   2.4.4.6 Update Complete/Reset/Reboot/Reinitialize
+   2.4.4.6 Get Unique EventID
 
-   2.4.4.7 Indicate
+   2.4.4.7 Update Complete/Reset/Reboot/Reinitialize
+
+   2.4.4.8 Indicate
 
    3 General
 
