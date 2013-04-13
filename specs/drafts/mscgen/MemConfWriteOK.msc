@@ -1,0 +1,26 @@
+# MSC for normal mem config write operation
+msc {
+
+  s [label="Writing Task"], sb [label="Datagram Buffer"], 
+  rb [label="Datagram Buffer"], r [label="Configuration Task"];
+
+  s rbox sb [label="Writing Node"];
+  rb rbox r [label="Configured Node"];
+  
+  s=>sb [label="Write Command"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "Write Cmd Datagram" ] ;
+  rb box rb [label="In Use"];
+
+  rb=>r [label="Write Cmd Datagram"];
+  r=>rb [label="Complete"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+    
+}
