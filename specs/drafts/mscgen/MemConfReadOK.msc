@@ -1,0 +1,40 @@
+# MSC for normal mem config read
+msc {
+
+  s [label="Reading Task"], sb [label="Datagram Buffer"], 
+  rb [label="Datagram Buffer"], r [label="Configuration Task"];
+
+  s rbox sb [label="Reading Node"];
+  rb rbox r [label="Configured Node"];
+  
+  s=>sb [label="Read Command"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "Read Cmd Datagram" ] ;
+  rb box rb [label="In Use"];
+
+  rb=>r [label="Read Cmd Datagram"];
+  r=>rb [label="Complete"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+  
+  r=>rb [label="Read Reply"];
+  rb box rb [label="In Use"];
+
+  rb -> sb [ label="Read Reply Datagram" ] ;
+  sb box sb [label="In Use"];
+  sb=>s [label="Read Reply Datagram"];
+  s=>sb [label="Complete"];
+  sb box sb [label="Free"];
+
+  sb -> rb [ label="DatagramOK" ] ;
+  rb box rb [label="Free"];
+  rb=>r [label="Complete"];
+
+  
+}

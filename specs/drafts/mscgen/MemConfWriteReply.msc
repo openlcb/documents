@@ -1,0 +1,40 @@
+# MSC for normal mem config write with reply (deferred OK or error)
+msc {
+
+  s [label="Writing Task"], sb [label="Datagram Buffer"], 
+  rb [label="Datagram Buffer"], r [label="Configuration Task"];
+
+  s rbox sb [label="Writing Node"];
+  rb rbox r [label="Configured Node"];
+  
+  s=>sb [label="Write Command"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "Write Cmd Datagram" ] ;
+  rb box rb [label="In Use"];
+
+  rb=>r [label="Write Cmd Datagram"];
+  r=>rb [label="Complete, Reply Pending"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK, Reply Pending" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+  
+  r=>rb [label="Write Reply"];
+  rb box rb [label="In Use"];
+
+  rb -> sb [ label="Write Reply Datagram" ] ;
+  sb box sb [label="In Use"];
+  sb=>s [label="Write Reply Datagram"];
+  s=>sb [label="Complete"];
+  sb box sb [label="Free"];
+
+  sb -> rb [ label="DatagramOK" ] ;
+  rb box rb [label="Free"];
+  rb=>r [label="Complete"];
+
+  
+}
