@@ -1,0 +1,47 @@
+# MSC for normal datagram send (without a higher protocol)
+msc {
+
+  s [label="Sending Task"], sb [label="Send Buffer"], 
+  as [label="Another Sender"], asb [label="Another Buffer"], 
+  rb [label="Receive Buffer"], r [label="Receiving Task"];
+
+  s rbox sb [label="Sending Node"];
+  as rbox asb [label="Sending Node"];
+  rb rbox r [label="Receiving Node"];
+  
+  s=>sb [label="Content"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "First frame" ] ;
+  rb box rb [label="In Use"];
+  sb->rb [ label = "Mid frame" ] ;
+  
+  as=>asb [label="Content"];
+  asb box asb [label="In Use"];
+  asb->rb [ label = "First frame" ] ;
+  rb -> asb [ label="Datagram Rejected, resend OK" ] ;
+  asb->rb [ label = "Last frame" ] ;
+
+  sb->rb [ label = "Last frame" ] ;
+
+  rb=>r [label="Content"];
+  r=>rb [label="Complete"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+
+  asb->rb [ label = "First frame" ] ;
+  rb box rb [label="In Use"];
+  asb->rb [ label = "Last frame" ] ;
+  rb=>r [label="Content"];
+  r=>rb [label="Complete"];
+  rb box rb [label="Free"];
+  rb -> asb [ label="DatagramOK" ] ;
+  asb box asb [label="Free"];
+  asb=>as [label="Complete"];
+  
+}
