@@ -40,24 +40,38 @@
 
     
 
+   The first byte of the data content defines the datagram type. The values for that byte are documented in
+   the Standard for the protocol that defines the type.
+
 4.2 Datagram Received OK
 
     
 
-   Name                 Dest ID Event ID Common MTI Data Content 
-   Datagram Received OK Y       N        0x0A28                  
+   Name                 Dest ID Event ID Common MTI Data Content   
+   Datagram Received OK Y       N        0x0A28     Flags (1 byte) 
 
     
+
+   The flag bits are defined as:
+
+     * 0x80 – Reply Pending – Use is defined by higher-level protocols.  
+
+     * All others are reserved, shall be sent as zero and ignored upon receipt.
+
+   Datagram Received OK messages without a Flags byte shall be treated as if they contained a byte with a
+   zero value.
 
 4.3 Datagram Rejected
 
    Name              Dest ID Event ID Common MTI Data Content 
-   Datagram Rejected Y       N        0x0A48     Error Code   
+                                                 Error Code   
+   Datagram Rejected Y       N        0x0A48                  
+                                                 (2 bytes)    
 
     
 
-   Nodes shall accept and process Datagram Rejected messages that do not contain a full data code. Missing
-   error code bits are to be interpreted as zero.
+   Nodes shall accept and process Datagram Rejected messages that do not contain the full error code.
+   Missing error code bits are to be interpreted as zero.
 
   4.3.1 Error Codes
 
@@ -141,7 +155,7 @@
                                          0x1Cdd,dsss — Middle   
                                                                 
                                          0x1Ddd,dsss — Last     
-   Datagram Received OK Y       N        0x19A2,8sss            0xfddd3            
+   Datagram Received OK Y       N        0x19A2,8sss            0xfddd3, Flags     
    Datagram Rejected    Y       N        0x19A4,8sss            0xfddd, Error Code 
 
 7.2 CAN States

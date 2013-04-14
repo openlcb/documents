@@ -37,12 +37,41 @@
    The datagram length is coded by the transport medium:  There is no separate length field in the datagram
    content itself.
 
-   Note that zero-length datagrams are valid.
+   The datagram type value in the 1st byte of the datagram content is meant to make it easier for node
+   software to sort out how to handle individual datagrams.  This makes it possible for multiple protocols
+   to be using datagrams to communicate between two nodes independently.  The figure shows an example of
+   that.
+
+   graphics2
+
+   Datagram type allows general datagram handler to dispatch datagrams to proper handlers without having to
+   track conversation state or understand details of datagram-using protocols.
+
+   Note that zero-length datagrams are valid. They don't contain a type, so can only be used in certain
+   circumstances.
 
   2.4.2 Datagram Received OK
 
    This is an addressed message. The destination address (full Node ID or alias) can be taken directly from
    the received Datagram Content message.
+
+   Nodes are required to handle missing a missing flag byte for backwards compatibility.
+
+   When a datagram contains a command within some higher-level protocol, it's very convenient to have a way
+   to signify success of that operation without having to send an additional datagram as a reply.  The
+   Reply Pending bit can be used to to that.  It's not understood in any way by the datagram protocol
+   itself, just passed through. Some possible approaches include:
+
+     * Don't use it at all. There are no replies to operations.
+
+     * Don't use it at all. Each operation consists of a command datagram, and some other message or
+       datagram in reply.
+
+     * When the operation usually succeeds immediately, that success can be signaled by the Datagram
+       Received OK message.  Delayed success or failure can then be signaled by Datagram Received OK with
+       the Reply Pending bit set, followed by a later datagram or message that carries the completion
+       message.  The Reply Pending bit then tells the datagram originator whether the operation is done, or
+       whether it needs to wait for a further reply.
 
   2.4.3 Datagram Rejected
 
@@ -274,15 +303,12 @@
 
   3.3.1 Normal CAN case
 
-   Datagram First Frame →
+   graphics4
+   graphics4
 
-   Datagram Middle Frame →
+   Transferring a datagram using three CAN frames. Note buffering.
 
-   Datagram Middle Frame →
-
-   Datagram Last Frame →
-
-   ← Datagram Received OK
+    
 
   3.3.2 Short CAN datagram case
 
@@ -300,17 +326,10 @@
 
   3.3.4 Rejected interleaved CAN datagram case:
 
-   Accidental interleave, at a node that can't handle that:
+   graphics3
 
-   Datagram First Frame from A →
-   Datagram First Frame from B →
-   ← Datagram Rejected, Resend OK to B
-   Datagram Middle Frame from A →
-   Datagram Last Frame from A →
-   ← Datagram Received OK to A
-   Datagram First Frame from B →
-   Datagram Final Frame from B →
-   ← Datagram Received OK to B
+   Example of a node receiving two overlapping datagrams, rejecting one, and then receiving the
+   retransmission.
 
   3.3.5 Command/Reply Example
 
@@ -433,6 +452,8 @@
 
 3.6 Future Extensions
 
+  3.6.1 Global Datagrams
+
    In this version of the datagram protocol, there is no provision for multiple recipients of a single
    message. Transmission is strictly one-to-one. This constraint is not because of addressed nature of
    datagrams (making the messages globally visible is not hard), but rather the need for guaranteed
@@ -450,19 +471,29 @@
    buffers (at least one), while telling the others to “say that again, please, I wasn't paying attention
    the first time”.
 
-   A sending node knows that it has to hang onto the datagram until it receives a “Received OK” message,
-   because if the sender receives a “Rejected, Resend OK” it needs to still have the content to resend it.
-   The “Received OK” and “Rejected, Resend OK” are not about data loss on a link, but about buffer
-   management in tiny nodes. A one-to-many protocol could also do something like that, because the
-   transmitter still knows how many “many” is. Global broadcast, like events, is hard because the
-   transmitter's buffer management gets complicated unless it knows how many nodes are listening for its
-   reply.
+   With addressed one-to-one datagrams, a sending node knows that it has to hang onto the datagram until it
+   receives a “Received OK” message, because if the sender receives a “Rejected, Resend OK” it needs to
+   still have the content to resend it. The “Received OK” and “Rejected, Resend OK” are not about data loss
+   on a link, but about buffer management in tiny nodes. Once Received OK has been received, the buffer
+   contents are no longer needed and the buffer can be reused.
+
+   A global datagram protocol is possible where the sending node can decide, on it's own, when it doesn't
+   need to resend the datagram to nodes that were not able to receive it.  For example, a node might be
+   looking for some resource by sending a global datagram.  It needs only preserve the request until it
+   finds the resource; requests for retransmission that arrives after that can be safely ignored.
+
+   The remaining question is now the sending node knows which global datagram to retransmit.  If it sends
+   global datagram A, then immediately sends global datagram B, it has to know which to resend from just
+   the resend request message (or, if they are idempotent, it could send both, but this gets out of hand).
+   This needs to be built into the datagram protocol extension in a higher-protocol-independent way.
+
+  3.6.2 CAN Extensions
 
    Although Bosch has proposed a new standard called CAN-FD1, which permits frames as large as 64 bytes, we
    have decided not to reduce maximum size of a datagram to fit easily within this frame size. There are
-   good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have a header
-   of N bytes on the front of 64 data bytes. Should CAN-FD come into general use, datagrams will just use
-   the longer frames in the current system for breaking Datagram Content messages into  segments.
+   good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have a command
+   header of 8 bytes on the front of 64 data bytes. Should CAN-FD come into general use, datagrams will
+   just use the longer frames in the current system for breaking Datagram Content messages into  segments.
 
 3.7 Implementation Notes
 
@@ -556,6 +587,10 @@
    3.5 Numerology
 
    3.6 Future Extensions
+
+   3.6.1 Global Datagrams
+
+   3.6.2 CAN Extensions
 
    3.7 Implementation Notes
 
