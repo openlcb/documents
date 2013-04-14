@@ -31,11 +31,13 @@
 
 2.3 Reference and Context
 
-   Although the Protocol Identification Protocol is not required, it's highly recommended.  (Should it be
-   required? It's pretty light-weight, and having it there simplifies the code for checking whether this
-   protocol is present.)
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
 
 2.4 Protocol
+
+    
 
   2.4.1 Address Space Size
 
@@ -47,7 +49,18 @@
 
   2.4.2 Address Space Selection
 
+   Although a 32-bit address space is large enough to cover combined uses of memory, it can be more
+   convenient to consider separate address spaces in the node. (This can also be considered to be a top
+   digit in a global address space, if you want to, but note that the separate address spaces may cover the
+   same memory objects, e.g. “all memory” and “Event ID configuration” spaces may reference the same
+   configuration memory)
+
   2.4.3 Message Formats
+
+   Configuration messages use a specific datagram format consisting of the datagram type byte, followed by
+   a single byte combining the operation “Command Type” field and flags. This is then followed by data in
+   an operation-specific format. When present, the four-byte memory address follows first, then the address
+   space byte if present, then other data.
 
   2.4.4 Operations
 
@@ -60,17 +73,19 @@
 
     2.4.4.2 Write, Write-Reply
 
-   The first figure shows a typical write operation.  The Write Command and data are carried to the node
-   being configured in a single datagram.  Since the write operation succeeds immediately, the only reply
-   needed is the datagram reply.
+    
 
    graphics3
 
-   The second figure shows a delayed response, either because the write takes significant time or could
-   fail for some reason. The datagram reply to the Write Command carries the reply pending bit set, and a
-   reply datagram is send from the configured node back to the configuring node with the reply.
+   A typical memory write operation.  The Write Command and data are carried to the node being configured
+   in a single datagram.  Since the write operation succeeds immediately, the only reply needed is the
+   datagram reply.
 
    graphics4
+
+   A delayed response, either because the write takes significant time or could fail for some reason. The
+   datagram reply to the Write Command carries the reply pending bit set, and a reply datagram is send from
+   the configured node back to the configuring node with the reply.
 
     2.4.4.3 Get Configuration Options Reply
 
@@ -291,9 +306,9 @@
 
   4.1.2 CAN Aspects
 
-   CAN configuration datagrams have seven payload bytes in the 1st frame (the first byte identifies that
-   it's a configuration transfer). See the “Datagram Protocol” document for more info. Read operations and
-   2-byte (or 1-byte-under-mask) writes can be done with a single CAN frame.
+   CAN configuration datagrams have seven payload bytes in the 1st frame (the first byte is the datagram
+   type byte that identifies that it's a configuration transfer). See the “Datagram Protocol” document for
+   more info. Read operations and 2-byte (or 1-byte-under-mask) writes can be done with a single CAN frame.
 
    Read-Stream and Write-Stream need to rendezvous on the stream IDs to know which stream is carrying the
    data. See Examples section below.
@@ -497,7 +512,7 @@
 
                                                 5 To Be Merged
 
-   Various OpenLCB capabilities and proocols will define memory spaces starting at the highest numbers.
+   Various OpenLCB capabilities and protocols will define memory spaces starting at the highest numbers.
     Other uses should start with the low numbered spaces, and should not use spaces with the highest bit
    set, although that's not a standards-level requirement.
 
@@ -510,11 +525,9 @@
 
     
 
-   No timing requirement on read-reply or write reply – might take a long time if backed by e.g. a CV read.
+   No timing requirement on read-reply or write-reply – might take a long time if backed by e.g. a CV read.
    Can't send another request until reply received. (How recover? Is that state subject to “in
    Initialized”?)
-
-   If data not available, just return zero bytes on read.
 
     
 
