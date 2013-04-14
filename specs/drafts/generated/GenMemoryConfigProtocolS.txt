@@ -260,9 +260,16 @@
 
   4.4.1 Read, Read-Reply
 
+   In reply to the datagram containing a Read command, the receiving node shall set the Reply Pending bit
+   in the Datagram Received OK message.  The receiving node may, but is not required to, include a specific
+   timeout interval in the Datagram Received OK message.
+
+   If the interval is provided and has elapsed without a Read Reply message being returned, the node
+   requesting the Read operation may, but is not required to, repeat the request.
+
    Attempts to read from an invalid location, either outside the available address range in an valid
-   address space, or from an invalid address space, still require a return message, requires a reply
-   datagram with an data length of zero.
+   address space, or from an invalid address space, still require a returning a Read Reply datagram with an
+   data length of zero.
 
    In general, a read reply may provide less than the requested data, but always at least one byte if it's
    a valid read. The maximum read request is 64 bytes when reading via datagrams. When reading via streams,
@@ -278,13 +285,18 @@
 
   4.4.2 Write, Write-Reply
 
-   If the write operation can be done immediately and succeeds, only the datagram reply to the Write
-   Command datagram is returned.
+   If the write operation can be done immediately and succeeds, only the Datagram Received OK message reply
+   to the Write Command datagram is returned. The Reply Pending bit is not set in that reply.
 
-   If the write operation takes time, or fails immediately, the datagram reply to the Write Command
-   datagram shall carry the Reply Pending bit set. This is followed later by a Write Reply datagram with
-   either OK or Fail set. If Fail is set, the error code shall be included. The optional message string may
-   be, but is not required to be, included.
+   If the write operation takes time, or fails immediately, the Datagram Received OK message reply to the
+   Write Command datagram shall carry the Reply Pending bit set. The receiving node may, but is not
+   required to, include a specific timeout interval in the Datagram Received OK message. This is followed
+   later by the receiving node sending a Write Reply datagram with either OK or Fail set. If Fail is set,
+   the error code shall be included. The optional message string may be, but is not required to be,
+   included.
+
+   If a timeout interval was provided and has elapsed without a Write Reply message being returned, the
+   node requesting the Write operation may, but is not required to, repeat the request.
 
   4.4.3 Get Configuration Options Reply
 
