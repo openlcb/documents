@@ -4,7 +4,7 @@
 
                                                       Memory Access Configuration Protocol
 
-                                                   Apr 14, 2013                        Preliminary          
+                                                   Apr 16, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -65,54 +65,12 @@
 
   2.4.3 Message Formats
 
-   Configuration messages use a specific datagram format consisting of the datagram type byte, followed by
-   a single byte combining the operation “Command Type” field and flags. This is then followed by data in
-   an operation-specific format. When present, the four-byte memory address follows first, then the address
-   space byte if present, then other data.
-
-  2.4.4 Operations
-
-    2.4.4.1 Read, Read-Replyy
-
-   The figure shows a typical read operation. The Read Command is carried to the device being configured by
-   a datagram, the read operation takes place, and the results are returned in another datagram.
-
-    2.4.4.2 Write, Write-Reply
-
-  A typical memory write operation. The Write Command and data are carried to the node being configured in a
-single datagram. Since the write operation succeeds immediately, the only reply needed is the datagram reply.
-
-    A delayed response, either because the write takes significant time or could fail for some reason. The
- datagram reply to the Write Command carries the reply pending bit set, and a reply datagram is send from the
-                         configured node back to the configuring node with the reply.
-
-    2.4.4.3 Get Configuration Options Reply
-
-    2.4.4.4 Get Address Space Information Reply
-
-    2.4.4.5 Lock/Reserve and Freeze/Unfreeze
-
-    2.4.4.6 Get Unique EventID
-
-   Nodes maintain a list of unique EventIDs for use in configuration. These are allocated based on the
-   node's unique NodeID. This command allows a configuration tool to get new unique EventIDs from the
-   node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
-   a different EventID, without repeat, even through node resets and factory resets.
-
-    2.4.4.7 Update Complete/Reset/Reboot/Reinitialize
-
-    2.4.4.8 Indicate
-
-   This is likely to move to another standard.
-
-                                                      3
-
-                                                  4 General
-
-4.1 Message Structure
-
    This section is about helping implementors see how to decode the message format. It's not normative; if
    this section differs from the Standard, the Standard rules.
+
+   Configuration messages use a specific datagram format consisting of the datagram type byte, followed by
+   a single byte combining the operation “Command Type” field and flags. This is then followed by data in
+   an operation-specific format.
 
    Byte 1 has a number of decodable fields. The top two bits of byte 1 separate the basic types:
 
@@ -289,7 +247,196 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
     Remainder      
 
-                                     5 Stuff to be merged into the above
+  2.4.4 Operations
+
+   This protocol consists of a idempotent operations. A command are sent and cause some desired thing to
+   happen. That in turn results in a positive reply, the return of the requested information, or an error
+   code. Each operation is independent of others and carries all the information needed to do the
+   operation. For example, a read operation contains the address information, and the reply carries that
+   information back to the requestor. This way, no state information needs to be maintained at either end.
+
+   Read and write operations to memory should take place very quickly, so their replies (see below) should
+   be close to immediate. But it's also possible for them to take longer, for example to write some media,
+   or read a DCC CV. The Standard is silent on how long such operations should take. It does provide a way
+   for the node handling the request to indicate the expected time back to the requesting node, by
+   including that in the Datagram Received OK reply message. But that's not required, and the reply can
+   just say “unknown time”.
+
+   The Standard doesn't limit how messages can be interleaved. The simplest method is to send one command,
+   wait for the reply sequence to be complete, and send the next. Similarly, the simplest implementation
+   for the request-handler node is to accept one command, and work on it until it's done; if another comes
+   along in the meantime, reject the datagram and ask that it be resent until later.
+
+   It's also possible to create more performant nodes. A request-handler node could accept more than one
+   request, queue them up, and reply to them when done. Alternately, a node that does very slow operations,
+   like reading CVs from a DCC locomotive in response to read operations, may terminate its current read
+   when it gets another operation. This would allow the user to say “I don't want to wait any more, let's
+   move on” during a long operation.
+
+    2.4.4.1 Read, Read-Replyy
+
+   The figure shows a typical read operation. The Read Command is carried to the device being configured by
+   a datagram, the read operation takes place, and the results are returned in another datagram.
+
+    2.4.4.2 Write, Write-Reply
+
+  A typical memory write operation. The Write Command and data are carried to the node being configured in a
+single datagram. Since the write operation succeeds immediately, the only reply needed is the datagram reply.
+
+    A delayed response, either because the write takes significant time or could fail for some reason. The
+ datagram reply to the Write Command carries the reply pending bit set, and a reply datagram is send from the
+                         configured node back to the configuring node with the reply.
+
+    2.4.4.3 Get Configuration Options Reply
+
+    2.4.4.4 Get Address Space Information Reply
+
+    2.4.4.5 Lock/Reserve and Freeze/Unfreeze
+
+    2.4.4.6 Get Unique EventID
+
+   Nodes maintain a list of unique EventIDs for use in configuration. These are allocated based on the
+   node's unique NodeID. This command allows a configuration tool to get new unique EventIDs from the
+   node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
+   a different EventID, without repeat, even through node resets and factory resets.
+
+    2.4.4.7 Update Complete/Reset/Reboot/Reinitialize
+
+    2.4.4.8 Indicate
+
+   This is likely to move to another standard.
+
+                                                      3
+
+                                                  4 General
+
+                     5 Stuff to be merged into the aboveStuff to be merged into the above
+
+                                                   Read           Read-Reply        Read Stream             
+
+    Datagram Type Byte                                 0x20             0x20                 0x20           
+
+    Command Byte (Upper   Command Type                 0b01             0b01                 0b01           
+    is MSB, lower is      (2 bits)                 
+    LSB)                  
+                          Stream/Datagram (1 bit)       0b0             0b0                  0b1            
+
+                          ReadReply/Write (1 bit)       0b0             0b1                  0b0            
+
+                          Fail/OK                                     0b1 Fail      
+                                                                                    
+                                                                       0b0 OK       
+
+                          Reserved (1 bit)              0b0                                  0b0            
+
+                          Reserved (1 bit)              0b0             0b0                  0b0            
+
+                          Address Space              0b00-0b11       0b00-0b11            0b00-0b11         
+                          (2 bits)                 
+
+                          Full byte value            0x40-0x43    0x58 – 0x5B Fail        0x70-0x73         
+                                                                                    
+                                                                   0x50 – 0x53 OK   
+
+    4 bytes                                           Address         Address              Address          
+
+    Optional byte, present when Address Space      Address Space   Address Space        Address Space       
+    bits above == 0b00    
+
+    Remainder                                          Count            Data                Count           
+                                                     (1 byte,       (1-64 bytes)    (4 bytes), then Stream  
+                                                       1-64)                           Definition Info      
+
+                                  Get Config  Get Config      Get Addr    Get Address Space   Freeze/       
+                                  Options     Options Reply   Space Info  Info Reply          Unfreeze      
+
+    Datagram Type Byte               0x20          0x20          0x20            0x20             0x20      
+
+    Command Byte  Command Type       0b10          0b10          0b10            0b10             0b10      
+    (Upper is     
+    MSB, lower    Operation Type    0b0000        0b0000        0b0001          0b0001           0b1000     
+    is LSB)       
+                  Reply              0b0           0b1           0b0             0b1          
+
+                  Reserved                                                                        0b0       
+
+                  Freeze/                                                                      Freeze 0b1   
+                  Unfreeze                                                                    Unfreeze 0b0  
+
+                  Reserved           0b0           0b0           0b0             0b0          
+
+                  Byte value         0x80          0x82          0x84            0x86          0xA0-0xA1    
+
+    Byte 2                                      Available      Address      Address Space     
+                                               Commands (2      Space     
+                                                  bytes)      
+    Byte 3                                                                Largest Address (4  
+                                                                                bytes)        
+    Byte 4                                    Write Lengths   
+
+    Byte 5                                       Highest      
+                                              Address Space   
+
+    Byte 6                                    Lowest Address  
+                                                Space (0-1    
+                                                  byte)       
+
+    Remainder                                   Name (0-N                 Requires Alignment  
+                                                  bytes,                     (4 bits) Low     
+                                                 optional                  Address Non-zero   
+                                                                          (1 bit) Read-Only   
+                                                                               (1 bit)        
+
+                                                                          {Lowest Address }   
+                                                                              (4 bytes)       
+
+                                                                               {Desc }        
+                                                                                              
+                                                                             (0-N bytes)      
+
+                               Lock/       Lock/    Get       Get     Indicate   Update    Reset/  Reinit/  
+                               Reserve     Reserve  Unique    Unique             Complete  Reboot  Factory  
+                                           Reply    ID        ID                                   Reset    
+                                                              Reply   
+
+    Datagram Type Byte            0x20      0x20      0x20     0x20     0x20       0x20     0x20    0x20    
+
+    Command Byte   Command        0b10      0b10      0b10     0b10     0b10       0b10     0b10    0b10    
+    (Upper is      Type        
+    MSB, lower is  
+    LSB)           Operation     0b0010    0b0010    0b0011   0b0011   0b1001     0b1010   0b1010  0b1010   
+                   Type        
+
+                   Reply          0b0        0b1      0b0      0b1    
+
+                   Reserved       0b0        0b0      0b0      0b0    
+
+                   Start/Stop                                         Start 0b1  
+                                                                                 
+                                                                      Stop 0b0   
+
+                   Sub                                                             0b00     0b01    0b10    
+                   Command     
+
+                   Byte value     0x88      0x8A      0x8C     0x8D   0xA2-0xA3    0xA8     0xA9    0xAA    
+
+    Byte 2                     Requesting  Locking   Number    New                                 Target   
+                                 NodeID    NodeID      to     Unique                               NodeID   
+                                                    reserve   EventI  
+                                                    (3 bits,    D     
+                                                      1-8)            
+                                                              (8      
+    Byte 3                                                    bytes,  
+                                                              1-8     
+    Byte 4                                                    times)  
+
+    Byte 5         
+
+    Byte 6         
+
+    Byte 7         
+
+    Remainder      
 
 5.1 Environment of Protocol
 
@@ -308,7 +455,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
      * It must be possible to read, store, and reload the configuration of a node.
 
-  Preferences
+  5.1.2 Preferences
 
      * Small nodes shouldn't need a lot of processing power, e.g. to compress or decompress data in real
        time. Memory usage should also be limited, but is a second priority.
@@ -330,7 +477,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
      * Addresses should be four bytes. Two address bytes is a failure of imagination.
 
-  Design Points
+  5.1.3 Design Points
 
    Basic configuration is done with datagrams, which can carry 64 bytes of data to read or write.
 
@@ -352,7 +499,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    away, some will require a reset, etc. Need flexibility for node developer, yet consistency for
    configuration tool builder.
 
-  5.1.2 CAN Aspects
+  5.1.4 CAN Aspects
 
    CAN configuration datagrams have seven payload bytes in the 1^st frame (the first byte is the datagram
    type byte that identifies that it's a configuration transfer). See the “Datagram Protocol” document for
@@ -569,10 +716,6 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    for the node to check whether the new Event ID is already produced or consumed; redundant Identify
    messages are not a problem.
 
-   No timing requirement on read-reply or write-reply – might take a long time if backed by e.g. a CV read.
-   Can't send another request until reply received. (How recover? Is that state subject to “in
-   Initialized”?)
-
    Table of Contents
 
    1 Introduction 1
@@ -593,65 +736,61 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
    2.4.3 Message Formats 2
 
-   2.4.4 Operations 2
+   2.4.4 Operations 6
 
-   2.4.4.1 Read, Read-Reply 2
+   2.4.4.1 Read, Read-Reply 7
 
-   2.4.4.2 Write, Write-Reply 3
+   2.4.4.2 Write, Write-Reply 8
 
-   2.4.4.3 Get Configuration Options Reply 6
+   2.4.4.3 Get Configuration Options Reply 11
 
-   2.4.4.4 Get Address Space Information Reply 6
+   2.4.4.4 Get Address Space Information Reply 11
 
-   2.4.4.5 Lock/Reserve and Freeze/Unfreeze 6
+   2.4.4.5 Lock/Reserve and Freeze/Unfreeze 11
 
-   2.4.4.6 Get Unique EventID 6
+   2.4.4.6 Get Unique EventID 11
 
-   2.4.4.7 Update Complete/Reset/Reboot/Reinitialize 6
+   2.4.4.7 Update Complete/Reset/Reboot/Reinitialize 11
 
-   2.4.4.8 Indicate 6
+   2.4.4.8 Indicate 11
 
-   3 General 6
+   3 General 11
 
-   3.1 Message Structure 6
+   3.1 Environment of Protocol 11
 
-   4 Stuff to be merged into the above 10
+   3.1.1 Requirements 11
 
-   4.1 Environment of Protocol 10
+   3.1.2 Preferences 11
 
-   4.1.1 Requirements 10
+   3.1.3 Design Points 12
 
-   Preferences 11
+   3.1.4 CAN Aspects 12
 
-   Design Points 11
+   3.2 Implementation Notes 12
 
-   4.1.2 CAN Aspects 12
+   3.2.1 Example CAN Operations 12
 
-   4.2 Implementation Notes 12
+   3.2.1.1 Get initial information 13
 
-   4.2.1 Example CAN Operations 12
+   3.2.1.2 Write byte 13
 
-   4.2.1.1 Get initial information 12
+   3.2.1.3 Write 64 bytes 13
 
-   4.2.1.2 Write byte 12
+   3.2.1.4 Read byte 13
 
-   4.2.1.3 Write 64 bytes 12
+   3.2.1.5 Read 64 bytes 13
 
-   4.2.1.4 Read byte 12
+   3.2.1.6 Large read via stream 13
 
-   4.2.1.5 Read 64 bytes 13
+   3.2.1.7 Large write via stream 14
 
-   4.2.1.6 Large read via stream 13
+   3.2.1.8 Performance Note 14
 
-   4.2.1.7 Large write via stream 13
+   3.2.2 Delays Due to Non-Volatile Memory 15
 
-   4.2.1.8 Performance Note 14
+   3.2.3 Large Volume Operations 16
 
-   4.2.2 Delays Due to Non-Volatile Memory 14
-
-   4.2.3 Large Volume Operations 15
-
-   5 To Be Merged 15
+   4 To Be Merged 16
 
    Copyright 2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   28 - 4/14/2013Apr 14, 2013
+   20 - 4/16/2013Apr 16, 2013
