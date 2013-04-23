@@ -1,0 +1,28 @@
+# MSC for normal allocation & deallocation of a traction proxy
+msc {
+
+  ta [label="Throttle A"], tb [label="Throttle B"], p [label="Proxy"];
+
+
+  p box p [label="Node Starts"];
+  
+
+  p->* [ label = "Initialization Complete" ] ;
+  p->* [ label = "ProducerIdentified Valid: Idle Event" ] ;
+  p->* [ label = "ProducerIdentified Invalid: InUse Event" ] ;
+
+  ta box tb [label="Start Simultaneous Allocation"];
+
+  ta->p [ label = "Traction: Allocate to DCC address" ] ;
+  tb->p [ label = "Traction: Allocate to DCC address" ] ;
+
+  ta box tb [label="Preceding Effectively Simultaneous"];
+
+  p->ta [ label = "Traction: Allocated to DCC address" ] ;
+  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  p->tb [ label = "Traction: Not allocated; already in use" ] ;
+
+
+
+  
+}
