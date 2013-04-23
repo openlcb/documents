@@ -184,6 +184,16 @@
    produces the included Event ID.  This is one of the messages that allows bridges to do automatic routing
    of event messages.  
 
+   The ProducerIdentified message is different from a Producer-ConsumerEventReport message for several
+   reasons:
+
+     * It allows the valid/invalid/unknown subforms, which don't make any sense for a PCER message
+
+     * It allows network listeners to separate the event identification mechanism, which uses
+       ProducerIdentified, from the event transport mechanism, which uses PCER.  Otherwise, nodes might
+       think that an event had occurred and was being produced, when it was just a response to a request
+       for current status.
+
   2.4.7 Producer Range Identified
 
    The requirement that 50% or more of the Event IDs in a range are produced is to allow rounding the range
@@ -284,18 +294,15 @@
 
   2.6.2 Event Enquiry
 
-   Two forms of identify events; recommendation on uses for global form. This can be a huge load, and
-   should only be used when needed.  
+   IdentifyEvents comes in both global and addressed forms. The global form can place a very large load on
+   the network and should only be used when needed.  
 
-   The two forms of this message are sent to request that the specified nodes report all the events they
-   produce or consume.  These reports can be ether Identified messages specifying individual Event IDs or
-   ranges of events.  One form is an unaddressed message sent globally to all nodes, and the other is an
-   addressed message to a specific node.
+   The IdentifyEvents message is sent to request that the specified nodes report all the events they
+   produce or consume.  These reports can be  Identified messages specifying individual Event IDs or ranges
+   of events.  
 
-   It is useful to be able to rapidly determine which, if any, P/C Event IDs that a particular node is
-   listening for and that it can emit.
-
-   This can be used as a configuration diagnostic.
+   IdentifyEvents  is useful to be able to rapidly determine which, if any, P/C Event IDs that a particular
+   node is listening for and that it can emit.This can be used as a configuration diagnostic.
 
    To determine which P/C Event IDs can be send by a particular node, the inquiring node sends an Identify
    Events message addressed to the target node.
