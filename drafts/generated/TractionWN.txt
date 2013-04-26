@@ -48,7 +48,8 @@
    some other kind of communications, perhaps direct DCC or a connection to a legacy system that in turn
    makes DCC signals, or some other technology entirely. Due to the nature of those back side
    communications methods, the proxy may not be able to do everything that OpenLCB can, or only do some of
-   it at certain times. The OpenLCB traction protocols need to take this reality into account.
+   it at certain times. The OpenLCB traction protocols need to take this reality into account. Anther use
+   case for proxies, discussed in detail below, is to provide the mechanism for consisting.
 
    “Command Stations”: Existing DCC and other control systems use “command stations” to create a track
    signal for controlling the trains. Usually the command station is controlled from the user side by some
@@ -56,6 +57,10 @@
    form, has no such concept. Devices, like throttles, that want to talk to a train do so directly. Only
    when working with legacy systems does the concept of a command station enter, and usually through the
    form of a proxy node that is acting for the Train.
+
+   “Consisting”: The running of multiple items together, e.g. three coupled engines, each with their own
+   NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and with
+   various names.
 
 1.2 Served Use Cases
 
@@ -187,6 +192,8 @@
                                                      
                                  0x82                
 
+   Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions.
+
   2.4.3 Traction Control Reply Message
 
    MTI: Priority 1, index 15, modifier 0, addressed => MTI 0x05E8, CAN frame [195E8sss] fd dd
@@ -231,6 +238,21 @@
    Do we want to return the number of attached nodes/DCC addresses?
 
    Error codes need to be defined.
+
+     * Allocation Failed, temporary (try again) handles race conditions (but we need to look carefully at
+       that race condition in practice: With the current structure, does it end up adding two DCC addresses
+       to the single proxy, instead of reserving it? Probably need to separate out
+       reservation-for-configuration. In general, two different things like “assign” and “reserve” should
+       be handled by two separate things)
+
+     * Allocation Failed, permanent (out of proxies, etc)
+
+   Want to add responses to “Query attached Node IDs” and “Query attached DCC addresses”. These have
+   unbounded length if the number of members in a consist is not bounded by the protocol. Could be a single
+   large message, but everybody in the communication path still needs a maximum message size to ensure
+   buffering. So a multiple message (or multiple datagram) response with an “last one” bit is the way to
+   go. Using datagrams is more protocol work, but leverages existing protocol support and moves the
+   response to a lower priority.
 
    The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
    two additional speeds. If a node cannot provide any of those three speeds, it should use float16 NaN
@@ -355,6 +377,20 @@
 
     5.1.2.1 Collisions During Allocation
 
+  5.1.3 Consisting
+
+   Proxy can handle multiple node IDs (and/or DCC addresses), which allows implementation of consisting.
+   Speed/direction just passes through; speed matching is automatic due to the use of scale meters/second
+   for units.
+
+   It's up to the proxy how to handle pass-through of functions. (Do we need to have a way to specify which
+   of the included nodes IDs (and/or DCC addresses) are special, e.g. front or rear locomotive, in the
+   setup?)
+
+   It's up to the proxy how to handle pass-through of configuration read and/or writes. Probably just don't
+   allow them, or allow them only for configuration of the consist itself (e.g. how to do certain pass
+   throughs)
+
    Table of Contents
 
    1 Introduction 1
@@ -375,7 +411,7 @@
 
    1.3.1 Multiple Independent Command Stations 2
 
-   1.3.2 Improved Legacy Addressing 2
+   1.3.2 Improved Legacy Addressing 3
 
    1.3.3 Third-Party Communications 3
 
@@ -399,15 +435,17 @@
 
    2.6 Interactions 6
 
-   3 Background Information 6
+   3 Background Information 7
 
-   3.1 Proxies 6
+   3.1 Proxies 7
 
-   3.1.1 Lifecycle & Location 6
+   3.1.1 Lifecycle & Location 7
 
    3.1.2 Proxy Allocation 7
 
    3.1.2.1 Collisions During Allocation 7
+
+   3.1.3 Consisting 7
 
    Copyright 20113. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
    of 8 - 4/26/2013Apr 26, 2013
