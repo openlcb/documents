@@ -150,18 +150,25 @@
    “instruction”, which defines the rest of the format. The instruction codes were selected with the high
    nibble representing protocol (0x00 for OpenLCB full protocol; 0x80 for DCC legacy; others reserved)
 
-   Instruction         Byte 0 Byte 1            Byte 2              Byte 3   Byte 4   Byte 5 Byte 6 
-   Set Speed/Direction 0x00   Speed and direction as signed float16                                 
-   Set Function        0x01   Address                                        Value                  
-   Emergency Stop      0x02                                                                         
-   Query Speeds        0x10                                                                         
-   Query Function      0x11   Address                                                               
-                              Allocate          Speed steps                                         
-                                                                    DCC Address AA.AA         
-   Manage Proxy (DCC)  0x80   0x01              (14, 28, 128)       
-                              Deallocate                                                            
-                                                                                              
-                              0x02              
+   Instruction         Byte 0 Byte 1                   Byte 2     Byte 3 Byte 4        Byte 5 Byte 6 Byte 7 
+   Set Speed/Direction 0x00   Speed and direction as signed                                                 
+                              float16                  
+   Set Function        0x01   Address                                    Value                              
+   Emergency Stop      0x02                                                                                 
+   Query Speeds        0x10                                                                                 
+   Query Function      0x11   Address                                                                       
+                              Attach Node                         
+                                                       Node ID
+                              0x01                     
+                              Attach DCC Address                         Speed steps                        
+                                                       DCC Address AA.AA                              
+   Manage Proxy        0x80   0x81                                       (14, 28, 128) 
+                              Detach Node                         
+                                                       Node ID
+                              0x02                     
+                              Detach DCC Address                                                            
+                                                       DCC Address AA.AA                              
+                              0x82                     
 
     
 
@@ -174,15 +181,36 @@
 
     
 
-   Instruction              Byte 0 Byte 1         Byte 2        Byte 3   Byte 4   Byte 5 Byte 6 
-   Query Speeds Reply       0x10   Set Speed                    Commanded Speed   Actual Speed
-   Query Function Reply     0x11   Address                               Value                  
-                                   Allocate Reply Speed steps                                   
-   Manage Proxy Reply (DCC) 0x80                                DCC Address AA.AA         
-                                   0x01           (14, 28, 128) 
+   Instruction        Byte 0 Byte 1                Byte 2   Byte 3   Byte 4     Byte 5 Byte 6 Byte 7 Byte 8 
+   Query Speeds Reply 0x10   Set Speed                      Status   Commanded Speed   Actual Speed         
+   Query Function     0x11   Address                                 Value                                  
+   Reply              
+                             Attach Node Reply                                                       Reply  
+                                                   Node ID                                           Code   
+                             0x01                  
+                             Attach DCC Address                      Speed                                  
+                             Reply                                   steps      Reply  
+                                                   DCC Address AA.AA            Code                  
+                             0x81                                    (14, 28,   
+   Manage Proxy Reply 0x80                                           128)       
+                             Detach Node Reply                                                       Reply  
+                                                   Node ID                                           Code   
+                             0x02                  
+                             Detach DCC Address                                                             
+                             Reply                 DCC Address AA.AA Reply Code                       
+                                                   
+                             0x82                  
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
+
+   Attach reply code:  Zero or not present, OK
+
+   Detach reply code: Zero or not present, OK
+
+   Do we want to return the number of attached nodes/DCC addresses?
+
+   Error codes need to be defined.
 
    The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
    two additional speeds.  If a node cannot provide any of those three speeds, it should use float16 NaN
@@ -192,12 +220,15 @@
    speed of the locomotive. There is no accuracy guarantee for Actual Speed.
 
    On CAN, the Query Speed/Direction reply does not fit in a single frame, so it's sent as two frames with
-   start and end marked in the 1st data nibble (high part of destination address). For example, from node
-   with alias 123 to node with alias 456, all speeds equal to 0x4400 would be sent as the frames:
+   start and end marked in the 1st data nibble (high part of destination address). The status byte was
+   included so that the actual speed value would not be split across boundaries (though that's not
+   necessarily guaranteed for other wire protocols that come along later) The status byte is reserved. Send
+   0x00, don't check on receipt. For example, from node with alias 123 to node with alias 456, all speeds
+   equal to 0x4420 would be sent as the two frames:
 
-   195E8123 14 56 10 44 00 44 00 44
+   195E8123 14 56 10 44 20 00 44 20
 
-   195E8123 24 56 00
+   195E8123 24 56 44 20
 
     
 
