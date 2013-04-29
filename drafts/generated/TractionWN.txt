@@ -4,7 +4,7 @@
 
                                                             (title)Traction Protocol
 
-                                                   Apr 26, 2013                        Preliminary          
+                                                   Apr 29, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -15,6 +15,11 @@
    from various informal development documents, discussions, etc into a single place. One or more Working
    Notes form the basic for the next step, which is one or more Standard/TechNote pairs.
 
+   This protocol is for the long-term operation of really cool trains, not just “better control over DCC”.
+   Still, DCC is an important test case, both with new control hardware (OpenLCB native throttles connected
+   to an OpenLCB-native command station that's generating the DCC signal) and when connected to legacy
+   throttles and/or command stations.
+
 1.1 Terminology
 
    “DCC” refers to NMRA DCC; “Legacy” refers to all pre-existing protocols including DCC, TMCC, Marklin,
@@ -24,6 +29,9 @@
    model of a prototype train from locomotive to caboose, it might be just single caboose, a set of lit &
    controlled passenger cars, a diesel MU lash up, or basically anything that can take an OpenLCB "decoder"
    or a DCC decoder with a legacy attachment.
+
+   “Train Node”: A Train is associated with a single, specific node. The Node ID is the fully-unique
+   identifier for that Train.
 
    “Throttles”: For the purposes of discussion, we draw a distinction between three kinds of throttles that
    a user might encounter:
@@ -130,6 +138,19 @@
 2.3 Reference and Context
 
    NMRA S9.2 and NMRA RP9.2.1 define the formats for DCC addresses
+
+   Node implementing the Train Protocol must implement:
+
+     * Message Transfer Protocol
+
+     * Event Transfer Protocol
+
+     * Memory Configuration Protocol (optional?) and Datagram Protocol it depends on
+
+     * SNII and/or ACDI?
+
+   Float-16 is the half-precision numeric format defined by IEEE 754-2008. It's available in the GNU tool
+   chain via the -mfp16-format=ieee flag and __fp16 type.
 
 2.4 Message Formats
 
@@ -298,6 +319,148 @@
    Emergency stop is not specific state. The next Set Speed/Direction instruction will act immediately to
    change the set speed, and start the commanded speed and actual speed moving toward that set speed.
 
+  2.6.1 Function Operation
+
+   Function values are stored in the 0xF9 memory space. They are written using the memory configuration
+   protocol.
+
+    2.6.1.1 Function Definition
+
+   “Function Definition Information”, similar in intent to Configuration Definition Information (CDI) is
+   stored in XML format in address space 0xFA to provide user-oriented context. That includes:
+
+     * Memory layout of the function values, allowing for multiple data types from binary (one and off for
+       lights) through integer values (for e.g. sound intensities) and strings (sign displays?).
+
+     * Function naming, so that a throttle can display useful names to the user such as "Bell", "Coupler
+       Clank" and "Master Volume". This includes internationalization of those labels.
+
+   What else needs to be conveyed? "Make this prominent on the throttle"? "Have this there, just a little
+   less prominent"? "Seriously, nobody cares about this option, bury it"?
+
+   At present, there are no default values that e.g. associate "Bell" with a particular location or
+   function. These are thought to be too brittle, and there are just too many possibilities to be useful
+   (see the unscientific and incomplete Survey of existing function names).
+
+  2.6.2 Train Configuration
+
+   Trains are OpenLCB nodes just like any other. As such, the Memory Configuration protocol can be used to
+   configure them, the Configuration Description Information system can be used to make that process user
+   friendly, etc. There's nothing traction-specific in these techniques, which are available any time that
+   the train node is connected to the OpenLCB.
+
+   The configuration information in a train can include the user documentation that's sometimes referred to
+   as "roster information". This might include owner name, prototype railroad and road number, information
+   about the particular model's construction, etc. As yet, OpenLCB has no standards nor conventions on this
+   information.
+
+   One approach to standards in this area would be extend ACDI/SNIP. Those currently have a block for
+   manufacturer identification, and a block for user identification. Those are both versioned. We could
+   take (one of) several approaches:
+
+     * Extend them with a third block, only present when the node implements the train protocol (as seen in
+       PIP). To allow later introduction of more types, this block would have some versioning/type
+       information, but that's straightforward.
+
+     * Create a version 2 of the user block, which holds additional data. (This would be using 2 as a
+       format identifier, rather than a version number; that might make versioning complicated)
+
+   Suitable content for a (first version of) this might be (from [
+   http://jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html JMRI roster], see also similar concepts
+   in [rocrail.net RocRail]):
+
+     * Road Name
+
+     * Road Number
+
+   (Manufacturer, model, owner description, comments, etc are already present in ACDI/SNI)
+
+   For DCC locomotives, more terms might be desired:
+
+     * DCC Address
+
+     * Decoder Type (Manufacturer, model)
+
+  2.6.3 Train Identification
+
+   OpenLCB Train nodes use:
+
+     * The Event Transport protocol to locate Train nodes
+
+     * PIP for enquiry about the support
+
+     * SNII and/or Memory configuration, CDI & ACDI for identification of a specific train node.
+
+   Trains are OpenLCB nodes just like any other. As such, they can take part in protocols such as Node
+   Verification and Simple Node Information which allows other nodes to learn about them.
+
+   Train Acquisition Protocol is necessary because the train operator doesn't want to pick up a throttle
+   and enter "06.011.00.02.1F.2D" (a node ID), or even "110 Long" (a DCC address), but rather just pick the
+   desired locomotive from a list of those available. (A throttle should still allow the operator to
+   directly enter the address, when that's what the operator wants to do.)
+
+   The train acquisition process simplifies locating desired train nodes so that small hand-held throttle
+   nodes can efficiently take part. It does this using several approaches, which can be used as needed by
+   throttles:
+
+     * Events are used to announce the existence and status of Train nodes
+
+     * Train nodes will generally implement the Simple Node Information protocol so that throttles can get
+       basic, user-readable identification from them
+
+     * A search protocol is (being) defined to make it possible to locate individual Train nodes without
+       having to read information from all of them
+
+   So that other nodes can find them, Train nodes must produce the well-known reserved event
+   01.01.00.00.00.00.03.03. This means they must sent that event in a Producer/Consumer Event Report
+   message when they power up, and reply to requests for producers of that event. They must also produce
+   the reserved event 01.01.00.00.00.00.03.04 if they are not allocated to a physical train (e.g. an unused
+   proxy Train node), or 01.01.00.00.00.00.03.05 if they are allocated to a train (e.g. a real Train node
+   or proxy Train node that is in use). (Both show up; only one is valid at a time)
+
+   For the special case of nodes that implement connections to legacy equipment (proxies), specific
+   addresses have been assigned. For example, nodes that implement communications to DCC decoders must be
+   available at the well-known node ID 6.1.0.(CS number).(address), where address is the long or short NMRA
+   DCC address for a decoder. (Nodes that communicate with a particular decoder may also appear at other
+   node addresses, if desired)
+
+   SNIP will be used to carry both manufacturer-provided and user-provided information about the particular
+   train node. In particular, the user (Node) Name and (Node) Description fields are to be used to hold
+   train identification information that can be retrieved and presented by throttles for selection.
+
+   A search protocol needs to be defined to allow efficient location of specific train nodes on large
+   OpenLCB installations. It provides a general or field-specific search over the SNIP information,
+   returning the Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration
+   & SNIP, is available here in pdf format and here in OpenOffice Writer.
+
+   Trains are OpenLCB nodes just like any other. As such, they can take part in protocols such as Node
+   Verification and Simple Node Information which allows other nodes to learn about them.
+
+   This is necessary because the train operator doesn't want to pick up a throttle and enter
+   "06.011.00.02.1F.2D" (a node ID), or even "110 Long" (a DCC address), but rather just pick the desired
+   locomotive from a list of those available. (Throttle should still allow the operator to directly enter
+   the address, when that's what the operator wants to do.)
+
+   The Train Acquisition Protocol simplifies this process so that small hand-held throttle nodes can
+   efficiently take part.
+
+   The protocol uses three well-known event IDs:
+
+   01.01.00.00.00.00.03.03 (isTrain) This node is a Train (or Train Proxy)
+
+   01.01.00.00.00.00.03.04 (isIdleProxy) This node is an idle Train Proxy, not associated with a Train
+
+   01.01.00.00.00.00.03.05 (isInUseProxy) This node is an in-use Train or Train Proxy
+
+   (The last two are specific to proxy-based implementations, here for completeness; see e.g. the DCC page
+   for more info)
+
+   All Train nodes produce the isTrain event. That means they announce it when they first come up, respond
+   to EventProduced requests for it, and list it when replying to IdentifyEvent messages.
+
+   An EventProduced request will therefore find all the train nodes on the OpenLCB, and further protocols
+   can be used to get additional information on the individual Train nodes it locates.
+
                                     3 Section TitleBackground Information
 
 3.1
@@ -391,6 +554,79 @@
    allow them, or allow them only for configuration of the consist itself (e.g. how to do certain pass
    throughs)
 
+5.2 Speed Control
+
+   Rationale: The use of a 16-bit floating point permits relatively precise speed commands, especially at
+   lower speeds; such fine granularity ensures not just fine-grained control over the locomotive, but helps
+   avoid aliasing issue that arise during the conversion to lower resolution system-specific speed commands
+   (i.e. DCC's 14 or 28-step commands).
+
+   The use of meters per second is somewhat arbitrary, and reflects standard velocity units used throughout
+   the metric-speaking world. By standardizing on m/s, we avoid any future unit conversion issues.
+
+   The use of scale meters per second has two distinct advantages. First, it permits us to transmit speed
+   commands in a scale-independent way. Second, and because of this, it reduces the number of parameters
+   that must be estimated when controlling a locomotive that has not yet been speed-calibrated (which, for
+   new users using existing digital control systems, will be all of their models). For example, on a DCC
+   system, if I issue a command to proceed at 30mph, the command station must convert the value in the
+   speed command from 30mph to an integer in the range [0-26] (for 28-speed-step control). The command
+   station need only estimate what a reasonable top speed for a locomotive might be: Let us say, 100mph.
+   Thus, the command station could reasonably estimate that 30mph translates to speed step 8.
+
+   The alternative possibilities considered to date are absolute speed using real units (as opposed to
+   scale units), and relative speed units. The difficulty with relative speed units (i.e., percentage of
+   full throttle), is that they are ambiguous, and preclude the possibility of performing physical
+   simulations in the cab controller, at least without completely abandoning the particular interpretations
+   assigned to sped values. The difficulty with using real (as opposed to scale) units is that it requires
+   the estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale.
+   If I issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only
+   understand what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1
+   m/s might be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use
+   as a default, users must configure their digital command station to set the scale for either the entire
+   layout, or on a per-model basis—an additional configuration step that is easily avoided by the mechanism
+   for scale units described above.
+
+5.3 Function Control
+
+   "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
+   they're also configuration-like, in that they effect the operation of the device.
+
+   How to handle them for a native OpenLCB piece of rolling stock, and for legacy ones via e.g. DCC?
+
+   We could take the purist approach and say "configuration is configuration, it's all the same". But that
+   ignores that many people are going to want "Bell" to appear (automatically) on their throttle, but not
+   so many are going to want "Kp back-emf correction factor" to appear there.
+
+   People just think about operating and configuring their locomotives as separate things. (Though e.g.
+   "Master Volume" can cross the line)
+
+   This doesn't mean that we can't use the same protocol for all other of them. A mixture of memory
+   configuration and CDI should do just fine. It just means that we need to find a way to include clueing
+   information for the throttles on e.g. what to present.
+
+   Outputs vs Functions
+
+   Tools like DecoderPro and its decoder-definition files make a distinction between "functions", which are
+   the control commands sent via e.g. DCC, and "outputs", which are the things that a decoder can do:
+   Control an electrical output, make a sound, etc. This distinction is useful because one of the
+   configuration options in (some) DCC decoders is a mapping between the functions and the outputs, useful
+   in a world where throttles generally have only about a dozen buttons, but decoders have many output
+   options.
+
+   OpenLCB makes a clean separation between functions, which are the control operations, and all
+   configuration & physical information, which lives in the memory configuration and CDI. If there's to be
+   a mapping, it's defined through the CDI.
+
+5.4 Legacy Train Operations
+
+  5.4.1 Configuration
+
+   For DCC trains, there are two parts:
+
+     * CV access (with the added complexity of indexed and double-indexed Cvs)
+
+     * Programmer (main, programming track) control.
+
    Table of Contents
 
    1 Introduction 1
@@ -448,4 +684,4 @@
    3.1.3 Consisting 7
 
    Copyright 20113. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 8 - 4/26/2013Apr 26, 2013
+   of 11 - 4/29/2013Apr 29, 2013
