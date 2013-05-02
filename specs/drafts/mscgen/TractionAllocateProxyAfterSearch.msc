@@ -18,15 +18,20 @@ msc {
   p->* [ label = "ProducerIdentified Valid: Idle Event" ] ;
   t box t [label="Takes 1st reply with Valid set and proceeds"];
   
-  t->p [ label = "Traction: Allocate to DCC address" ] ;
-  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  t box t [label="Start Allocation of Proxy"];
 
+  t->p [ label = "Traction: Reserve Instruction" ] ;
+
+  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  p->t [ label = "Traction: Reserve Reply: OK" ] ;
+
+  t box t [label="Assign"];
+
+  t->p [ label = "Traction: Attach DCC address instruction" ] ;
+  p->t [ label = "Traction: Attach DCC address reply" ] ;
+
+  t->p [ label = "Traction: Release Instruction" ] ;
 
   t box p [label="Operate Locomotive"];
-
-  t box t [label="Start Deallocation"];
-
-  t->p [ label = "Traction: Deallocate" ] ;
-  p->* [ label = "ProducerConsumerEventReport: Idle Event" ] ;
   
 }
