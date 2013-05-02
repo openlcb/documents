@@ -11,19 +11,33 @@ msc {
   p->* [ label = "ProducerIdentified Valid: Idle Event" ] ;
   p->* [ label = "ProducerIdentified Invalid: InUse Event" ] ;
 
-  t box t [label="Start Allocation"];
-
   t box t [label="Already Knows Proxy Node ID"];
 
-  t->p [ label = "Traction: Allocate to DCC address" ] ;
-  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  t box t [label="Start Allocation of Proxy"];
 
+  t->p [ label = "Traction: Reserve Instruction" ] ;
+
+  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  p->t [ label = "Traction: Reserve Reply: OK" ] ;
+
+  t box t [label="Assign"];
+
+  t->p [ label = "Traction: Attach DCC address instruction" ] ;
+  p->t [ label = "Traction: Attach DCC address reply" ] ;
+
+  t->p [ label = "Traction: Release Instruction" ] ;
 
   t box p [label="Operate Locomotive"];
 
-  t box t [label="Start Deallocation"];
+  t box t [label="Deallocation of Proxy"];
 
-  t->p [ label = "Traction: Deallocate" ] ;
-  p->* [ label = "ProducerConsumerEventReport: Idle Event" ] ;
+  t->p [ label = "Traction: Reserve Instruction" ] ;
+  p->t [ label = "Traction: Reserve Reply: OK" ] ;
+
+  t->p [ label = "Traction: Detach DCC address instruction" ] ;
+  p->t [ label = "Traction: Attach DCC address reply" ] ;
   
+  t->p [ label = "Traction: Release Instruction" ] ;
+
+  p->* [ label = "ProducerConsumerEventReport: Idle Event" ] ;
 }
