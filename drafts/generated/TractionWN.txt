@@ -1,10 +1,10 @@
    PowerPlusWaterMarkObject1
 
-                                                         OpenLCB WorkingTechnical Note
+                                                              OpenLCB Working Note
 
-                                                            (title)Traction Protocol
+                                                               Traction Protocol
 
-                                                    May 2, 2013                        Preliminary          
+                                                    May 3, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -70,6 +70,14 @@
    NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and with
    various names.
 
+   “Configuration”, “Functions”: Traditional DCC decoders provide “functions” for controlling accessories
+   such as lights and sounds during operation, and provide a separate mechanism for doing long-term
+   configuration via Configuration Variables (Cvs). OpenLCB makes the same distinction, providing access to
+   “functions” via the traction protocol, while leaving “configuration” to the configuration protocol(s).
+   The line between these is admittedly vague, and different node developers may implement some capability
+   one way or the other. The general intent is that things that are changed in normal operation are
+   considered functions, while things that are set once and forgotten are configuration.
+
 1.2 Served Use Cases
 
   1.2.1 Train Operation
@@ -122,7 +130,7 @@
    reacts to throttle commands and train status by taking various actions, such as providing appropriate
    sounds or preventing the speed from getting too high.
 
-                               2 Specified SectionsAnnotations to the Standard
+                                             2 Specified Sections
 
    This is the usual section organization for a Technical Note, to accumulate the Standard and Technical
    Note content in its eventual order.
@@ -212,7 +220,7 @@
                                  Detach DCC Address   DCC Address AA.AA
                                  0x82                 
 
-    Manage Proxy         0x20    Reserve              
+    Manage Proxy         0x82    Reserve              
                                  0x01                 
 
                                  Release              
@@ -222,6 +230,9 @@
                                  0x03                 
 
    Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions.
+
+   The Set Function instruction uses a three-byte address for brevity; it's to be interpreted with a high
+   byte of zero to make a four byte address in the function memory space (0xFA).
 
   2.4.3 Traction Control Reply Message
 
@@ -260,7 +271,7 @@
                                           
                           0x82            
 
-    Configure     0x20    Reserve Reply   Result: 
+    Configure     0x82    Reserve Reply   Result: 
     Proxy Reply           0x01            0 == OK 
                                           Non-zero ==
                                           Failed  
@@ -271,6 +282,33 @@
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
+
+   The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
+   two additional speeds. If a node cannot provide any of those three speeds, it should use float16 NaN
+   (not a number) 0xFFFF. “Set Speed” is the most recent speed received in a Set Speed/Direction
+   instruction. “Commanded Speed” is the speed that the traction control is currently attempting to move,
+   taking into account momentum and any other control modifiers. “Actual Speed” is the current measured
+   speed of the locomotive. There is no accuracy guarantee for Actual Speed.
+
+   On CAN, the Query Speed/Direction reply does not fit in a single frame, so it's sent as two frames with
+   start and end marked in the 1^st data nibble (high part of destination address). The status byte was
+   included so that the actual speed value would not be split across boundaries (though that's not
+   necessarily guaranteed for other wire protocols that come along later) The status byte is reserved. Send
+   0x00, don't check on receipt. For example, from node with alias 123 to node with alias 456, all speeds
+   equal to 0x4420 would be sent as the two frames:
+
+   195E8123 14 56 10 44 20 00 44 20
+
+   195E8123 24 56 44 20
+
+   which together are the single message
+
+   MTI=05E8 10 44 20 00 44 20 44 20
+
+    2.4.3.1 Proxy-Specific
+
+   The 0x80 and 0x82 instructions are only for proxy nodes. The MSBit is tentatively reserved to indicate
+   proxy-specific instructions.
 
    Attach reply code: Zero or not present means OK
 
@@ -294,28 +332,6 @@
    buffering. So a multiple message (or multiple datagram) response with an “last one” bit is the way to
    go. Using datagrams is more protocol work, but leverages existing protocol support and moves the
    response to a lower priority.
-
-   The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
-   two additional speeds. If a node cannot provide any of those three speeds, it should use float16 NaN
-   (not a number) 0xFFFF. “Set Speed” is the most recent speed received in a Set Speed/Direction
-   instruction. “Commanded Speed” is the speed that the traction control is currently attempting to move,
-   taking into account momentum and any other control modifiers. “Actual Speed” is the current measured
-   speed of the locomotive. There is no accuracy guarantee for Actual Speed.
-
-   On CAN, the Query Speed/Direction reply does not fit in a single frame, so it's sent as two frames with
-   start and end marked in the 1^st data nibble (high part of destination address). The status byte was
-   included so that the actual speed value would not be split across boundaries (though that's not
-   necessarily guaranteed for other wire protocols that come along later) The status byte is reserved. Send
-   0x00, don't check on receipt. For example, from node with alias 123 to node with alias 456, all speeds
-   equal to 0x4420 would be sent as the two frames:
-
-   195E8123 14 56 10 44 20 00 44 20
-
-   195E8123 24 56 44 20
-
-   which together are the single message
-
-   MTI=05E8 10 44 20 00 44 20 44 20
 
 2.5 States
 
@@ -502,263 +518,63 @@
        having to read information from all of them
 
    So that other nodes can find them, Train nodes must produce the well-known reserved event
-   01.01.00.00.00.00.03.03. This means they must sent that event in a Producer/Consumer Event Report
-   message when they power up, and reply to requests for producers of that event. They must also produce
-   the reserved event 01.01.00.00.00.00.03.04 if they are not allocated to a physical train (e.g. an unused
-   proxy Train node), or 01.01.00.00.00.00.03.05 if they are allocated to a train (e.g. a real Train node
-   or proxy Train node that is in use). (Both show up; only one is valid at a time)
-
-   For the special case of nodes that implement connections to legacy equipment (proxies), specific
-   addresses have been assigned. For example, nodes that implement communications to DCC decoders must be
-   available at the well-known node ID 6.1.0.(CS number).(address), where address is the long or short NMRA
-   DCC address for a decoder. (Nodes that communicate with a particular decoder may also appear at other
-   node addresses, if desired)
+   01.01.00.00.00.00.03.03. This means they must produce that event in a Producer/Consumer Event Report
+   message when they power up, and reply to requests for producers of that event. An IdentifyProducer
+   request will therefore find all the train nodes on the OpenLCB, and further protocols can be used to get
+   additional information on the individual Train nodes it locates.
 
    SNIP will be used to carry both manufacturer-provided and user-provided information about the particular
    train node. In particular, the user (Node) Name and (Node) Description fields are to be used to hold
    train identification information that can be retrieved and presented by throttles for selection.
 
-   A search protocol needs to be defined to allow efficient location of specific train nodes on large
-   OpenLCB installations. It provides a general or field-specific search over the SNIP information,
+   A search protocol maay eventually be defined to allow efficient location of specific train nodes on
+   large OpenLCB installations. It provides a general or field-specific search over the SNIP information,
    returning the Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration
    & SNIP, is available here in pdf format and here in OpenOffice Writer.
 
-   Trains are OpenLCB nodes just like any other. As such, they can take part in protocols such as Node
-   Verification and Simple Node Information which allows other nodes to learn about them.
+    2.7.4.1 Proxy-Specific Details
 
-   This is necessary because the train operator doesn't want to pick up a throttle and enter
-   "06.011.00.02.1F.2D" (a node ID), or even "110 Long" (a DCC address), but rather just pick the desired
-   locomotive from a list of those available. (Throttle should still allow the operator to directly enter
-   the address, when that's what the operator wants to do.)
+   For locating all proxies and just idle or in use proxies, two well-known Event IDs are used:
 
-   The Train Acquisition Protocol simplifies this process so that small hand-held throttle nodes can
-   efficiently take part.
+   Proxy must produce the reserved event
 
-   The protocol uses three well-known event IDs:
+     * EventID 01.01.00.00.00.00.03.04 indicates the node is a proxy in Idle state
 
-   01.01.00.00.00.00.03.03 (isTrain) This node is a Train (or Train Proxy)
+     * Event ID 01.01.00.00.00.00.03.05 indicates the node is a proxy in InUse state
 
-   01.01.00.00.00.00.03.04 (isIdleProxy) This node is an idle Train Proxy, not associated with a Train
+   The node shall produce both events, which means that it will respond to IdentifyProducer and
+   IdentityEvents requests by indicating that it produces these event IDs, marking the one the corresponds
+   to the current state as valid, and the one that doesn't correspond to the current state as invalid. When
+   the state changes, the node will transmit a Producer/ConsumerEventReport message with the event ID
+   corresponding to the new state.
 
-   01.01.00.00.00.00.03.05 (isInUseProxy) This node is an in-use Train or Train Proxy
+                                           3 Background Information
 
-   (The last two are specific to proxy-based implementations, here for completeness; see e.g. the DCC page
-   for more info)
-
-   All Train nodes produce the isTrain event. That means they announce it when they first come up, respond
-   to EventProduced requests for it, and list it when replying to IdentifyEvent messages.
-
-   An EventProduced request will therefore find all the train nodes on the OpenLCB, and further protocols
-   can be used to get additional information on the individual Train nodes it locates.
-
-                                    3 Section TitleBackground Information
-
-3.1
-
-                                               4 Section Title
-
-4.1 Subsection Title
-
-  4.1.1 Sub-subsection Title
-
-   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
-   odio.
-
-     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
-       sed massa.
-
-                                               5 Section Title
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus. Proxies
-
-  5.1.1 Lifecycle & Location
-
-   Each proxy has a lifecycle:
-
-    1. It is created. This might be when a physical node (the proxy or a physical node hosting a number of
-       proxies within it) comes up, or it might be produced as needed.
-
-    2. A node reserves it. This ensures that only one node does the configuration of the proxy.
-
-    3. The reserving node attaches one or more DCC addresses or Node IDs to the proxy. These are the items
-       that the proxy will operate.
-
-    4. The reserving node releases the proxy node.
-
-    5. The proxy is used to operate the equipment at that attached address(es). (Although this is optional,
-       it's the whole point of having the proxy)
-
-    6. A node reserves it, to ensure it's the only node changing the configuration.
-
-    7. The reserving node deallocate the addresses from it.
-
-    8. The reserving node releases the proxy node. When/if the last address and Node ID have been
-       deallocated, the proxy is now idle.
-
-    9. (Items 2 through 8 are a loop, and can happen multiple times)
-
-   10. Finally, the proxy is destroyed. (This is optional; a proxy may stay around until the layout is
-       powered off)
-
-   So long as the proxy can do it's job, there's nothing that requires the proxy to be resident in the
-   command station hardware. It can be a separate board, in a computer somewhere that talks to pre-existing
-   legacy equipment, or something else. One way for OpenLCB vendors to support DCC is to put the proxies
-   and a command station in a single unit, but that's not required. Another approach would be an
-   OpenLCB-compatible board that provides proxies, which then talk out through a LocoNet, XpressNet, TMCC
-   or other connection to a legacy command station of a particular type.
-
-   The simplest way to provide N proxies is to have N nodes appear when the layout turns on. At any given
-   instant, only one idle proxy is needed, so another approach would be to create them as needed. In this
-   case, the newly created ones will get link access (e.g. go through the process of getting an alias on
-   CAN), then announce their existence with an InitializationComplete message followed by
-   ProducerIdentified and ConsumerIdentified messages as needed. Those can be used by Throttle nodes to
-   track the NodeID of available proxies without having to query for one. Note that this process needs to
-   be very fast, so that multiple throttles needing to allocate proxies at the same time can reliably do
-   it.
-
-   In the OLCB Train world simply requesting which nodes are Train Nodes (isTrain) is sufficient to begin
-   communicating with it through the Traction Protocol. In the Proxy Train world there needs to be an
-   additional step to create a connection between the Train Proxy and the underlying DCC locomotive. This
-   connection can not be static or you would need as many Proxy Train Nodes as there are possible DCC
-   addresses (~10k). This connection step implies that a Train Proxy Node may or may not have a valid
-   connection with the underlying protocol during its existence. Due to this two more states need to be
-   added to the "IsTrain" state of a Train Node (isIdleProxy, isInUseProxy). Two are used because it is
-   necessary to always have a defined response if the Proxy Node is allocated or not. It would not be
-   acceptable to have the Event be sent if it is associated with the underlying protocol and not sent if
-   the node was not. How long does the caller wait before it decides the Event will not be sent?
-
-  5.1.2 Collisions During Allocation
-
-   You have to check the reply code and try again. That might mean inquiring for a new proxy idle proxy.
-
-  5.1.3 Legacy Protocol Proxies
-
-   The upper nibble of the Configure Proxy attach/detach instruction is intended to identify the specific
-   protocol.
-
-   Query: Is 16 technologies sufficient? Here is a partial list of technologies we may have to support:
-
-    1. OpenLCB
-
-    2. DC
-
-         1. With or without extensions for high-frequency constant lighting
-
-         2. With or without extensions for three-rail control (eliminates need for reversing loops)
-
-    3. DCC
-
-    4. Märklin Digital (old and new)
-
-    5. Märklin DELTA (is this a subset of Märklin Digital, or something different?)
-
-    6. Märklin Digital (2004 w/ESU)
-
-    7. Selectrix
-
-    8. MTH DCS
-
-    9. Lionel LCS/TMCC
-
-   10. Gobs of legacy systems like Hornby Zero 1
-
-   There are two safety values for expansion beyond 16: It's possible to use almost all of the byte for
-   this, not just the top nibble. Only the bottom bit is actually carrying any information. And some of
-   these might be the same; the instruction is really only moving an address, which for DCC can be thought
-   of as a 16-bit number. If command stations only deal with one protocol (but see the Digitrax command
-   station line), then they don't really need to know about different protocols here, they just need to
-   know the format of the address.
-
-5.2 Consisting
-
-   Consisting is a process familiar to model railroaders, who use it for many purposes:
-
-     * Run multiple diesel engines together as a model MU
-
-     * Run helper locomotives together due to a shortage of (real) engineers
-
-     * Connect multiple pieces of rolling stock (passenger cars, cabooses) together to make it easier to
-       control sound and lighting effects
-
-     * Connect sound decoders with motion-control decoders so they work well together
-
-   OpenLCB handles consisting and similar “one acts for many” situations by having a node act as the
-   front-man for the consisted group. This node may be a real physical object, but it's more likely to be a
-   software construct somewhere within the hardware that's used to connect the main OpenLCB network to the
-   actual trains.
-
-   A new protocol is going to have to be created for the set-up and tear-down of consists. It will
-   certainly interact with the (Traction) Reservation protocol, and they may best be defined together. This
-   will assign a new node to handle the consist (either creating it from scratch, or assigning it out of a
-   pre-existing pool), then inform that node of which OpenLCB Train nodes it will be controlling and what
-   their roles are.
-
-   Once the consisting node has been initialized, it will handle the individual parts of the Traction
-   Protocol series:
-
-     * Speed Control - this is perhaps the simplest, just passing the speed values through to the
-       individual members of the consist. Because OpenLCB speeds are in scale meters/second, there's by
-       definition no need to rescale them when forwarding them to disparate equipment
-
-     * Function Control - Although the setup process may be able to map or reassign functions in the
-       consist-member nodes, in the end this protocol is just a pass-through of the memory configuration
-       options
-
-     * Train Configuration - except for very limited configuration of the consist itself, the consist does
-       not take part in any configuration operations. Those will go directly to the nodes that control the
-       individual pieces of the consist. (CDI for the consist node is going to require careful definition)
-
-     * Train Acquisition Protocol - the consist is a separately locatable thing, as throttles will want to
-       be able to find it. As such, it will take part in producing the well-known events, providing human
-       readable (and writable) information via SNII/ACDI, etc, and being the target of search operations.
-
-   Because there's no protocol difference between full-OpenLCB-node Trains and legacy equipment that uses
-   OpenLCB proxy nodes, consisting works the same for all of those. It can even mix-and-match full nodes
-   with various types of legacy trains, if that's electrically possible.Proxy can handle multiple node IDs
-   (and/or DCC addresses), which allows implementation of consisting. Speed/direction just passes through;
-   speed matching is automatic due to the use of scale meters/second for units.
-
-   It's up to the proxy how to handle pass-through of functions. (Do we need to have a way to specify which
-   of the included nodes IDs (and/or DCC addresses) are special, e.g. front or rear locomotive, in the
-   setup?)
-
-   It's up to the proxy how to handle pass-through of configuration read and/or writes. Probably just don't
-   allow them, or allow them only for configuration of the consist itself (e.g. how to do certain pass
-   throughs)
-
-5.3 Speed Control
+3.1 Speed Control
 
    For OpenLCB, the speed and direction to set is encoded as a half-precision floating point number (aka
    'float16'), with positive numbers indicating forward direction, negative indicating reverse, and
    (signed) zero indicating full stop. The value specifies a speed in scale meters per second (scale-m/s).
 
+   Note that even the zero value is signed. This is needed because locomotives still have a direction, even
+   when they are fully stopped. It's used to control the configuration of lights and sounds that the
+   locomotive exhibits when stopped. “Negative zero” is well-defined in the IEEE float-16 standard, but not
+   all libraries implement it well, and it's easy for code to convert the negative-zero value to the more
+   common positive-zero by default. Setting the sign after all computations are done is one way to handle
+   this.
+
    Rationale: The use of a 16-bit floating point permits relatively precise speed commands, especially at
    lower speeds; such fine granularity ensures not just fine-grained control over the locomotive, but helps
    avoid aliasing issue that arise during the conversion to lower resolution system-specific speed commands
-   (i.e. DCC's 14 or 28-step commands).
+   (i.e. DCC's 14 or 28-step commands). Using 32-bit floats uses more bandwidth, more program and data
+   memory and CPU cycles on small nodes, but is somewhat easier for large nodes. The conversion between
+   float-16 and float-32 is very simple, though, and any node with native 32-bit support can handle
+   float-16 easily. The converse is not true.
 
    The use of meters per second is somewhat arbitrary, and reflects standard velocity units used throughout
-   the metric-speaking world. By standardizing on m/s, we avoid any future unit conversion issues.
+   the metric-speaking world. By standardizing on specific units, we avoid any future unit conversion
+   issues. By standardizing on metric units, we simplify future attempts to simulate and control train
+   physics.
 
    The use of scale meters per second has two distinct advantages. First, it permits us to transmit speed
    commands in a scale-independent way. Second, and because of this, it reduces the number of parameters
@@ -769,20 +585,20 @@
    station need only estimate what a reasonable top speed for a locomotive might be: Let us say, 100mph.
    Thus, the command station could reasonably estimate that 30mph translates to speed step 8.
 
-   The alternative possibilities considered to date are absolute speed using real units (as opposed to
-   scale units), and relative speed units. The difficulty with relative speed units (i.e., percentage of
-   full throttle), is that they are ambiguous, and preclude the possibility of performing physical
-   simulations in the cab controller, at least without completely abandoning the particular interpretations
-   assigned to sped values. The difficulty with using real (as opposed to scale) units is that it requires
-   the estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale.
-   If I issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only
+   The alternative possibilities considered were absolute speed using real units (as opposed to scale
+   units), and relative speed units. The difficulty with relative speed units (i.e., percentage of full
+   throttle), is that they are ambiguous, and preclude the possibility of performing physical simulations
+   in the cab controller, at least without completely abandoning the particular interpretations assigned to
+   sped values. The difficulty with using real (as opposed to scale) units is that it requires the
+   estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale. If I
+   issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only
    understand what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1
    m/s might be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use
    as a default, users must configure their digital command station to set the scale for either the entire
    layout, or on a per-model basis—an additional configuration step that is easily avoided by the mechanism
    for scale units described above.
 
-5.4 Function Control
+3.2 Function Control
 
    "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
    they're also configuration-like, in that they effect the operation of the device.
@@ -817,23 +633,7 @@
    function. These are thought to be too brittle, and there are just too many possibilities to be useful
    (see the unscientific and incomplete Survey of existing function names).
 
-   "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
-   they're also configuration-like, in that they effect the operation of the device.
-
-   How to handle them for a native OpenLCB piece of rolling stock, and for legacy ones via e.g. DCC?
-
-   We could take the purist approach and say "configuration is configuration, it's all the same". But that
-   ignores that many people are going to want "Bell" to appear (automatically) on their throttle, but not
-   so many are going to want "Kp back-emf correction factor" to appear there.
-
-   People just think about operating and configuring their locomotives as separate things. (Though e.g.
-   "Master Volume" can cross the line)
-
-   This doesn't mean that we can't use the same protocol for all other of them. A mixture of memory
-   configuration and CDI should do just fine. It just means that we need to find a way to include clueing
-   information for the throttles on e.g. what to present.
-
-  5.4.1 Outputs vs Functions
+  3.2.1 Outputs vs Functions
 
    Tools like DecoderPro and its decoder-definition files make a distinction between "functions", which are
    the control commands sent via e.g. DCC, and "outputs", which are the things that a decoder can do:
@@ -846,7 +646,7 @@
    configuration & physical information, which lives in the memory configuration and CDI. If there's to be
    a mapping, it's defined through the CDI.
 
-5.5 Configuration
+3.3 Configuration
 
    Trains are OpenLCB nodes just like any other. As such, the Memory Configuration protocol can be used to
    configure them, the Configuration Description Information system can be used to make that process user
@@ -885,13 +685,167 @@
 
      * Decoder Type (Manufacturer, model)
 
-5.6 How to find human-readable loco information
+3.4 How to find human-readable loco information
 
    e.g. SNII for getting the name of a real loco, DCC loco
 
-5.7 Legacy Train Operations
+3.5 Consisting
 
-  5.7.1 Configuration
+   Consisting is a process familiar to model railroaders, who use it for many purposes:
+
+     * Run multiple diesel engines together as a model MU
+
+     * Run helper locomotives together due to a shortage of (real) engineers
+
+     * Connect multiple pieces of rolling stock (passenger cars, cabooses) together to make it easier to
+       control sound and lighting effects
+
+     * Connect sound decoders with motion-control decoders so they work well together
+
+   OpenLCB handles consisting and similar “one acts for many” situations by having a node act as the
+   front-man for the consisted group. This node may be a real physical object, but it's more likely to be a
+   software construct somewhere within the hardware that's used to connect the main OpenLCB network to the
+   actual trains.
+
+   Once the consisting proxy node has been initialized, it will handle the individual parts of the Traction
+   Protocol series:
+
+     * Speed Control - this is perhaps the simplest, just passing the speed values through to the
+       individual members of the consist. Because OpenLCB speeds are in scale meters/second, there's by
+       definition no need to rescale them when forwarding them to disparate equipment
+
+     * Function Control - Although the setup process may be able to map or reassign functions in the
+       consist-member nodes, in the end this protocol is just a pass-through of the function instructions
+       and memory access protocol operations.
+
+     * Train Configuration - except for very limited configuration of the consist itself, the consist does
+       not take part in any configuration operations. Those are done by talking directly to the nodes that
+       control the individual pieces of the consist. (CDI for the consist node is going to require careful
+       definition)
+
+     * Train Acquisition Protocol - the consist is a separately locatable thing, as throttles will want to
+       be able to find it. As such, it will take part in producing the well-known events, providing human
+       readable (and writable) information via SNII/ACDI, etc, and being the target of search operations.
+
+   Because there's no protocol difference between full-OpenLCB-node Trains and legacy equipment that uses
+   OpenLCB proxy nodes, consisting works the same for all of those. It can even mix-and-match full nodes
+   with various types of legacy trains, if that's electrically possible. Proxies can handle multiple node
+   IDs (and/or DCC addresses), which allows implementation of consisting. Speed/direction just passes
+   through; speed matching is automatic due to the use of scale meters/second for units.
+
+3.6 Proxies
+
+   Proxies are used to have a single proxy node run multiple OpenLCB trains together and/or to run legacy
+   trains as OpenLCB-aware trains.
+
+  3.6.1 Lifecycle & Location
+
+   Each proxy has a lifecycle:
+
+    1. It is created. This might be when a physical node (the proxy or a physical node hosting a number of
+       proxies within it) comes up, or it might be produced as needed.
+
+    2. A node reserves it. This ensures that only one node does the configuration of the proxy.
+
+    3. The reserving node attaches one or more DCC addresses or Node IDs to the proxy. These are the items
+       that the proxy will operate.
+
+    4. The reserving node releases the proxy node.
+
+    5. The proxy is used to operate the equipment at that attached address(es). (Although this is optional,
+       it's the whole point of having the proxy)
+
+    6. A node reserves it, to ensure it's the only node changing the configuration.
+
+    7. The reserving node deallocate the addresses from it.
+
+    8. The reserving node releases the proxy node. When/if the last address and Node ID have been
+       deallocated, the proxy is now idle.
+
+    9. (Items 2 through 8 are a loop, and can happen multiple times)
+
+   10. Finally, the proxy is destroyed. (This is optional; a proxy may stay around until the layout is
+       powered off)
+
+   So long as the proxy can do its job, there's nothing that requires the proxy to be resident in the
+   command station hardware. It can be a separate board, in a computer somewhere that talks to pre-existing
+   legacy equipment, or something else. One way for OpenLCB vendors to support DCC is to put the proxies
+   and a command station in a single unit, but that's not required. Another approach would be an
+   OpenLCB-compatible board that provides proxies, which then talk out through a LocoNet, XpressNet, TMCC
+   or other connection to a legacy command station of a particular type.
+
+   The simplest way to provide N proxies is to have N nodes appear when the layout turns on. At any given
+   instant, only one idle proxy is needed, so another approach would be to create them as needed. In this
+   case, the newly created ones will get link access (e.g. go through the process of getting an alias on
+   CAN), then announce their existence with an InitializationComplete message followed by
+   ProducerIdentified and ConsumerIdentified messages as needed. Those can be used by Throttle nodes to
+   track the NodeID of available proxies without having to query for one. Note that this process needs to
+   be very fast, so that multiple throttles needing to allocate proxies at the same time can reliably do
+   it.
+
+   In the OLCB Train world, simply requesting which nodes are Train Nodes (asking for producers of isTrain
+   event ID) is sufficient to begin communicating with a node through the Traction Protocol. In the Proxy
+   Train world there needs to be an additional step to create a connection between the Train Proxy and the
+   underlying DCC locomotive. This connection can not be static or you would need as many Proxy Train Nodes
+   as there are possible DCC addresses (~10k). This connection step implies that a Train Proxy Node may or
+   may not have a valid connection with the underlying protocol during its existence. Due to this two more
+   states need to be added to the "IsTrain" state of a Train Node (isIdleProxy, isInUseProxy). Two are used
+   because it is necessary to always have a defined response if the Proxy Node is allocated or not. It
+   would not be acceptable to have the Event be sent if it is associated with the underlying protocol and
+   not sent if the node was not. How long does the caller wait before it decides the Event will not be
+   sent?
+
+                                      Allocate, use and release a proxy
+
+                                         Finding a proxy to allocate
+
+  3.6.2 Collisions During Allocation
+
+   You have to check the reply code and try again. That might mean inquiring for a new proxy idle proxy.
+
+                                 Handling a collision during proxy allocation
+
+  3.6.3 Legacy Protocol Proxies
+
+   The upper nibble of the Configure Proxy attach/detach instruction is intended to identify the specific
+   protocol.
+
+   Query: Is 16 technologies sufficient? Here is a partial list of technologies we may have to support:
+
+    1. OpenLCB
+
+    2. DC
+
+         1. With or without extensions for high-frequency constant lighting
+
+         2. With or without extensions for three-rail control (eliminates need for reversing loops)
+
+    3. DCC
+
+    4. Märklin Digital (old and new)
+
+    5. Märklin DELTA (is this a subset of Märklin Digital, or something different?)
+
+    6. Märklin Digital (2004 w/ESU)
+
+    7. Selectrix
+
+    8. MTH DCS
+
+    9. Lionel LCS/TMCC
+
+   10. Gobs of legacy systems like Hornby Zero 1
+
+   There are two safety values for expansion beyond 16: It's possible to use almost all of the byte for
+   this, not just the top nibble. Only the bottom bit is actually carrying any information. And some of
+   these might be the same; the instruction is really only moving an address, which for DCC can be thought
+   of as a 16-bit number. If command stations only deal with one protocol (but see the Digitrax command
+   station line), then they don't really need to know about different protocols here, they just need to
+   know the format of the address.
+
+3.7 Legacy Train Operations
+
+  3.7.1 Configuration
 
    For DCC trains, there are two parts:
 
@@ -905,6 +859,10 @@
    a more restricted form of the configuration protocols. For more information, see the page on DCC CV
    Programming. Non-DCC roster information could be separately stored in the proxy node serving a
    particular locomotive.
+
+   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
+   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
+   through Cvs?
 
    For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
 
@@ -942,19 +900,14 @@
    reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
    e.g. DecoderPro does.
 
-   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
-   rolling stock.
-
-   Can/should it be adapted to handle the way existing DCC locomotives are configured through CVs?
-
-  5.7.2 Legacy Function Control
+  3.7.2 Legacy Function Control
 
    Many trains offer independent control of various special effects (FX, sometimes called "functions") such
-   as lighting or sound. This command permits a controller to control these effects directly. The first
-   argument is the address of the FX to control as a 24-bit unsigned integer. This protocol does not define
-   a semantics for FX addresses; that is, there is no particular address that is singled out as
-   representing headlights or the air horn. Instead, the addresses are deliberately abstract, permitting
-   the user to decide how to map addresses to FX for each train.
+   as lighting or sound. The Set Function instruction permits a controller to control these effects
+   directly. The first argument is the address of the FX to control as a 24-bit unsigned integer. This
+   protocol does not define a semantics for FX addresses; that is, there is no particular address that is
+   singled out as representing headlights or the air horn. Instead, the addresses are deliberately
+   abstract, permitting the user to decide how to map addresses to FX for each train.
 
    Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00
    should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX
@@ -1007,7 +960,7 @@
    available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
    Controls.
 
-  5.7.3 Legacy Throttles and Throttle Busses
+  3.7.3 Legacy Throttles and Throttle Busses
 
    The most straight-forward way to allow use of existing legacy DCC throttles and systems is to connect
    the DCC output of their command station to an OpenLCB node. That node then extracts the speed, function,
@@ -1037,7 +990,7 @@
 
    1.2.3 Train on New Layout 2
 
-   1.2.4 Legacy Train on New Layout 2
+   1.2.4 Legacy Train on New Layout 3
 
    1.3 Unserved Use Cases 3
 
@@ -1063,21 +1016,23 @@
 
    2.4.3 Traction Control Reply Message 5
 
+   2.4.3.1 Proxy-Specific 8
+
    2.5 States 9
 
    2.6 Memory Spaces 9
 
-   2.6.1 Configuration information 9
+   2.6.1 Configuration Information 9
 
    2.6.2 CDI 9
 
-   2.6.3 Function information 0xF9 9
+   2.6.3 Function Information 0xF9 9
 
    2.6.4 Function Definition Information FDI 0xFA 10
 
-   2.7 Interactions 10
+   2.7 Interactions 11
 
-   2.7.1 Emergency Stop 10
+   2.7.1 Emergency Stop 11
 
    2.7.2 Function Operation 11
 
@@ -1085,57 +1040,37 @@
 
    2.7.4 Train Identification 11
 
+   2.7.4.1 Proxy-Specific Details 12
+
    3 Background Information 13
 
-   3.1 Proxies 13
+   3.1 Speed Control 13
 
-   3.1.1 Lifecycle & Location 13
+   3.2 Function Control 14
 
-   3.1.2 Collisions During Allocation 14
+   3.2.1 Outputs vs Functions 14
 
-   3.1.3 Legacy Protocol Proxies 14
+   3.3 Configuration 15
 
-   3.2 Consisting 14
+   3.4 How to find human-readable loco information 15
 
-   3.3 Speed Control 16
+   3.5 Consisting 16
 
-   3.4 Function Control 16
+   3.6 Proxies 16
 
-   3.4.1 Outputs vs Functions 17
+   3.6.1 Lifecycle & Location 17
 
-   3.5 Legacy Train Operations 17
+   3.6.2 Collisions During Allocation 19
 
-   3.5.1 Configuration 17
+   3.6.3 Legacy Protocol Proxies 20
 
-   3.5.2 Legacy Function Control 17
+   3.7 Legacy Train Operations 20
 
-   3.6 How to find human-readable loco information 18
+   3.7.1 Configuration 20
 
-   4 Wiki Text (to merge) 18
+   3.7.2 Legacy Function Control 21
 
-   4.1 Handling Legacy Systems 18
+   3.7.3 Legacy Throttles and Throttle Busses 22
 
-   4.1.1 Legacy Throttles and Throttle Busses 18
-
-   4.2 DCC CV Programming 19
-
-   4.3 Train Configuration 20
-
-   4.3.1 DCC Considerations 20
-
-   4.4 Function Control 21
-
-   4.4.1 Function Storage and Description 21
-
-   4.5 Speed Control 21
-
-   4.5.1 Inquiring after a Train's Speed 22
-
-   4.6 Train Discovery 23
-
-   4.6.1 Common 23
-
-   4.6.2 Rationale 23
-
-   Copyright 20113. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 29 - 5/2/2013May 2, 2013
+   Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
+   25 - May 3, 2013
