@@ -186,6 +186,10 @@
    “instruction”, which defines the rest of the format. The instruction codes were selected with the high
    nibble representing protocol (0x00 for OpenLCB full protocol; 0x80 for DCC legacy; others reserved)
 
+   Dedicated OpenLCB messages are defined for traction control, instead of using datagrams, so that they
+   have higher priority. Given the small size of these messages, they also use less bandwidth than
+   datagrams.
+
    Instruction         Byte 0 Byte 1                   Byte 2     Byte 3 Byte 4        Byte 5 Byte 6 Byte 7 
    Set Speed/Direction 0x00   Speed and direction as signed                                                 
                               float16                  
@@ -211,7 +215,8 @@
 
     
 
-   Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions.
+   Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions, see discussion
+   later on.
 
    The Set Function instruction uses a three-byte address for brevity; it's to be interpreted with a high
    byte of zero to make a four byte address in the function memory space (0xFA).
@@ -255,6 +260,10 @@
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
+
+   There's no reply defined to Set Speed and Set Function to reduce bandwidth use.  OpenLCB is a
+   reliable-transport network, so these replies are not required for reliability.  Train nodes must be able
+   to receive and process them at full rate, as they can arrive adjacent to each other on the link.
 
    The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
    two additional speeds.  If a node cannot provide any of those three speeds, it should use float16 NaN
@@ -472,7 +481,7 @@
    Verification and Simple Node Information which allows other nodes to learn about them.
 
    Train Acquisition Protocol is necessary because the train operator doesn't want to pick up a throttle
-   and enter "06.011.00.02.1F.2D" (a node ID), or even "110 Long" (a DCC address), but rather just pick the
+   and enter “06.011.00.02.1F.2D” (a node ID), or even “110 Long” (a DCC address), but rather just pick the
    desired locomotive from a list of those available. (A throttle should still allow the operator to
    directly enter the address, when that's what the operator wants to do.)
 
@@ -585,9 +594,20 @@
    People just think about operating and configuring their locomotives as separate things. (Though e.g.
    "Master Volume" can cross the line)
 
-   This doesn't mean that we can't use the same protocol for all other of them. A mixture of memory
-   configuration and CDI should do just fine. It just means that we need to find a way to include clueing
-   information for the throttles on e.g. what to present.
+   This doesn't mean that we can't use the same protocol for all of them. A mixture of memory configuration
+   and CDI-like definition information should do just fine. It just means that we need to find a way to
+   include clueing information for the throttles on e.g. what to present.
+
+   Many trains offer independent control of various special effects (FX, sometimes called "functions") such
+   as lighting or sound. The Set Function instruction permits a controller to control these effects
+   directly. The first argument is the address of the FX to control as a 24-bit unsigned integer. This
+   protocol does not define a semantics for FX addresses; that is, there is no particular address that is
+   singled out as representing headlights or the air horn. Instead, the addresses are deliberately
+   abstract, permitting the user to decide how to map addresses to FX for each train.
+
+   Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00
+   should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX
+   should treat the 16-bit value as an unsigned integer.
 
    Function values are stored in the 0xF9 memory space. "Function Definition Information", similar in
    intent to Configuration Definition Information (CDI) is stored in XML format in address space 0xFA to
@@ -618,6 +638,54 @@
    OpenLCB makes a clean separation between functions, which are the control operations, and all
    configuration & physical information, which lives in the memory configuration and CDI. If there's to be
    a mapping, it's defined through the CDI.
+
+  3.2.2 Legacy Function Control
+
+   Although currently most DCC throttles only permit access to 12 or 29 functions, DCC technically permits
+   as many as 32796 different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two
+   Instruction, and Feature Expansion Command Instruction especially the Binary State Control Subcommand).
+   For this reason, it seems prudent to go ahead and use a 24-bit value.
+
+   Likewise, although current DCC decoders only permit binary FX, some (for example SoundTraxx Tsunami
+   sound decoders) actually permit a kind of analog control of FX by combining multiple DCC Functions.
+   Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off.
+
+   One problem that faces the decision to use a single command with a numerical FX addressing system is
+   that any kind of standardized assignment of FX addresses to particular FX is impossible in practice.
+   DCC, for example, makes no such prescription, although by convention function F0 controls
+   direction-sensitive headlights. Beyond this lies only manufacturers' conventions. Thus, any kind of
+   mapping is best handled on a per-train basis, by configuring the mapping between particular FX (e.g.
+   headlights, air horn) to FX addresses for each train.
+
+   One way to mitigate this problem is to not make fixed FX address assignments, but to map them directly
+   onto the addressing scheme used by the various control systems, that is, to leave each address in the
+   OpenLCB FX address space uninterpreted. In this way, the default behavior of each address will map
+   directly onto the default behavior of the decoder in the train, giving some degree of predictability to
+   the system, and permitting a digital command station the make reasonable guesses about the possible
+   address-to-FX mappings. Nevertheless, users will often need to be exposed to this implementation detail,
+   which is deeply unfortunate, but necessary given the ultimate flexibility of current train control
+   systems.
+
+   Thus, it is recommended that the FX address space be mapped directly to the particular control system's
+   address space; thus DCC F0 becomes FX address 0x000000, F1 becomes 0x000001, etc. The DCC Binary State
+   addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning with
+   0b1.0000.0000.0000.0000). Other systems should be handled analogously.
+
+   RP-9.2.1 defines the following:
+
+     * Function Group One: 5 (F0-F4)
+
+     * Function Group Two: 8 (F5-F12)
+
+     * Binary State Control: 32767 (15bits) (note: different address space!)
+
+     * Feature Expansion Command 11110: 8 (F13-F20)
+
+     * Feature Expansion Command 11111: 8 (F21-F28)
+
+   And in the future, perhaps even more. Possibly a lot more. There are just under 20 bits of address space
+   available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
+   Controls.
 
 3.3 Configuration
 
@@ -658,9 +726,65 @@
 
      * Decoder Type (Manufacturer, model)
 
+  3.3.1 Legacy DCC Configuration
+
+   For DCC trains, there are two parts:
+
+     * CV access (with the added complexity of indexed and double-indexed Cvs)
+
+     * Programmer (main, programming track) control.
+
+   In the special case of legacy equipment, for example DCC locomotives which are configured via CV values,
+   the situation is a little more complex. The train may need to be on a special section of "programmer"
+   track, or only certain values can be changed in certain ways, etc. These legacy devices may have to use
+   a more restricted form of the configuration protocols. For more information, see the page on DCC CV
+   Programming. Non-DCC roster information could be separately stored in the proxy node serving a
+   particular locomotive.
+
+   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
+   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
+   through Cvs?
+
+   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
+
+   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
+   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
+   or whatever the user-fiendish manufacturer decides to provide as options.
+
+   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
+   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
+   these, but they're starting to appear in other places too.
+
+   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
+   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
+   spent way to much time debugging weird failures with that.
+
+   A better approach, I think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00 3B,
+   while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
+   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
+   CDI to carry that info, but it's within reason.
+
+   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
+   be just a single bit in one CV, or something more complicated split across two (like long addresses).
+   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
+   other part of the space is actually bit mapped:
+
+   0xFF 00 53 3C
+
+   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
+   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
+
+   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
+   & build it into the gateway to DCC)
+
+   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
+   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
+   e.g. DecoderPro does.
+
 3.4 How to find human-readable loco information
 
-   e.g. SNII for getting the name of a real loco, DCC loco
+   e.g. SNII for getting the name of a real loco, DCC loco. Examples of how to provide a human-readable
+   roster on the throttle.  Interactions with configuration.
 
 3.5 Consisting
 
@@ -822,124 +946,7 @@
    station line), then they don't really need to know about different protocols here, they just need to
    know the format of the address.
 
-3.7 Legacy Train Operations
-
-  3.7.1 Configuration
-
-   For DCC trains, there are two parts:
-
-     * CV access (with the added complexity of indexed and double-indexed Cvs)
-
-     * Programmer (main, programming track) control.
-
-   In the special case of legacy equipment, for example DCC locomotives which are configured via CV values,
-   the situation is a little more complex. The train may need to be on a special section of "programmer"
-   track, or only certain values can be changed in certain ways, etc. These legacy devices may have to use
-   a more restricted form of the configuration protocols. For more information, see the page on DCC CV
-   Programming. Non-DCC roster information could be separately stored in the proxy node serving a
-   particular locomotive.
-
-   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
-   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
-   through Cvs?
-
-   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
-
-   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
-   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
-   or whatever the user-fiendish manufacturer decides to provide as options.
-
-   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
-   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
-   these, but they're starting to appear in other places too.
-
-   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
-   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
-   spent way to much time debugging weird failures with that.
-
-   A better approach, I think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00 3B,
-   while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
-   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
-   CDI to carry that info, but it's within reason.
-
-   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
-   be just a single bit in one CV, or something more complicated split across two (like long addresses).
-   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
-   other part of the space is actually bit mapped:
-
-   0xFF 00 53 3C
-
-   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
-   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
-
-   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
-   & build it into the gateway to DCC)
-
-   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
-   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
-
-  3.7.2 Legacy Function Control
-
-   Many trains offer independent control of various special effects (FX, sometimes called "functions") such
-   as lighting or sound. The Set Function instruction permits a controller to control these effects
-   directly. The first argument is the address of the FX to control as a 24-bit unsigned integer. This
-   protocol does not define a semantics for FX addresses; that is, there is no particular address that is
-   singled out as representing headlights or the air horn. Instead, the addresses are deliberately
-   abstract, permitting the user to decide how to map addresses to FX for each train.
-
-   Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00
-   should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX
-   should treat the 16-bit value as an unsigned integer.
-
-   Rationale: Most digital systems offer multiple FX, each of which is numbered. Although currently most
-   DCC throttles only permit access to 12 or 29 functions, DCC technically permits as many as 32796
-   different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two Instruction, and
-   Feature Expansion Command Instruction especially the Binary State Control Subcommand). For this reason,
-   it seems prudent to go ahead and use a 24-bit value.
-
-   Likewise, although current DCC decoders only permit binary FX, some (for example SoundTraxx Tsunami
-   sound decoders) actually permit a kind of analog control of FX by combining multiple DCC Functions.
-   Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off.
-
-   One problem that faces the decision to use a single command with a numerical FX addressing system is
-   that any kind of standardized assignment of FX addresses to particular FX is impossible in practice.
-   DCC, for example, makes no such prescription, although by convention function F0 controls
-   direction-sensitive headlights. Beyond this lies only manufacturers' conventions. Thus, any kind of
-   mapping is best handled on a per-train basis, by configuring the mapping between particular FX (e.g.
-   headlights, air horn) to FX addresses for each train.
-
-   One way to mitigate this problem is to not make fixed FX address assignments, but to map them directly
-   onto the addressing scheme used by the various control systems, that is, to leave each address in the
-   OpenLCB FX address space uninterpreted. In this way, the default behavior of each address will map
-   directly onto the default behavior of the decoder in the train, giving some degree of predictability to
-   the system, and permitting a digital command station the make reasonable guesses about the possible
-   address-to-FX mappings. Nevertheless, users will often need to be exposed to this implementation detail,
-   which is deeply unfortunate, but necessary given the ultimate flexibility of current train control
-   systems.
-
-   Thus, it is recommended that the FX address space be mapped directly to the particular control system's
-   address space; thus DCC F0 becomes FX address 0x000000, F1 becomes 0x000001, etc. The DCC Binary State
-   addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning with
-   0b1.0000.0000.0000.0000). Other systems should be handled analogously.
-
-   RP-9.2.1 defines the following:
-
-     * Function Group One: 5 (F0-F4)
-
-     * Function Group Two: 8 (F5-F12)
-
-     * Binary State Control: 32767 (15bits) (note: different address space!)
-
-     * Feature Expansion Command 11110: 8 (F13-F20)
-
-     * Feature Expansion Command 11111: 8 (F21-F28)
-
-   And in the future, perhaps even more. Possibly a lot more. There are just under 20 bits of address space
-   available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
-   Controls.
-
-  3.7.3 Legacy Throttles and Throttle Busses
+3.7 Legacy Throttles and Throttle Busses
 
    The most straight-forward way to allow use of existing legacy DCC throttles and systems is to connect
    the DCC output of their command station to an OpenLCB node. That node then extracts the speed, function,
@@ -956,9 +963,6 @@
    between Legacy Throttles and the OpenLCB, and can operate in either of the modes described above.
 
                                                    4 To Do
-
-   The “Legacy” section immediately above needs to be simplified, or even better folded into earlier
-   sections.
 
    More clarity on proxy access to DCC CVs. Discuss selection of programming modes.  Addressing.
 
@@ -1050,7 +1054,11 @@
 
    3.2.1 Outputs vs Functions
 
+   3.2.2 Legacy Function Control
+
    3.3 Configuration
+
+   3.3.1 Legacy DCC Configuration
 
    3.4 How to find human-readable loco information
 
@@ -1064,13 +1072,7 @@
 
    3.6.3 Legacy Protocol Proxies
 
-   3.7 Legacy Train Operations
-
-   3.7.1 Configuration
-
-   3.7.2 Legacy Function Control
-
-   3.7.3 Legacy Throttles and Throttle Busses
+   3.7 Legacy Throttles and Throttle Busses
 
    4 To Do
 
