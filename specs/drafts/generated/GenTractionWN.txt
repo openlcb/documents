@@ -786,6 +786,57 @@
    e.g. SNII for getting the name of a real loco, DCC loco. Examples of how to provide a human-readable
    roster on the throttle.  Interactions with configuration.
 
+   I believe we should strive to make our proposed system not be specific to a particular digital system
+   (e.g. DCC) or otherwise biased. The procedure of "take the cab number from the loco, punch it in and
+   drive" is actually quite US-specific.
+
+   Balazs Racz wrote about how identification works in Europe:
+
+   Each piece of rolling stock is labeled with a unique UIC number. UIC number is a 12 digit number which
+   identifies the type of vehicle, the country in which it is registered, the owner, the type of vehicle
+   and a unique number in its series. It might look like
+
+   91 85 0 474 014 2
+
+   This number is written in a size on the prototype that is legible to a person standing next to it. It is
+   very much not obvious to read it off of a model. this number is not really suitable to punch into a
+   throttle in order to get going...
+
+   [Note about assumptions: Freight cars also have such an ID. However, JMRI itself limits the length of
+   the car ID t something like 8 or 10 characters, so it is not possible to accurately represent a European
+   freight car in JMRI.]
+
+   If you take the shortcut of removing the type and country code, then you end up with 474014, which is a
+   common way to refer to a locomotive say within Switzerland. However, this is too long for a DCC address!
+   So I don't have the choice of putting in the cab number as address. (Of course now your numbers are not
+   unique, for example see http://cfr.stfp.net/Pic/47/915304740144DQOM:1.jpg and
+   http://www.bahnbilder.de/1024/sbb-fahrzeugausstellung-bei-sbb-459408.jpg)
+
+   Another example: MFX is the current track protocol of Marklin. MFX is bidirectional, and locomotives
+   sign in with the command station as soon as they get put on the track. MFX uses 11, 14 or 28 bit
+   addresses. The locomotive address is assigned by the command station upon the login of the locomotive.
+   It is not persistent. The user never sees the locomotive address and in fact it may even be changed by
+   the command station if it so desires.
+
+   So punching in the loco address into the throttle is also not an option.
+
+   Example 3: Older Marklin protocol (Marklin-Motorola protocol or MM) supported only 79 different
+   addresses on the track. Then the address on the track had again nothing to do with the actual engine
+   number, and you don't need to have an extraordinarily large collection to run into duplicate addresses.
+   However, owners of such collections do typically remember the two-digit address of each locomotive they
+   have, because older command stations only had digit buttons for selecting a locomotive.
+
+   I would find it a shame if the recommended design of OpenLCB would only support US-based roads.
+
+   State of the art command stations have color touchscreens where they display you a list of locomotives
+   that you can select from with a fingerpress and get running. You either populate this roster by hand, or
+   it gets populated automatically for locomotives that log in via track feedback systems (like MFX or
+   RailcomPlus). Typically pictures are also assigned to each locomotive.
+
+   Note that SNII/ACDI defines a manufacturer as < 41 bytes, model name < 41 bytes, hardware & software
+   versions < 21, node name < 63 bytes, node description < 64 bytes (including terminating null), much more
+   of than Balazs' example.
+
 3.5 Consisting
 
    Consisting is a process familiar to model railroaders, who use it for many purposes:
