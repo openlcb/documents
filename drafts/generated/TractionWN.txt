@@ -4,7 +4,7 @@
 
                                                                Traction Protocol
 
-                                                    May 6, 2013                        Preliminary          
+                                                   May 19, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -813,6 +813,58 @@
    e.g. SNII for getting the name of a real loco, DCC loco. Examples of how to provide a human-readable
    roster on the throttle. Interactions with configuration.
 
+   I believe we should strive to make our proposed system not be specific to a particular digital system
+   (e.g. DCC) or otherwise biased. The procedure of "take the cab number from the loco, punch it in and
+   drive" is actually quite US-specific.
+
+   Balazs Racz wrote about how identification works in Europe:
+
+     Each piece of rolling stock is labeled with a unique UIC number. UIC number is a 12 digit number which
+     identifies the type of vehicle, the country in which it is registered, the owner, the type of vehicle
+     and a unique number in its series. It might look like
+
+     91 85 0 474 014 2
+
+     This number is written in a size on the prototype that is legible to a person standing next to it. It
+     is very much not obvious to read it off of a model. this number is not really suitable to punch into a
+     throttle in order to get going...
+
+     [Note about assumptions: Freight cars also have such an ID. However, JMRI itself limits the length of
+     the car ID t something like 8 or 10 characters, so it is not possible to accurately represent a
+     European freight car in JMRI.]
+
+     If you take the shortcut of removing the type and country code, then you end up with 474014, which is
+     a common way to refer to a locomotive say within Switzerland. However, this is too long for a DCC
+     address! So I don't have the choice of putting in the cab number as address. (Of course now your
+     numbers are not unique, for example see http://cfr.stfp.net/Pic/47/915304740144DQOM:1.jpg and
+     http://www.bahnbilder.de/1024/sbb-fahrzeugausstellung-bei-sbb-459408.jpg)
+
+     Another example: MFX is the current track protocol of Marklin. MFX is bidirectional, and locomotives
+     sign in with the command station as soon as they get put on the track. MFX uses 11, 14 or 28 bit
+     addresses. The locomotive address is assigned by the command station upon the login of the locomotive.
+     It is not persistent. The user never sees the locomotive address and in fact it may even be changed by
+     the command station if it so desires.
+
+     So punching in the loco address into the throttle is also not an option.
+
+     Example 3: Older Marklin protocol (Marklin-Motorola protocol or MM) supported only 79 different
+     addresses on the track. Then the address on the track had again nothing to do with the actual engine
+     number, and you don't need to have an extraordinarily large collection to run into duplicate
+     addresses. However, owners of such collections do typically remember the two-digit address of each
+     locomotive they have, because older command stations only had digit buttons for selecting a
+     locomotive.
+
+     I would find it a shame if the recommended design of OpenLCB would only support US-based roads.
+
+     State of the art command stations have color touchscreens where they display you a list of locomotives
+     that you can select from with a fingerpress and get running. You either populate this roster by hand,
+     or it gets populated automatically for locomotives that log in via track feedback systems (like MFX or
+     RailcomPlus). Typically pictures are also assigned to each locomotive.
+
+   Note that SNII/ACDI defines a manufacturer as < 41 bytes, model name < 41 bytes, hardware & software
+   versions < 21, node name < 63 bytes, node description < 64 bytes (including terminating null), much more
+   of than Balazs' example.
+
 3.5 Consisting
 
    Consisting is a process familiar to model railroaders, who use it for many purposes:
@@ -967,63 +1019,6 @@
    station line), then they don't really need to know about different protocols here, they just need to
    know the format of the address.
 
-Legacy Train Operations
-
-  Configuration
-
-   For DCC trains, there are two parts:
-
-     * CV access (with the added complexity of indexed and double-indexed Cvs)
-
-     * Programmer (main, programming track) control.
-
-   In the special case of legacy equipment, for example DCC locomotives which are configured via CV values,
-   the situation is a little more complex. The train may need to be on a special section of "programmer"
-   track, or only certain values can be changed in certain ways, etc. These legacy devices may have to use
-   a more restricted form of the configuration protocols. For more information, see the page on DCC CV
-   Programming. Non-DCC roster information could be separately stored in the proxy node serving a
-   particular locomotive.
-
-   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
-   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
-   through Cvs?
-
-   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
-
-   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
-   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
-   or whatever the user-fiendish manufacturer decides to provide as options.
-
-   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
-   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
-   these, but they're starting to appear in other places too.
-
-   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
-   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
-   spent way to much time debugging weird failures with that.
-
-   A better approach, I think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00 3B,
-   while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
-   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
-   CDI to carry that info, but it's within reason.
-
-   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
-   be just a single bit in one CV, or something more complicated split across two (like long addresses).
-   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
-   other part of the space is actually bit mapped:
-
-   0xFF 00 53 3C
-
-   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
-   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
-
-   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
-   & build it into the gateway to DCC)
-
-   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
-   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
-
   Legacy Function Control
 
    Many trains offer independent control of various special effects (FX, sometimes called "functions") such
@@ -1083,6 +1078,63 @@ Legacy Train Operations
    And in the future, perhaps even more. Possibly a lot more. There are just under 20 bits of address space
    available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
    Controls.
+
+  Configuration
+
+   For DCC trains, there are two parts:
+
+     * CV access (with the added complexity of indexed and double-indexed Cvs)
+
+     * Programmer (main, programming track) control.
+
+   In the special case of legacy equipment, for example DCC locomotives which are configured via CV values,
+   the situation is a little more complex. The train may need to be on a special section of "programmer"
+   track, or only certain values can be changed in certain ways, etc. These legacy devices may have to use
+   a more restricted form of the configuration protocols. For more information, see the page on DCC CV
+   Programming. Non-DCC roster information could be separately stored in the proxy node serving a
+   particular locomotive.
+
+   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
+   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
+   through Cvs?
+
+   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
+
+   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
+   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
+   or whatever the user-fiendish manufacturer decides to provide as options.
+
+   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
+   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
+   these, but they're starting to appear in other places too.
+
+   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
+   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
+   spent way to much time debugging weird failures with that.
+
+   A better approach, I think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00 3B,
+   while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
+   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
+   CDI to carry that info, but it's within reason.
+
+   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
+   be just a single bit in one CV, or something more complicated split across two (like long addresses).
+   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
+   other part of the space is actually bit mapped:
+
+   0xFF 00 53 3C
+
+   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
+   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
+
+   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
+   & build it into the gateway to DCC)
+
+   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
+   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
+   e.g. DecoderPro does.
+
+Legacy Train Operations
 
 3.7 Legacy Throttles and Throttle Busses
 
@@ -1214,4 +1266,4 @@ Legacy Train Operations
    4 To Do 23
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   29 - May 6, 2013
+   29 - May 19, 2013
