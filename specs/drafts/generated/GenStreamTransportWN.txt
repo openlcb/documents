@@ -1,0 +1,180 @@
+                                                1 Introduction
+
+   A Working Note is an intermediate step in the documentation process.  It gathers together the content
+   from various informal development documents, discussions, etc into a single place.  One or more Working
+   Notes form the basic for the next step, which is one or more Standard/TechNote pairs.
+
+1.1 Served Use Cases
+
+1.2 Unserved Use Cases
+
+                                             2 Specified Sections
+
+   This is the usual section organization for a Technical Note, to accumulate the Standard and Technical
+   Note content in its eventual order.
+
+2.1 Introduction
+
+   Note that this section of the Standard is informative, not normative.
+
+2.2 Intended Use
+
+   Note that this section of the Standard is informative, not normative.
+
+2.3 Reference and Context
+
+   Lorem ipsum dolor sit amet, consectetur adipiscing elit.1 Fusce ornare mattis justo vitae imperdiet. Cum
+   sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+
+2.4 Message Formats
+
+  2.4.1 Stream Initiate Request
+
+    
+
+   It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
+   below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source,
+   destination, and Source Stream ID must uniquely identify this stream transmission.
+
+   Data content:
+
+   Byte    Byte    Byte                       Byte              Byte             Byte       
+                   Flags:                                                                   
+                                              
+   Max Buffer Size LSB:  Type Included        Additional Flags: Source Stream ID (Reserved)
+                   0: No type byte            
+                   1: First byte is type byte 
+
+    
+
+    
+
+  2.4.2 Stream Initiate Reply
+
+   Byte    Byte    Byte                             Byte                   Byte          Byte               
+                                                    Additional Flags                                        
+                                                                                                            
+                                                    If Reject              
+                                                                           
+                                                    LSB:                   
+                   Flags                            1: Information Logged  
+                                                                           
+                   LSB:  Type Included              Bit 1:                 
+                   0: No type info                                         
+                   1: Type UID at start of data     Bit 2:                 
+                                                                           
+                   Bit 1:                           Bit 3:                 
+                   1: Stream Rejected, out of order                        
+                   or other “should not happen”     Bit 4:                 
+                   error                                                   
+                   0: (nothing)                     if Reject, Permanent   
+                                                    Error:                 
+                   Bit 2:                                                  
+   Max Buffer Size                                  Bit 5:                 Source Stream Destination Stream
+                   Bit 3:                           1: Invalid Stream      ID            ID
+                                                    Request                
+                   Bit 4:                                                  
+                                                    Bit 6:                 
+                   Bit 5:                           1: Source not          
+                                                    permitted              
+                   Bit 6: Error Type (if Reject)                           
+                   1: Permanent Error               Bit 7:                 
+                   0:  Temporary Error              1: Streams not         
+                                                    accepted               
+                   MSB: Accept/Reject                                      
+                   0: Reject                        if Temporary Error:    
+                   1: Accept                                               
+                                                    Bit 5:                 
+                                                    1: Buffer full         
+                                                                           
+                                                    Bit 6:                 
+                                                    1: Internal error, out 
+                                                    of order               
+
+    
+
+    
+
+  2.4.3 Stream Data Send
+
+    
+
+  2.4.4 Stream Data Proceed
+
+    
+
+   Byte             Byte                  Byte  Byte             
+   Source Stream ID Destination Stream ID Flags Additional Flags 
+
+    
+
+    
+
+  2.4.5 Stream Data Complete
+
+    
+
+   Byte             Byte                  Byte  Byte             
+   Source Stream ID Destination Stream ID Flags Additional Flags 
+
+    
+
+2.5 States
+
+2.6 Interactions
+
+    
+
+    
+
+    
+
+                                           3 Background Information
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+    
+
+   Table of Contents
+
+   1 Introduction
+
+   1.1 Served Use Cases
+
+   1.2 Unserved Use Cases
+
+   2 Specified Sections
+
+   2.1 Introduction
+
+   2.2 Intended Use
+
+   2.3 Reference and Context
+
+   2.4 Message Formats
+
+   2.4.1 Stream Initiate Request
+
+   2.4.2 Stream Initiate Reply
+
+   2.4.3 Stream Data Send
+
+   2.4.4 Stream Data Proceed
+
+   2.4.5 Stream Data Complete
+
+   2.5 States
+
+   2.6 Interactions
+
+   3 Background Information
+
+    
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte
+   numbering. Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions,
+   but note that other technologies may use other conventions.
