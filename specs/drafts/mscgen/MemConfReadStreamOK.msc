@@ -1,0 +1,57 @@
+# MSC for normal mem config read-stream
+msc {
+
+  s [label="Reading Task"], sb [label="Datagram Buffer"], 
+  ss [label="Stream Buffer"],
+  rs [label="Stream Buffer"],
+  rb [label="Datagram Buffer"], r [label="Configuration Task"];
+
+# Sending the command
+  s rbox ss [label="Reading Node"];
+  rs rbox r [label="Configured Node"];
+  
+  s=>sb [label="Read Stream Command"];
+  sb box sb [label="In Use"];
+  
+  sb->rb [ label = "Read Stream Cmd Datagram" ] ;
+  rb box rb [label="In Use"];
+
+  rb=>r [label="Read Stream Cmd Datagram"];
+  r=>rb [label="Complete"];
+
+  rb box rb [label="Free"];
+  
+  rb -> sb [ label="DatagramOK" ] ;
+  
+  sb box sb [label="Free"];
+  sb=>s [label="Complete"];
+  
+# Setting up reply stream
+  r => rs [label="Allocate Stream"] ;
+  rs box rs [label="In Use"];
+  rs -> ss [ label="Stream Init" ] ;
+  ss box ss [label="In Use"];
+  ss -> rs [ label="Stream Init Accept" ] ;
+  
+  
+# Streaming reply
+  r=>rs [label="Send Read Reply & 1st data"];
+  rs -> ss [ label="Stream Data Send" ] ;
+  ss=>s [label="Read Reply & Data"];
+  ss -> rs [ label="Stream Data Proceed" ] ;
+
+
+  r=>rs [label="Send more data"];
+  rs -> ss [ label="Stream Data Send" ] ;
+  ss=>s [label="Data"];
+  ss -> rs [ label="Stream Data Proceed" ] ;
+
+  r=>rs [label="No more data to be read"];
+  rs box rs [label="Free"];
+  rs -> ss [ label="Stream Data Complete" ] ;
+  ss box ss [label="Free"];
+  ss=>s [label="Complete"];
+  
+
+  
+}
