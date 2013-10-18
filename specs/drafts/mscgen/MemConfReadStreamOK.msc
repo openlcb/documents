@@ -26,6 +26,20 @@ msc {
   sb box sb [label="Free"];
   sb=>s [label="Complete"];
   
+# First reply is datagram
+  r=>rb [label="Read Reply"];
+  rb box rb [label="In Use"];
+
+  rb -> sb [ label="Read Reply Datagram" ] ;
+  sb box sb [label="In Use"];
+  sb=>s [label="Read Reply Datagram"];
+  s=>sb [label="Complete"];
+  sb box sb [label="Free"];
+
+  sb -> rb [ label="DatagramOK" ] ;
+  rb box rb [label="Free"];
+  rb=>r [label="Complete"];
+
 # Setting up reply stream
   r => rs [label="Allocate Stream"] ;
   rs box rs [label="In Use"];
@@ -35,15 +49,15 @@ msc {
   
   
 # Streaming reply
-  r=>rs [label="Send Read Reply & 1st data"];
+  r=>rs [label="Send 1st data"];
   rs -> ss [ label="Stream Data Send" ] ;
-  ss=>s [label="Read Reply & Data"];
+  ss=>s [label="Read Data"];
   ss -> rs [ label="Stream Data Proceed" ] ;
 
 
   r=>rs [label="Send more data"];
   rs -> ss [ label="Stream Data Send" ] ;
-  ss=>s [label="Data"];
+  ss=>s [label="More Data"];
   ss -> rs [ label="Stream Data Proceed" ] ;
 
   r=>rs [label="No more data to be read"];
