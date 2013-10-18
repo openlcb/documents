@@ -278,10 +278,30 @@
    The figure shows a typical read operation. The Read Command is carried to the device being configured by
    a datagram, the read operation takes place, and the results are returned in another datagram.
 
+   If the memory configuration protocol is being used to control e.g. DCC CV reads and writes, those
+   operations can take a very long time, 30 seconds or more.
+
+   For reads, the node can return information in the Datagram reply for the Read command that indicates how
+   long it's likely to be before the read is complete and the Ready Reply is returned. That in turn can,
+   but doesn't have to be, used to indicate in-progress status.
+
     2.4.4.2 Write, Write-Reply
 
   A typical memory write operation. The Write Command and data are carried to the node being configured in a
 single datagram. Since the write operation succeeds immediately, the only reply needed is the datagram reply.
+
+   If the memory configuration protocol is being used to control e.g. DCC CV reads and writes, those
+   operations can take a very long time, 30 seconds or more.
+
+   Most writes are assumed to always complete immediately and without error. Writes into memory are
+   certainly like that, but writes to DCC CVs might not be. Into-memory writes are well served by “when the
+   positive reply to the datagram arrives, the write completed successfully”. That requires no extra
+   traffic to handle other cases.
+
+   For the less-common case of writes that might fail and/or take a long time, the reply to the Write
+   datagram can carry a “will reply later” indication, followed by a Write Reply when the operation is
+   done. That Write Reply, in turn, informs the requestor when the operation was complete, and whether it
+   completed OK.
 
     A delayed response, either because the write takes significant time or could fail for some reason. The
  datagram reply to the Write Command carries the reply pending bit set, and a reply datagram is send from the
@@ -310,7 +330,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
                                                   4 General
 
-                                                      5
+                     5 Stuff to be merged into the aboveStuff to be merged into the above
 
                                                    Read           Read-Reply        Read Stream             
 
@@ -438,7 +458,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
     Remainder      
 
-                     6 Stuff to be merged into the aboveStuff to be merged into the above
+                                                      6
 
 6.1 Environment of Protocol
 
@@ -598,6 +618,21 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    First a datagram comes back with reply information, then the stream is created based on the StreamIDs in
    the messages.
 
+   Streams require allocation, which might fail.
+
+     * If the stream can't be allocated locally, one option is to reject the incoming Read Stream Command
+       datagram with “try again later”.
+
+     * Another option if the stream can't be allocated locally is to send a Read Reply with the Failed bit
+       set. (Need to define error code bits!)
+
+     * If the stream fails allocation at the requesting end, the failure of the stream allocation indicates
+       the error, and the requesting node can retry the Read Stream Command.
+
+     * If the stream allocation fails between the two nodes, e.g. as it passes through a gateway, the
+       initiating node will know but the requesting node won't hear about it. That should never happen, but
+       how is a failure like that indicated to the requesting node?
+
     6.2.1.7 Large write via stream
 
    Write [d] →
@@ -636,7 +671,15 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
    ← datagram reply
 
-   ← Read Reply [d]
+     * ←CONFIG_MEM_RESULT_OK : TConfigMemErrorCode = ($00, $00);
+
+     * CONFIG_MEM_RESULT_TERMINATE : TConfigMemErrorCode = ($10, $00);
+
+     * CONFIG_MEM_RESULT_REJECTED_STREAM_PERMANENT_ERROR : TConfigMemErrorCode = ($10, $10); // $10xx high
+       bytes says don't try again
+
+     * CONFIG_MEM_RESULT_REJECTED_STREAM_BUFFER_FULL : TConfigMemErrorCode = ($20, $00); // $20xx high byte
+       says to try again Read Reply [d]
 
    datagram reply →
 
@@ -726,6 +769,19 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    for the node to check whether the new Event ID is already produced or consumed; redundant Identify
    messages are not a problem.
 
+   There are some error bits defined in the message tables here that aren't in the Standard. And there are
+   some undefined error bits for which homes need to be defined (from JimK):
+
+     * * CONFIG_MEM_RESULT_OK : TConfigMemErrorCode = ($00, $00);
+
+     * CONFIG_MEM_RESULT_TERMINATE : TConfigMemErrorCode = ($10, $00);
+
+     * CONFIG_MEM_RESULT_REJECTED_STREAM_PERMANENT_ERROR : TConfigMemErrorCode = ($10, $10); // $10xx high
+       bytes says don't try again
+
+     * CONFIG_MEM_RESULT_REJECTED_STREAM_BUFFER_FULL : TConfigMemErrorCode = ($20, $00); // $20xx high byte
+       says to try again
+
    Table of Contents
 
    1 Introduction 1
@@ -803,4 +859,4 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    4 To Be Merged 16
 
    Copyright 2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   20 - 10/18/2013Oct 18, 2013
+   21 - 10/18/2013Oct 18, 2013
