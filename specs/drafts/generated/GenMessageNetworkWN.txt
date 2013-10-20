@@ -953,23 +953,39 @@ Value(s) 3           0           See Table 1 MTI description                    
 
 5.2 Longer Messages
 
-   Longer than 8-byte global, 7-byte addressed messages don't fit in a single frame.  Discuss mechanism.
-    Includes issues of guaranteed place for global to land in a node, e.g. memory management. (Spare frame
-   type; request resend w/o buffering, but how long to hang on to original?)
+   Longer than 8-byte global, 7-byte addressed messages don't fit in a single frame.  .  This section
+   discusses mechanisms for moving more bytes at a time. The issues include providing guaranteed place for
+   the message to land in a node, e.g. memory management. (Spare frame type; request resend w/o buffering,
+   but how long to hang on to original?)
 
-   PIP reply uses “break into N frames with MTI at start”:  One message becomes N smaller ones.  But it's a
-   directed reply, so the requestor can ensure that the response will be processed on receipt. Label end
-   with a non-full CAN frame (though Io code sends those in the middle), if needed a zero-length frame.
+  5.2.1 Long Addressed Messages
+
+   There are several ways to send more than seven bytes in an addressed message.
+
+   As an example, the PIP reply uses “break into N frames with MTI at start”:  One message becomes N
+   smaller ones.  But it's a directed reply, so the requestor can ensure that the response will be
+   processed on receipt, either by directly processing it or by ensuring that a sufficient buffer is
+   available (PIP determines the size of that buffer, although future expansion needs to be considered).
+   PIP labels the end of the data  with a non-full CAN frame (though the Io code implementation at one time
+   was sending those in the middle), if needed by sending an additional zero-length frame.
 
    How do multi-frame addressed messages work if the receive buffer is full and the receiver has to discard
    the frames? There are several possible approaches. The datagram protocol and stream protocol demonstrate
    two approaches: reject & retransmit, and negotiate a buffer in advance. There are certainly other ways
-   to handle it too.
+   to handle it too. It's up to the protocol(s) that are using a specific message to specify what's to be
+   done.  If a node does need to reject a message because it doesn't have enough buffer space to handle it
+   currently, see the Section 2.7.3.2 (above) discussion about “Reject Addressed Standard Interaction Due
+   to Error”.  This is an error (no buffer space, can;'t continue) but it's likely to be a transient one.
+    The protocol using the specific message should specify the recovery from this condition for each
+   over-length message it uses.
 
    For example, the SNII protocol sends a short message and gets back a lot of data. The SNII reply uses
    the start-end bits so that the individual CAN frames become one long message. The node that initiates
-   the SNII exchange _knows_ that a reply is coming back, _knows_ the max size of that, so should make sure
+   the SNII exchange knows that a reply is coming back, knows the max size of that, so should make sure
    that it has the buffer available (or can handle it some other way) when the large message comes back.
+   Should future expansion make the SNII reply longer than the code in the node expects, either a node can
+   use a more advanced buffering system to handle the additional data, or it can just discard what it can't
+   understand in any case.
 
    A CAN node may only send higher priority frames while in the middle of sending the frames that make up a
    long message.  It may not send messages with the same or lower priority.
@@ -1049,7 +1065,7 @@ Value(s) 3           0           See Table 1 MTI description                    
    the 1st frame in this case), and just know to skip the rest. So the Olcb* implementation does just that:
    Reply to frame with start bit set, whether or not stop bit set; ignore PIP frames without start bit set.
 
-  5.2.1 Long global messages
+  5.2.2 Long global messages
 
    OpenLCB-CAN does not support global messages with data content longer than eight bytes.  This section is
    a discussion of the reasoning behind that, and some of the ways that the restriction could be relaxed.
@@ -1216,7 +1232,9 @@ Value(s) 3           0           See Table 1 MTI description                    
 
    5.2 Longer Messages
 
-   5.2.1 Long global messages
+   5.2.1 Long Addressed Messages
+
+   5.2.2 Long global messages
 
     
 
