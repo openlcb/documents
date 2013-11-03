@@ -87,12 +87,13 @@
 
    Data content:
 
-   Byte    Byte    Byte                       Byte              Byte             Byte       
-                   Flags:                                                                   
-                                              
-   Max Buffer Size LSB:  Type Included        Additional Flags: Source Stream ID (Reserved)
-                   0: No type byte            
-                   1: First byte is type byte 
+   Byte    Byte    Byte                                       Byte              Byte             Byte       
+                   Flags:                                                                                   
+                                                              
+   Max Buffer Size LSB:  Type Included                        Additional Flags: Source Stream ID (Reserved)
+                   0: No type specification                   
+                   1: First six bytes are unique stream       
+                   content UID                                
 
     
 
@@ -109,31 +110,31 @@
                    Flags                            1: Information Logged  
                                                                            
                    LSB:  Type Included              Bit 1:                 
-                   0: No type info                                         
-                   1: Type UID at start of data     Bit 2:                 
+                   0: No type specification                                
+                   1: First six bytes are unique    Bit 2:                 
+                   stream content UID                                      
+                                                    Bit 3:                 
+                   Bit 1:                                                  
+                   1: Stream Rejected, out of order Bit 4:                 
+                   or other “should not happen”                            
+                   error                            if Reject, Permanent   
+                   0: (nothing)                     Error:                 
                                                                            
-                   Bit 1:                           Bit 3:                 
-                   1: Stream Rejected, out of order                        
-                   or other “should not happen”     Bit 4:                 
-                   error                                                   
-                   0: (nothing)                     if Reject, Permanent   
-                                                    Error:                 
-                   Bit 2:                                                  
-   Max Buffer Size                                  Bit 5:                 Source Stream Destination Stream
-                   Bit 3:                           1: Invalid Stream      ID            ID
-                                                    Request                
-                   Bit 4:                                                  
-                                                    Bit 6:                 
-                   Bit 5:                           1: Source not          
-                                                    permitted              
-                   Bit 6: Error Type (if Reject)                           
-                   1: Permanent Error               Bit 7:                 
-                   0:  Temporary Error              1: Streams not         
-                                                    accepted               
-                   MSB: Accept/Reject                                      
-                   0: Reject                        if Temporary Error:    
-                   1: Accept                                               
-                                                    Bit 5:                 
+   Max Buffer Size Bit 2:                           Bit 5:                 Source Stream Destination Stream
+                                                    1: Invalid Stream      ID            ID
+                   Bit 3:                           Request                
+                                                                           
+                   Bit 4:                           Bit 6:                 
+                                                    1: Source not          
+                   Bit 5:                           permitted              
+                                                                           
+                   Bit 6: Error Type (if Reject)    Bit 7:                 
+                   1: Permanent Error               1: Streams not         
+                   0:  Temporary Error              accepted               
+                                                                           
+                   MSB: Accept/Reject               if Temporary Error:    
+                   0: Reject                                               
+                   1: Accept                        Bit 5:                 
                                                     1: Buffer full         
                                                                            
                                                     Bit 6:                 
@@ -229,7 +230,18 @@
    If the “Type Included” flag was true during initialization, the first 6 bytes of the data are a unique
    data-type indicator. These are allocated the same way that Node IDs, etc, are allocated, but from a
    separate name space. If that “Type Included” flag is false, some higher-level protocol must identify the
-   data-type of the stream data.
+   data-type of the stream data. The idea is that a stream is a lot of data; there's not much use for one
+   otherwise because of the setup overhead (code and time). So six bytes for a stream type identifier isn't
+   a large cost (unlike e.g. a datagram, where it would be a 10% overhead). A UID as a Stream type ID has
+   the advantage that it's not ever going to collide, so people developing protocols don't have to
+   coordinate it (e.g. useful for future expansion, where a protocol can be locally developed and then
+   deployed more widely). And it still fits in the 1st CAN Frame of the stream, which simplifies what nodes
+   have to do to figure out what type of (unsolicited) data this is. On the other hand, streams have a
+   stream ID, so that a protocol can use some other mechanism (messages, datagrams, or even other streams)
+   to pass the information about what a specific new stream means. That means the type info at the start of
+   the stream isn't as necessary as in e.g. datagrams. (We really wanted to avoid situations like "The next
+   datagram you receive carries the data for this request", because "next" is a hard concept to ensure in
+   code that's doing several things independently)
 
    On CAN, the Stream Data Send message does not carry the Source and Destination Stream ID fields.
    Messages to CAN get split into frames and forwarded without the fields. Messages from CAN have to have
