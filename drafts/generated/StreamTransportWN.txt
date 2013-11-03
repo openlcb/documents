@@ -4,7 +4,7 @@
 
                                                             (title)Stream Transport
 
-                                                   Oct 18, 2013                        Preliminary          
+                                                    Nov 3, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -93,13 +93,14 @@
 
    Data content:
 
-    Byte       Byte      Byte                          Byte                 Byte               Byte         
+    Byte     Byte    Byte                                  Byte               Byte              Byte        
 
-    Max Buffer Size      Flags:                        Additional Flags:    Source Stream ID   (Reserved)   
-                                                       
-                         LSB: Type Included            
-                         0: No type byte               
-                         1: First byte is type byte    
+    Max Buffer Size  Flags:                                Additional Flags:  Source Stream ID  (Reserved)  
+                                                           
+                     LSB: Type Included                    
+                     0: No type specification              
+                     1: First six bytes are unique stream  
+                     content UID                           
 
   2.4.2 Stream Initiate Reply
 
@@ -108,9 +109,9 @@
     Max Buffer Size  Flags                       Additional Flags     Source Stream  Destination Stream ID  
                                                                       ID             
                      LSB: Type Included          If Reject            
-                     0: No type info                                  
-                     1: Type UID at start of     LSB:                 
-                     data                        1: Information       
+                     0: No type specification                         
+                     1: First six bytes are      LSB:                 
+                     unique stream content UID   1: Information       
                                                  Logged               
                      Bit 1:                                           
                      1: Stream Rejected, out of  Bit 1:               
@@ -220,7 +221,18 @@
    If the “Type Included” flag was true during initialization, the first 6 bytes of the data are a unique
    data-type indicator. These are allocated the same way that Node IDs, etc, are allocated, but from a
    separate name space. If that “Type Included” flag is false, some higher-level protocol must identify the
-   data-type of the stream data.
+   data-type of the stream data. The idea is that a stream is a lot of data; there's not much use for one
+   otherwise because of the setup overhead (code and time). So six bytes for a stream type identifier isn't
+   a large cost (unlike e.g. a datagram, where it would be a 10% overhead). A UID as a Stream type ID has
+   the advantage that it's not ever going to collide, so people developing protocols don't have to
+   coordinate it (e.g. useful for future expansion, where a protocol can be locally developed and then
+   deployed more widely). And it still fits in the 1st CAN Frame of the stream, which simplifies what nodes
+   have to do to figure out what type of (unsolicited) data this is. On the other hand, streams have a
+   stream ID, so that a protocol can use some other mechanism (messages, datagrams, or even other streams)
+   to pass the information about what a specific new stream means. That means the type info at the start of
+   the stream isn't as necessary as in e.g. datagrams. (We really wanted to avoid situations like "The next
+   datagram you receive carries the data for this request", because "next" is a hard concept to ensure in
+   code that's doing several things independently)
 
    On CAN, the Stream Data Send message does not carry the Source and Destination Stream ID fields.
    Messages to CAN get split into frames and forwarded without the fields. Messages from CAN have to have
@@ -292,7 +304,10 @@
 
    A CAN ↔ Ethernet bridge might receive several kilobytes of data from the Ethernet side at a time. It's
    then responsible for breaking that up into CAN frames and forwarding it. It can reduce the buffer size
-   of transfers if need be to ensure there's a place to store the data while this is done.
+   of transfers if need be to ensure there's a place to store the data while this is done.Quisque
+   sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id felis
+   lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
 
                                                4 Section Title
 
@@ -328,9 +343,7 @@
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus. Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed
-   dignissim velit id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus
-   feugiat dolor id lectus aliquet luctus.
+   aliquet luctus.
 
    Table of Contents
 
@@ -387,4 +400,4 @@
    that other technologies may use other conventions.
 
    Copyright 20113. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 7 - 10/18/2013Oct 18, 2013
+   of 7 - 11/3/2013Nov 3, 2013
