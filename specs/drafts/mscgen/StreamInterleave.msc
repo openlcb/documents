@@ -1,0 +1,34 @@
+# MSC for interleaved datagram operation
+msc {
+
+  sa [label="Sending Task A"], sb [label="Sending Task B"], 
+  r [label="Receiving Task"];
+  sa rbox sb [label="Sending Node"];
+  r rbox r [label="Receiving Node"];
+
+   ... ;
+ --- [ label = "Note: Example uses hypothetical duplex streams " ] ;
+   ... ;
+
+ --- [ label = "Two streams are initialized simultaneously " ] ;
+   
+  sa=>r [label="Stream Init Request sid=1"];
+  sb=>r [label="Stream Init Request sid=2"];
+
+  r=>sa [label="Stream Init Reply sid=1 did=11"];
+  r=>sb [label="Stream Init Reply sid=2 did=13"];
+  
+ --- [ label = "Start of stream data tells the Receiving Task that these are console requests " ] ;
+ 
+  sa=>r [label="Stream Data sid=1 did=11 type=Console"];
+  
+  sb=>r [label="Stream Data sid=2 did=13 type=Console"];
+  
+   ... ;
+   
+  --- [ label = "Bidirectional traffic then flows based on stream IDs " ] ;
+ 
+  sa=>r [label="Stream Data sid=1 did=11 \"command text\""];
+  r=>sa [label="Stream Data sid=1 did=11 \"results text\""];
+  
+}
