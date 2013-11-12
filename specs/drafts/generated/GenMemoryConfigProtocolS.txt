@@ -281,7 +281,13 @@
    if no bytes can be read, the Read Reply shall have the Fail bit set and include an error code instead of
    the requested data.
 
-  4.4.2 Write, Write-Reply
+  4.4.2 Read Stream
+
+   Very similar to Read, except that a stream is created to carry the read information back to the
+   requesting node.  The stream must be established before the Read Reply datagram is sent, so that error
+   codes can be returned via the Read Reply in the stream initialization fails.
+
+  4.4.3 Write, Write-Reply
 
    If the write operation can be done immediately and succeeds, only the Datagram Received OK message reply
    to the Write Command datagram is returned. The Reply Pending bit is not set in that reply.
@@ -296,7 +302,13 @@
    If a timeout interval was provided and has elapsed without a Write Reply message being returned, the
    node requesting the Write operation may, but is not required to, repeat the request.
 
-  4.4.3 Get Configuration Options Reply
+  4.4.4 Write Stream
+
+   Write Stream is followed by a stream initialization using the specified Stream ID.  Once that completes,
+   the Write Reply can be returned. (Needs careful consideration of whether delayed reply should be used
+   here, and how, exactly)
+
+  4.4.5 Get Configuration Options Reply
 
    To make it possible to make simple/cheap nodes, not every configuration operation & option needs to be
    provided. The reply to “Get Configuration Options” provides information that a configuring device can
@@ -357,7 +369,7 @@
    A node that has additional low address spaces, e.g. to make more memory available with a 28-bit address,
    could have Highest Address Space = 127, Lowest Address Space = 0 and leave the top spaces assumed.
 
-  4.4.4 Get Address Space Information Reply
+  4.4.6 Get Address Space Information Reply
 
    To ease automated access, a configuring node can enquire about the address spaces in the
    being-configured node. Whether or not the address space is present, a reply is required.
@@ -380,7 +392,7 @@
      * Description (variable length) – optional null-terminated string giving the user-readable name of
        this space
 
-  4.4.5 Lock/Reserve and Freeze/Unfreeze
+  4.4.7 Lock/Reserve and Freeze/Unfreeze
 
    An OpenLCB node can, in general, be configured while the network and even the node itself is operating.
 
@@ -400,14 +412,14 @@
    configuring nodes only; the node being configured does not change it's response to configuration
    operations when locked or unlocked.
 
-  4.4.6 Get Unique EventID
+  4.4.8 Get Unique EventID
 
    Nodes maintain a list of unique EventIDs for use in configuration. These are allocated based on the
    node's unique NodeID. This command allows a configuration tool to get new unique EventIDs from the
    node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
    a different EventID, without repeat, even through node resets and factory resets.
 
-  4.4.7 Update Complete/Reset/Reboot/Reinitialize
+  4.4.9 Update Complete/Reset/Reboot/Reinitialize
 
    This is a collection of three operations, distinguished by what are normally the flag bits.
 
@@ -433,7 +445,7 @@
    loss. As a small safety precaution, the NodeID of the note being reset is redundantly carried in the
    data part of the datagram.
 
-  4.4.8 Indicate
+  4.4.10 Indicate
 
    (This is likely to move to a separate protocol; note that “indicate” and “ident” are completely
    different things, with “ident” in a separate protocol already)
@@ -509,18 +521,22 @@
 
    4.4.1 Read, Read-Reply
 
-   4.4.2 Write, Write-Reply
+   4.4.2 Read Stream
 
-   4.4.3 Get Configuration Options Reply
+   4.4.3 Write, Write-Reply
 
-   4.4.4 Get Address Space Information Reply
+   4.4.4 Write Stream
 
-   4.4.5 Lock/Reserve and Freeze/Unfreeze
+   4.4.5 Get Configuration Options Reply
 
-   4.4.6 Get Unique EventID
+   4.4.6 Get Address Space Information Reply
 
-   4.4.7 Update Complete/Reset/Reboot/Reinitialize
+   4.4.7 Lock/Reserve and Freeze/Unfreeze
 
-   4.4.8 Indicate
+   4.4.8 Get Unique EventID
+
+   4.4.9 Update Complete/Reset/Reboot/Reinitialize
+
+   4.4.10 Indicate
 
     
