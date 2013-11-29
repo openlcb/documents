@@ -42,7 +42,17 @@
                * The next 2 bits, the rest of the upper nibble of the flags, are reserved. They should be
                  sent as zero and checked as zero on receipt.
 
-               * The lower 12 bits are reserved.  They are to be sent as zero on and ignored upon receipt.
+               * The 0x0030 bits are used to indicate multiple-part messages
+
+                    * 0b00 indicates a single-part message.
+
+                    * 0b01 indicates the first part of a multiple-part message
+
+                    * 0b11 indicates the center part of a multiple part message
+
+                    * 0b10 indicates the last part of a multiple-part message
+
+               * The lower 10 bits are reserved.  They are to be sent as zero on and ignored upon receipt.
 
      * Number of bytes in rest of message, a 24-bit quantity. This includes both the rest of the prefix and
        the actual message content.
@@ -80,14 +90,36 @@
 
                                                    5 States
 
+5.1 Multiple-part Messages
+
+   Multiple messages with a non-zero value of the multipart-message field in the prefix may, but need not
+   be, combined into a single message. This process shall:
+
+     * Preserve the order of the message contents
+
+     * Only combine message parts with equal values of MTI, source node ID and (if the presence of one is
+       indicated by the MTI) destination node ID.
+
+     * Only combine message parts when all contained prefix(es) contain the same value(s) in the matching
+       originating node/gateway Node ID field.
+
+     * Only combine parts if the first part combined has a 1 in the 0x0010 bit, the last part combined has
+       a 1 in the 0x0020 bit, and parts that are neither first nor last have a 0x11 in the 0x0030 field of
+       the prefix.
+
+   The value of the 0x0020 bit in the resulting prefix shall come from the 1st part combined. The value of
+   the 0x0010 bit in the resulting prefix shall come from the last part combined.The contained prefixes
+   shall be updated to include the full data count, and the lowest seen value of the message capture time
+   at the originating gateway.
+
                                                 6 Interactions
 
    A node transmits a message to another node across a TCP link by first sending a prefix, then the
    message.
 
    If the node is forwarding a message that was received across another TCP link, it includes all prefixes
-   received with the message.  The transmission is then the newest prefix, all prefix prefixes in reverse
-   time order, and then the OpenLCB message.
+   received with the message and sets the chaining bit.  The transmission is then the newest prefix, all
+   prefix prefixes in reverse time order, and then the OpenLCB message.
 
 6.1 Link Control Interactions
 
@@ -132,6 +164,8 @@
    4.1.4 Drop Link Reply
 
    5 States
+
+   5.1 Multiple-part Messages
 
    6 Interactions
 
