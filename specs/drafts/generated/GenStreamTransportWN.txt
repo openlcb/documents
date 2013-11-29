@@ -79,11 +79,11 @@
 
   2.4.1 Stream Initiate Request
 
-    
-
    It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
-   below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source,
-   destination, and Source Stream ID must uniquely identify this stream transmission.
+   below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source Node
+   ID, destination Node ID and Source Stream ID must uniquely identify this stream transmission.
+
+   Source Stream ID, by itself, is not required to be unique.
 
    Data content:
 
@@ -243,10 +243,10 @@
    datagram you receive carries the data for this request", because "next" is a hard concept to ensure in
    code that's doing several things independently)
 
-   On CAN, the Stream Data Send message does not carry the Source and Destination Stream ID fields.
-   Messages to CAN get split into frames and forwarded without the fields. Messages from CAN have to have
-   it inserted by the gateway as part of the translation process. The gateway can do this as part of the
-   (optional) buffer accumulation from frames into larger transfers.
+   On CAN, the Stream Data Send message does not carry the Source Stream ID field. Messages to CAN get
+   split into frames and forwarded without the field. Messages from CAN have to have it inserted by the
+   gateway as part of the translation process. The gateway can do this as part of the (optional) buffer
+   accumulation from frames into larger transfers.
 
    Upon receiving Max Buffer Size bytes via one or more messages, the destination sends a Stream Data
    Proceed (Addressed) message to the source, carrying the Source Stream ID and Destination Stream ID. This
@@ -295,13 +295,13 @@
    data transfer” format can also be coded entirely in the header. This then allows 8 bytes of data per
    transfer if the Source Stream ID and Destination Stream ID need not be carried. By specifying that only
    one stream can be transferred on a CAN link between any two nodes at a time, no Stream ID would be
-   needed. This is our chosen solution. Since a node knows that it's originating the stream, this can be
-   checked in advance for point-to-point connections. Gateways might have to reject a stream transfer in
-   some cases, or use a virtual node ID.
-
-   If there's a need for more than two streams, another format could be defined that puts a source or
-   destination stream ID in the data portion, transferring six bytes at a time. The sender could then use
-   that form if a 2nd stream is required. That is left for a future option.
+   needed. Although initially consider, this it thought to be too inflexible. Instead, we chose a format
+   where the Source Stream ID is carried, reducing the payload to seven bytes per frame. This requires that
+   the Source Stream ID be unique among source-destination node pairs, without relyin on the Destination
+   Stream ID to be part of the unique stream identification. Since a node knows that it's originating the
+   stream, this can be ensured in advance for point-to-point connections. Gateways will need to track the
+   Destination Stream ID to restore it to the full format. Since they are tracking the stream in any case
+   for buffering purposes, this is thought to be not a large problem.
 
 3.4 Implementation Notes
 
