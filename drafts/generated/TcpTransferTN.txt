@@ -4,7 +4,7 @@
 
                                                               OpenLCB-TCP Transfer
 
-                                                   Feb 15, 2013                        Preliminary          
+                                                   Nov 29, 2013                        Preliminary          
 
                                                 1 Introduction
 
@@ -55,8 +55,25 @@
    that don't overlap with the existing types, can use the “check for zero” bits. New modifier codes are
    more likely, so more bits are reserved where existing implementations just ignore their content.
 
+   Flags field:
+
+   The LSB 0x0001 is an expansion flag used to (eventually) add link control messages. These might be
+   needed for e.g. turning gateway-filtering on and off, loading/resetting remote diagnostic information,
+   etc.
+
+   The 0x0002 bit indicates “chaining”: Another prefix is next, before the body of the message.
+
+   The 0x0020 and 0x0010 bits provide a way of extending a single OpenLCB message across multiple TCP
+   transfers. (Note that the terminology here is confusing, and should probably be clarified). This might
+   be used to e.g. simplify buffering and framing in CAN-Ethernet gateways. A single OpenLCB message that
+   extends across multiple CAN frames is best accumulated into a single TCP transmission. If that's not
+   possible due to buffering or other issues, it can be sent as multiple TCP transmissions using the 0x0020
+   and 0x0010 bits. The 0x0020 bit when 0 means “start or only part”; the 0x0010 bit when 0 means “end or
+   only part”. The 0-based coding was selected to improve human-readability of messages, as most messages
+   are expected to be “only”.
+
    The length code is put early to make it easier to parse messages of future, unknown format. But this
-   doesn't make it easier to skip new prefixes of unknown length. Should there be a additional prefix
+   doesn't make it easier to skip new prefixes of unknown length. Should there be an additional prefix
    length field, so new prefix formats can be skipped easily?
 
 2.4 States
@@ -64,7 +81,13 @@
    We don't have a “link up” state in OpenLCB itself, just in the link implementation. Is one needed? Might
    enter e.g. routing. If it existed, we could define link-specific messages to check the status.
 
+  2.4.1 Multiple-part Messages
+
 2.5 Interactions
+
+   The chaining process is meant to provide a bread-crumb path back through the network. OpenLCB networks
+   are not meant to have very complicated routing structures, so that only a few prefixes will get added to
+   the average message.
 
 2.6 TCP-specific Link Control Transmissions and Interactions
 
@@ -105,7 +128,7 @@
 
      * Negotiating buffer sizes and traffic levels; flow control.
 
-     * Control messages to individual nodes, not gateway-gateway communication, will be used for:
+   Control messages to individual nodes, not gateway-gateway communication, will be used for:
 
      * Turning filtering on and off in gateways so that all messages can be forwarded
 
@@ -113,7 +136,37 @@
 
      * Retrieving status and history information
 
-3.3 Relationship with Ethernet Connections
+3.3 Rendezvous & Self-Configuration Method
+
+   (Some or all of this needs to move to the Standard)
+
+   In the following, “node” means an OpenLCB node with a native TCP connection. This node might be e.g. a
+   gateway to an entire CAN segment, but that doesn't matter to this discussion.
+
+   Two types of connections could be provided: “point-to-point” and “hub-and-spoke”.
+
+   In “point-to-point”, two nodes are connected by a direct TCP connection. This works fine for e.g. two
+   nodes, but using only point-to-point connections doesn't scale well. If there are 10 nodes present, each
+   has to maintain 9 TCP sessions, which is rapidly becoming impractical. On the other hand, it's the
+   simplest possible TCP code.
+
+   In the “hub-and-spoke” connection, one node acts as a “hub” and all others connect to it as “spokes”.
+   Each spoke node sends traffic to the hub, and the hub then forwards it to the N-2 other nodes.
+
+  3.3.1 Protocol
+
+   When a node comes up, it enquires for a “_openlcb-hub._tcp.local.” service. If found, connect to it.
+
+   If not found, and if the node can be a hub (it's not required that all nodes be able to do that), it
+   configures itself to act as a hub and advertises the “_openlcb-hub._tcp.local.” service. Since all that
+   takes time, it then checks again for another node advertising to be a hub. If found, it drops back to
+   connecting to that and removes its service if the connection succeeds.
+
+   If all that fails, start advertising as “_openlcb-node._tcp.local.”. Then, check for any other node(s)
+   advertising as “_openlcb-node._tcp.local.” and connect to as many as possible of the ones that are
+   found.
+
+                               4 Relationship with Native-Ethernet Connections
 
    Imagine you have five OpenLCB CAN segments, connected by small boxes to an Ethernet: You can use an
    Ethernet-specific protocol (e.g. ala Ethertalk, etc), or you can use IP connections (probably TCP/IP).
@@ -133,6 +186,13 @@
    doesn't require new OpenLCB-specific protocols; it's much more likely that a robust solution could be
    created using e.g. Bonjour (a form of ZeroConf) and similar standard protocols. Some recommendations
    here would improve interoperability of implementing devices.
+
+4.1 CAN-ASCII Formatted Protocol
+
+   We have also used a protocol where GridConnect-format CAN frames are directly sent back and forth to an
+   Arduino node, which places them on the CAN bus. This is essentially an Ethernet-CAN replacement for the
+   popular USB-CAN adapters. These advertise themselves as “_openlcb-can._tcp.” protocol, by convention on
+   port 12021.
 
    Table of Contents
 
@@ -165,4 +225,4 @@
    3.3 Relationship with Ethernet Connections 3
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   4 - 6. Feb. 2013
+   5 - 6. Feb. 2013
