@@ -94,7 +94,26 @@
 
     
 
-  4.3.4 Write Command
+  4.3.4 Read Stream Reply
+
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6                           
+                                                           (optional)    
+          OK status:                                                                                        
+                                                                                                            
+          0x70 Space in byte 6 Starting Address            Address Space Read Count (4 bytes), followed by
+          0x71 Space 0xFD                                                stream definition information
+          0x72 Space 0xFE      
+   0x20   0x73 Space 0xFF      
+          Failure status:                                                Error Code                         
+                                                                                                            
+          0x78 Space in byte 6 Starting Address            Address Space (two bytes),                       
+          0x79 Space 0xFD                                                                                   
+          0x7A Space 0xFE                                                followed by optional               
+          0x7BSpace 0xFF                                                 zero-terminated message string     
+
+    
+
+  4.3.5 Write Command
 
    Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes   
                                                            (optional)    
@@ -105,7 +124,7 @@
 
     
 
-  4.3.5 Write Reply
+  4.3.6 Write Reply
 
    Byte 0 Byte 1             Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes                      
                                                          (optional)    
@@ -126,7 +145,7 @@
 
     
 
-  4.3.6 Write Under Mask Command
+  4.3.7 Write Under Mask Command
 
    Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder               
                                                            (optional)    
@@ -140,7 +159,7 @@
    corresponding bit in Mask is a 0 will be left unchanged.  The first data pair refers to memory at the
    Starting Address. Each following data pair refers to a successive byte in memory.
 
-  4.3.7 Write Stream Command
+  4.3.8 Write Stream Command
 
    Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder              
                                                            (optional)    
@@ -149,11 +168,30 @@
           0x22 Space 0xFE      
           0x23 Space 0xFF      
 
-    
+  4.3.9 Write Stream Reply
+
+   Byte 0 Byte 1             Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remaining Bytes                      
+                                                         (optional)    
+          OK status:                                                                                        
+                             
+          0x30 Space in byte 
+          6                  Starting Address            Address Space (None)
+          0x31 Space 0xFD    
+          0x32 Space 0xFE    
+   0x20   0x33 Space 0xFF    
+          Failure status:                                              Error Code                           
+                                                                                                            
+          0x38 Space in byte                                           (two bytes),                         
+          6                  Starting Address            Address Space                                      
+          0x39 Space 0xFD                                              followed by optional zero-terminated 
+          0x3A Space 0xFE                                              message string                       
+          0x3B Space 0xFF    
 
     
 
-  4.3.8 Get Configuration Options Command
+    
+
+  4.3.10 Get Configuration Options Command
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6     Remainder  
                                              (Optional) (Optional) 
@@ -161,7 +199,7 @@
 
     
 
-  4.3.9 Get Configuration Reply
+  4.3.11 Get Configuration Reply
 
    Byte 0 Byte 1 Byte 2    Byte 3   Byte 4        Byte 5                Byte 6               Remainder   
                                                                         (Optional)           (Optional)  
@@ -169,63 +207,63 @@
 
     
 
-  4.3.10 Get Address Space Information Command
+  4.3.12 Get Address Space Information Command
 
    Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
    0x20   0x84   Address Space                                       
 
     
 
-  4.3.11 Get Address Space Information Reply
+  4.3.13 Get Address Space Information Reply
 
    Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 Byte 9 Byte 10 Byte 11 Byte 12     
    0x20   0x86   Address Space Highest Address             Flags  Lowest Address                Description 
 
     
 
-  4.3.12 Freeze Command
+  4.3.14 Freeze Command
 
    Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
    0x20   0xA1   Address Space                                       
 
     
 
-  4.3.13 Unfreeze Command
+  4.3.15 Unfreeze Command
 
    Byte 0 Byte 1 Byte 2        Byte 3 Byte 4 Byte 5 Byte 6 Remainder 
    0x20   0xA0   Address Space                                       
 
     
 
-  4.3.14 Lock/Reserve Command
+  4.3.16 Lock/Reserve Command
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    0x20   0x88   Reserving Node ID
 
     
 
-  4.3.15 Lock/Reserve Reply
+  4.3.17 Lock/Reserve Reply
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    0x20   0x8A   Reserved Node ID
 
     
 
-  4.3.16 Get Unique ID Command
+  4.3.18 Get Unique ID Command
 
    Byte 0 Byte 1 Byte 2                                                                  
    0x20   0x8C   Number requested (1-8, 3 bits); upper bits reserved and must be ignored 
 
     
 
-  4.3.17 Get Unique ID Reply
+  4.3.19 Get Unique ID Reply
 
    Byte 0 Byte 1 Remainder                                     
    0x20   0x8D   1-8 requested EventIDs, a total of 8-64 bytes 
 
     
 
-  4.3.18 Indicate Command
+  4.3.20 Indicate Command
 
    Byte 0 Byte 1   
    0x20   0xA3 on  
@@ -233,21 +271,21 @@
 
     
 
-  4.3.19 Update Complete Command
+  4.3.21 Update Complete Command
 
    Byte 0 Byte 1 
    0x20   0xA8   
 
     
 
-  4.3.20 Reset/Reboot Command
+  4.3.22 Reset/Reboot Command
 
    Byte 0 Byte 1 
    0x20   0xA9   
 
     
 
-  4.3.21 Reinitialize/Factory Reset Command
+  4.3.23 Reinitialize/Factory Reset Command
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    0x20   0xAA   Node ID
@@ -281,13 +319,13 @@
    if no bytes can be read, the Read Reply shall have the Fail bit set and include an error code instead of
    the requested data.
 
-  4.4.2 Read Stream
+  4.4.2 Read Stream, Read Stream Reply
 
    Very similar to Read, except that a stream is created to carry the read information back to the
    requesting node.  The stream must be established before the Read Reply datagram is sent, so that error
    codes can be returned via the Read Reply in the stream initialization fails.
 
-  4.4.3 Write, Write-Reply
+  4.4.3 Write, Write Reply
 
    If the write operation can be done immediately and succeeds, only the Datagram Received OK message reply
    to the Write Command datagram is returned. The Reply Pending bit is not set in that reply.
@@ -302,7 +340,7 @@
    If a timeout interval was provided and has elapsed without a Write Reply message being returned, the
    node requesting the Write operation may, but is not required to, repeat the request.
 
-  4.4.4 Write Stream
+  4.4.4 Write Stream, Write Stream Reply
 
    Write Stream is followed by a stream initialization using the specified Stream ID.  Once that completes,
    the Write Reply can be returned. (Needs careful consideration of whether delayed reply should be used
@@ -481,51 +519,55 @@
 
    4.3.3 Read Stream Command
 
-   4.3.4 Write Command
+   4.3.4 Read Stream Reply
 
-   4.3.5 Write Reply
+   4.3.5 Write Command
 
-   4.3.6 Write Under Mask Command
+   4.3.6 Write Reply
 
-   4.3.7 Write Stream Command
+   4.3.7 Write Under Mask Command
 
-   4.3.8 Get Configuration Options Command
+   4.3.8 Write Stream Command
 
-   4.3.9 Get Configuration Reply
+   4.3.9 Write Stream Reply
 
-   4.3.10 Get Address Space Information Command
+   4.3.10 Get Configuration Options Command
 
-   4.3.11 Get Address Space Information Reply
+   4.3.11 Get Configuration Reply
 
-   4.3.12 Freeze Command
+   4.3.12 Get Address Space Information Command
 
-   4.3.13 Unfreeze Command
+   4.3.13 Get Address Space Information Reply
 
-   4.3.14 Lock/Reserve Command
+   4.3.14 Freeze Command
 
-   4.3.15 Lock/Reserve Reply
+   4.3.15 Unfreeze Command
 
-   4.3.16 Get Unique ID Command
+   4.3.16 Lock/Reserve Command
 
-   4.3.17 Get Unique ID Reply
+   4.3.17 Lock/Reserve Reply
 
-   4.3.18 Indicate Command
+   4.3.18 Get Unique ID Command
 
-   4.3.19 Update Complete Command
+   4.3.19 Get Unique ID Reply
 
-   4.3.20 Reset/Reboot Command
+   4.3.20 Indicate Command
 
-   4.3.21 Reinitialize/Factory Reset Command
+   4.3.21 Update Complete Command
+
+   4.3.22 Reset/Reboot Command
+
+   4.3.23 Reinitialize/Factory Reset Command
 
    4.4 Operations
 
    4.4.1 Read, Read-Reply
 
-   4.4.2 Read Stream
+   4.4.2 Read Stream, Read Stream Reply
 
-   4.4.3 Write, Write-Reply
+   4.4.3 Write, Write Reply
 
-   4.4.4 Write Stream
+   4.4.4 Write Stream, Write Stream Reply
 
    4.4.5 Get Configuration Options Reply
 
