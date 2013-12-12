@@ -98,12 +98,13 @@
 
    Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6                           
                                                            (optional)    
-          OK status:                                                                                        
+          OK status:                                                     Read Count                         
                                                                                                             
-          0x70 Space in byte 6 Starting Address            Address Space Read Count (4 bytes), followed by
-          0x71 Space 0xFD                                                stream definition information
-          0x72 Space 0xFE      
-   0x20   0x73 Space 0xFF      
+          0x70 Space in byte 6                                           (4 bytes),                         
+          0x71 Space 0xFD      Starting Address            Address Space                                    
+          0x72 Space 0xFE                                                Source Stream ID                   
+          0x73 Space 0xFF                                                                                   
+   0x20                                                                  (1 byte)                           
           Failure status:                                                Error Code                         
                                                                                                             
           0x78 Space in byte 6 Starting Address            Address Space (two bytes),                       
@@ -161,11 +162,11 @@
 
   4.3.8 Write Stream Command
 
-   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder              
+   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Remainder        
                                                            (optional)    
-          0x20 Space in byte 6                                                                  
-   0x20   0x21 Space 0xFD      Starting Address            Address Space Stream Definition Info
-          0x22 Space 0xFE      
+          0x20 Space in byte 6                                                            
+   0x20   0x21 Space 0xFD      Starting Address            Address Space Source Stream ID 
+          0x22 Space 0xFE                                                (1 byte)
           0x23 Space 0xFF      
 
   4.3.9 Write Stream Reply
@@ -324,6 +325,8 @@
    Very similar to Read, except that a stream is created to carry the read information back to the
    requesting node.  The stream must be established before the Read Reply datagram is sent, so that error
    codes can be returned via the Read Reply in the stream initialization fails.
+
+   The four bytes of read length are sent most-significant byte first.
 
   4.4.3 Write, Write Reply
 
