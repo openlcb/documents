@@ -183,7 +183,9 @@
                                    Assign Controller 0x01      Controller Node ID
    Controller Configuration 0x12   Release Controller  0x02                                                 
                                    Query Controller 0x03                                                    
-   Controller Management    0x13   Reserve           0x01                                                   
+   Consist Configuration    0x13   Attach Node   0x01          Node ID   
+                                   Detach Node    0x02         Node ID   
+   Traction Management      0x14   Reserve           0x01                                                   
                                    Release  0x02                                                            
 
     
@@ -200,23 +202,28 @@
 
     
 
-   Instruction        Byte 0 Byte 1           Byte 2        Byte 3            Byte 4  Byte 5  Byte 6 Byte 7 
-   Query Speeds Reply 0x10   Set Speed                      Status            Commanded Speed Actual Speed
-   Query Function     0x11   Address                                          Value                         
+   Instruction        Byte 0 Byte 1         Byte 2        Byte 3       Byte 4  Byte 5  Byte 6 Byte 7 Byte 8 
+   Query Speeds Reply 0x10   Set Speed                    Status       Commanded Speed Actual Speed         
+   Query Function     0x11   Address                                   Value                                
    Reply              
-                             Assign           Result:       Fail Code:                                      
-                             Controller Reply 0 == OK       1=Active                                  
-                             0x01             Non-zero ==   Controller        
-   Controller                                 Failed         Refused          
-   Configuration      0x12   Query Controller Active Controller (0.0.0.0.0.0 if no controller active)
-                             Reply 0x03       
-                             Controller                     
-                             Changed Notify   New Active Controller Node ID
-                             0x04             
-                                              Result:                                                       
-   Controller         0x13   Reserve Reply    0 == OK                                                 
-   Management                 0x01            Non-zero ==   
-                                              Failed        
+                             Assign         Result:       Fail Code:                                        
+                             Controller     0 == OK       1=Active                                    
+                             Reply 0x01     Non-zero ==   Controller   
+   Controller                               Failed         Refused     
+   Configuration      0x12   Query                                                                          
+   Reply                     Controller     Active Controller (0.0.0.0.0.0 if no controller active)   
+                             Reply 0x03     
+                             Controller                                                                     
+                             Changed Notify New Active Controller Node ID                             
+                             0x04           
+   Consist                   Attach Node    Node ID                                                  Reply  
+   Configuration      0x13   Reply  0x01                                                             Code   
+    Reply                    Detach Node    Node ID                                                  Reply  
+                             Reply    0x02                                                           Code   
+                                            Result:                                                         
+   Traction           0x14   Reserve Reply  0 == OK                                                   
+   Management Reply           0x01          Non-zero ==   
+                                            Failed        
 
    Controller configuration tracks the node that is controlling the train node. In order to operate a train
    the controller must be first assigned.  A train node shall not respond to a traction message if it not
