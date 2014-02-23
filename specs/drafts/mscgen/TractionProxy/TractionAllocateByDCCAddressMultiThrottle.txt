@@ -1,0 +1,36 @@
+# Dynamically Creating a Train Node via a DCC Address linked to a proxy node with conflicting throttles
+
+msc {
+     hscale = "2";
+     "Throttle 1", "Throttle 2", "DCC Proxy", "DCC Train Node 1", "DCC Train Node 2";
+     
+     "Throttle 1" note "DCC Train Node 2"      [ label = "Dynamically Creating a 2 Train Nodes via a DCC Address linked to a proxy node with non-conflicting throttles", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ],
+     "Throttle 2" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
+     "Throttle 2" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Address 3 Train Node" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Address 455 Train Node" ];
+     "DCC Train Node 1" box "DCC Train Node 1" [ label = "Dynamic Node Starts" ];
+     "DCC Train Node 1" -> *                   [ label = "Initialization Complete" ];
+     "DCC Train Node 1" -> *                   [ label = "Producer Identified Valid: IsTrain Event" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node Reply: OK with Node ID and Throttle 1 Node ID as Active Throttle" ];
+     "DCC Train Node 2" box "DCC Train Node 2" [ label = "Dynamic Node Starts" ];
+     "DCC Train Node 2" -> *                   [ label = "Initialization Complete" ];
+     "DCC Train Node 2" -> *                   [ label = "Producer Identified Valid: IsTrain Event" ];
+     "Throttle 2" <- "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node Reply: OK with Node ID and Throttle 1 Node ID as Active Throttle" ];
+
+
+
+
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Thottle 1 uses the returned Node as an IsTrain Node with the Traction Protocol" ];  
+     "Throttle 2" box "DCC Train Node 2"       [ label = "Thottle 2 uses the returned Node as an IsTrain Node with the Traction Protocol" ];
+      ...;
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Throttle 1 operates Train with DCC Address 3" ];
+     "Throttle 2" box "DCC Train Node 2"       [ label = "Throttle 2 operates Train with DCC Address 455" ];	            
+}
