@@ -1,0 +1,34 @@
+# Dynamically Creating a Train Node via a DCC Address using a Proxy Node
+
+msc {
+     hscale = "2";
+     "Throttle 1", "DCC Proxy", "DCC Train Node 1";
+     
+     "Throttle 1" note "DCC Proxy"             [ label = "Dynamically Creating a Train Node via a DCC Address using a Proxy Node", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node" ];
+     "DCC Proxy" box "DCC Proxy"	       [ label = "Proxy Dynamically creates Train Node with DCC Address" ]; 
+     "DCC Train Node 1" box "DCC Train Node 1" [ label = "Dynamic Node Starts" ];
+     "DCC Train Node 1" -> *                   [ label = "Initialization Complete" ];
+     "DCC Train Node 1" -> *                   [ label = "Producer Identified Valid: IsTrain Event" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "ProxyTraction: Allocate DCC Train Node Reply: OK with Node ID" ];
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Thottle uses the returned Node as an IsTrain Node with the Traction Protocol" ];  
+      ...;
+     "Throttle 1" -> "DCC Train Node 1"	       [ label = "Traction: Set Speed" ];
+     "DCC Train Node 1" box "DCC Proxy"	       [ label = "Train Node is not directly linked to the DCC Proxy NMRA DCC stack and needs to relay message" ];
+     "DCC Train Node 1" -> "DCC Proxy"         [ label = "Traction: Reserve" ];
+     "DCC Train Node 1" <- "DCC Proxy"         [ label = "Traction: Reserve Reply - OK" ];
+     "DCC Train Node 1" -> "DCC Proxy"         [ label = "Traction: Attach DCC Address" ];
+     "DCC Train Node 1" <- "DCC Proxy"         [ label = "Traction: Attach DCC Address - Reply OK" ];
+     "DCC Train Node 1" -> "DCC Proxy"	       [ label = "Traction: Set Speed" ];
+     "DCC Train Node 1" -> "DCC Proxy"         [ label = "Traction: Detach DCC Address" ];
+     "DCC Train Node 1" <- "DCC Proxy"         [ label = "Traction: Detach DCC Address - Reply OK" ];
+     "DCC Train Node 1" -> "DCC Proxy"         [ label = "Traction: Release" ];
+     "DCC Train Node 1" <- "DCC Proxy"         [ label = "Traction: Release Reply - OK" ]; 
+      ...;
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Continue to Operate Train" ]; 	            
+}
