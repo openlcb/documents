@@ -1,0 +1,37 @@
+# Dynamically Creating a Train Node via a DCC Address linked to a proxy node with conflicting throttles
+
+msc {
+     hscale = "2";
+     "Throttle 1", "Throttle 2", "DCC Proxy", "DCC Train Node 1";
+     
+     "Throttle 1" note "DCC Train Node 1"      [ label = "Dynamically Creating a Train Node via a DCC Address linked to a proxy node with conflicting throttles", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ],
+     "Throttle 2" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
+     "Throttle 2" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Address 3 Train Node" ];
+     "Throttle 2" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Address 3 Train Node" ];
+     "DCC Proxy" box "DCC Proxy"	       [ label = "Proxy Dynamically creates Train Node with DCC Address 3" ]; 
+     "DCC Train Node 1" box "DCC Train Node 1" [ label = "Dynamic Node Starts" ];
+     "DCC Train Node 1" -> *                   [ label = "Initialization Complete" ];
+     "DCC Train Node 1" -> *                   [ label = "Producer Identified Valid: IsTrain Event" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node Reply: OK with Node ID and Throttle 1 Node ID as Active Throttle" ];
+     "Throttle 2" <- "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node Reply: OK with Node ID and Throttle 1 Node ID as Active Throttle" ];
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Thottle uses the returned Node as an IsTrain Node with the Traction Protocol" ];  
+      ...;
+     "Throttle 1" -> "DCC Train Node 1"	       [ label = "Traction: Set Speed" ];
+     "DCC Train Node 1" box "DCC Proxy"	       [ label = "Train Node linked to DCC Proxy to place NMRA DCC Command on Rails" ];
+      ...;
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Continue to Operate Train" ]; 
+     ...; 
+     "Throttle 2" -> "DCC Train Node 1"	       [ label = "Traction: Set Speed" ];
+     "Throttle 1"  <- "DCC Train Node 1"       [ label = "Traction: New Active Controller - Thottle 2 Node ID as Active Throttle" ];
+     "DCC Train Node 1" box "DCC Proxy"	       [ label = "Train Node linked to DCC Proxy to place NMRA DCC Command on Rails" ];
+      ...;
+     "Throttle 2" box "DCC Train Node 1"       [ label = "Continue to Operate Train" ]; 	            
+}
