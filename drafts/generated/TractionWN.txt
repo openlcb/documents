@@ -4,7 +4,7 @@
 
                                                                Traction Protocol
 
-                                                    Aug 2, 2013                        Preliminary          
+                                                   Feb 23, 2014                        Preliminary          
 
                                                 1 Introduction
 
@@ -56,8 +56,9 @@
    some other kind of communications, perhaps direct DCC or a connection to a legacy system that in turn
    makes DCC signals, or some other technology entirely. Due to the nature of those back side
    communications methods, the proxy may not be able to do everything that OpenLCB can, or only do some of
-   it at certain times. The OpenLCB traction protocols need to take this reality into account. Anther use
-   case for proxies, discussed in detail below, is to provide the mechanism for consisting.
+   it at certain times. The OpenLCB traction protocols need to take this reality into account.
+   AntherAnother use case for proxies, discussed in detail below, is to provide the mechanism for
+   consisting.
 
    “Command Stations”: Existing DCC and other control systems use “command stations” to create a track
    signal for controlling the trains. Usually the command station is controlled from the user side by some
@@ -103,7 +104,7 @@
    that back into the train. That makes it work. When he gets back home that value is still present so he
    changes it back using the same procedure.
 
-  1.2.4 Legacy Train on New Layout
+  Legacy Train on New Layout
 
    Jim takes his DCC-equipped train to Bill's OpenLCB- and DCC-equipped layout and puts it on the track. He
    picks up a throttle, hits a few keys, sees his train, selects it and starts to run it.
@@ -159,9 +160,8 @@
 
      * SNII and/or ACDI?
 
-   Float-16 is the half-precision numeric format defined by IEEE 754-2008. It's available in the GNU tool
-   chain via theThis is the format that the GNU tool chain's -mfp16-format=ieee flag and __fp16 type. makes
-   available on some CPU types.
+   Float-16 is the half-precision numeric format defined by IEEE 754-2008. This is the format that the GNU
+   tool chain's -mfp16-format=ieee flag and __fp16 type makes available on some CPU types.
 
 2.4 Message Formats
 
@@ -197,42 +197,31 @@
    have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-    Instruction          Byte 0  Byte 1               Byte 2      Byte 3  Byte 4    Byte 5  Byte 6  Byte 7  
+    Instruction               Byte 0  Byte 1                Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  
 
-    Set Speed/Direction  0x00    Speed and direction as signed
-                                 float16              
+    Set Speed/Direction       0x00    Speed and direction as
+                                      signed float16        
 
-    Set Function         0x01    Address                                  Value     
+    Set Function              0x01    Address                               Value   
 
-    Emergency Stop       0x02    
+    Emergency Stop            0x02    
 
-    Query Speeds         0x10    
+    Query Speeds              0x10    
 
-    Query Function       0x11    Address              
+    Query Function            0x11    Address               
 
-    Configure Proxy      0x80    Attach Node          Node ID     
-                                 0x01                 
+    Controller Configuration  0x12    Assign Controller     Controller Node ID
+                                      0x01                  
 
-                                 Attach DCC Address   DCC Address AA.AA   Speed     
-                                 0x81                                     steps     
-                                                                                    
-                                                                          (14, 28,  
-                                                                          128)      
+                                      Release Controller    
+                                      0x02                  
 
-                                 Detach Node          Node ID     
-                                 0x02                 
+                                      Query Controller      
+                                      0x03                  
 
-                                 Detach DCC Address   DCC Address AA.AA
-                                 0x82                 
+    Controller Management     0x13    Reserve 0x01          
 
-    Manage Proxy         0x82    Reserve              
-                                 0x01                 
-
-                                 Release              
-                                 0x02                 
-
-                                 Query                
-                                 0x03                 
+                                      Release 0x02          
 
    Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions, see discussion
    later on.
@@ -247,44 +236,35 @@
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
 
-    Instruction   Byte 0  Byte 1          Byte 2  Byte 3  Byte 4    Byte 5      Byte 6      Byte 7  Byte 8  
+    Instruction     Byte 0  Byte 1          Byte 2       Byte 3            Byte 4   Byte 5  Byte 6  Byte 7  
 
-    Query Speeds  0x10    Set Speed               Status  Commanded Speed       Actual Speed
-    Reply         
+    Query Speeds    0x10    Set Speed                    Status            Commanded Speed  Actual Speed
+    Reply           
 
-    Query         0x11    Address                         Value     
-    Function      
-    Reply         
+    Query Function  0x11    Address                                        Value    
+    Reply           
 
-    Configure     0x80    Attach Node     Node ID                                                   Reply   
-    Proxy Reply           Reply                                                                     Code    
-                                          
-                          0x01            
+    Controller      0x12    Assign          Result:      Fail Code:        
+    Configuration           Controller      0 == OK      1=Active          
+                            Reply 0x01      Non-zero ==  Controller        
+                                            Failed       Refused           
 
-                          Attach DCC      DCC Address     Speed     Reply Code  
-                          Address Reply   AA.AA           steps     
-                                                                    
-                          0x81                            (14, 28,  
-                                                          128)      
+                            Query           Active Controller (0.0.0.0.0.0 if no controller active)
+                            Controller      
+                            Reply 0x03      
 
-                          Detach Node     Node ID                                                   Reply   
-                          Reply                                                                     Code    
-                                          
-                          0x02            
+                            Controller      New Active Controller Node ID
+                            Changed Notify  
+                            0x04            
 
-                          Detach DCC      DCC Address     Reply     
-                          Address Reply   AA.AA           Code      
-                                          
-                          0x82            
+    Controller      0x13    Reserve Reply   Result:      
+    Management              0x01            0 == OK      
+                                            Non-zero ==  
+                                            Failed       
 
-    Manage Proxy  0x82    Reserve Reply   Result: 
-    Reply                 0x01            0 == OK 
-                                          Non-zero ==
-                                          Failed  
-
-                          Query Reply     Max Number of   Number    Max Number  Number DCC  
-                          0x03            Nodes           of Nodes  DCC         addresses   
-                                                          Now       addresses   now         
+   Controller configuration tracks the node that is controlling the train node. In order to operate a train
+   the controller must be first assigned. A train node shall not respond to a traction message if it not
+   defined as the current Active Controller.
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -315,14 +295,14 @@
 
    MTI=05E8 10 44 20 00 44 20 44 20
 
-    2.4.3.1 Proxy-Specific
+    Proxy-Specific
 
    The 0x80 and 0x82 instructions are only for proxy nodes. The MSBit is tentatively reserved to indicate
    proxy-specific instructions.
 
-   Attach reply code: Zero or not present means OK
+   Attach reply code: Zero means OK
 
-   Detach reply code: Zero or not present means OK
+   Detach reply code: Zero means OK
 
    Do we want to return the number of attached nodes/DCC addresses?
 
@@ -542,7 +522,7 @@
    returning the Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration
    & SNIP, is available here in pdf format and here in OpenOffice Writer.
 
-    2.7.4.1 Proxy-Specific Details
+    Proxy-Specific Details
 
    For locating all proxies and just idle or in use proxies, two well-known Event IDs are used:
 
@@ -622,9 +602,9 @@
    People just think about operating and configuring their locomotives as separate things. (Though e.g.
    "Master Volume" can cross the line)
 
-   This doesn't mean that we can't use the same protocol for all other of them. A mixture of memory
-   configuration and CDI-like definition information should do just fine. It just means that we need to
-   find a way to include clueing information for the throttles on e.g. what to present.
+   This doesn't mean that we can't use the same protocol for all of them. A mixture of memory configuration
+   and CDI-like definition information should do just fine. It just means that we need to find a way to
+   include clueing information for the throttles on e.g. what to present.
 
    Many trains offer independent control of various special effects (FX, sometimes called "functions") such
    as lighting or sound. The Set Function instruction permits a controller to control these effects
@@ -754,7 +734,7 @@
 
      * Decoder Type (Manufacturer, model)
 
-  3.3.1 Legacy DCC Configuration
+  Legacy DCC Configuration
 
    For DCC trains, there are two parts:
 
@@ -805,9 +785,9 @@
    (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
    & build it into the gateway to DCC)
 
-   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
-   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
+     * In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do
+       a reasonable job with them, but I don't think we have to go nearly as far into the weird special
+       cases as e.g. DecoderPro does.
 
 3.4 How to find human-readable loco information
 
@@ -910,12 +890,12 @@
    IDs (and/or DCC addresses), which allows implementation of consisting. Speed/direction just passes
    through; speed matching is automatic due to the use of scale meters/second for units.
 
-3.6 Proxies
+Proxies
 
    Proxies are used to have a single proxy node run multiple OpenLCB trains together and/or to run legacy
    trains as OpenLCB-aware trains.
 
-  3.6.1 Lifecycle & Location
+  3.5.1 Lifecycle & Location
 
    Each proxy has a lifecycle:
 
@@ -976,13 +956,13 @@
 
                                          Finding a proxy to allocate
 
-  3.6.2 Collisions During Allocation
+  Collisions During Allocation
 
    You have to check the reply code and try again. That might mean inquiring for a new proxy idle proxy.
 
                                  Handling a collision during proxy allocation
 
-  3.6.3 Legacy Protocol Proxies
+  3.5.2 Legacy Protocol Proxies
 
    The upper nibble of the Configure Proxy attach/detach instruction is intended to identify the specific
    protocol.
@@ -1007,11 +987,11 @@
 
     7. Selectrix
 
-    8. MTH DCS
+   MTH DCS
 
-    9. Lionel LCS/TMCC
+    8. Lionel LCS/TMCC
 
-   10. Gobs of legacy systems like Hornby Zero 1
+    9. Gobs of legacy systems like Hornby Zero 1
 
    There are two safety values for expansion beyond 16: It's possible to use almost all of the byte for
    this, not just the top nibble. Only the bottom bit is actually carrying any information. And some of
@@ -1020,124 +1000,7 @@
    station line), then they don't really need to know about different protocols here, they just need to
    know the format of the address.
 
-Legacy Train Operations
-
-  Configuration
-
-   For DCC trains, there are two parts:
-
-     * CV access (with the added complexity of indexed and double-indexed Cvs)
-
-     * Programmer (main, programming track) control.
-
-   In the special case of legacy equipment, for example DCC locomotives which are configured via CV values,
-   the situation is a little more complex. The train may need to be on a special section of "programmer"
-   track, or only certain values can be changed in certain ways, etc. These legacy devices may have to use
-   a more restricted form of the configuration protocols. For more information, see the page on DCC CV
-   Programming. Non-DCC roster information could be separately stored in the proxy node serving a
-   particular locomotive.
-
-   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
-   rolling stock. Can/should it be adapted to handle the way existing DCC locomotives are configured
-   through Cvs?
-
-   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
-
-   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
-   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
-   or whatever the user-fiendish manufacturer decides to provide as options.
-
-   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
-   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
-   these, but they're starting to appear in other places too.
-
-   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
-   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
-   spent way to much time debugging weird failures with that.
-
-   A better approach, I think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00 3B,
-   while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
-   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
-   CDI to carry that info, but it's within reason.
-
-   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
-   be just a single bit in one CV, or something more complicated split across two (like long addresses).
-   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
-   other part of the space is actually bit mapped:
-
-   0xFF 00 53 3C
-
-   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
-   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
-
-   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
-   & build it into the gateway to DCC)
-
-   In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
-   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
-
-  Legacy Function Control
-
-   Many trains offer independent control of various special effects (FX, sometimes called "functions") such
-   as lighting or sound. The Set Function instruction permits a controller to control these effects
-   directly. The first argument is the address of the FX to control as a 24-bit unsigned integer. This
-   protocol does not define a semantics for FX addresses; that is, there is no particular address that is
-   singled out as representing headlights or the air horn. Instead, the addresses are deliberately
-   abstract, permitting the user to decide how to map addresses to FX for each train.
-
-   Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00
-   should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX
-   should treat the 16-bit value as an unsigned integer.
-
-   Rationale: Most digital systems offer multiple FX, each of which is numbered. Although currently most
-   DCC throttles only permit access to 12 or 29 functions, DCC technically permits as many as 32796
-   different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two Instruction, and
-   Feature Expansion Command Instruction especially the Binary State Control Subcommand). For this reason,
-   it seems prudent to go ahead and use a 24-bit value.
-
-   Likewise, although current DCC decoders only permit binary FX, some (for example SoundTraxx Tsunami
-   sound decoders) actually permit a kind of analog control of FX by combining multiple DCC Functions.
-   Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off.
-
-   One problem that faces the decision to use a single command with a numerical FX addressing system is
-   that any kind of standardized assignment of FX addresses to particular FX is impossible in practice.
-   DCC, for example, makes no such prescription, although by convention function F0 controls
-   direction-sensitive headlights. Beyond this lies only manufacturers' conventions. Thus, any kind of
-   mapping is best handled on a per-train basis, by configuring the mapping between particular FX (e.g.
-   headlights, air horn) to FX addresses for each train.
-
-   One way to mitigate this problem is to not make fixed FX address assignments, but to map them directly
-   onto the addressing scheme used by the various control systems, that is, to leave each address in the
-   OpenLCB FX address space uninterpreted. In this way, the default behavior of each address will map
-   directly onto the default behavior of the decoder in the train, giving some degree of predictability to
-   the system, and permitting a digital command station the make reasonable guesses about the possible
-   address-to-FX mappings. Nevertheless, users will often need to be exposed to this implementation detail,
-   which is deeply unfortunate, but necessary given the ultimate flexibility of current train control
-   systems.
-
-   Thus, it is recommended that the FX address space be mapped directly to the particular control system's
-   address space; thus DCC F0 becomes FX address 0x000000, F1 becomes 0x000001, etc. The DCC Binary State
-   addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning with
-   0b1.0000.0000.0000.0000). Other systems should be handled analogously.
-
-   RP-9.2.1 defines the following:
-
-     * Function Group One: 5 (F0-F4)
-
-     * Function Group Two: 8 (F5-F12)
-
-     * Binary State Control: 32767 (15bits) (note: different address space!)
-
-     * Feature Expansion Command 11110: 8 (F13-F20)
-
-     * Feature Expansion Command 11111: 8 (F21-F28)
-
-   And in the future, perhaps even more. Possibly a lot more. There are just under 20 bits of address space
-   available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
-   Controls.
-
-3.7 Legacy Throttles and Throttle Busses
+Legacy Throttles and Throttle Busses
 
    The most straight-forward way to allow use of existing legacy DCC throttles and systems is to connect
    the DCC output of their command station to an OpenLCB node. That node then extracts the speed, function,
@@ -1153,10 +1016,7 @@ Legacy Train Operations
    attach the throttle bus to an OpenLCB node for translation. That node then acts as an intermediary
    between Legacy Throttles and the OpenLCB, and can operate in either of the modes described above.
 
-                                                   4 To Do
-
-   The “Legacy” section immediately above needs to be simplified, or even better folded into earlier
-   sections.
+                                                    To Do
 
    More clarity on proxy access to DCC CVs. Discuss selection of programming modes. Addressing.
 
@@ -1184,8 +1044,6 @@ Legacy Train Operations
 
    1.2.3 Train on New Layout 2
 
-   1.2.4 Legacy Train on New Layout 3
-
    1.3 Unserved Use Cases 3
 
    1.3.1 Multiple Independent Command Stations 3
@@ -1208,63 +1066,45 @@ Legacy Train Operations
 
    2.4.2 Traction Control Command Message 4
 
-   2.4.3 Traction Control Reply Message 6
+   2.4.3 Traction Control Reply Message 5
 
-   2.4.3.1 Proxy-Specific 8
+   2.5 States 6
 
-   2.5 States 9
+   2.6 Memory Spaces 6
 
-   2.6 Memory Spaces 9
+   2.6.1 Configuration Information 6
 
-   2.6.1 Configuration Information 9
+   2.6.2 CDI 6
 
-   2.6.2 CDI 9
+   2.6.3 Function Information 0xF9 6
 
-   2.6.3 Function Information 0xF9 9
+   2.6.4 Function Definition Information FDI 0xFA 7
 
-   2.6.4 Function Definition Information FDI 0xFA 10
+   2.7 Interactions 8
 
-   2.7 Interactions 11
+   2.7.1 Emergency Stop 8
 
-   2.7.1 Emergency Stop 11
+   2.7.2 Function Operation 8
 
-   2.7.2 Function Operation 11
+   2.7.3 Train Configuration 8
 
-   2.7.3 Train Configuration 11
+   2.7.4 Train Identification 9
 
-   2.7.4 Train Identification 11
+   3 Background Information 9
 
-   2.7.4.1 Proxy-Specific Details 12
+   3.1 Speed Control 10
 
-   3 Background Information 13
+   3.2 Function Control 11
 
-   3.1 Speed Control 13
+   3.2.1 Outputs vs Functions 11
 
-   3.2 Function Control 14
+   3.2.2 Legacy Function Control 12
 
-   3.2.1 Outputs vs Functions 15
+   3.3 Configuration 13
 
-   3.2.2 Legacy Function Control 15
+   3.4 How to find human-readable loco information 13
 
-   3.3 Configuration 16
-
-   3.3.1 Legacy DCC Configuration 17
-
-   3.4 How to find human-readable loco information 18
-
-   3.5 Consisting 18
-
-   3.6 Proxies 19
-
-   3.6.1 Lifecycle & Location 19
-
-   3.6.2 Collisions During Allocation 21
-
-   3.6.3 Legacy Protocol Proxies 22
-
-   3.7 Legacy Throttles and Throttle Busses 23
-
-   4 To Do 23
+   3.5 Consisting 15
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   29 - Aug 2, 2013
+   13 - Feb 23, 2014
