@@ -1,0 +1,27 @@
+# Dynamically Creating a Train Node via a DCC Address linked to a proxy node with conflicting throttles
+
+msc {
+     hscale = "2";
+     "Throttle 1", "Throttle 2", "Train Node 1";
+     
+     "Throttle 1" note "Train Node 1"      [ label = "Throttle conficts to a Train Node", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> *                            [ label = "Identify Producer IsTrain" ];
+     "Throttle 2" -> *                            [ label = "Identify Producer IsTrain" ];
+     * <- "Train Node 1"                          [ label = "Producer Identified: IsTrain" ];
+     "Throttle 1" box "Throttle 2"                [ label = "Simultaneous selection of Train Node 1 based on configuration data or other means (user input)" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Reserve" ];
+     "Throttle 2" -> "Train Node 1"               [ label = "Traction: Reserve" ];
+     "Throttle 1" <- "Train Node 1"	          [ label = "Traction: Reserve Reply Ok" ];
+     "Throttle 2" <- "Train Node 1"	          [ label = "Traction: Reserve Reply Fail" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Controller Assign - Throttle 1 Node ID" ];
+     "Throttle 1" <- "Train Node 1"               [ label = "Traction: Controller Assign Result Ok" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Release" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Set Speed" ];
+     ...;
+     "Throttle 1" box "Train Node 1"		  [ label = "Throttle 1 runs Train 1" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Reserve" ];
+     "Throttle 1" <- "Train Node 1"	          [ label = "Traction: Reserve Reply Ok" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Controller Release - Throttle 1 Node ID" ];	
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Release" ];            
+}
