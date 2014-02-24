@@ -174,19 +174,20 @@
    have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction              Byte 0 Byte 1                      Byte 2    Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
+   Instruction              Byte 0 Byte 1                         Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    Set Speed/Direction      0x00   Speed and direction as signed float16                                    
    Set Function             0x01   Address                                      Value                       
-   Emergency Stop           0x02                                                                            
-   Query Speeds             0x10                                                                            
+   Emergency Stop           0x02                                                                            
+   Query Speeds             0x10                                                                            
    Query Function           0x11   Address                                                                  
-                                   Assign Controller 0x01      Controller Node ID
-   Controller Configuration 0x12   Release Controller  0x02                                                 
-                                   Query Controller 0x03                                                    
-   Consist Configuration    0x13   Attach Node   0x01          Node ID   
-                                   Detach Node    0x02         Node ID   
-   Traction Management      0x14   Reserve           0x01                                                   
-                                   Release  0x02                                                            
+                                   Assign Controller 0x01         Controller Node ID
+   Controller Configuration 0x12   Release Controller  0x02       Controller Node ID
+                                   Query Controller  0x03                
+                                   Controller Changed Notify 0x04 New Active Controller Node ID
+   Consist Configuration    0x13   Attach Node   0x01             Node ID
+                                   Detach Node    0x02            Node ID
+   Traction Management      0x14   Reserve           0x01                                                   
+                                   Release  0x02                                                            
 
     
 
@@ -209,13 +210,15 @@
                              Assign         Result:       Fail Code:                                        
                              Controller     0 == OK       1=Active                                    
                              Reply 0x01     Non-zero ==   Controller   
-   Controller                               Failed         Refused     
-   Configuration      0x12   Query                                                                          
-   Reply                     Controller     Active Controller (0.0.0.0.0.0 if no controller active)   
-                             Reply 0x03     
-                             Controller                                                                     
-                             Changed Notify New Active Controller Node ID                             
-                             0x04           
+                                            Failed         Refused     
+   Controller                Query                                                                          
+   Configuration      0x12   Controller     Active Controller (0.0.0.0.0.0 if no controller active)   
+   Reply                     Reply 0x03     
+                                            Result: 0 ==                                                    
+                             Controller     OK            
+                             Changed Notify                                                           
+                             Reply 0x04     Non-zero ==   
+                                            Reject        
    Consist                   Attach Node    Node ID                                                  Reply  
    Configuration      0x13   Reply  0x01                                                             Code   
     Reply                    Detach Node    Node ID                                                  Reply  
@@ -446,7 +449,19 @@
    returning the Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration
    & SNIP, is available here in pdf format and here in OpenOffice Writ
 
+  2.7.5 Basic Throttle and Train Connection
+
     
+
+   graphics2
+
+  2.7.6 Conflicting Throttles
+
+   graphics4
+
+  2.7.7 Throttle to Throttle Successful Hand-over (steal)
+
+   graphics5
 
                                            3 Background Information
 
@@ -809,6 +824,12 @@
    2.7.3 Train Configuration
 
    2.7.4 Train Identification
+
+   2.7.5 Basic Throttle and Train Connection
+
+   2.7.6 Conflicting Throttles
+
+   2.7.7 Throttle to Throttle Successful Hand-over (steal)
 
    3 Background Information
 
