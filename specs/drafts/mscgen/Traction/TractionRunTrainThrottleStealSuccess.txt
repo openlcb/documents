@@ -1,0 +1,39 @@
+# Dynamically Creating a Train Node via a DCC Address linked to a proxy node with conflicting throttles
+
+msc {
+     hscale = "2";
+     "Throttle 1", "Throttle 2", "Train Node 1";
+     
+     "Throttle 1" note "Train Node 1"      [ label = "Throttle 2 takes Train Node 1 from Throttle 1", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> *                            [ label = "Identify Producer IsTrain" ];
+     * <- "Train Node 1"                          [ label = "Producer Identified: IsTrain" ];
+     "Throttle 1" box "Throttle 1"                [ label = "Selection of Train Node 1 based on configuration data or other means (user input)" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Reserve" ];
+     "Throttle 1" <- "Train Node 1"	          [ label = "Traction: Reserve Reply Ok" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Controller Assign - Throttle 1 Node ID" ];
+     "Throttle 1" <- "Train Node 1"               [ label = "Traction: Controller Assign Result Ok" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Release" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Set Speed" ];
+     ...;
+     "Throttle 1" box "Train Node 1"		  [ label = "Throttle 1 runs Train 1" ];
+     ...;
+     "Throttle 2" -> *                            [ label = "Identify Producer IsTrain" ];
+     * <- "Train Node 1"                          [ label = "Producer Identified: IsTrain" ];
+     "Throttle 2" box "Throttle 2"                [ label = "Selection of Train Node 1 based on configuration data or other means (user input)" ];
+     "Throttle 2" -> "Train Node 1"               [ label = "Traction: Reserve" ];
+     "Throttle 2" <- "Train Node 1"	          [ label = "Traction: Reserve Reply Ok" ];
+     "Throttle 2" -> "Train Node 1"               [ label = "Traction: Query Active Controller" ];
+     "Train Node 1" box "Train Node 1"	          [ label = "Train Node configuration may or may not allow stealing of Train and may force replies to block steal" ];
+     "Throttle 2" <- "Train Node 1"               [ label = "Traction: Query Active Controller Reply: Node ID for Throttle 1" ];
+     "Throttle 2" box "Throttle 2"                [ label = "Throttle may, but is not required to, ask user for confirmation of steal" ];
+     "Throttle 2" -> "Train Node 1"               [ label = "Traction: Controller Assign: Throttle 2 Node ID" ];
+     "Train Node 1" -> "Throttle 1"	          [ label = "Traction: Controller Changed Notify" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Traction: Controller Changed Notify Result Ok" ];
+     "Throttle 2" <- "Train Node 1"               [ label = "Traction: Controller Assigned Result Ok" ];
+     "Throttle 2" -> "Train Node 1"	          [ label = "Traction: Release" ];  
+     "Throttle 2" -> "Train Node 1"               [ label = "Traction: Set Speed" ];
+     ...;
+     "Throttle 2" box "Train Node 1"		  [ label = "Throttle 2 runs Train 1" ];
+	            
+}
