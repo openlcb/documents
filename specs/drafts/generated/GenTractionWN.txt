@@ -10,7 +10,9 @@
    This protocol is for the long-term operation of really cool trains, not just “better control over DCC”.
     Still, DCC is an important test case, both with new control hardware (OpenLCB native throttles
    connected to an OpenLCB-native command station that's generating the DCC signal) and when connected to
-   legacy throttles and/or command stations.
+   legacy throttles and/or command stations.  Using legacy hardware within the OpenLCB environment is
+   accomplished through a proxy and is implemented using this Traction Protocol and the Traction Proxy
+   Protocol.
 
 1.1 Terminology
 
@@ -42,7 +44,7 @@
    great advantages, because you're always in complete communication with the train, and don't have to
    worry about only being able to configure the train when it's on a service track, storing information
    somewhere else so that it can be retrieved while the train is moving, etc. But until radio or other
-   technologies mature to the point that this is possible, "proxy nodes" can be used as stand-ins for that
+   technologies mature to the point that this is possible, "proxies" can be used as stand-ins for that
    capability. A throttle might communicate with a node that's serving as a proxy for the train, handling
    the communications, keeping track of status & configuration, etc. Out the back end of that proxy node is
    some other kind of communications, perhaps direct DCC or a connection to a legacy system that in turn
@@ -97,18 +99,7 @@
 
 1.3 Unserved Use Cases
 
-  1.3.1 Multiple Independent Command Stations
-
-   Large modular layouts use multiple command stations to increase the effective bandwidth of the DCC bus.
-    This is not an explicitly supported use case in the current work. Future work may make this possible as
-   an extension.
-
-  1.3.2 Improved Legacy Addressing
-
-   DCC systems cannot run two locomotives with the same DCC address at the same time.  This will still be
-   true when running DCC-equipped locomotives via OpenLCB protocols to the command station.
-
-  1.3.3 Third-Party Communications
+  1.3.1 Third-Party Communications
 
    Node A is a throttle that is controlling train node B.  Node C passively listens to the traffic and
    reacts to throttle commands and train status by taking various actions, such as providing appropriate
@@ -153,7 +144,7 @@
 
     
 
-   IsTrain: 01.01.00.00.00.00.03.0
+   IsTrain: 01.01.00.00.00.00.03.03
 
    EmergencyStopAll: 01.01.00.00.00.00.FF.FF
 
@@ -167,27 +158,31 @@
    resource.
 
    This message type and MTI is specific to traction control.  The first byte of the content codes an
-   “instruction”, which defines the rest of the format. The instruction codes were selected with the high
-   nibble representing protocol (0x00 for OpenLCB full protocol; 0x80 for DCC legacy; others reserved)
+   “instruction”, which defines the rest of the format.
 
    Dedicated OpenLCB messages are defined for traction control, instead of using datagrams, so that they
    have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction              Byte 0 Byte 1                         Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
-   Set Speed/Direction      0x00   Speed and direction as signed float16                                    
-   Set Function             0x01   Address                                      Value                       
-   Emergency Stop           0x02                                                                            
-   Query Speeds             0x10                                                                            
-   Query Function           0x11   Address                                                                  
-                                   Assign Controller 0x01         Controller Node ID
-   Controller Configuration 0x12   Release Controller  0x02       Controller Node ID
-                                   Query Controller  0x03                
-                                   Controller Changed Notify 0x04 New Active Controller Node ID
-   Consist Configuration    0x13   Attach Node   0x01             Node ID
-                                   Detach Node    0x02            Node ID
-   Traction Management      0x14   Reserve           0x01                                                   
-                                   Release  0x02                                                            
+   Instruction           Byte 0 Byte 1                     Byte 2     Byte 3  Byte 4  Byte 5  Byte 6 Byte 7 
+   Set Speed/Direction   0x00   Speed and direction as signed float16                                       
+   Set Function          0x01   Address                                       Value                         
+   Emergency Stop        0x02                                                                               
+   Query Speeds          0x10                                                                               
+   Query Function        0x11   Address                                                                     
+                                Assign Controller 0x01     Controller Node ID
+   Controller                   Release Controller  0x02   Controller Node ID
+   Configuration         0x12   Query Controller  0x03                
+                                Controller Changed Notify  New Active Controller Node ID
+                                0x04                       
+                                Attach Node   0x01         Node ID (TBD Should this be a Datagram to send
+                                                           multiple nodes at once?)
+   Consist Configuration 0x13   Detach Node    0x02        Node ID  (TBD Should this be a Datagram to send
+                                                           multiple nodes at once?)
+                                Query Nodes   0x03          (TBD Should this be a Datagram to send multiple
+                                                           nodes at once?)
+   Traction Management   0x14   Reserve           0x01                                                      
+                                Release  0x02                                                               
 
     
 
@@ -219,18 +214,18 @@
                              Changed Notify                                                           
                              Reply 0x04     Non-zero ==   
                                             Reject        
-   Consist                   Attach Node    Node ID                                                  Reply  
-   Configuration      0x13   Reply  0x01                                                             Code   
-    Reply                    Detach Node    Node ID                                                  Reply  
-                             Reply    0x02                                                           Code   
+                             Attach Node    Node ID  (TBD Should this be a Datagram to send multiple Reply  
+   Consist                   Reply  0x01    nodes at once?)                                          Code   
+   Configuration      0x13   Detach Node    Node ID  (TBD Should this be a Datagram to send multiple Reply  
+    Reply                    Reply    0x02  nodes at once?)                                          Code   
+                             Query Node     TBD What to do here...  Should this be a datagram??             
+                             Reply  0x03    
                                             Result:                                                         
    Traction           0x14   Reserve Reply  0 == OK                                                   
    Management Reply           0x01          Non-zero ==   
                                             Failed        
 
-   Controller configuration tracks the node that is controlling the train node. In order to operate a train
-   the controller must be first assigned.  A train node shall not respond to a traction message if it not
-   defined as the current Active Controller.
+    
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -261,6 +256,45 @@
 
    MTI=05E8 10 44 20 00 44 20 44 20
 
+   Controller configuration maintains the node that is controlling the train node. In order to operate a
+   train the controller must be first assigned.  A train node shall not respond to a traction message if it
+   not defined as the current active Controller.  Once a controller is finished operating a train it
+   should, but is not required, to Release the active Controller.  One place this may not be done is if the
+   controller is being unplugged to be moved to a new location on the layout.  The benefit of releasing the
+   train is to allow the next controller to be connected to the train without the handshaking required to
+   take a train from an existing active Controller.  This is explained in the messaging diagram later in
+   this document.  A Controller node may be send an unsolicited message if it is currently assigned to a
+   train node and another Controller node attempts to assign itself to the train.  The when new the
+   Controller node requests to be Assigned to the train one of several actions may occur.
+
+    1. The train may block the request and return false to the Assign request
+
+    2. The train forwards a Controller Changed Notify message to the currently assigned controller node and
+       that controller node returns false in which the train node returns false with a fail code of
+       Controller Refused to the Assign request.  The active controller may, but is not required to,
+       indicate to the user it has been asked to release the train node.
+
+    3. The train forwards a Controller Changed Notify message to the currently assigned controller node and
+       that controller node return true.  The active controller may, but is not required to, indicate to
+       the user it is loosing its position as the active controller of the train node.  In turn the train
+       node returns true to the Assign request and the train node sets the new controller as the active
+       controller.
+
+   A node my Query the active node from a train node.  If no controller is assigned the train nodes returns
+   a Node ID of 0.0.0.0.0.0.  It would be better to return an error code but that would require a
+   multi-frame message which is possible but undesirable.
+
+   Consist Configuration allows a train node to become the operator of multiple trains.  The simplest way
+   is to Add/Delete/Query one node at a time.  I think this should be done as a datagram for all
+   operations.  It is not a time critical operation and the number of nodes should not be artificially
+   limited to force it into a multi-frame message.
+
+   Traction Management locks/releases the train node such that interactions that require multiple messages
+   between 2 or more nodes are guaranteed to be completed before another node can set (modify) the
+   configuration on the train node.  These messages are not needed for normal traction operations such as
+   speed and function set/query.  If the node attempting to set attributes of the train is not the active
+   node the train node will ignore the request and as such locking/releasing is not required.
+
 2.5 States
 
    Full OpenLCB nodes:
@@ -280,10 +314,6 @@
 
    The configuration memory space holds the configuration of the train, such as how functions will work,
    how speed in scale meters/second will control motor operation, etc.
-
-   For a proxy node, the configuration memory space contains information on both the proxy operation, and
-   also the proxied train(s) and DCC decoder(s).  The configuration memory space is mapped to the CV
-   configuration space for DCC decoders.
 
   2.6.2 CDI
 
@@ -781,11 +811,7 @@
 
    1.3 Unserved Use Cases
 
-   1.3.1 Multiple Independent Command Stations
-
-   1.3.2 Improved Legacy Addressing
-
-   1.3.3 Third-Party Communications
+   1.3.1 Third-Party Communications
 
    2 Specified Sections
 
