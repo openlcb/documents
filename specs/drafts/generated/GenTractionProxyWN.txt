@@ -123,9 +123,26 @@
 
   2.4.1 Defined Event Ids
 
-   IsTrainProxy: 01.01.00.00.00.00.03.04
+   Proxy types are defined as well known ID values.  This was done to allow fast and easy identification of
+   the technology for simple bridges from the legacy technology to OLCB.  Another way is to have a single
+   “IsProxy” event then a call into this protocol to extract the legacy technologies supported.  This is an
+   acceptable way to do it if the node looking for the proxy has lots of RAM to allow it to collect all
+   possible responses (remember in multiple command station layouts each command station may identify
+   itself as a Proxy).  This method allows a much cleaner implementation at the bridge level to find the
+   DCC (or other legacy system) proxy.
 
-   EmergencyStopAll: 01.01.00.00.00.00.FF.FF
+    Event Type              Well Known Event ID     
+   IsDCCProxy               01.01.00.00.00.00.03.04 
+   IsDCProxy                01.01.00.00.00.00.03.05 
+   IsMärklinDigitalProxy    01.01.00.00.00.00.03.06 
+   IsMärklinDELTAProxy      01.01.00.00.00.00.03.07 
+   IsMärklinESUDigitalProxy 01.01.00.00.00.00.03.08 
+   IsSelectrixProxy         01.01.00.00.00.00.03.09 
+   IsMTHDCSProxy            01.01.00.00.00.00.03.10 
+   IsLionelTMCCProxy        01.01.00.00.00.00.03.11 
+   EmergencyStopAll         01.01.00.00.00.00.FF.FF 
+
+    
 
   2.4.2 Traction Proxy Control Command Message
 
@@ -146,22 +163,22 @@
    they have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction                  Byte 0 Byte 1    Byte 2  Byte 3        Byte 4 Byte 5 Byte 6 Byte 7 
-   Identify Supported Proxies   0x01                                                               
-                                                         Speed steps                               
-   Allocate DCC Proxy           0x02   DCC Address AA.AA                                     
-                                                         (14, 28, 128) 
-   Allocate DC Proxy            0x03                                                               
-   Märklin Digital              0x04                                                               
-   Märklin DELTA                0x05                                                               
-   Märklin Digital (2004 w/ESU) 0x06                                                               
-   Selectrix                    0x07                                                               
-   MTH DCS                      0x08                                                               
-   Lionel TMCC                  0x09                                                               
-                                       Reserve                                                     
-   Manage Proxy                 0x80   0x01      
-                                       Release                                                     
-                                       0x02      
+   Instruction                           Byte 0 Byte 1    Byte 2  Byte 3        Byte 4 Byte 5 Byte 6 Byte 7 
+                                                                  Speed steps                               
+   Allocate DCC Proxy                    0x01   DCC Address AA.AA                                     
+                                                                  (14, 28, 128) 
+   Allocate DC Proxy                     0x02                                                               
+   Allocate Märklin Digital Proxy        0x03                                                               
+   Allocate Märklin DELTA Proxy          0x04                                                               
+   Allocate Märklin Digital (2004 w/ESU) 0x05                                                               
+   Proxy                                 
+   Allocate Selectrix Proxy              0x06                                                               
+   Allocate MTH DCS Proxy                0x07                                                               
+   Allocate Lionel TMCC Proxy            0x08                                                               
+                                                Reserve                                                     
+   Manage Proxy                          0x80   0x01      
+                                                Release                                                     
+                                                0x02      
 
     
 
@@ -174,36 +191,19 @@
 
     
 
-   Instruction                      Byte 0 Byte 1        Byte 2    Byte 3   Byte 4 Byte 5 Byte 6 Byte 7     
-   Identify Supported Proxies Reply 0x01   Proxy Type    
-                                    0x02                                                                    
-                                           
-   Configure Proxy Reply            ..     Allocated Node ID                                     Reply Code
-                                           
-                                    0x7F   
-                                           Reserve Reply Result:                                            
-   Manage Proxy Reply               0x80   0x01          0 == OK                                  
-                                                         Non-zero == Failed
+   Instruction          Byte 0 Byte 1        Byte 2    Byte 3   Byte 4 Byte 5 Byte 6 Byte 7     
+                        0x01                                                                    
+                               
+   Allocate Proxy Reply ..     Allocated Node ID                                     Reply Code
+                               
+                        0x7F   
+                               Reserve Reply Result:                                            
+   Manage Proxy Reply   0x80   0x01          0 == OK                                  
+                                             Non-zero == Failed
 
     
 
-    2.4.3.1 Identify Proxy Result
-
-   The result of Identify Proxy identifies the type(s) of legacy system that is supported by the proxy.
-
-   Proxy Type                   Code (Word)      
-   NMRA DCC                     0x00000000000001 
-   DC                           0x00000000000002 
-   Märklin Digital              0x00000000000004 
-   Märklin DELTA                0x00000000000008 
-   Märklin Digital (2004 w/ESU) 0x00000000000010 
-   Selectrix                    0x00000000000020 
-   MTH DCS                      0x00000000000040 
-   Lionel TMCC                  0x00000000000080 
-
-    
-
-    2.4.3.2 Proxy-Specific
+    2.4.3.1 Proxy-Specific
 
    Allocate reply code:  Zero means OK
 
@@ -238,6 +238,8 @@
     The Throttle node must implement the Traction and Traction Proxy Protocols as must the node that is
    bridging OLCB with the DCC protocol.
 
+    
+
    graphics2
 
    Directly accessing a legacy system through the Proxy.
@@ -255,9 +257,9 @@
    result of  this allocation will be a node that, from the throttles point of view, is a pure OpenLCB
    train (IsTrain) and can be controlled through the Traction Protocol.  
 
-   graphics3
-
     
+
+   graphics8
 
   2.5.4 Allocate Train Node – OpenLCB Legacy System Access
 
@@ -275,7 +277,7 @@
 
     
 
-   graphics4
+   graphics3
 
     
 
@@ -283,15 +285,17 @@
    required to remove the node from the network.  If the node is not removed from the network it may be
    recycled and used when another throttle allocates that DCC address.
 
-   graphics5
+   graphics4
+
+    
 
   2.5.5 Multiple Throttle: Non Conflicting
 
-   graphics6
+   graphics5
 
   2.5.6 Multiple Throttles: Conflicting
 
-   graphics7
+   graphics6
 
                                           3 Legacy DCC Configuration
 
@@ -412,9 +416,7 @@
 
    2.4.3 Traction Proxy Control Reply Message
 
-   2.4.3.1 Identify Proxy Result
-
-   2.4.3.2 Proxy-Specific
+   2.4.3.1 Proxy-Specific
 
    2.5 Interactions
 
