@@ -6,20 +6,16 @@ msc {
      
      "Throttle 1" note "DCC Train Node 1"      [ label = "Dynamically Creating a Train Node via a DCC Address linked to a Proxy Node (Proxy and Train Nodes communicate external to OLCB Bus)", textbgcolour="#c0c0c0" ];
      |||;
-     "Throttle 1" -> "DCC Proxy"               [ label = "Identify Producer IsTrainProxy" ];
-     "Throttle 1" <- "DCC Proxy"               [ label = "Producer Identified: IsTrainProxy" ];
-     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction" ];
-     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Proxy Identification Instruction Reply - OK: Supports DCC" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "Identify Producer IsDCCProxy" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "Producer Identified: IsDCCProxy" ];
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Manage Reserve" ];
+     "Throttle 1" <- "DCC Proxy"               [ label = "TractionProxy: Manage Reserve - OK" ];
      "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Allocate DCC Train Node" ];
      "DCC Proxy" box "DCC Proxy"	       [ label = "Proxy Dynamically creates Train Node with DCC Address" ]; 
      "DCC Train Node 1" box "DCC Train Node 1" [ label = "Dynamic Node Starts" ];
      "DCC Train Node 1" -> *                   [ label = "Initialization Complete" ];
      "DCC Train Node 1" -> *                   [ label = "Producer Identified Valid: IsTrain Event" ];
      "Throttle 1" <- "DCC Proxy"               [ label = "ProxyTraction: Allocate DCC Train Node Reply: OK with Node ID" ];
-     "Throttle 1" box "DCC Train Node 1"       [ label = "Thottle uses the returned Node as an IsTrain Node with the Traction Protocol" ];  
-      ...;
-     "Throttle 1" -> "DCC Train Node 1"	       [ label = "Traction: Set Speed" ];
-     "DCC Train Node 1" box "DCC Proxy"	       [ label = "Train Node linked to DCC Proxy to place NMRA DCC Command on Rails" ];
-      ...;
-     "Throttle 1" box "DCC Train Node 1"       [ label = "Continue to Operate Train" ]; 	            
+     "Throttle 1" -> "DCC Proxy"               [ label = "TractionProxy: Manage Release" ];
+     "Throttle 1" box "DCC Train Node 1"       [ label = "Thottle uses the returned Node as an IsTrain Node with the Traction Protocol" ];  	            
 }
