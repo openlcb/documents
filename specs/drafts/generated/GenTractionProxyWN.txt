@@ -131,16 +131,11 @@
    itself as a Proxy).  This method allows a much cleaner implementation at the bridge level to find the
    DCC (or other legacy system) proxy.
 
-    Event Type              Well Known Event ID     
-   IsDCCProxy               01.01.00.00.00.00.03.04 
-   IsDCProxy                01.01.00.00.00.00.03.05 
-   IsMärklinDigitalProxy    01.01.00.00.00.00.03.06 
-   IsMärklinDELTAProxy      01.01.00.00.00.00.03.07 
-   IsMärklinESUDigitalProxy 01.01.00.00.00.00.03.08 
-   IsSelectrixProxy         01.01.00.00.00.00.03.09 
-   IsMTHDCSProxy            01.01.00.00.00.00.03.0A 
-   IsLionelTMCCProxy        01.01.00.00.00.00.03.0B 
-   EmergencyStopAll         01.01.00.00.00.00.FF.FF 
+    Event Type      Well Known Event ID     
+   IsProxy          01.01.00.00.00.00.03.04 
+   EmergencyStopAll 01.01.00.00.00.00.FF.FF 
+
+    
 
     
 
@@ -163,22 +158,36 @@
    they have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction                           Byte 0 Byte 1    Byte 2  Byte 3        Byte 4 Byte 5 Byte 6 Byte 7 
-                                                                  Speed steps                               
-   Allocate DCC Proxy                    0x01   DCC Address AA.AA                                     
-                                                                  (14, 28, 128) 
-   Allocate DC Proxy                     0x02                                                               
-   Allocate Märklin Digital Proxy        0x03                                                               
-   Allocate Märklin DELTA Proxy          0x04                                                               
-   Allocate Märklin Digital (2004 w/ESU) 0x05                                                               
-   Proxy                                 
-   Allocate Selectrix Proxy              0x06                                                               
-   Allocate MTH DCS Proxy                0x07                                                               
-   Allocate Lionel TMCC Proxy            0x08                                                               
-                                                Reserve                                                     
-   Manage Proxy                          0x80   0x01      
-                                                Release                                                     
-                                                0x02      
+   Instruction     Byte 0 Byte 1              Byte 2 Byte 3 Byte 4      Byte 5      Byte 6      Byte 7      
+   Allocate  Proxy 0x01   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
+                          ID                  
+   Attach Train ID 0x02   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
+                          ID                  
+   Detach Train ID 0x03   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
+                          ID                  
+                          Reserve                                                                           
+   Manage Proxy    0x80   0x01                
+                          Release                                                                           
+                          0x02                
+
+    
+
+    2.4.2.1 Technology Specific Parameters
+
+                   Technology ID Train ID                 Parameter 0   Parameter 1 Parameter 2 Parameter 3 
+                   0x01          DCC Address AA.AA where  Speed steps                                       
+   NMRA DCC                      AA.AA is encoded in the                                         
+                                 NMRA format              (14, 28, 128) 
+   DC              0x02                                                                                     
+   Märklin Digital 0x03                                                                                     
+   Märklin DELTA   0x04                                                                                     
+   Märklin Digital 0x05                                                                                     
+   (2004 w/ESU)    
+   Selectrix       0x06                                                                                     
+   MTH DCS         0x07                                                                                     
+   Lionel TMCC     0x08                                                                                     
+
+    
 
     
 
@@ -191,15 +200,12 @@
 
     
 
-   Instruction          Byte 0 Byte 1        Byte 2    Byte 3   Byte 4 Byte 5 Byte 6 Byte 7     
-                        0x01                                                                    
-                               
-   Allocate Proxy Reply ..     Allocated Node ID                                     Reply Code
-                               
-                        0x7F   
-                               Reserve Reply Result:                                            
-   Manage Proxy Reply   0x80   0x01          0 == OK                                  
-                                             Non-zero == Failed
+   Instruction           Byte 0 Byte 1        Byte 2    Byte 3   Byte 4 Byte 5 Byte 6 Byte 7     
+   Allocate Proxy Reply  0x01   Allocated Node ID                                     Reply Code 
+   Attach Train ID Reply 0x02   Reply Code                                                       
+                                Reserve Reply Result:                                            
+   Manage Proxy Reply    0x80   0x01          0 == OK                                  
+                                              Non-zero == Failed
 
     
 
@@ -277,13 +283,15 @@
 
     
 
-   graphics3
+    
 
     
 
    When the throttle no longer wants to operate the train it may deallocate it.  The system may, but is not
    required to remove the node from the network.  If the node is not removed from the network it may be
-   recycled and used when another throttle allocates that DCC address.
+   recycled and used when another throttle allocates that DCC address
+
+   graphics3
 
    graphics4
 
@@ -413,6 +421,8 @@
    2.4.1 Defined Event Ids
 
    2.4.2 Traction Proxy Control Command Message
+
+   2.4.2.1 Technology Specific Parameters
 
    2.4.3 Traction Proxy Control Reply Message
 
