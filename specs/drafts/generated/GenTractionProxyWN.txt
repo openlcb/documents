@@ -143,7 +143,7 @@
 
     
 
-   MTI: Priority 0, index 15, modifier 2, addressed => MTI 0x01FA, CAN frame [191EAsss] fd dd
+   MTI: Priority 0, index 15, modifier 2, addressed => MTI 0x01EA, CAN frame [191EAsss] fd dd
 
    The MTI modifiers are chosen to have the reply a higher priority than the request, ensuring replies to
    repeated instructions are always possible.  The same priority and index are used for command and reply
@@ -158,19 +158,22 @@
    they have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction     Byte 0 Byte 1              Byte 2 Byte 3 Byte 4      Byte 5      Byte 6      Byte 7      
-   Allocate  Proxy 0x01   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
-                          ID                  
-   Attach Train ID 0x02   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
-                          ID                  
-   Detach Train ID 0x03   Legacy Technology   Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter 3 
-                          ID                  
+   Instruction     Byte 0 Byte 1              Byte 2 Byte 3 Byte 4      Byte 5      Byte 6*     Byte N*     
+   Allocate  Proxy 0x01   Suggested Legacy    Train ID      Parameter 0 Parameter 1 Parameter 2 Parameter N 
+                          Technology ID       
+   Attach Train ID 0x02   Train ID            Parameter 0   Parameter 1 Parameter 2 Parameter 3 Parameter N 
+   Detach Train ID 0x03   Train ID            Parameter 0   Parameter 1 Parameter 2 Parameter 3 Parameter N 
                           Reserve                                                                           
    Manage Proxy    0x80   0x01                
                           Release                                                                           
                           0x02                
 
     
+
+   * These bytes will not fit in a single frame message.  This means the Traction Proxy Protocol may be a
+   multi-frame message to allow for the expansion of future technologies that may need more than a two
+   bytes of unique information passed to the proxy.  Please see the GenMessageNetwork document and framing
+   bits to implement multi-frame messages.
 
     2.4.2.1 Technology Specific Parameters
 
@@ -193,21 +196,50 @@
 
   2.4.3 Traction Proxy Control Reply Message
 
-   MTI: Priority 0, index 15, modifier 0, addressed => MTI 0x01F8, CAN frame [191E8sss] fd dd
+   MTI: Priority 0, index 15, modifier 0, addressed => MTI 0x01E8, CAN frame [191E8sss] fd dd
 
    Higher priority to ensure can be sent immediately over Traction Proxy Control Command messages. Coding
    and structure similar.
 
+   Byte N
+
+   Byte 8
+
+   Byte 7
+
+   Byte 9
+
+   Byte 3
+
+   Byte 4
+
+   Byte 5
+
+   Byte 6
+
+   Byte 10
+
+   Byte 11
+
+   Byte 12
+
+   Instruction     Byte 0 Byte 1        Byte 2                                                       Byte   
+                                                                                                     13   
+   Allocate Proxy         Flags         Allocated Legacy                                  {Optional}        
+   Reply           0x01   0x01=Alias ID Technology             Train ID Allocated Node ID                  
+                          valid                                                           Alias ID
+   Attach Train ID 0x02   Reply Code                                                                        
+   Reply           
+   Manage Proxy           Reserve Reply Result:                                                             
+   Reply           0x80   0x01          0=OK                                                               
+                                        Non-zero=Failed        
+
     
 
-   Instruction           Byte 0 Byte 1        Byte 2    Byte 3   Byte 4 Byte 5 Byte 6 Byte 7     
-   Allocate Proxy Reply  0x01   Allocated Node ID                                     Reply Code 
-   Attach Train ID Reply 0x02   Reply Code                                                       
-                                Reserve Reply Result:                                            
-   Manage Proxy Reply    0x80   0x01          0 == OK                                  
-                                              Non-zero == Failed
-
-    
+   * These bytes will not fit in a single frame message.  This means the Traction Proxy Protocol may be a
+   multi-frame message to allow for the expansion of future technologies that may need more than a two
+   bytes of unique information passed to the proxy.  Please see the GenMessageNetwork document and framing
+   bits to implement multi-frame messages.
 
     2.4.3.1 Proxy-Specific
 
