@@ -4,7 +4,7 @@
 
                                                                Traction Protocol
 
-                                                   Apr 20, 2014                        Preliminary          
+                                                   Apr 23, 2014                        Preliminary          
 
                                                 1 Introduction
 
@@ -208,11 +208,11 @@
 
     Emergency Stop    0x02   
 
-     Query Speeds    0x120   
+     Query Speeds    0x110   
 
-    Query Function   0x1121             Address
+    Query Function   0x1111             Address
 
-      Controller      0x30     Assign       Flags             Controller Node ID            Alias
+      Controller      0x20     Assign       Flags             Controller Node ID            Alias
      Configuration           Controller   0x01=Alias                                      {Optional}
                                 0x01       ID valid   
 
@@ -224,11 +224,11 @@
                              Controller   
                                 0x03      
 
-                             Controller     Flags             Controller Node ID            Alias
-                               Changed    0x01=Alias                                      {Optional}
+                             Controller     Flags     New Requesting Controller Node ID     Alias
+                              Changing    0x01=Alias                                      {Optional}
                              Notify 0x04   ID valid   
 
-        Consist       0x40   Attach Node    Flags              Consist Node ID              Alias
+        Consist       0x30   Attach Node    Flags              Consist Node ID              Alias
      Configuration              0x01      0x01=Alias                                      {Optional}
                                            ID valid   
 
@@ -240,7 +240,7 @@
                                 0x03      0x01=Alias                                      {Optional}
                                            ID valid   
 
-       Traction       0x50     Reserve    
+       Traction       0x40     Reserve    
       Management                0x01      
 
                                Release    
@@ -254,48 +254,59 @@
 
   2.4.3 Traction Control Reply Message
 
-   MTI: Priority 1, index 15, modifier 0, addressed => MTI 0x05EF8, CAN frame [195EE8sss] fd dd
+   MTI: Priority 1, index 15, modifier 0, addressed => MTI 0x05EE8, CAN frame [195EE8sss] fd dd
 
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
 
-    Instruction     Byte 0  Byte 1        Byte 2       Byte 3        Byte 4   Byte 5  Byte 6  Byte  Byte 8  
-                                                                                              7     
+     Instruction    Byte 0    Byte 1        Byte 2     Byte 3   Byte   Byte  Byte  Byte  Byte   Byte  Byte  
+                                                                  4     5     6     7      8     9     10   
 
-    Query Speeds    0x120   Set Speed                  Status        Commanded Speed  Actual Speed
-    Reply           
+     Query Speeds   0x120           Set Speed          Status    Commanded     Actual
+        Reply                                                      Speed       Speed
 
-    Query Function  0x121   Address                                  Value    
-    Reply           
+    Query Function  0x121                Address                   Value
+        Reply       
 
-    Controller      0x30    Assign        Result:      Fail Code:    
-    Configuration           Controller    0 == OK      1=Active      
-    Reply                   Reply 0x01    Non-zero ==  Controller    
-                                          Failed       Refused       
+      Controller     0x30     Assign       Result:     
+    Configuration           Controller     0 == OK     
+        Reply               Reply 0x01   Non-zero ==   
+                                            Failed     
+                                                       
+                                          Fail Code:   
+                                             Bit       
+                                          0=Assigned   
+                                          Controller   
+                                           Refused     
+                                                       
+                                           Bit 1 =     
+                                            Train      
+                                           refused     
+                                          connection   
 
-                            Query         Active Controller (0.0.0.0.0.0 if no controller active)
-                            Controller    
-                            Reply 0x03    
+                               Query        Flags       Active Controller (0.0.0.0.0.0 if no     Alias ID
+                            Controller    0x01=Alias             controller active)             {Optional
+                            Reply 0x03     ID valid    
 
-                            Controller    Result: 0    
-                            Changed       == OK        
-                            Notify Reply               
-                            0x04          Non-zero ==  
-                                          Reject       
+                            Controller   Result: 0 ==  
+                              Changed         OK       
+                              Notify                   
+                            Reply 0x04   Non-zero ==   
+                                            Reject     
 
-    Consist         0x40    Attach Node   Node ID (TBD Should this be a Datagram to send multiple   Reply   
-    Configuration           Reply 0x01    nodes at once?)                                           Code    
-    Reply           
-                            Detach Node   Node ID (TBD Should this be a Datagram to send multiple   Reply   
-                            Reply 0x02    nodes at once?)                                           Code    
+       Consist       0x40   Attach Node  Node ID (TBD Should this be a Datagram to send  Reply  
+    Configuration           Reply 0x01              multiple nodes at once?)             Code   
+        Reply       
+                            Detach Node  Node ID (TBD Should this be a Datagram to send  Reply  
+                            Reply 0x02              multiple nodes at once?)             Code   
 
-                            Query Node    TBD What to do here... Should this be a datagram??
-                            Reply 0x03    
+                            Query Node      TBD What to do here... Should this be a
+                            Reply 0x03                     datagram??
 
-    Traction        0x50    Reserve       Result:      
-    Management              Reply 0x01    0 == OK      
-    Reply                                 Non-zero ==  
-                                          Failed       
+       Traction      0x50     Reserve      Result:     
+      Management            Reply 0x01     0 == OK     
+        Reply                            Non-zero ==   
+                                            Failed     
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -1181,4 +1192,4 @@ Legacy Throttles and Throttle Busses
    3.5 Consisting 20
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   14 - Apr 20, 2014
+   14 - Apr 23, 2014
