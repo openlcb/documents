@@ -164,36 +164,37 @@
    have higher priority. Given the small size of these messages, they also use less bandwidth than
    datagrams.
 
-   Instruction     Byte Byte 1                    Byte 2     Byte Byte Byte Byte Byte Byte Byte 9 Byte Byte 
-                   0                                         3    4    5    6    7    8           10   11   
-   Set             0x00 Speed and direction as signed                                                       
-   Speed/Direction      float16                   
-   Set Function    0x01 Address                                   Value                                     
-   Emergency Stop  0x02                                                                                     
-   Query Speeds    0x20                                                                                     
-   Query Function  0x21 Address                                                                             
-                                                  Flags                                    Alias            
-                        Assign Controller 0x01    0x01=Alias Controller Node ID            {Optional}   
-                                                  ID valid   
-                                                  Flags                                    Alias            
-   Controller      0x30 Release Controller  0x02  0x01=Alias Controller Node ID            {Optional}   
-   Configuration                                  ID valid   
-                        Query Controller  0x03                                                              
-                        Controller Changed Notify Flags                                    Alias            
-                        0x04                      0x01=Alias Controller Node ID            {Optional}   
-                                                  ID valid   
-                                                  Flags                                    Alias            
-                        Attach Node   0x01        0x01=Alias Consist Node ID               {Optional}   
-                                                  ID valid   
-   Consist                                        Flags                                    Alias            
-   Configuration   0x40 Detach Node    0x02       0x01=Alias Consist Node ID               {Optional}   
-                                                  ID valid   
-                                                   Flags                                   Alias            
-                        Query Nodes   0x03        0x01=Alias Consist Node ID               {Optional}   
-                                                  ID valid   
-   Traction        0x50 Reserve           0x01                                                              
-   Management      
-                        Release  0x02                                                                       
+   Instruction     Byte Byte 1                Byte 2     Byte  Byte  Byte  Byte  Byte Byte Byte 9 Byte Byte 
+                   0                                     3     4     5     6     7    8           10   11   
+   Set             0x00 Speed and direction as signed                                                       
+   Speed/Direction      float16               
+   Set Function    0x01 Address                                Value                                        
+   Emergency Stop  0x02                                                                                     
+   Query Speeds    0x10                                                                                     
+   Query Function  0x11 Address                                                                             
+                        Assign Controller     Flags                                        Alias            
+                        0x01                  0x01=Alias Controller Node ID                {Optional}   
+                                              ID valid   
+                        Release Controller    Flags                                        Alias            
+   Controller            0x02                 0x01=Alias Controller Node ID                {Optional}   
+   Configuration   0x20                       ID valid   
+                        Query Controller                                                                    
+                         0x03                 
+                        Controller Changing   Flags                                        Alias            
+                        Notify 0x04           0x01=Alias New Requesting Controller Node ID {Optional}   
+                                              ID valid   
+                                              Flags                                        Alias            
+                        Attach Node   0x01    0x01=Alias Consist Node ID                   {Optional}   
+                                              ID valid   
+   Consist                                    Flags                                        Alias            
+   Configuration   0x30 Detach Node    0x02   0x01=Alias Consist Node ID                   {Optional}   
+                                              ID valid   
+                                               Flags                                       Alias            
+                        Query Nodes   0x03    0x01=Alias Consist Node ID                   {Optional}   
+                                              ID valid   
+   Traction        0x40 Reserve                                                                             
+   Management                     0x01        
+                        Release  0x02                                                                       
 
     
 
@@ -202,39 +203,49 @@
 
   2.4.3 Traction Control Reply Message
 
-   MTI: Priority 1, index 15, modifier 0, addressed => MTI 0x05F8, CAN frame [195E8sss] fd dd
+   MTI: Priority 1, index 15, modifier 0, addressed => MTI 0x05E8, CAN frame [195E8sss] fd dd
 
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
 
     
 
-   Instruction        Byte 0 Byte 1         Byte 2        Byte 3       Byte 4  Byte 5  Byte 6 Byte 7 Byte 8 
-   Query Speeds Reply 0x20   Set Speed                    Status       Commanded Speed Actual Speed         
-   Query Function     0x21   Address                                   Value                                
-   Reply              
-                             Assign         Result:       Fail Code:                                        
-                             Controller     0 == OK       1=Active                                    
-                             Reply 0x01     Non-zero ==   Controller   
-                                            Failed         Refused     
-   Controller                Query                                                                          
-   Configuration      0x30   Controller     Active Controller (0.0.0.0.0.0 if no controller active)   
-   Reply                     Reply 0x03     
-                                            Result: 0 ==                                                    
-                             Controller     OK            
-                             Changed Notify                                                           
-                             Reply 0x04     Non-zero ==   
-                                            Reject        
-                             Attach Node    Node ID  (TBD Should this be a Datagram to send multiple Reply  
-   Consist                   Reply  0x01    nodes at once?)                                          Code   
-   Configuration      0x40   Detach Node    Node ID  (TBD Should this be a Datagram to send multiple Reply  
-    Reply                    Reply    0x02  nodes at once?)                                          Code   
-                             Query Node     TBD What to do here...  Should this be a datagram??             
-                             Reply  0x03    
-                                            Result:                                                         
-   Traction           0x50   Reserve Reply  0 == OK                                                   
-   Management Reply           0x01          Non-zero ==   
-                                            Failed        
+   Instruction      Byte 0 Byte 1        Byte 2            Byte 3  Byte  Byte  Byte  Byte  Byte 8 Byte Byte 
+                                                                   4     5     6     7            9    10   
+   Query Speeds     0x20   Set Speed                       Status  Commanded   Actual                       
+   Reply                                                           Speed       Speed 
+   Query Function   0x21   Address                                 Value                                    
+   Reply            
+                                         Result:                                                            
+                                         0 == OK           
+                                         Non-zero ==       
+                                         Failed            
+                                                           
+                           Assign        Fail Code: Bit    
+                           Controller    0=Assigned                                                     
+                           Reply 0x01    Controller        
+   Controller                            Refused           
+   Configuration    0x30                                   
+   Reply                                 Bit 1 = Train     
+                                         refused           
+                                         connection        
+                           Query         Flags             Active Controller (0.0.0.0.0.0 if no   Alias ID
+                           Controller    0x01=Alias ID     controller active)                     {Optional
+                           Reply 0x03    valid             
+                           Controller    Result: 0 == OK                                                    
+                           Changed                                                                      
+                           Notify Reply  Non-zero ==       
+                           0x04          Reject            
+                           Attach Node   Node ID  (TBD Should this be a Datagram to send   Reply            
+   Consist                 Reply  0x01   multiple nodes at once?)                          Code   
+   Configuration    0x40   Detach Node   Node ID  (TBD Should this be a Datagram to send   Reply            
+    Reply                  Reply    0x02 multiple nodes at once?)                          Code   
+                           Query Node    TBD What to do here...  Should this be a                           
+                           Reply  0x03   datagram??        
+                                         Result:                                                            
+   Traction         0x50   Reserve Reply 0 == OK                                                        
+   Management Reply         0x01         Non-zero ==       
+                                         Failed            
 
     
 
