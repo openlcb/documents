@@ -24,7 +24,8 @@ var Dashboard = new function () {
     $.ajax(url).then(
       function(data, textStatus, jqXHR) {
         //success
-        data = JSON.parse(data);
+        if(typeof data == "string")
+          data = JSON.parse(data);
 
         //find the category for this doc, and insert it
         for (var i = self.specifications.categories.length - 1; i >= 0; i--) {
@@ -47,7 +48,9 @@ var Dashboard = new function () {
     $.ajax(url).then(
       function(data, textStatus, jqXHR) {
         //success
-        data = JSON.parse(data);
+        if(typeof data == "string")
+          data = JSON.parse(data);
+        
         for (var i = data.categories.length - 1; i >= 0; i--) {
           self.specifications.categories.unshift({
             name: data.categories[i],
@@ -76,7 +79,7 @@ var Dashboard = new function () {
 
   this.Initialize = function () {
     $.ajaxSetup({ cache: false });
-    
+
     self.ra = new Ractive({
       el: "Dashboard-container",
       template: self.template,
