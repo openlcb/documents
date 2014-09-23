@@ -25,32 +25,36 @@
 
 4.1 Address Space Size
 
-   Configuration memory addresses are 32 bits. The addressable quantity is the byte.
+   Configuration memory addresses are 32 bits. The addressable quantity is the byte. There are 255 unique
+   address spaces, which are specified using an address space selectors.
 
 4.2 Address Space Selection
 
-   Required space definitions (these may or may not have content on a particular node); these address space
-   numbers can only be used for this, and if the information is available, it must be accessible by these
-   numbers (in addition to any others the designer might provide):
+   Of the 255 unique address spaces, those that follow are required to be implemented by any node that
+   implements this specification (these may or may not have content on a particular node); the following
+   address space numbers can only be used for the specified purpose, and if the corresponding information
+   is available, it must be accessible by these address space selectors (in addition to any others the
+   designer might provide):
 
-     * (0xFF, flag=11) Configuration definition – reading this is how you get the configuration definition
+     * (space=0xFF, flag=11) Configuration definition – A read-only space containing the Configuration
+       Description Information for this node, if any.
 
-     * (0xFE, flag=10) All memory – provides access to “all” memory in the device, where “all” is defined
-       by the designer. Single, flat address space for access. Can be used for e.g. dynamic access to RAM
-       for monitoring & debugging.
+     * (space=0xFE, flag=10) All memory – This special space provides access to all memory in the device,
+       where “all” is defined by the designer. Can be used for e.g. dynamic access to RAM for monitoring &
+       debugging.
 
-     * (0xFD, flag=01) Configuration - basic configuration space, with the structure of the 32-bit space
-       defined by the designer.
+     * (space=0xFD, flag=01) Configuration – A writeable basic configuration space, with the structure of
+       the 32-bit space defined by the designer.
 
    These three spaces, inclusive, can be addressed without an extra byte in the datagram using control bits
-   in the flag byte. All others need to be specified as a byte value. The high addresses (0xFD through
-   0xFF) were chosen for the dedicated spaces so that space numbers 00, 01, 02 could be used as a 5th bytes
-   in a contiguous address if desired.
+   in the flag byte. All others must be specified as a byte value in byte 6 of the datagram payload (see
+   §4.3). The high addresses (0xFD through 0xFF) were chosen for the dedicated spaces so that space numbers
+   00, 01, 02 could be used as a 5th bytes in a contiguous address if desired.
 
 4.3 Message Formats
 
-   The following table shows available configuration operation formats. All others reserved. They must not
-   be skipped during identification. Items in {} are optional.
+   The following table shows available configuration message formats. All other formats are reserved. They
+   must not be skipped during identification.
 
   4.3.1 Read Command
 
@@ -65,20 +69,22 @@
 
   4.3.2 Read Reply
 
-   Byte 0 Byte 1               Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6                           
-                                                           (optional)    
+   Byte 0 Byte 1             Byte 2 Byte 3 Byte 4 Byte 5 Byte 6        Byte 7/6.                            
+                                                         (optional)    
           OK status:                                                                                        
-                               
-          0x50 Space in byte 6 Starting Address            Address Space Data (1-64)
-          0x51 Space 0xFD      
-          0x52 Space 0xFE      
-   0x20   0x53 Space 0xFF      
-          Failure status:                                                Error Code                         
+                             
+          0x50 Space in byte 
+          6                  Starting Address            Address Space Data (1-64)
+          0x51 Space 0xFD    
+          0x52 Space 0xFE    
+   0x20   0x53 Space 0xFF    
+          Failure status:                                              Error Code                           
                                                                                                             
-          0x58 Space in byte 6 Starting Address            Address Space (two bytes),                       
-          0x59 Space 0xFD                                                                                   
-          0x5A Space 0xFE                                                followed by optional               
-          0x5BSpace 0xFF                                                 zero-terminated message string     
+          0x58 Space in byte                                           (two bytes),                         
+          6                  Starting Address            Address Space                                      
+          0x59 Space 0xFD                                              followed by optional zero-terminated 
+          0x5A Space 0xFE                                              message string                       
+          0x5B Space 0xFF    
 
     
 
