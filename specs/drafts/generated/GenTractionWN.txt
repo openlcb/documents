@@ -627,7 +627,7 @@
    configuration & physical information, which lives in the memory configuration and CDI. If there's to be
    a mapping, it's defined through the CDI.
 
-  3.2.2 Legacy Function Control
+  3.2.2 Legacy DCC Function Control
 
    Although currently most DCC throttles only permit access to 12 or 29 functions, DCC technically permits
    as many as 32796 different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two
@@ -684,35 +684,55 @@
 
    The configuration information in a train can include the user documentation that's sometimes referred to
    as "roster information". This might include owner name, prototype railroad and road number, information
-   about the particular model's construction, etc. As yet, OpenLCB has no standards nor conventions on this
-   information.
+   about the particular model's construction, etc.  The Simple Train Node Information Protocol (STNIP) has
+   been defined to implement this concept.
 
-   One approach to standards in this area would be extend ACDI/SNIP. Those currently have a block for
-   manufacturer identification, and a block for user identification. Those are both versioned. We could
-   take (one of) several approaches:
+  3.3.1 Legacy DCC Configuration and Cvs
 
-   Extend them with a third block, only present when the node implements the train protocol (as seen in
-   PIP). To allow later introduction of more types, this block would have some versioning/type information,
-   but that's straightforward.
+    
 
-   Create a version 2 of the user block, which holds additional data. (This would be using 2 as a format
-   identifier, rather than a version number; that might make versioning complicated)
+   [Moved here from the old Wiki Page]
 
-   Suitable content for a (first version of) this might be (from [
-   http://jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html JMRI roster], see also similar concepts
-   in [rocrail.net RocRail]):
+   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
 
-     * Road Name
+   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
+   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
+   or whatever the user-fiendish manufacturer decides to provide as options.
 
-     * Road Number
+   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
+   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
+   these, but they're starting to appear in other places too.
 
-     * (Manufacturer, model, owner description, comments, etc are already present in ACDI/SNI)
+   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
+   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
+   spent way to much time debugging weird failures with that.
 
-     * For DCC locomotives, more terms might be desired:
+   A better approach, I [Bob J] think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00
+   3B, while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
+   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
+   CDI to carry that info, but it's within reason.
 
-     * DCC Address
+   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
+   be just a single bit in one CV, or something more complicated split across two (like long addresses).
+   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
+   other part of the space is actually bit mapped:
 
-     * Decoder Type (Manufacturer, model)
+   0xFF 00 53 3C
+
+   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
+   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
+
+   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
+   & build it into the gateway to DCC)
+
+   In the end, these legacy pains can't really be avoided. We have to craft the OpenLCB protocols to do a
+   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
+   e.g. DecoderPro does.
+
+   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
+   rolling stock.
+
+   Can/should it be adapted to handle the way existing DCC locomotives are configured through CVs?
 
 3.4 How to find human-readable loco information
 
@@ -888,9 +908,11 @@
 
    3.2.1 Outputs vs Functions
 
-   3.2.2 Legacy Function Control
+   3.2.2 Legacy DCC Function Control
 
    3.3 Configuration
+
+   3.3.1 Legacy DCC Configuration and Cvs
 
    3.4 How to find human-readable loco information
 
