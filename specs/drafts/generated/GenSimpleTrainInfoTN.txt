@@ -63,13 +63,27 @@
      * A null-terminated string for the owners name (i.e “John Smith”) is recommended, but not required
        that this string be 32 characters or less based on a single line display of a modern smart phone.
 
+     * [Optional] One byte to indicate Legacy Proxy Technology, see Traction Proxy Protocol.
+
+     * [Optional] One word to indicate Legacy Proxy Train ID, see Traction Proxy Protocol.
+
+     * [Optional] One byte to indicate Legacy Proxy Parameter 0 (for DCC this is the NMRA DCC speed steps),
+       see the Traction Proxy Protocol.
+
+     * [Optional] Remaining bytes for the Legacy Proxy Parameters depending on the Legacy Proxy Technology
+       field, see the Traction Proxy Protocol.
+
    Note that the total length, including version numbers and nulls, must be less than [253] bytes.  This is
    based on the length of SNIP.  There is discussion as to if this limit is needed.  The argument is due to
    buffer management in a bridge between a fast and slow physical layer (Ethernet to CAN for instance).
     The bridge must buffer the entire Ethernet message then split it into CAN 8 byte messages.  Having a
    fixed max length allows fixed buffers in the software/firmware development.
 
-   The data returned by STIP must equivalent that is returned in the corresponding elements in the TDI
+   Since the size of the returned information is variable the protocol uses the Framing Bits in the
+   destination address as described in the General Message Network document.  Counting null bytes and fixed
+   locations for data within the data stream will not be possible with the STNIP
+
+   The data returned by STIP must equivalent that is returned in the corresponding elements in the CDI
    Protocol.
 
     
