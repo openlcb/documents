@@ -4,7 +4,7 @@
 
                                                      Simple NodeTrain Information Protocol
 
-                                                   Mar 10, 2014                        Preliminary          
+                                                    Dec 8, 2014                        Preliminary          
 
                                                 1 Introduction
 
@@ -12,8 +12,9 @@
    configuration. This allows getting getting the information with a bare minimum of support at the
    requested node end, so long as the requesting node can be sure to handle it.
 
-   See the larger description in the ACDI TN, which should be copied here too. But note that SNII they can
-   exist independently of whether ACDI is present in the node or not.
+   they can exist independently of whether ACDI is present in the node or not.IIN
+
+   See the larger description in the ACDI TN, which should be copied here too. But note that S
 
                                         2 Annotations to the Standard
 
@@ -48,20 +49,20 @@
 
      * The byte 1 to indicate the version of the following content
 
-     * A null-terminated string for manufacturerthe road name name(i.e. “Rio Grande Southern”) of no more
-       than 41 bytes including terminating null is recommended, but not required that this string be 32
+     * A null-terminated string for manufacturerthe road name name(i.e. “Rio Grande Southern”) bytes
+       including terminating null41 of no more than is recommended, but not required that this string be 32
        characters or less based on a single line display of a modern smart phone.
 
-     * A null-terminated string for the node model nametrain class (i.e. “K-27”) of no more than 41 bytes
-       including terminating null. is recommended, but not required that this string be 32 characters or
-       less based on a single line display of a modern smart phone.
+     * A null-terminated string for the node model nametrain class (i.e. “K-27”). bytes including
+       terminating null41 of no more than is recommended, but not required that this string be 32
+       characters or less based on a single line display of a modern smart phone.
 
-     * A null-terminated string for the node hardware versionroad number (i.e. “455”) of no more than 21
-       bytes including terminating null. is recommended, but not required that this string be 32 characters
-       or less based on a single line display of a modern smart phone.
+     * A null-terminated string for the node hardware versionroad number (i.e. “455”). bytes including
+       terminating null21 of no more than is recommended, but not required that this string be 32
+       characters or less based on a single line display of a modern smart phone.
 
-     * A null-terminated string for node software versionthe train name (i.e “San Juan Express”) of no more
-       than 21 bytes including terminating null. is recommended, but not required that this string be 32
+     * A null-terminated string for node software versionthe train name (i.e “San Juan Express”). bytes
+       including terminating null21 of no more than is recommended, but not required that this string be 32
        characters or less based on a single line display of a modern smart phone.
 
      * * The byte 1 to indicate the version of the following content
@@ -77,16 +78,30 @@
      * A null-terminated string for the owners name (i.e “John Smith”) is recommended, but not required
        that this string be 32 characters or less based on a single line display of a modern smart phone.
 
+     * [Optional] One byte to indicate Legacy Proxy Technology, see Traction Proxy Protocol.
+
+     * [Optional] One word to indicate Legacy Proxy Train ID, see Traction Proxy Protocol.
+
+     * [Optional] One byte to indicate Legacy Proxy Parameter 0 (for DCC this is the NMRA DCC speed steps),
+       see the Traction Proxy Protocol.
+
+     * [Optional] Remaining bytes for the Legacy Proxy Parameters depending on the Legacy Proxy Technology
+       field, see the Traction Proxy Protocol.
+
    Note that the total length, including version numbers and nulls, must be less than [253] bytes. This is
    based on the length of SNIP. There is discussion as to if this limit is needed. The argument is due to
    buffer management in a bridge between a fast and slow physical layer (Ethernet to CAN for instance). The
    bridge must buffer the entire Ethernet message then split it into CAN 8 byte messages. Having a fixed
    max length allows fixed buffers in the software/firmware development.
 
-   The data returned by STIP must equivalent that is returned in the corresponding elements in the TDI
+   Since the size of the returned information is variable the protocol uses the Framing Bits in the
+   destination address as described in the General Message Network document. Counting null bytes and fixed
+   locations for data within the data stream will not be possible with the STNIP
+
+   The data returned by STIP must equivalent that is returned in the corresponding elements in the CDI
    Protocol.
 
-   Note that the total length, including version numbers and nulls, must be less than 253 bytes.
+   bytes.253Note that the total length, including version numbers and nulls, must be less than
 
 2.5 Interactions
 
@@ -137,4 +152,4 @@
    3 Draft notes 2
 
    Copyright 2012, 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 3 - Mar 10, 2014Mar 10, 2014
+   Page 1 of 3 - Dec 8, 2014Dec 8, 2014
