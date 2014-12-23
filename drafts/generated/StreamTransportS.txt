@@ -1,6 +1,6 @@
    PowerPlusWaterMarkObject1
 
-                                                     OpenLCB WorkingTechnical NoteStandard
+                                                      OpenLCB NoteTechnicalWorkingStandard
 
                                                             (title)Stream Transport
 
@@ -23,7 +23,7 @@ Served Use Cases
 
 2.1 Unserved Use Cases
 
-   Streaming can beis used to move large amounts of data (kilobytes and up) across a OpenLCB
+   Streaming can be is used to move large amounts of data (kilobytes and up) across a OpenLCB
    implementation. Streaming transport can also be used when the data transfer is unknown or indefinite in
    its volume or timespan. Streaming transport can also be used when the data transfer is unknown or
    indefinite in its volume or timespanpersistence.
@@ -104,13 +104,12 @@ Served Use Cases
    Streaming is not needed for short transfers, so a certain amount of overhead is acceptable. (This
    implies a Datagram protocol to cover the gap between Events and Streams in size, see separate document)
 
-   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
-
-   (Max) Buffer size is an unsigned 2-byte value (range [1..65535]) specifying the maximum number of bytes
-   in-flight; that is, the maximum number of bytes the source node may send without receiving a reception
+   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.(Max) Buffer
+   size is an unsigned 2-byte value (range [1..65535]) specifying the maximum number of bytes in-flight;
+   that is, the maximum number of bytes the source node may send without receiving a reception
    acknowledgement from the destination node.
 
-                                                     5 ^1
+                              5 Specified SectionsAnnotations to the Standard^1
 
 5.1 Introduction
 
@@ -125,7 +124,7 @@ Served Use Cases
    Lorem ipsum dolor sit amet, consectetur adipiscing elit.This is the usual section organization for a
    Technical Note, to accumulate the Standard and Technical Note content in its eventual order.
 
-                               6 Annotations to the StandardSpecified Sections
+                                                      6
 
    Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et magnis dis parturient montes,
    nascetur ridiculus mus. Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et
@@ -179,87 +178,76 @@ Served Use Cases
 
 6.2 Stream Initiate Reply
 
-    Name                   Dest ID  Event ID  Common MTI  Data Content
+    Name                   Dest ID  Event ID  Common MTI  Data Content   
 
-    Stream Initiate Reply     Y        N        0x0868                     6 or 12 bytes
+    Stream Initiate Reply     Y        N        0x0868         6 or 12 bytes + optional error string
 
-                                                          Bytes 0-1  Max Buffer Size (final value), or      
-                                                                     zero if the request is denied.         
+                                                          Bytes 0-1      Max Buffer Size (final value), or  
+                                                                         zero if the request is rejected.   
 
-                                                          Byte 2     Flags:                                 
+                                                          Byte 2-3       Error code                         
                                                                                                             
-                                                                     LSB: Type Included. Must match the     
-                                                                     type include flag in the request.      
-                                                                     0: No type specification in the        
-                                                                     stream payload                         
-                                                                     1: First six bytes areof the payload   
-                                                                     is the sunique Stream cContent UID     
+                                                                         Bit 3:                             
                                                                                                             
-                                                                     Bit 1:                                 
-                                                                     1: Stream Rejected, out of order or    
-                                                                     other “should not happen” error        
-                                                                     0: (nothing)                           
+                                                                         Bit 4:                             
                                                                                                             
-                                                                     Bit 2:                                 
+                                                                         Bit 5:                             
                                                                                                             
-                                                                     Bit 3:                                 
+                                                                         Bit 6: Error Type (if Reject)      
+                                                                         1: Permanent Error                 
+                                                                         0: Temporary Error                 
                                                                                                             
-                                                                     Bit 4:                                 
+                                                                         MSB: Accept/Reject                 
+                                                                         0: Reject                          
+                                                                         1: Accept                          
                                                                                                             
-                                                                     Bit 5:                                 
+                                                                         Bit 1:                             
+                                                                         1: Stream Rejected, out of order   
+                                                                         or other “should not happen”       
+                                                                         error                              
+                                                                         0: (nothing)                       
                                                                                                             
-                                                                     Bit 6: Error Type (if Reject)          
-                                                                     1: Permanent Error                     
-                                                                     0: Temporary Error                     
+                                                                         Bit 2:ontent UIDctream unique s    
+                                                                         areFlags:                          
                                                                                                             
-                                                                     MSB: Accept/Reject                     
-                                                                     0: Reject                              
-                                                                     1: Accept                              
+                                                                         LSB: Type Included                 
+                                                                         0: No type specification           
+                                                                         1: First six bytes , or 0x8000     
+                                                                         for accept.                        
 
-                                                          Byte 3     Additional Flags:                      
+                                                          Byte 4         Source Stream ID. Must match the   
+                                                                         value sent in the Stream Initiate  
+                                                                         Request.                           
                                                                                                             
-                                                                     If Reject                              
-                                                                                                            
-                                                                     LSB:                                   
-                                                                     1: Information Logged                  
-                                                                                                            
-                                                                     Bit 1:                                 
-                                                                                                            
-                                                                     Bit 2:                                 
-                                                                                                            
-                                                                     Bit 3:                                 
-                                                                                                            
-                                                                     Bit 4:                                 
-                                                                                                            
-                                                                     if Reject, Permanent Error:            
-                                                                                                            
-                                                                     Bit 5:                                 
-                                                                     1: Invalid Stream Request              
-                                                                                                            
-                                                                     Bit 6:                                 
-                                                                     1: Source not permitted                
-                                                                                                            
-                                                                     Bit 7:                                 
-                                                                     1: Streams not accepted                
-                                                                                                            
-                                                                     if Temporary Error:                    
-                                                                                                            
-                                                                     Bit 5:                                 
-                                                                     1: Buffer full                         
-                                                                                                            
-                                                                     Bit 6:                                 
-                                                                     1: Internal error, out of order        
+                                                                         (value = 0, invalid)               
 
-                                                          Byte 4     Source Stream ID. Must match the       
-                                                                     value sent in the Stream Initiate      
-                                                                     Request.                               
-                                                                                                            
-                                                                     (value = 0, invalid)                   
+                                                          Byte 5         Destination Stream ID. May be      
+                                                                         zero if the request was rejected.  
 
-                                                          Byte 5     Destination Stream ID. May be zero if  
-                                                                     the request was rejected.              
+                                                          Byte 5Byte 6-  Destination Stream ID              
                                                                                                             
-                                                                     (value = 0, invalid)                   
+                                                                         (value = 0, invalid)(Optional)     
+                                                                         Error detail string, if rejected.  
+
+   Error codes are as follows:
+
+   0x8000 Accepted
+
+   0x4000 Permanent error, specifically
+   0x4080 Streams not accepted
+   0x4040 Source not permitted
+   0x4020 Invalid stream request
+
+   0x2000 Temporary error (operation may be re-tried later), specifically
+   0x2040 Internal error, out of order
+   0x2020 Buffers full
+
+   The following values may be OR-ed to the error code:
+
+   0x0001 Information logged. (See the Logging protocol for retrieving logged information.)
+
+   0x0100 Stream Content ID included in the stream payload. Must match the “type included” flag in the
+   request.
 
 6.3 Stream Data Send
 
@@ -462,7 +450,10 @@ Served Use Cases
 
    A CAN ↔ Ethernet bridge might receive several kilobytes of data from the Ethernet side at a time. It's
    then responsible for breaking that up into CAN frames and forwarding it. It can reduce the buffer size
-   of transfers if need be to ensure there's a place to store the data while this is done.
+   of transfers if need be to ensure there's a place to store the data while this is done.Quisque
+   sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id felis
+   lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
 
                                                8 Section Title
 
@@ -498,9 +489,7 @@ Served Use Cases
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus. Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed
-   dignissim velit id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus
-   feugiat dolor id lectus aliquet luctus.
+   aliquet luctus.
 
    Table of Contents
 
@@ -556,5 +545,5 @@ Served Use Cases
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
 
-   Copyright 201314. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
+   Copyright 201134. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
    of 7 - 12/23/2014Dec 23, 2014
