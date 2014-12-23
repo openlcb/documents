@@ -1,13 +1,13 @@
                                          1 Introduction (Informative)
 
-   This standard defines the protocol for transmitting unidirectional streams of data between two nodes on
-   an OpenLCB bus.
+   This specification defines the protocol for transmitting unidirectional streams of data between two
+   nodes on an OpenLCB bus.
 
                                          2 Intended Use (Informative)
 
-   Streaming is used to move large amounts of data (kilobytes and up) across a OpenLCB implementation.
+   Streaming can be used to move large amounts of data (kilobytes and up) across a OpenLCB implementation.
     Streaming transport can also be used when the data transfer is unknown or indefinite in its volume or
-   timespan.
+   persistence.
 
                                      3 References and Context (Normative)
 
@@ -16,76 +16,22 @@
      * The OpenLCB Message Network Standard, which defines the basic messages and how they interact.
        Higher-level protocols are based on this message network, but are defined elsewhere. The Message
        Network Standard defines the encoding of stream data message on CAN physical layer, which is
-       repeated here.
+       referenced here.
 
-     * The OpenLCB Memory Configuration Protocol Standard, which will be usd as an example of a
+     * The OpenLCB Memory Configuration Transport Standard, which will be used as an example of a
        higher-level protocol that interacts with the Streaming protocol for data transport.
 
     
 
-  3.1.1 Environment of Proposal
+  3.1.1
 
-    3.1.1.1 Requirements
+                                              4  Message Formats
 
-   Must work within OpenLCB architecture of a flat address space and unique identifiers
+   In the following, the “common MTI” colum specifies the MTI value to be used when communicating in
+   OpenLCB common format.  The Common MTI is an abstract numeric description intended as a normative guide
+   to the construction of concrete message formats over specific physical transport media.
 
-   Receiving end must be able to throttle rate of arrival.
-
-   Multiple transfers at the same time over a single OpenLCB segment, so that transfers between disjoint
-   nodes don't need to be coordinated.
-
-   Needs to be effective over CAN, with acceptable bit efficiency.
-
-   Streams are not required to provide real-time transfer, e.g. to move live sound.
-
-    3.1.1.2 Preferences
-
-   It should be possible to have multiple streams active at the same time to or from a single node. Nodes
-   can choose not to support this.
-
-   Different buffers sizes can be used. High capability nodes can use large buffers for efficiency, low
-   capability nodes can still function with small buffers.
-
-   Streams should have a way of identifying their content & purpose within themselves, in addition to
-   through other protocols.
-
-    3.1.1.3 Design Points
-
-   Data integrity is handled by transport level, and need not be ensured in the streaming protocol.
-
-   A stream has a beginning and an end, and some number of bytes transferred in between. All other
-   structures are implemented by higher-level protocols outside the streaming protocol or data fields
-   within the streamed data itself. For example, the streaming protocol doesn't specify the format for
-   sound files sent over streams.
-
-   A stream has no intrinsic block, or record structure.
-
-   Streaming is not needed for short transfers, so a certain amount of overhead is acceptable. (This
-   implies a Datagram protocol to cover the gap between Events and Streams in size, see separate document)
-
-   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
-
-                                             4 Specified Sections
-
-   This is the usual section organization for a Technical Note, to accumulate the Standard and Technical
-   Note content in its eventual order.
-
-4.1 Introduction
-
-   Note that this section of the Standard is informative, not normative.
-
-4.2 Intended Use
-
-   Note that this section of the Standard is informative, not normative.
-
-4.3 Reference and Context
-
-   Lorem ipsum dolor sit amet, consectetur adipiscing elit.1 Fusce ornare mattis justo vitae imperdiet. Cum
-   sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
-
-4.4 Message Formats
-
-  4.4.1 Stream Initiate Request
+4.1 Stream Initiate Request
 
    It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
    below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source Node
@@ -95,19 +41,30 @@
 
    Data content:
 
-   Byte    Byte    Byte                                       Byte              Byte             Byte       
-                   Flags:                                                                                   
-                                                              
-   Max Buffer Size LSB:  Type Included                        Additional Flags: Source Stream ID (Reserved)
-                   0: No type specification                   
-                   1: First six bytes are unique stream       
-                   content UID                                
+   Name                    Dest ID Event ID Common MTI Data Content    
+                                                       5 or 11 bytes   
+                                                                       Flags:                               
+                                                                                                            
+                                                       Max Buffer Size LSB:  Type Included                  
+                                                                       0: No type specification             
+                                                                       1: First six bytes are unique stream 
+                                                                       content UID                          
+                                                       Bytes 0-1       Max Buffer Size                      
+   Stream Initiate Request Y       N        0x0CC8                     Flags:                               
+                                                                                                            
+                                                       Byte 2          LSB:  Type Included                  
+                                                                       0: No type specification             
+                                                                       1: First six bytes are unique stream 
+                                                                       content UID                          
+                                                       Byte 3          Additional Flags                     
+                                                       Byte 4          Source Stream ID                     
+                                                       Bytes 5-10      Stream Content UID                   
 
     
 
     
 
-  4.4.2 Stream Initiate Reply
+  4.1.1 Stream Initiate Reply
 
    Byte    Byte    Byte                             Byte                   Byte          Byte               
                                                     Additional Flags                                        
@@ -153,22 +110,11 @@
 
     
 
-  4.4.3 Stream Data Send
+  4.1.2 Stream Data Send
 
     
 
-  4.4.4 Stream Data Proceed
-
-    
-
-   Byte             Byte                  Byte  Byte             
-   Source Stream ID Destination Stream ID Flags Additional Flags 
-
-    
-
-    
-
-  4.4.5 Stream Data Complete
+  4.1.3 Stream Data Proceed
 
     
 
@@ -177,12 +123,23 @@
 
     
 
-4.5 States
+    
+
+  4.1.4 Stream Data Complete
+
+    
+
+   Byte             Byte                  Byte  Byte             
+   Source Stream ID Destination Stream ID Flags Additional Flags 
+
+    
+
+4.2 States
 
    A stream either exists or doesn't; those are states.  There are also some un-named intermediate states
    during setup and take down.
 
-4.6 Interactions
+4.3 Interactions
 
    Optionally, the destination can request that the source start a transfer. This uses some mechanism not
    discussed here, e.g. Datagram messages.
@@ -338,37 +295,23 @@
 
    3 References and Context (Normative)
 
-   3.1.1 Environment of Proposal
+   3.1.1
 
-   3.1.1.1 Requirements
+   4  Message Formats
 
-   3.1.1.2 Preferences
+   4.1 Stream Initiate Request
 
-   3.1.1.3 Design Points
+   4.1.1 Stream Initiate Reply
 
-   4 Specified Sections
+   4.1.2 Stream Data Send
 
-   4.1 Introduction
+   4.1.3 Stream Data Proceed
 
-   4.2 Intended Use
+   4.1.4 Stream Data Complete
 
-   4.3 Reference and Context
+   4.2 States
 
-   4.4 Message Formats
-
-   4.4.1 Stream Initiate Request
-
-   4.4.2 Stream Initiate Reply
-
-   4.4.3 Stream Data Send
-
-   4.4.4 Stream Data Proceed
-
-   4.4.5 Stream Data Complete
-
-   4.5 States
-
-   4.6 Interactions
+   4.3 Interactions
 
    5 Background Information
 
@@ -381,9 +324,3 @@
    5.4 Implementation Notes
 
     
-
-     ----------------------------------------------------------------------------------------------------
-
-   1 See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte
-   numbering. Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions,
-   but note that other technologies may use other conventions.
