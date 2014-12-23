@@ -85,77 +85,37 @@
 5.2 Stream Initiate Reply
 
    Name                  Dest ID Event ID Common MTI Data Content
-                                                     6 bytes   
+                                                     6 bytes + optional error string
                                                      Bytes 0-1 Max Buffer Size (final value), or zero if    
-                                                               the request is denied.                       
-                                                               Flags:                                       
-                                                                                                            
-                                                               LSB:  Type Included. Must match the type     
-                                                               include flag in the request.                 
-                                                               0: No type specification in the stream       
-                                                               payload                                      
-                                                               1: First six bytes of the payload is the     
-                                                               Stream Content UID                           
-                                                                                                            
-                                                               Bit 1:                                       
-                                                               1: Stream Rejected, out of order or other    
-                                                               “should not happen” error                    
-                                                               0: (nothing)                                 
-                                                                                                            
-                                                     Byte 2    Bit 2:                                       
-                                                                                                            
-                                                               Bit 3:                                       
-                                                                                                            
-                                                               Bit 4:                                       
-                                                                                                            
-                                                               Bit 5:                                       
-                                                                                                            
-                                                               Bit 6: Error Type (if Reject)                
-                                                               1: Permanent Error                           
-                                                               0:  Temporary Error                          
-                                                                                                            
-                                                               MSB: Accept/Reject                           
-                                                               0: Reject                                    
-                                                               1: Accept                                    
-                                                               Additional Flags:                            
-                                                                                                            
-                                                               If Reject                                    
-   Stream Initiate Reply Y       N        0x0868                                                            
-                                                               LSB:                                         
-                                                               1: Information Logged                        
-                                                                                                            
-                                                               Bit 1:                                       
-                                                                                                            
-                                                               Bit 2:                                       
-                                                                                                            
-                                                               Bit 3:                                       
-                                                                                                            
-                                                               Bit 4:                                       
-                                                                                                            
-                                                               if Reject, Permanent Error:                  
-                                                     Byte 3                                                 
-                                                               Bit 5:                                       
-                                                               1: Invalid Stream Request                    
-                                                                                                            
-                                                               Bit 6:                                       
-                                                               1: Source not permitted                      
-                                                                                                            
-                                                               Bit 7:                                       
-                                                               1: Streams not accepted                      
-                                                                                                            
-                                                               if Temporary Error:                          
-                                                                                                            
-                                                               Bit 5:                                       
-                                                               1: Buffer full                               
-                                                                                                            
-                                                               Bit 6:                                       
-                                                               1: Internal error, out of order              
-                                                     Byte 4    Source Stream ID. Must match the value sent  
+                                                               the request is rejected.                     
+                                                     Byte 2-3  Error code, or 0x8000 for accept.            
+   Stream Initiate Reply Y       N        0x0868     Byte 4    Source Stream ID. Must match the value sent  
                                                                in the Stream Initiate Request.              
-                                                               Destination Stream ID. May be zero if the    
-                                                     Byte 5    request was rejected.                        
-                                                                                                            
-                                                               (value = 0, invalid)                         
+                                                     Byte 5    Destination Stream ID. May be zero if the    
+                                                               request was rejected.                        
+                                                     Byte 6-   (Optional) Error detail string, if rejected. 
+
+    
+
+   Error codes are as follows:
+
+   0x8000 Accepted
+
+   0x4000 Permanent error, specifically
+   0x4080 Streams not accepted
+   0x4040 Source not permitted
+   0x4020 Invalid stream request
+
+   0x2000 Temporary error (operation may be re-tried later), specifically
+   0x2040 Internal error, out of order
+   0x2020 Buffers full
+
+   The following values may be OR-ed to the error code:
+
+   0x0001 Information logged. (See the Logging protocol for retrieving logged information.)
+
+   0x0100 Stream Content ID included in the stream payload. Must match the “type included” flag in the
+   request.
 
     
 

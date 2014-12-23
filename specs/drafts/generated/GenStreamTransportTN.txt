@@ -57,10 +57,10 @@
 
    We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
 
-                                             2 Specified Sections
+                                        2 Annotations to the Standard
 
-   This is the usual section organization for a Technical Note, to accumulate the Standard and Technical
-   Note content in its eventual order.
+   This section provides background information on corresponding sections of the Standard document. It is
+   expected that two documents will be read together.
 
 2.1 Introduction
 
@@ -70,14 +70,44 @@
 
    Note that this section of the Standard is informative, not normative.
 
-2.3 Reference and Context
+2.3 References and Context
 
-   Lorem ipsum dolor sit amet, consectetur adipiscing elit.1 Fusce ornare mattis justo vitae imperdiet. Cum
-   sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+2.4 Definitions
 
-2.4 Message Formats
+   Stream. Other examples of streaming protocols would be TCP, or a unix pipe. The big difference to TCP is
+   that the OpenLCB streams are uni-directional, whereas TCP connections provide bi-directional data
+   transport. TCP also allows some out-of-band information to be sent during a live connection, although
+   this is a rately used feature. OpenLCB does not allow out-of-band information; any out-of-band
+   information needs to be sent using different protocols. It is expected that for most streaming
+   applications the application level protocol will define a sequence of actions, where some may use direct
+   OpenLCB messages, others may use datagrams, and the stream
 
-  2.4.1 Stream Initiate Request
+   The Source node and Destination node concepts are defined based on the direction of data flow. The
+   source node is the node sending the data, irrespectively of which node requested the data transfer.
+   Let's take the example of the Memory Configuration Protocol Streaming Read command. Here the client (say
+   a PC-based configuration tool) the sends a datagram to the server (say an OpenLCB board, or a train
+   node), requesting a read using streams, but the server will be the Source node and the client will be
+   the Destination node. This also means that the server will send the Stream Initiate Request message to
+   the client. Also the Source Stream ID will be assigned by the server, and the destination Stream ID will
+   be assigned by the client.
+
+   Source Stream ID and Destination Stream ID, from a formal correctness perspective, are only used to
+   disambiguate between multiple concurrently open streams between two given nodes. A stream is uniquely
+   identified by (Source Node ID, Destination Node ID, Source Stream ID) triple, as well as the (Source
+   Node ID, Destination Node ID, Destination Stream ID) triple. This means that Source Stream ID, by
+   itself, is not required to be unique; neither Destination Stream ID, b itself.
+
+   There is a large flexibility on the implementation for how these IDs can be used. A small node may use
+   only one fixed stream ID and not ever allow multiple streams to be open concurrently. A medium-sized
+   node may have a fixed number of slots for open streams, and could use the Stream ID as a direct slot
+   index. A large node could dynamically allocate the Stream objects, and keep an associative array of
+   (opposite end Node ID, stream ID) → object reference. For ease of implementation, the opposite stream ID
+   is always sent along with the streaming messages so that the receiving node can perform a direct lookup
+   of the data associated with the stream and not need to do a search for the matching state/buffer.
+
+2.5 Message Formats
+
+  2.5.1 Stream Initiate Request
 
    It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
    below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source Node
@@ -99,7 +129,7 @@
 
     
 
-  2.4.2 Stream Initiate Reply
+  2.5.2 Stream Initiate Reply
 
    Byte    Byte    Byte                             Byte                   Byte          Byte               
                                                     Additional Flags                                        
@@ -145,22 +175,11 @@
 
     
 
-  2.4.3 Stream Data Send
+  2.5.3 Stream Data Send
 
     
 
-  2.4.4 Stream Data Proceed
-
-    
-
-   Byte             Byte                  Byte  Byte             
-   Source Stream ID Destination Stream ID Flags Additional Flags 
-
-    
-
-    
-
-  2.4.5 Stream Data Complete
+  2.5.4 Stream Data Proceed
 
     
 
@@ -169,12 +188,23 @@
 
     
 
-2.5 States
+    
+
+  2.5.5 Stream Data Complete
+
+    
+
+   Byte             Byte                  Byte  Byte             
+   Source Stream ID Destination Stream ID Flags Additional Flags 
+
+    
+
+2.6 States
 
    A stream either exists or doesn't; those are states.  There are also some un-named intermediate states
    during setup and take down.
 
-2.6 Interactions
+2.7 Interactions
 
    Optionally, the destination can request that the source start a transfer. This uses some mechanism not
    discussed here, e.g. Datagram messages.
@@ -338,29 +368,31 @@
 
    1.2.1.3 Design Points
 
-   2 Specified Sections
+   2 Annotations to the Standard
 
    2.1 Introduction
 
    2.2 Intended Use
 
-   2.3 Reference and Context
+   2.3 References and Context
 
-   2.4 Message Formats
+   2.4 Definitions
 
-   2.4.1 Stream Initiate Request
+   2.5 Message Formats
 
-   2.4.2 Stream Initiate Reply
+   2.5.1 Stream Initiate Request
 
-   2.4.3 Stream Data Send
+   2.5.2 Stream Initiate Reply
 
-   2.4.4 Stream Data Proceed
+   2.5.3 Stream Data Send
 
-   2.4.5 Stream Data Complete
+   2.5.4 Stream Data Proceed
 
-   2.5 States
+   2.5.5 Stream Data Complete
 
-   2.6 Interactions
+   2.6 States
+
+   2.7 Interactions
 
    3 Background Information
 
@@ -373,9 +405,3 @@
    3.4 Implementation Notes
 
     
-
-     ----------------------------------------------------------------------------------------------------
-
-   1 See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte
-   numbering. Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions,
-   but note that other technologies may use other conventions.
