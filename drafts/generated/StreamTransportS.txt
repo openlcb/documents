@@ -1,6 +1,6 @@
    PowerPlusWaterMarkObject1
 
-                                                     OpenLCB WorkingTechnical NoteStandard
+                                                      OpenLCB NoteTechnicalWorkingStandard
 
                                                             (title)Stream Transport
 
@@ -23,7 +23,7 @@ Served Use Cases
 
 2.1 Unserved Use Cases
 
-   Streaming can beis used to move large amounts of data (kilobytes and up) across a OpenLCB
+   Streaming can be is used to move large amounts of data (kilobytes and up) across a OpenLCB
    implementation. Streaming transport can also be used when the data transfer is unknown or indefinite in
    its volume or timespan. Streaming transport can also be used when the data transfer is unknown or
    indefinite in its volume or timespanpersistence.
@@ -84,7 +84,7 @@ Served Use Cases
 
    We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
 
-                                                     4 ^1
+                              4 Specified SectionsAnnotations to the Standard^1
 
 4.1 Introduction
 
@@ -99,7 +99,7 @@ Served Use Cases
    Lorem ipsum dolor sit amet, consectetur adipiscing elit.This is the usual section organization for a
    Technical Note, to accumulate the Standard and Technical Note content in its eventual order.
 
-   Annotations to the StandardSpecified Sections
+                                                      5
 
    Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et magnis dis parturient montes,
    nascetur ridiculus mus. Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et
@@ -109,7 +109,7 @@ Served Use Cases
    OpenLCB common format. The Common MTI is an abstract numeric description intended as a normative guide
    to the construction of concrete message formats over specific physical transport media.
 
-4.4 Stream Initiate Request
+5.1 Stream Initiate Request
 
    It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
    below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source Node
@@ -119,96 +119,167 @@ Served Use Cases
 
    Data content:
 
-    Name             Dest ID  Event ID  Common MTI  ByteData Content 
+    Name                     Dest ID  Event ID  Common MTI  ByteData Content
 
-    Stream Initiate     Y        N        0x0CC8                        5 or 11 bytes
-    Request          
-                                                    Max Buffer Size  Flags:                                 
+    Stream Initiate Request     Y        N        0x0CC8                    6 or 12 bytes
+
+                                                            Bytes 0-1   Max Buffer Size                     
+
+                                                            Byte 2      Flags:                              
                                                                                                             
-                                                                     LSB: Type Included                     
-                                                                     0: No type specification               
-                                                                     1: First six bytes are unique stream   
-                                                                     content UID                            
+                                                                        LSB: Type Included                  
+                                                                        0: No type specification            
+                                                                        1: First six bytes are unique       
+                                                                        stream content UID                  
 
-                                                    Bytes 0-1        Max Buffer Size                        
+                                                            Byte 3      Additional Flags:                   
 
-                                                    Byte 2           Flags:                                 
+                                                            Byte 4      Source Stream ID                    
                                                                                                             
-                                                                     LSB: Type Included                     
-                                                                     0: No type specification               
-                                                                     1: First six bytes are unique stream   
-                                                                     content UID                            
+                                                                        (value = 0, invalid)                
 
-                                                    Byte 3           Additional Flags                       
+                                                            Byte 5      Reserved, send as 0                 
 
-                                                    Byte 4           Source Stream ID                       
+                                                            Bytes 6-11  Stream Content UID                  
 
-                                                    Bytes 5-10       Stream Content UID                     
+5.2 Stream Initiate Reply
 
-  4.4.1 Stream Initiate Reply
+    Name                   Dest ID  Event ID  Common MTI  Data Content
 
-    Byte     Byte    Byte                        Byte                 Byte           Byte                   
+    Stream Initiate Reply     Y        N        0x0868                     6 or 12 bytes
 
-    Max Buffer Size  Flags                       Additional Flags     Source Stream  Destination Stream ID  
-                                                                      ID             
-                     LSB: Type Included          If Reject            
-                     0: No type specification                         
-                     1: First six bytes are      LSB:                 
-                     unique stream content UID   1: Information       
-                                                 Logged               
-                     Bit 1:                                           
-                     1: Stream Rejected, out of  Bit 1:               
-                     order or other “should not                       
-                     happen” error               Bit 2:               
-                     0: (nothing)                                     
-                                                 Bit 3:               
-                     Bit 2:                                           
-                                                 Bit 4:               
-                     Bit 3:                                           
-                                                 if Reject,           
-                     Bit 4:                      Permanent Error:     
-                                                                      
-                     Bit 5:                      Bit 5:               
-                                                 1: Invalid Stream    
-                     Bit 6: Error Type (if       Request              
-                     Reject)                                          
-                     1: Permanent Error          Bit 6:               
-                     0: Temporary Error          1: Source not        
-                                                 permitted            
-                     MSB: Accept/Reject                               
-                     0: Reject                   Bit 7:               
-                     1: Accept                   1: Streams not       
-                                                 accepted             
-                                                                      
-                                                 if Temporary Error:  
-                                                                      
-                                                 Bit 5:               
-                                                 1: Buffer full       
-                                                                      
-                                                 Bit 6:               
-                                                 1: Internal error,   
-                                                 out of order         
+                                                          Bytes 0-1   Max Buffer Size                       
 
-  4.4.2 Stream Data Send
+                                                          Byte 2      Flags:                                
+                                                                                                            
+                                                                      LSB: Type Included                    
+                                                                      0: No type specification              
+                                                                      1: First six bytes are unique stream  
+                                                                      content UID                           
+                                                                                                            
+                                                                      Bit 1:                                
+                                                                      1: Stream Rejected, out of order or   
+                                                                      other “should not happen” error       
+                                                                      0: (nothing)                          
+                                                                                                            
+                                                                      Bit 2:                                
+                                                                                                            
+                                                                      Bit 3:                                
+                                                                                                            
+                                                                      Bit 4:                                
+                                                                                                            
+                                                                      Bit 5:                                
+                                                                                                            
+                                                                      Bit 6: Error Type (if Reject)         
+                                                                      1: Permanent Error                    
+                                                                      0: Temporary Error                    
+                                                                                                            
+                                                                      MSB: Accept/Reject                    
+                                                                      0: Reject                             
+                                                                      1: Accept                             
 
-  4.4.3 Stream Data Proceed
+                                                          Byte 3      Additional Flags:                     
+                                                                                                            
+                                                                      If Reject                             
+                                                                                                            
+                                                                      LSB:                                  
+                                                                      1: Information Logged                 
+                                                                                                            
+                                                                      Bit 1:                                
+                                                                                                            
+                                                                      Bit 2:                                
+                                                                                                            
+                                                                      Bit 3:                                
+                                                                                                            
+                                                                      Bit 4:                                
+                                                                                                            
+                                                                      if Reject, Permanent Error:           
+                                                                                                            
+                                                                      Bit 5:                                
+                                                                      1: Invalid Stream Request             
+                                                                                                            
+                                                                      Bit 6:                                
+                                                                      1: Source not permitted               
+                                                                                                            
+                                                                      Bit 7:                                
+                                                                      1: Streams not accepted               
+                                                                                                            
+                                                                      if Temporary Error:                   
+                                                                                                            
+                                                                      Bit 5:                                
+                                                                      1: Buffer full                        
+                                                                                                            
+                                                                      Bit 6:                                
+                                                                      1: Internal error, out of order       
 
-    Byte                        Byte                             Byte            Byte                       
+                                                          Byte 4      Source Stream ID                      
+                                                                                                            
+                                                                      (value = 0, invalid)                  
 
-    Source Stream ID            Destination Stream ID            Flags           Additional Flags           
+                                                          Byte 5      Destination Stream ID                 
+                                                                                                            
+                                                                      (value = 0, invalid)                  
 
-  4.4.4 Stream Data Complete
+                                                          Bytes 6-11  Stream Content UID                    
 
-    Byte                        Byte                             Byte            Byte                       
+5.3 Stream Data Send
 
-    Source Stream ID            Destination Stream ID            Flags           Additional Flags           
+    Name                  Dest ID     Event ID    Common MTI      Data Content    
 
-4.5 States
+    Stream Data Send          Y           N           0x1F88            1 – <Max Buffer Size> Bytes
+
+                                                                  Byte 0          Source Stream ID          
+                                                                                                            
+                                                                                  (value = 0, invalid)      
+
+                                                                  Byte 1 ...      
+
+5.4 Stream Data Proceed
+
+    Name                     Dest ID     Event ID    Common MTI      Data Content
+
+    Stream Data Proceed          Y           N           0x0888                     2 Bytes
+
+                                                                     Byte 0      Source Stream ID           
+                                                                                                            
+                                                                                 (value = 0, invalid)       
+
+                                                                     Byte 1      Destination Stream ID      
+                                                                                                            
+                                                                                 (value = 0, invalid)       
+
+                                                                     Byte 2      Flags:                     
+
+                                                                     Byte 3      Additional Flags:          
+
+5.5 Stream Data Complete
+
+    Name                  Dest ID  Event ID  Common MTI  Data Content          
+
+    Stream Data Complete     Y        N        0x0888                      4 or 8 Bytes
+
+                                                         Byte 0                Source Stream ID             
+                                                                                                            
+                                                                               (value = 0, invalid)         
+
+                                                         Byte 1                Destination Stream ID        
+                                                                                                            
+                                                                               (value = 0, invalid)         
+
+                                                         Byte 2                Flags:                       
+
+                                                         Byte 3                Additional Flags:            
+
+                                                         Bytes 4-7 (optional)  Number of bytes transferred  
+                                                                               in total, sum of all data    
+                                                                               segments.                    
+
+5.6 States
 
    A stream either exists or doesn't; those are states. There are also some un-named intermediate states
    during setup and take down.
 
-4.6 Interactions
+5.7 Interactions
 
    Optionally, the destination can request that the source start a transfer. This uses some mechanism not
    discussed here, e.g. Datagram messages.
@@ -298,9 +369,9 @@ Served Use Cases
    a four-byte length of the stream data transferred for checking. A zero value, if present, means the
    length is unknown. When this message is received by the destination, the transfer is complete.
 
-                                    5 Section TitleBackground Information
+                                    6 Section TitleBackground Information
 
-5.1 Stream Content Type Identification
+6.1 Stream Content Type Identification
 
    Stream senders can, but don't have to, identify the content type (format, meaning, etc) of the data
    stream at the front. As part of their private protocol, they can use whatever structure they'd like for
@@ -311,7 +382,7 @@ Served Use Cases
    be allocated via the same mechanisms as EventIDs. Well-known ones will be published by OpenLCB. These
    identifiers are recorded in a separate worksheet.
 
-5.2 Buffer Size
+6.2 Buffer Size
 
    The buffer size can be up to 216-1 bytes = 64KB-1. This is driven by the size of the initiate messages,
    which we want to keep in a single CAN frame. Although some transport mechanisms might be able to
@@ -320,7 +391,7 @@ Served Use Cases
    the future, an alternate form for the stream initialization messages can be defined for those
    large-message nodes. (It's unlikely they're running over CAN)
 
-5.3 CAN Discussion
+6.3 CAN Discussion
 
    On a CAN segment, the data limit is 8 bytes. This requires use of as little control information as
    possible, so that as many of those eight bytes can be used for data as possible.
@@ -337,7 +408,7 @@ Served Use Cases
    Destination Stream ID to restore it to the full format. Since they are tracking the stream in any case
    for buffering purposes, this is thought to be not a large problem.
 
-5.4 Implementation Notes
+6.4 Implementation Notes
 
    The "Stream Data Proceed" from the destination is clearance to send another buffer-size-worth of data.
    To achieve better performance, the destination can send it before receiving the entire buffer-size-worth
@@ -352,13 +423,16 @@ Served Use Cases
 
    A CAN ↔ Ethernet bridge might receive several kilobytes of data from the Ethernet side at a time. It's
    then responsible for breaking that up into CAN frames and forwarding it. It can reduce the buffer size
-   of transfers if need be to ensure there's a place to store the data while this is done.
+   of transfers if need be to ensure there's a place to store the data while this is done.Quisque
+   sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id felis
+   lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
 
-                                               6 Section Title
+                                               7 Section Title
 
-6.1 Subsection Title
+7.1 Subsection Title
 
-  6.1.1 Sub-subsection Title
+  7.1.1 Sub-subsection Title
 
    Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
    odio.
@@ -368,7 +442,7 @@ Served Use Cases
      * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
        sed massa.
 
-                                               7 Section Title
+                                               8 Section Title
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
@@ -388,9 +462,7 @@ Served Use Cases
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus. Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed
-   dignissim velit id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus
-   feugiat dolor id lectus aliquet luctus.
+   aliquet luctus.
 
    Table of Contents
 
@@ -446,5 +518,5 @@ Served Use Cases
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
 
-   Copyright 201314. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 6 - 12/23/2014Dec 23, 2014
+   Copyright 201134. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
+   of 7 - 12/23/2014Dec 23, 2014
