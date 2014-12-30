@@ -144,14 +144,15 @@
    Name        Dest ID Event ID Common MTI                      
                                            Data Content         
                                            2 or 6 Bytes         
-   Stream Data                             Byte 0               Source Stream ID                            
-   Complete    Y       N        0x08A8     Byte 1               Destination Stream ID                       
-                                           Bytes 2-5 (optional) Number of payload bytes transferred in      
-                                                                total (sum of all data segments).           
+                                           Byte 0               Source Stream ID                            
+   Stream Data Y       N        0x08A8     Byte 1               Destination Stream ID                       
+   Complete                                                     Number of payload bytes transferred in      
+                                           Bytes 2-5 (optional) total (sum of all data segments). Value of  
+                                                                0xFFFFFFFF means unspecified length.        
 
     
 
-5.6 States
+                                             6 States (Normative)
 
    A stream can be in one of the following states:
 
@@ -169,9 +170,9 @@
    Open. The Destination node has sent a Stream Initiate Reply to the Source node with the Source Stream ID
    and the Destination Stream ID and the error code set to Accepted.
 
-5.7 Interactions
+                                          7 Interactions (Normative)
 
-  5.7.1 Opening a stream with announcement
+7.1 Opening a stream with announcement
 
    In this method the streaming protocol works together with a higher-level protocol. It is the
    higher-level protocol that requests the transfer, and defines the format, contents and possibly the
@@ -210,7 +211,7 @@
    stream is transitioned to the Closed state. If needed, the interaction may be re-started using the
    higher-level protocol.
 
-  5.7.2 Opening a stream without announcement
+7.2 Opening a stream without announcement
 
    This method may only be used if the interaction is started by the Source node.
 
@@ -218,12 +219,12 @@
    Initiate Request to the Destination node. This message must carry a 6-byte Stream Content UID, which
    specifies for the destination node the content and format of the data carried, and transitions the
    stream to the Initiated state. From this state onwards the interaction continues as in described in
-   Section 5.7.1.
+   Section 7.1.
 
    If the Stream Content UID is unknown to the Destination node, it should use the Permanent Error,
    Unimplemented error code in the rejection message.
 
-  5.7.3 Data transfer
+7.3 Data transfer
 
    Once a stream transitioned to Open state, the Source node may start sending payload bytes using Stream
    Data Send messages. The source node may send up to Max Buffer Size bytes using one or more Stream Data
@@ -231,16 +232,70 @@
 
    When the Destination node is ready to receive another Max Buffer Size bytes, it sends a Stream Data
    Proceed message to the Source node. This signals to the Source node that it may send another Max Buffer
-   Size bytes.
+   Size bytes. Each Stream Data Proceed message, irrespectively of when it was sent, extends the window of
+   allowed payload bytes to be sent by Max Buffer Size.
 
-  5.7.4 Special provisions for Gateways
+   If the Source node has no more data to send, but wants to keep the stream open, it may, but is not
+   required to periodically send Stream Data Send messages with zero payload bytes to ensure that the
+   destination node and any gateways in the transfer path are still aware of the stream transmission.
+
+7.4 Closing the stream
+
+   The Source node signals completion of the transfer by sending a Stream Data Complete message to the
+   Destination node, providing the Source Stream ID and the Destination Stream ID with it. Optionally the
+   Source node may add a 4-byte value describing the total number of bytes sent in the stream. If the
+   Source node does not want to specify this value, it may omit the bytes from the Stream Data Complete
+   message or may send 0xFFFFFFFF to specify unknown length.
+
+   The Stream Data Complete message transitions the stream to Closed state.
+
+   The Stream is closed if the Destination node sends a Terminate Due To Error or Optional Interaction
+   Rejected message with no MTI value or with the MTI value of Stream Data Send; or if the Source node
+   sends a Terminate Due To Error or Optional Interaction Rejected message with no MTI value or with the
+   MTI value of Stream Data Proceed. When possible, the specific MTI value should be used.
+
+7.5 Special provisions for Gateways
 
    A Gateway needs to be prepared for buffering up to Max Buffer Size bytes for each open stream. It may
    reduce the Max Buffer Size in the Stream Initiate Request message if the buffer size available is
    smaller than proposed. A Gateway must not modify the Max Buffer Size value of a Stream Initiate Response
    message.
 
-   A Gateway may delay forwarding Stream Data Proceed messages until its internal buffer is drained.
+   A Gateway may repackage the stream payload into fewer or more Stream Data Send messages than received,
+   as the underlying network requires. A Gateway must emit a Stream Data Send message with empty payload
+   after its buffer is drained, if it has received such a message.
+
+   A Gateway may delay forwarding Stream Data Proceed messages until its internal buffer is drained, but it
+   must not drop any of them.
+
+   A Gateway must delay forwarding the Stream Data Complete message until its internal buffer is drained.
+
+   A Gateway must drop all data in its internal buffer and all delayed messages if the Stream is terminated
+   with an error message of Terminate Due To Error or Optional Interaction Rejected.
+
+                                  8 Adaptation to CAN Transport (Normative)
+
+   This section describes the CAN implementation of stream transport message formats.
+
+8.1 Stream Data Send
+
+   Stream Data Send messages are sent on a CAN network using the Frame Type of 7 (Stream Data), the
+   Destination node alias and the Source node alias in the CAN header, and the Destination Stream ID in the
+   first data byte. The remaining data bytes can e filled with stream payload (up to 7 bytes per message):
+
+   Name             Dest ID Event ID Header Format Data-part Content             
+   Stream Data Send Y       N        0x1Fdd,dsss   Byte 0: Destination Stream ID 
+                                                   Byte 1...: payload bytes      
+
+    
+
+8.2 All Other Messages
+
+   All other messages are sent as described in the OpenLCB Message Network Standard. Note that the Stream
+   Initiate Request message may need to be sent in two CAN frames if it contains a Stream Content UID. The
+   format for multiple frame CAN messages is described in the OpenLCB Message Network Standard.
+
+    
 
    that support the Streaming protocol must keep track of the Stream states
 
@@ -332,9 +387,9 @@
    a four-byte length of the stream data transferred for checking. A zero value, if present, means the
    length is unknown. When this message is received by the destination, the transfer is complete.
 
-                                           6 Background Information
+                                           9 Background Information
 
-6.1 Stream Content Type Identification
+9.1 Stream Content Type Identification
 
    Stream senders can, but don't have to, identify the content type (format, meaning, etc) of the data
    stream at the front. As part of their private protocol, they can use whatever structure they'd like for
@@ -345,7 +400,7 @@
    be allocated via the same mechanisms as EventIDs. Well-known ones will be published by OpenLCB. These
    identifiers are recorded in a separate worksheet.
 
-6.2 Buffer Size
+9.2 Buffer Size
 
    The buffer size can be up to 216-1 bytes = 64KB-1. This is driven by the size of the initiate messages,
    which we want to keep in a single CAN frame. Although some transport mechanisms might be able to
@@ -354,7 +409,7 @@
    the future, an alternate form for the stream initialization messages can be defined for those
    large-message nodes. (It's unlikely they're running over CAN)
 
-6.3 CAN Discussion
+9.3 CAN Discussion
 
    On a CAN segment, the data limit is 8 bytes. This requires use of as little control information as
    possible, so that as many of those eight bytes can be used for data as possible.
@@ -371,7 +426,7 @@
    Destination Stream ID to restore it to the full format. Since they are tracking the stream in any case
    for buffering purposes, this is thought to be not a large problem.
 
-6.4 Implementation Notes
+9.4 Implementation Notes
 
    The "Stream Data Proceed" from the destination is clearance to send another buffer-size-worth of data.
    To achieve better performance, the destination can send it before receiving the entire buffer-size-worth
@@ -412,26 +467,34 @@
 
    5.5 Stream Data Complete
 
-   5.6 States
+   6 States (Normative)
 
-   5.7 Interactions
+   7 Interactions (Normative)
 
-   5.7.1 Opening a stream with announcement
+   7.1 Opening a stream with announcement
 
-   5.7.2 Opening a stream without announcement
+   7.2 Opening a stream without announcement
 
-   5.7.3 Data transfer
+   7.3 Data transfer
 
-   5.7.4 Special provisions for Gateways
+   7.4 Closing the stream
 
-   6 Background Information
+   7.5 Special provisions for Gateways
 
-   6.1 Stream Content Type Identification
+   8 Adaptation to CAN Transport (Normative)
 
-   6.2 Buffer Size
+   8.1 Stream Data Send
 
-   6.3 CAN Discussion
+   8.2 All Other Messages
 
-   6.4 Implementation Notes
+   9 Background Information
+
+   9.1 Stream Content Type Identification
+
+   9.2 Buffer Size
+
+   9.3 CAN Discussion
+
+   9.4 Implementation Notes
 
     
