@@ -1,10 +1,10 @@
    PowerPlusWaterMarkObject1
 
-                                                     OpenLCB WorkingTechnical NoteStandard
+                                                      OpenLCB NoteTechnicalWorkingStandard
 
                                                             (title)Stream Transport
 
-                                                   Dec 29, 2014                        Preliminary          
+                                                   Dec 30, 2014                        Preliminary          
 
                                          1 Introduction (Informative)
 
@@ -23,7 +23,7 @@ Served Use Cases
 
 2.1 Unserved Use Cases
 
-   Streaming can beis used to move large amounts of data (kilobytes and up) across a OpenLCB
+   Streaming can be is used to move large amounts of data (kilobytes and up) across a OpenLCB
    implementation. Streaming transport can also be used when the data transfer is unknown or indefinite in
    its volume or timespan. Streaming transport can also be used when the data transfer is unknown or
    indefinite in its volume or timespanpersistence.
@@ -104,13 +104,12 @@ Served Use Cases
    Streaming is not needed for short transfers, so a certain amount of overhead is acceptable. (This
    implies a Datagram protocol to cover the gap between Events and Streams in size, see separate document)
 
-   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
-
-   (Max) Buffer size is an unsigned 2-byte value (range [1..65535]) specifying the maximum number of bytes
-   in-flight; that is, the maximum number of bytes the source node may send without receiving a reception
+   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.(Max) Buffer
+   size is an unsigned 2-byte value (range [1..65535]) specifying the maximum number of bytes in-flight;
+   that is, the maximum number of bytes the source node may send without receiving a reception
    acknowledgement from the destination node.
 
-                                                     5 ^1
+                              5 Specified SectionsAnnotations to the Standard^1
 
 5.1 Introduction
 
@@ -125,7 +124,7 @@ Served Use Cases
    Lorem ipsum dolor sit amet, consectetur adipiscing elit.This is the usual section organization for a
    Technical Note, to accumulate the Standard and Technical Note content in its eventual order.
 
-                               6 Annotations to the StandardSpecified Sections
+                                                      6
 
    Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et magnis dis parturient montes,
    nascetur ridiculus mus. Fusce ornare mattis justo vitae imperdiet. Cum sociis natoque penatibus et
@@ -186,12 +185,7 @@ Served Use Cases
                                                           Bytes 0-1      Max Buffer Size (final value), or  
                                                                          zero if the request is rejected.   
 
-                                                          Byte 2-3       Error codeFlags:                   
-                                                                                                            
-                                                                         LSB: Type Included                 
-                                                                         0: No type specification           
-                                                                         1: First six bytes are sunique     
-                                                                         tream c                            
+                                                          Byte 2-3       Error code                         
                                                                                                             
                                                                          Bit 3:                             
                                                                                                             
@@ -213,8 +207,13 @@ Served Use Cases
                                                                          error                              
                                                                          0: (nothing)                       
                                                                                                             
-                                                                         Bit 2:ontent UID, or 0x8000 for    
-                                                                         accept.                            
+                                                                         Bit 2:ontent UIDctream unique s    
+                                                                         areFlags:                          
+                                                                                                            
+                                                                         LSB: Type Included                 
+                                                                         0: No type specification           
+                                                                         1: First six bytes , or 0x8000     
+                                                                         for accept.                        
 
                                                           Byte 4         Source Stream ID. Must match the   
                                                                          value sent in the Stream Initiate  
@@ -294,9 +293,11 @@ Served Use Cases
                                                          Bytes 42-75 (optional)  Number of payload bytes    
                                                                                  transferred in total,      
                                                                                  (sum of all data           
-                                                                                 segments).                 
+                                                                                 segments). Value of        
+                                                                                 0xFFFFFFFF means           
+                                                                                 unspecified length.        
 
-6.6 States
+                                             7 States (Normative)
 
    A stream can be in one of the following states:
 
@@ -315,9 +316,9 @@ Served Use Cases
    and the Destination Stream ID and the error code set to Accepted.A stream either exists or doesn't;
    those are states. There are also some un-named intermediate states during setup and take down.
 
-6.7 Interactions
+                                          8 Interactions (Normative)
 
-  6.7.1 Opening a stream with announcement
+8.1 Opening a stream with announcement
 
    In this method the streaming protocol works together with a higher-level protocol. It is the
    higher-level protocol that requests the transfer, and defines the format, contents and possibly the
@@ -356,7 +357,7 @@ Served Use Cases
    stream is transitioned to the Closed state. If needed, the interaction may be re-started using the
    higher-level protocol.
 
-  6.7.2 Opening a stream without announcement
+8.2 Opening a stream without announcement
 
    This method may only be used if the interaction is started by the Source node.
 
@@ -364,12 +365,12 @@ Served Use Cases
    Initiate Request to the Destination node. This message must carry a 6-byte Stream Content UID, which
    specifies for the destination node the content and format of the data carried, and transitions the
    stream to the Initiated state. From this state onwards the interaction continues as in described in
-   Section 5.7.1.
+   Section 7.1.
 
    If the Stream Content UID is unknown to the Destination node, it should use the Permanent Error,
    Unimplemented error code in the rejection message.
 
-  6.7.3 Data transfer
+8.3 Data transfer
 
    Once a stream transitioned to Open state, the Source node may start sending payload bytes using Stream
    Data Send messages. The source node may send up to Max Buffer Size bytes using one or more Stream Data
@@ -377,16 +378,67 @@ Served Use Cases
 
    When the Destination node is ready to receive another Max Buffer Size bytes, it sends a Stream Data
    Proceed message to the Source node. This signals to the Source node that it may send another Max Buffer
-   Size bytes.
+   Size bytes. Each Stream Data Proceed message, irrespectively of when it was sent, extends the window of
+   allowed payload bytes to be sent by Max Buffer Size.
 
-  6.7.4 Special provisions for Gateways
+   If the Source node has no more data to send, but wants to keep the stream open, it may, but is not
+   required to periodically send Stream Data Send messages with zero payload bytes to ensure that the
+   destination node and any gateways in the transfer path are still aware of the stream transmission.
+
+8.4 Closing the stream
+
+   The Source node signals completion of the transfer by sending a Stream Data Complete message to the
+   Destination node, providing the Source Stream ID and the Destination Stream ID with it. Optionally the
+   Source node may add a 4-byte value describing the total number of bytes sent in the stream. If the
+   Source node does not want to specify this value, it may omit the bytes from the Stream Data Complete
+   message or may send 0xFFFFFFFF to specify unknown length.
+
+   The Stream Data Complete message transitions the stream to Closed state.
+
+   The Stream is closed if the Destination node sends a Terminate Due To Error or Optional Interaction
+   Rejected message with no MTI value or with the MTI value of Stream Data Send; or if the Source node
+   sends a Terminate Due To Error or Optional Interaction Rejected message with no MTI value or with the
+   MTI value of Stream Data Proceed. When possible, the specific MTI value should be used.
+
+8.5 Special provisions for Gateways
 
    A Gateway needs to be prepared for buffering up to Max Buffer Size bytes for each open stream. It may
    reduce the Max Buffer Size in the Stream Initiate Request message if the buffer size available is
    smaller than proposed. A Gateway must not modify the Max Buffer Size value of a Stream Initiate Response
    message.
 
-   A Gateway may delay forwarding Stream Data Proceed messages until its internal buffer is drained.
+   A Gateway may repackage the stream payload into fewer or more Stream Data Send messages than received,
+   as the underlying network requires. A Gateway must emit a Stream Data Send message with empty payload
+   after its buffer is drained, if it has received such a message.
+
+   A Gateway may delay forwarding Stream Data Proceed messages until its internal buffer is drained, but it
+   must not drop any of them.
+
+   A Gateway must delay forwarding the Stream Data Complete message until its internal buffer is drained.
+
+   A Gateway must drop all data in its internal buffer and all delayed messages if the Stream is terminated
+   with an error message of Terminate Due To Error or Optional Interaction Rejected.
+
+                                  9 Adaptation to CAN Transport (Normative)
+
+   This section describes the CAN implementation of stream transport message formats.
+
+9.1 Stream Data Send
+
+   Stream Data Send messages are sent on a CAN network using the Frame Type of 7 (Stream Data), the
+   Destination node alias and the Source node alias in the CAN header, and the Destination Stream ID in the
+   first data byte. The remaining data bytes can e filled with stream payload (up to 7 bytes per message):
+
+    Name                     Dest ID      Event ID      Header Format            Data-part Content          
+
+    Stream Data Send            Y            N        0x1Fdd,dsss        Byte 0: Destination Stream ID      
+                                                                         Byte 1...: payload bytes           
+
+9.2 All Other Messages
+
+   All other messages are sent as described in the OpenLCB Message Network Standard. Note that the Stream
+   Initiate Request message may need to be sent in two CAN frames if it contains a Stream Content UID. The
+   format for multiple frame CAN messages is described in the OpenLCB Message Network Standard.
 
    that support the Streaming protocol must keep track of the Stream states
 
@@ -478,9 +530,9 @@ Served Use Cases
    a four-byte length of the stream data transferred for checking. A zero value, if present, means the
    length is unknown. When this message is received by the destination, the transfer is complete.
 
-                                    7 Section TitleBackground Information
+                                    10 Section TitleBackground Information
 
-7.1 Stream Content Type Identification
+10.1 Stream Content Type Identification
 
    Stream senders can, but don't have to, identify the content type (format, meaning, etc) of the data
    stream at the front. As part of their private protocol, they can use whatever structure they'd like for
@@ -491,7 +543,7 @@ Served Use Cases
    be allocated via the same mechanisms as EventIDs. Well-known ones will be published by OpenLCB. These
    identifiers are recorded in a separate worksheet.
 
-7.2 Buffer Size
+10.2 Buffer Size
 
    The buffer size can be up to 216-1 bytes = 64KB-1. This is driven by the size of the initiate messages,
    which we want to keep in a single CAN frame. Although some transport mechanisms might be able to
@@ -500,7 +552,7 @@ Served Use Cases
    the future, an alternate form for the stream initialization messages can be defined for those
    large-message nodes. (It's unlikely they're running over CAN)
 
-7.3 CAN Discussion
+10.3 CAN Discussion
 
    On a CAN segment, the data limit is 8 bytes. This requires use of as little control information as
    possible, so that as many of those eight bytes can be used for data as possible.
@@ -517,7 +569,7 @@ Served Use Cases
    Destination Stream ID to restore it to the full format. Since they are tracking the stream in any case
    for buffering purposes, this is thought to be not a large problem.
 
-7.4 Implementation Notes
+10.4 Implementation Notes
 
    The "Stream Data Proceed" from the destination is clearance to send another buffer-size-worth of data.
    To achieve better performance, the destination can send it before receiving the entire buffer-size-worth
@@ -532,13 +584,16 @@ Served Use Cases
 
    A CAN ↔ Ethernet bridge might receive several kilobytes of data from the Ethernet side at a time. It's
    then responsible for breaking that up into CAN frames and forwarding it. It can reduce the buffer size
-   of transfers if need be to ensure there's a place to store the data while this is done.
+   of transfers if need be to ensure there's a place to store the data while this is done.Quisque
+   sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id felis
+   lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
 
-                                               8 Section Title
+                                               11 Section Title
 
-8.1 Subsection Title
+11.1 Subsection Title
 
-  8.1.1 Sub-subsection Title
+  11.1.1 Sub-subsection Title
 
    Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
    odio.
@@ -548,7 +603,7 @@ Served Use Cases
      * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
        sed massa.
 
-                                               9 Section Title
+                                               12 Section Title
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
@@ -568,9 +623,7 @@ Served Use Cases
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus. Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed
-   dignissim velit id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus
-   feugiat dolor id lectus aliquet luctus.
+   aliquet luctus.
 
    Table of Contents
 
@@ -626,5 +679,5 @@ Served Use Cases
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
 
-   Copyright 201314. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 8 - 12/29/2014Dec 29, 2014
+   Copyright 201134. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
+   of 9 - 12/30/2014Dec 30, 2014
