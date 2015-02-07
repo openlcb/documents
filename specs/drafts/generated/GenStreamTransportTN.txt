@@ -1,61 +1,13 @@
                                                 1 Introduction
 
-   A Working Note is an intermediate step in the documentation process.  It gathers together the content
-   from various informal development documents, discussions, etc into a single place.  One or more Working
-   Notes form the basic for the next step, which is one or more Standard/TechNote pairs.
+   This Technical Note contains informative discussion and background for the corresponding “OpenLCB Stream
+   Transport Standard”.
 
-   Status of this Working Note: It's had info from various threads and HTML docs dumped into it, but it
-   hasn't yet been organized at all (as of Oct 18, 2013).
+   Some wire protocols can supoprt only very short packets/frames, e.g. CAN with a limited header and data
+   payload.  OpenLCB needs to be able to move large chunks of data that may not be bound by any size.
 
-1.1 Served Use Cases
-
-1.2 Unserved Use Cases
-
-   Streaming is used to move large amounts of data (kilobytes and up) across a OpenLCB implementation.
-
-   This documents describes the streaming protocol(s) in OpenLCB.
-
-  1.2.1 Environment of Proposal
-
-    1.2.1.1 Requirements
-
-   Must work within OpenLCB architecture of a flat address space and unique identifiers
-
-   Receiving end must be able to throttle rate of arrival.
-
-   Multiple transfers at the same time over a single OpenLCB segment, so that transfers between disjoint
-   nodes don't need to be coordinated.
-
-   Needs to be effective over CAN, with acceptable bit efficiency.
-
-   Streams are not required to provide real-time transfer, e.g. to move live sound.
-
-    1.2.1.2 Preferences
-
-   It should be possible to have multiple streams active at the same time to or from a single node. Nodes
-   can choose not to support this.
-
-   Different buffers sizes can be used. High capability nodes can use large buffers for efficiency, low
-   capability nodes can still function with small buffers.
-
-   Streams should have a way of identifying their content & purpose within themselves, in addition to
-   through other protocols.
-
-    1.2.1.3 Design Points
-
-   Data integrity is handled by transport level, and need not be ensured in the streaming protocol.
-
-   A stream has a beginning and an end, and some number of bytes transferred in between. All other
-   structures are implemented by higher-level protocols outside the streaming protocol or data fields
-   within the streamed data itself. For example, the streaming protocol doesn't specify the format for
-   sound files sent over streams.
-
-   A stream has no intrinsic block, or record structure.
-
-   Streaming is not needed for short transfers, so a certain amount of overhead is acceptable. (This
-   implies a Datagram protocol to cover the gap between Events and Streams in size, see separate document)
-
-   We assume that routes don't change dynamically in ways that effect e.g. buffer allocation.
+   A pair of nodes may be able, but are not required, to maintain up to 255 simultaneously unique
+   open/active streams between themselves, as a pair.
 
                                         2 Annotations to the Standard
 
@@ -64,15 +16,35 @@
 
 2.1 Introduction
 
-   Note that this section of the Standard is informative, not normative.
+    
 
 2.2 Intended Use
 
-   Note that this section of the Standard is informative, not normative.
+   A stream may be useful when:
+
+     * The amount of data to be transferred between two nodes is large.
+
+     * The amount of data to be transferred is unbounded.
+
+     * A persistent open channel is required.
+
+     * Flow control is required.
 
 2.3 References and Context
 
-2.4 Definitions
+    For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+   For more information on MTI values and how they are laid out, see:
+
+     * OpenLCB Message Network Standard
+
+     * MTI allocation table.
+
+2.4 Message Formats
+
+  2.4.1 Stream Initiate Request
 
    Stream. Other examples of streaming protocols would be TCP, or a unix pipe. The big difference to TCP is
    that the OpenLCB streams are uni-directional, whereas TCP connections provide bi-directional data
@@ -107,97 +79,92 @@
 
 2.5 Message Formats
 
+   Every stream message type contains one or both of a Source Stream ID and/or Destination Stream ID.  An
+   individual stream can be identified by the combination of:
+
+    1. Source Stream ID
+
+    2. Destination Stream ID
+
+    3. Source Node ID
+
+    4. Destination Node ID
+
+   It is important to note that neither a Source Stream ID nor a Destination Stream ID must be unique on
+   its own, rather, they must be unique when used with a given node pairing.
+
+   Technically only one of the Source or Destination Stream ID's, not both, are required to uniquely
+   identify a stream.  This fact is exploited in order to maximize the efficiency in a Stream Data Send
+   message by excluding the Source Stream ID and including only the Destination Stream ID.
+
+   The reason that both Source and Destination Stream ID's exist is to provide each of the node pairs
+   involved with the connection an opportunity to allocate an identifier optimized to its own internal
+   mapping of stream metadata to identifier.
+
+   There is one Stream ID (0xFF) that is reserved which must never be sent and must be ignored upon
+   receipt.  This Stream ID reservation exists in order to allow an implementation the opportunity to use
+   this value for the purpose of marking a stream mapping as closed or available-for-use without requiring
+   an additional memory location to hold this information.
+
   2.5.1 Stream Initiate Request
 
-   It carries a "Max Buffer Size" value (2 bytes), a “Type Included” boolean flag (1 bit in a byte; see
-   below for meaning) and a "Source Stream ID" (1 byte) in the data section. The combination of source Node
-   ID, destination Node ID and Source Stream ID must uniquely identify this stream transmission.
+   This is an addressed message sent from the stream source node to the stream destination node.  It
+   contains a unique Source Stream ID, a suggested Max Buffer Size (in bytes), reserved flag bits, and
+   optionally a Stream Content Type.
 
-   Source Stream ID, by itself, is not required to be unique.
-
-   Data content:
-
-   Byte    Byte    Byte                                       Byte              Byte             Byte       
-                   Flags:                                                                                   
-                                                              
-   Max Buffer Size LSB:  Type Included                        Additional Flags: Source Stream ID (Reserved)
-                   0: No type specification                   
-                   1: First six bytes are unique stream       
-                   content UID                                
-
-    
-
-    
+   The suggested Max Buffer Size chosen by the stream source is somewhat arbitrary, but could be
+   implementation specific.  The resulting final Max Buffer Size of the stream may be smaller, but must
+   never be larger than this initially suggested value.
 
   2.5.2 Stream Initiate Reply
 
-   Byte    Byte    Byte                             Byte                   Byte          Byte               
-                                                    Additional Flags                                        
-                                                                                                            
-                                                    If Reject              
-                                                                           
-                                                    LSB:                   
-                   Flags                            1: Information Logged  
-                                                                           
-                   LSB:  Type Included              Bit 1:                 
-                   0: No type specification                                
-                   1: First six bytes are unique    Bit 2:                 
-                   stream content UID                                      
-                                                    Bit 3:                 
-                   Bit 1:                                                  
-                   1: Stream Rejected, out of order Bit 4:                 
-                   or other “should not happen”                            
-                   error                            if Reject, Permanent   
-                   0: (nothing)                     Error:                 
-                                                                           
-   Max Buffer Size Bit 2:                           Bit 5:                 Source Stream Destination Stream
-                                                    1: Invalid Stream      ID            ID
-                   Bit 3:                           Request                
-                                                                           
-                   Bit 4:                           Bit 6:                 
-                                                    1: Source not          
-                   Bit 5:                           permitted              
-                                                                           
-                   Bit 6: Error Type (if Reject)    Bit 7:                 
-                   1: Permanent Error               1: Streams not         
-                   0:  Temporary Error              accepted               
-                                                                           
-                   MSB: Accept/Reject               if Temporary Error:    
-                   0: Reject                                               
-                   1: Accept                        Bit 5:                 
-                                                    1: Buffer full         
-                                                                           
-                                                    Bit 6:                 
-                                                    1: Internal error, out 
-                                                    of order               
+   This is an addressed message sent from the stream destination node to the stream source node in response
+   to a Stream Initiate Request.  It contains a unique Destination Stream ID, a unique Source Stream ID, a
+   final Max Buffer Size (in bytes), and an error code field.
 
-    
-
-    
+   The final Max Buffer Size must be less than or equal to the suggested Max Buffer Size in the Stream
+   Initiate Request being replied to.
 
   2.5.3 Stream Data Send
 
-    
+   This is an addressed message sent from the stream source node to the stream destination node.  It
+   contains the Destination Stream ID followed by the payload bytes.
+
+   The stream source node must maintain an internal count that is initialized to Max Buffer Size.  For
+   every single payload byte sent, the source must decrement this count by one.  A single Stream Data Send
+   may contain a payload in number of bytes up to this count value, or may be broken into smaller messages
+   so long as in aggregate, the multiple Stream Data Send messages do not result in the internal count
+   decrementing below zero.
+
+   A Stream Data Send message may also contain zero payload bytes.  This is considered a flush, and should
+   result in the destination node (and any gateways in between) flushing any internal buffering for
+   efficiency that may be occurring.
 
   2.5.4 Stream Data Proceed
 
-    
+   This is an addressed message sent from the stream destination node to the stream source node.  The
+   destination node sends this message when it is able to receive an additional Max Buffer Size bytes of
+   data beyond what the stream destination node has already informed the stream source node it can receive.
+    When the stream source node receives this message, it can add Max Buffer Size to its internal count of
+   bytes that it may send with Stream Data Send messages.  It is possible, and acceptable, that through
+   this mechanism, the count internal to the stream source node could increment to a value larger than Max
+   Buffer Size.
 
-   Byte             Byte                  Byte  Byte             
-   Source Stream ID Destination Stream ID Flags Additional Flags 
-
-    
-
-    
-
-  2.5.5 Stream Data Complete
-
-    
-
-   Byte             Byte                  Byte  Byte             
-   Source Stream ID Destination Stream ID Flags Additional Flags 
+  2.5.5 Stream Ping
 
     
+
+  2.5.6 Stream Pong
+
+    
+
+  2.5.7 Stream Data Complete
+
+   This is an addressed message sent from the stream source node to the stream destination node for the
+   purpose of gracefully shutting down a stream.  This message contains a Source Stream ID, Destination
+   Stream ID, and optionally, a 4-byte value representing the total number of data bytes sent while the
+   stream was open.  Once this message is sent, the stream source node may free up the previously allocated
+   Source Stream ID, along with any metadata associated with the stream.
 
 2.6 States
 
@@ -356,18 +323,6 @@
 
    1 Introduction
 
-   1.1 Served Use Cases
-
-   1.2 Unserved Use Cases
-
-   1.2.1 Environment of Proposal
-
-   1.2.1.1 Requirements
-
-   1.2.1.2 Preferences
-
-   1.2.1.3 Design Points
-
    2 Annotations to the Standard
 
    2.1 Introduction
@@ -376,7 +331,9 @@
 
    2.3 References and Context
 
-   2.4 Definitions
+   2.4 Message Formats
+
+   2.4.1 Stream Initiate Request
 
    2.5 Message Formats
 
@@ -388,7 +345,11 @@
 
    2.5.4 Stream Data Proceed
 
-   2.5.5 Stream Data Complete
+   2.5.5 Stream Ping
+
+   2.5.6 Stream Pong
+
+   2.5.7 Stream Data Complete
 
    2.6 States
 
