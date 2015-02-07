@@ -31,10 +31,11 @@
 
    Protocol
 
-   An OpenLCB protocol defines how messages are exchanged to do some particular thing. There are low level
-   protocols for things like sending datagrams, exchanging events, and doing link start-up.  Higher-level
-   protocols then define how configuration information is exchanged, or a nodes memory can be read, or a
-   message can be put on a display.
+   An OpenLCB protocol defines how messages are exchanged to do some particular thing.  OpenLCB protocols
+   are layered, with higher-level protocols being implemented with lower-level protocols.  Low level
+   protocols are used for things like sending datagrams, exchanging events, and doing link start-up.
+    Higher-level protocols then define how configuration information is exchanged, or a nodes memory can be
+   read, or a message can be put on a display.
 
                                               3 General Glossary
 
@@ -48,7 +49,7 @@
 
    Short form of a Node ID (NID) number which can be mapped back and forth to the full number. Often used
    with a modifier, as "NID Alias", "DID Alias" or "SID Alias"", where DID and SID are specific types of
-   Node ID (see below) and which are then written NIDa, DIDa and SIDa. Only used in certain forms of the
+   Node ID (see below), and which are then written NIDa, DIDa and SIDa. Only used in certain forms of the
    OpenLCB protocols, e.g. on CAN links.
 
    Automatically Routed Event
@@ -61,20 +62,21 @@
    Board
 
    “Board” has no precise meaning in OpenLCB.  It generally refers to a single piece of electronics.
-   Sometimes used to refer to “the piece of electronics that implements a Node”.
+   Sometimes used to refer to “the piece of electronics that implements a Node”.  Note that a Board may may
+   contain one or more Nodes.  
 
    Bridge
 
    Usually a bridge works on the data link layer of the OSI model, and therefore has knowledge only about
-   those CAN frames transferred, but not about the meaning of the messages as they are defined in a higher
-   layer of the OSI model, such as the transport layer. Similarly to a repeater, a bridge may be used to
-   allow the connection of more nodes than is possible on one CAN segment, but this is not its main
-   purpose. Usually a bridge does not translate between different wire protocols, and for that a gateway is
-   used.  A bridge differs from a repeater in that a bridge can forward CAN frames to different segments
-   based on Node ID. To do this, the bridge listens to, and interprets, the frames transferred in order to
-   learn which nodes are connected to which segment. For OpenLCB the bridge may also support different node
-   aliases on the different segments to which it is connected. It this case, it would translate the node
-   alias before forwarding that frame to another segment.
+   those messages transferred, but not about the meaning of the messages as they are defined in a higher
+   layer of the OSI model, such as at the transport layer. Similarly to a repeater, a bridge may be used to
+   allow the connection of more nodes than is possible on one segment due to physical limitations, but this
+   is not its main purpose.  Usually a bridge does not translate between different wire protocols, and for
+   that a gateway is used.  A bridge differs from a repeater in that a bridge can forward messages to
+   different segments based on Node ID.  To do this, the bridge listens to and interprets the messages
+   transferred in order to learn which nodes are connected to which segment. For OpenLCB the bridge may
+   also support different node aliases on the different segments to which it is connected. It this case, it
+   would translate the node alias before forwarding that frame to another segment.
 
    CDI
 
@@ -88,9 +90,10 @@
    Datagram Protocol
 
    The datagram protocol is a way for a OpenLCB node to efficiently send a short, definite-length message
-   to another specific node. In that, it lies in between the event exchange protocol, which efficiently
+   to another specific node.  In that, it lies in between the event exchange protocol, which efficiently
    sends very short event IDs to all interested nodes, and the streaming protocol, which sends long
-   messages between specific nodes, at some cost in efficiency. Sending a datagram takes multiple messages.
+   messages between specific nodes, at some cost in efficiency. Sending a datagram can take multiple
+   messages on limited transports, such as CAN.
 
    Datagram Protocol ID (DPID or DPI)
 
@@ -103,21 +106,22 @@
 
    Destination Node ID (DID)
 
-    Node ID of the node to which a specific message is addressed.
+    The Node ID of the node to which a specific message is addressed.
 
    Event Exchange Protocol
 
-   Using PCER messages to propagate Event IDs from multiple source nodes to multiple destination nodes.
-   These are typically used to announce that something of interest has happened on the layouts so that
-   controlled devices can respond. Also includes inquiry and response messages for examining configuration
-   and status.
+   This protocol uses PCER (Producer-Consumer Event Report) messages to propagate Event IDs from  source
+   nodes to multiple destination nodes. These messages are typically used to announce that something of
+   interest has happened on the layouts, and consequencely a change in the layout's state, so that
+   controlled devices can respond. The protocol also includes inquiry and response messages for examining
+   configuration and status.  
 
    Event ID (EID)
 
    The number that identifies a specific event. OpenLCB event IDs must be globally unique.
 
-   Events are not associated with any particular node. It may be convenient to use e.g. Node ID as a way of
-   numbering them uniquely, but Node IDs and Event IDs are not related.
+   NB: Events are not associated with any particular node.  It may be convenient to use, for example,  Node
+   ID as a way of numbering them uniquely, but Node IDs and Event IDs are not related.
 
    Gateway
 
