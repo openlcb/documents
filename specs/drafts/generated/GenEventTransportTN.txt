@@ -1,7 +1,7 @@
                                                 1 Introduction
 
-   This Technical Note contains informative discussion and background for the corresponding “OpenLCB Event
-   Transport Standard”. This explanation is not normative in any way.
+   This Technical Note contains informative discussion and background for the corresponding Event Transport
+   Standard. This explanation is not normative in any way.
 
    OpenLCB nodes respond to local inputs and state changes by emitting Producer/Consumer Event Report
    (PCER) messages. When they do this, they are acting as “Producers”. OpenLCB nodes receive these
@@ -16,14 +16,16 @@
    be added to implement the associated event, without concern of side effects to the the other nodes
    involved in the event.12
 
-   The P/C Event ID included in a PCER message is a 8-byte unique identifier. The method for assigning
-   these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical Note.
+   The Producer/Consumer Event ID included in a PCER message is a 8-byte unique identifier. The method for
+   assigning these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical
+   Note.
 
    There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
    particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
-   than one node may emit the same P/C Event ID (note that the Node ID of the emitting node is available
-   separately in the message). More than one node may receive and act on a PCER message with a specific P/C
-   Event ID. The only requirement is that the 8-byte quantity be unique to the event.
+   than one node may emit the same Producer/Consumer Event ID (note that the Node ID of the emitting node
+   is available separately in the message). More than one node may receive and act on a PCER message with a
+   specific Producer/Consumer Event ID. The only requirement is that the 8-byte quantity be unique to the
+   event.
 
    OpenLCB event IDs carry no specific information about whether they are coding “on” or “off”, “active” or
    “inactive” for some output state.  It's possible for multiple consumers to do different things in
@@ -268,15 +270,16 @@
    Identified Range messages after Initialization Complete is allowed, but there's no delivery guarantee
    for this node's events until those have been sent and the state has transitioned to Advertised.
 
-   When a node changes the events it manages, it still needs to emit the PI/PRI and/or CI/CRI messages.
-    For example, reconfiguration could cause this.  It can be handled by sending individual messages, or by
-   resetting and sending them all as part of that process.
+   When a node changes the events it manages, it still needs to emit the Producer Identified/Producer Range
+   Identified and/or  Consumer Identified/Consumer Range Identified messages.  For example, reconfiguration
+   could cause this.  It can be handled by sending individual messages, or by resetting and sending them
+   all as part of that process.
 
-   There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending IC
-   again says that all events are not interesting, though).  This could be added, but it is much harder for
-   gateways to decide that an Event ID is not interesting than that it is interesting, because they have to
-   keep a list of all the node IDs that are interested,and back that off.  Better to just let  the set of
-   interesting Event IDs grow until the layout or gateway is reset.
+   There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending
+   Identify Consumers again says that all events are not interesting, though).  This could be added, but it
+   is much harder for gateways to decide that an Event ID is not interesting than that it is interesting,
+   because they have to keep a list of all the node IDs that are interested,and back that off.  Better to
+   just let  the set of interesting Event IDs grow until the layout or gateway is reset.
 
    To ensure that event messages are properly routed, nodes must announce when they start to produce or
    consume messages. Specifically, they must do this at two times:
@@ -285,14 +288,15 @@
 
      * When a configuration change has added another Event ID that can be produced or consumed.
 
-   To announce new Event IDs, the node must transmit a Producer Identified message for each P/C Event ID it
-   can newly produce, and a Consumer Identified message for each P/C Event ID that it can newly consume.  
+   To announce new Event IDs, the node must transmit a Producer Identified message for each
+   Producer/Consumer Event ID it can newly produce, and a Consumer Identified message for each
+   Producer/Consumer Event ID that it can newly consume.  
 
   2.6.1 Event Transfer
 
    The last sentence is the key to gateway traffic reduction. See §3.1 below.
 
-  2.6.2 Event Enquiry
+  2.6.2 Event Inquiry
 
    IdentifyEvents comes in both global and addressed forms. The global form can place a very large load on
    the network and should only be used when needed.  
@@ -301,32 +305,37 @@
    produce or consume.  These reports can be  Identified messages specifying individual Event IDs or ranges
    of events.  
 
-   IdentifyEvents  is useful to be able to rapidly determine which, if any, P/C Event IDs that a particular
-   node is listening for and that it can emit.This can be used as a configuration diagnostic.
+   IdentifyEvents  is useful to be able to rapidly determine which, if any, Producer/Consumer Event IDs
+   that a particular node is listening for and that it can emit.This can be used as a configuration
+   diagnostic.
 
-   To determine which P/C Event IDs can be send by a particular node, the inquiring node sends an Identify
-   Events message addressed to the target node.
+   To determine which Producer/Consumer Event IDs can be send by a particular node, the inquiring node
+   sends an Identify Events message addressed to the target node.
 
-   The node must reply with a Producer Identified message for each P/C Event ID it can produce, and a
-   Consumer Identified message for each P/C Event ID for which it is listening.
+   The node must reply with a Producer Identified message for each Producer/Consumer Event ID it can
+   produce, and a Consumer Identified message for each Producer/Consumer Event ID for which it is
+   listening.
 
-  2.6.3 Producer Enquiry
+  2.6.3 Producer Inquiry
 
    It is useful to be able to determine which, if any, nodes are configured to possibly transmit a specific
    PCER message and the current state of those producers. This can be used as a configuration diagnostic,
    and as a way of building filtering and routing tables.
 
-   To determine which nodes can send a particular P/C Event ID, a node sends an Identify Producers message
-   carrying the desired P/C Event ID. This is an unaddressed message addressed to all nodes.
+   To determine which nodes can send a particular Producer/Consumer Event ID, a node sends an Identify
+   Producers message carrying the desired Producer/Consumer Event ID. This is an unaddressed message
+   addressed to all nodes.
 
-   All nodes that are listening for that P/C Event ID reply with a Producer Identified broadcast message.
+   All nodes that are listening for that Producer/Consumer Event ID reply with a Producer Identified
+   broadcast message.
 
-   The “valid” bit indicates that the node's internal condition is consistent with sending this P/C Event
-   ID. For example, assume a node sends P/C Event ID 2 when the input goes active and P/C Event ID 4 when
-   the input goes inactive. Then if the input was active and the node was asked about P/C Event ID 2, it
-   would reply “valid”; if asked about P/C Event ID 4, it would reply “not valid”. Depending on the node's
-   structure, it might not always be possible to set the “valid” bit with certainty, in which case the
-   “unknown” bit must be set.
+   The “valid” bit indicates that the node's internal condition is consistent with sending this
+   Producer/Consumer Event ID. For example, assume a node sends Producer/Consumer Event ID 2 when the input
+   goes active and Producer/Consumer Event ID 4 when the input goes inactive. Then if the input was active
+   and the node was asked about Producer/Consumer Event ID 2, it would reply “valid”; if asked about
+   Producer/Consumer Event ID 4, it would reply “not valid”. Depending on the node's structure, it might
+   not always be possible to set the “valid” bit with certainty, in which case the “unknown” bit must be
+   set.
 
    You can query a state when you come up with the request-id message. Conflicting states can happen, and
    have to be addressed. You might also want to enquire of the consumers if you don't get a definitive
@@ -335,24 +344,26 @@
    In regard to valid/invalid/unknown, it is  always possible to send only unknown, or to ignore the three
    sub-forms, but a lot of capability is then lost.  
 
-  2.6.4 Consumer Enquiry
+  2.6.4 Consumer Inquiry
 
-   It is useful to be able to determine which, if any, nodes are listening for a specific P/C Event ID
-   message.
+   It is useful to be able to determine which, if any, nodes are listening for a specific Producer/Consumer
+   Event ID message.
 
    This can be used as a configuration diagnostic, and as a way of building routing tables.
 
-   To determine which nodes are listening for a particular P/C Event ID, a node sends an Identify Consumers
-   message carrying the desired P/C Event ID. This is an unaddressed message processed by all nodes.
+   To determine which nodes are listening for a particular Producer/Consumer Event ID, a node sends an
+   Identify Consumers message carrying the desired Producer/Consumer Event ID. This is an unaddressed
+   message processed by all nodes.
 
-   All nodes that are listening for that P/C Event ID reply with a Consumer Identified broadcast message.
+   All nodes that are listening for that Producer/Consumer Event ID reply with a Consumer Identified
+   broadcast message.
 
    The “valid” bit indicates that the node is currently in the state it would be if this message had been
-   received last. For example, assume a node sets its output active for P/C Event ID 2, and inactive for a
-   P/C Event ID 4. Then if the output was active and the node was asked about P/C Event ID 2, it would
-   reply "valid"; if asked about P/C Event ID 4, it would reply "not valid". Depending on the node's
-   structure, it might not always be possible to set the “valid” bit with certainty, in which case the
-   “unknown” bit must be set.
+   received last. For example, assume a node sets its output active for Producer/Consumer Event ID 2, and
+   inactive for a Producer/Consumer Event ID 4. Then if the output was active and the node was asked about
+   Producer/Consumer Event ID 2, it would reply "valid"; if asked about Producer/Consumer Event ID 4, it
+   would reply "not valid". Depending on the node's structure, it might not always be possible to set the
+   “valid” bit with certainty, in which case the “unknown” bit must be set.
 
   2.6.5 Teach/Learn Configuration
 
@@ -572,10 +583,10 @@
 3.5 History section
 
    For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
-   each time the associated P/C Event ID is sent. It is not at all clear how to do this across nodes, or
-   even across Producers within a single node, as there may be more than one thing that can cause the same
-   P/C Event ID to be sent by a single board;. We decided this would cause more problems than it solved,
-   and omitted it.
+   each time the associated Producer/Consumer Event ID is sent. It is not at all clear how to do this
+   across nodes, or even across Producers within a single node, as there may be more than one thing that
+   can cause the same Producer/Consumer Event ID to be sent by a single board;. We decided this would cause
+   more problems than it solved, and omitted it.
 
    There is not room in a CAN frame for both a destination NID and a EID. This protocol has therefore been
    constructed so that any message carrying an EID is globally addressed.
@@ -622,11 +633,11 @@
 
    2.6.1 Event Transfer
 
-   2.6.2 Event Enquiry
+   2.6.2 Event Inquiry
 
-   2.6.3 Producer Enquiry
+   2.6.3 Producer Inquiry
 
-   2.6.4 Consumer Enquiry
+   2.6.4 Consumer Inquiry
 
    2.6.5 Teach/Learn Configuration
 
