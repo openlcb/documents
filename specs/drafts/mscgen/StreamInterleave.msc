@@ -1,34 +1,43 @@
 # MSC for interleaved datagram operation
 msc {
+  hscale="2";
 
   sa [label="Sending Task A"], sb [label="Sending Task B"], 
-  r [label="Receiving Task"];
-  sa rbox sb [label="Sending Node"];
-  r rbox r [label="Receiving Node"];
+  d [label="Receiving Task"];
 
-   ... ;
- --- [ label = "Note: Example uses hypothetical duplex streams " ] ;
-   ... ;
-
- --- [ label = "Two streams are initialized simultaneously " ] ;
+  sa rbox sb [label="Sending Node"], d rbox d [label="Receiving Node"];
+  |||;
+  --- [ label = "Two streams are initialized simultaneously " ] ;
    
-  sa=>r [label="Stream Init Request sid=1"];
-  sb=>r [label="Stream Init Request sid=2"];
+  sa abox sb [label="Allocate [Source SID (1)]"];
+  sa->d [linecolor="blue", label="Stream Initiate Reqest [0xFF + Source SID (1) + Buffer Size + flags + flags]"];
 
-  r=>sa [label="Stream Init Reply sid=1 did=11"];
-  r=>sb [label="Stream Init Reply sid=2 did=13"];
-  
- --- [ label = "Start of stream data tells the Receiving Task that these are console requests " ] ;
- 
-  sa=>r [label="Stream Data sid=1 did=11 type=Console"];
-  
-  sb=>r [label="Stream Data sid=2 did=13 type=Console"];
-  
-   ... ;
-   
+  sa abox sb [label="Allocate [Source SID (2)]"];
+  sb->d [linecolor="red", label="Stream Initiate Reqest [0xFF + Source SID (2) + Buffer Size + flags + flags]"];
+
+  d abox d [label="Allocate [Destination SID (11]"];
+  d->sa [linecolor="blue", label="Stream Initiate Reply [Destination SID (11) + Source SID (1) + Buffer Size + Error]"];
+
+  d abox d [label="Allocate [Destination SID (12)]"];
+  d->sb [linecolor="red", label="Stream Initiate Reply [Destination SID (12) + Source SID (2) + Buffer Size + Error]"];
+
+  |||;
   --- [ label = "Bidirectional traffic then flows based on stream IDs " ] ;
- 
-  sa=>r [label="Stream Data sid=1 did=11 \"command text\""];
-  r=>sa [label="Stream Data sid=1 did=11 \"results text\""];
-  
+
+  sa->d [linecolor="blue", label="Stream Data Send [Destination SID (11) + Data]"];
+  sb->d [linecolor="red", label="Stream Data Send [Destination SID (12) + Data]"];
+  sb->d [linecolor="red", label="Stream Data Send [Destination SID (12) + Data]"];
+  ...;
+  |||;
+  sa->d [linecolor="blue", label="Stream Data Send [Destination SID (11) + Data]"];
+  sb->d [linecolor="red", label="Stream Data Send [Destination SID (12) + Data]"];
+  ...;
+  |||;
+  --- [ label = "Close one of the streams, the other keeps going" ] ;
+  sa->d [linecolor="blue", label="Stream Data Complete [Destination SID (11) + Source SID (1) + (Optional) Payload Size]"];
+  sa abox sb [label="Deallocate [Source SID (1)]"], d abox d [label="Deallocate [Destination SID (11)]"];
+  ...;
+  |||;
+  sb->d [linecolor="red", label="Stream Data Send [Destination SID (12) + Data]"];
+  sb->d [linecolor="red", label="Stream Data Send [Destination SID (12) + Data]"];
 }

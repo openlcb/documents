@@ -1,0 +1,23 @@
+msc {
+  hscale="2";
+
+  s [label="Source Node"],
+  d [label="Destination Node"];
+
+
+  s abox s [label="Allocate [Source SID]"];
+  s->d [label="Stream Initiate Reqest [0xFF + Source SID + Buffer Size + flags + flags]"];
+
+  d->s [label="Stream Initiate Reply in Error [Destination SID + Source SID + Buffer Size + Error]"];
+  d abox d [label="Allocate [Destination SID]"];
+  d->s [label="Stream Initiate Reply [Destination SID + Source SID + Buffer Size + Error]"];
+
+  s->d [label="Stream Data Send [Destination SID + Data]"];
+  s->d [label="Stream Data Send [Destination SID + Data]"];
+  ...;
+
+  s->d [label="Stream Ping [Destination SID + Source SID]"];
+  s note s [label="After 3 seconds"];
+  s->d [label="Stream Abort [Destination SID + Source SID + flags + flags + error]"];
+  s abox s [label="Deallocate [Source SID]"], d abox d [label="Deallocate [Destination SID]"];
+}
