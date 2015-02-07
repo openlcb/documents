@@ -5,31 +5,66 @@
 
                                     2 References and Context (Informative)
 
-   This specification is in the context of the OpenLCB-CAN … Specification, which specifies …
+   This specification is in the context of the following OpenLCB Standards:
 
-   For more information on format and presentation, see:
+     * The Message Network Standard, which defines the basic messages and how they interact. Higher-level
+       protocols are based on this message network, but are defined elsewhere.
 
-     * OpenLCB Common Information Technical Note
+     * The Event Transport Standard, which defines the protocol for transporting events.
+
+     * The Unique Identifiers Standard witch defines the format and allocation of unique 48-bit
+       identifiers.
 
                                                    3 Format
 
-   An OpenLCB event identifier (node ID) shall be eight bytes of eight bits each.
+   An OpenLCB event identifier shall be eight bytes of eight bits each.  Except as specifically noted
+   within this document, the upper 6-bytes are represented by a uniquely assigned Node ID.
 
    The order of bytes in an OpenLCB event ID shall be considered significant. The most-significant byte
    shall be transmitted first during communication operations. The most-significant byte shall be written
    first (left-most in Western format) in any human-readable representation.
 
-   OpenLCB event IDs shall include one or more 1 bits.
-
                                                  4 Allocation
 
-    
+4.1 Node ID Based
+
+   Value                                          Suffix                   Description                      
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6   Byte 7       Byte 8      
+   6-byte Uniquely Assigned Node ID               **           **          Assigned Node ID event           
+                                                                           Subset of the assigned Node ID   
+   01     01     01     00     CBUS       Node ID CBUS            Event ID space for CBUS mapped nodes.     
+                                                                            Node ID is 00 for node short    
+                                                                           events.                          
 
     
 
-   The automatically-routed range
+4.2 Well-Known Automatically-Routed
 
-   The well-known range, which includes the automatically-routed range as a subset.
+   Value                                     Suffix        Description                                      
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 
+                                             FF     FF     Emergency off (de-energize)                      
+                                             FF     FE     Emergency stop of all operations                 
+                                             FE     00     Ident button combination pressed                 
+   01     00     00     00     00     00     FD     01     Link error code 1 – the specific meaning is link 
+                                                           wire protocol specific                           
+                                             FD     02     Link error code 2                                
+                                             FD     03     Link error code 3                                
+                                             FD     04     Link error code 4                                
+
+4.3 Well-Known:
+
+   The following events identifiers are not automatically routed.
+
+   Value                                     Suffix        Description                         
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 
+                                             02     01     Duplicate Node ID detected          
+                                             03     **     Reserved for train Control Protocol 
+   01     01     00     00     00     00     03     01     Reserved                            
+                                             03     02     Reserved                            
+                                             03     03     This node is a Train                
+                                             03     04     This node is a Traction Proxy       
+
+    
 
    Below this is just a collection of pieces from other docs right now.
 
@@ -42,5 +77,11 @@
    3 Format
 
    4 Allocation
+
+   4.1 Node ID Based
+
+   4.2 Well-Known Automatically-Routed
+
+   4.3 Well-Known:
 
     

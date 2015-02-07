@@ -10,17 +10,67 @@
 
 2.1 Introduction
 
-2.2 References and Context
+   Though event identifiers generally take the format of a unique Node ID plus a 16-bit extention, there
+   are some exceptions to this noted in the Event Identifiers Standard which will be detailed in this
+   document.
 
-2.3 Format
+2.2 Intended Use
 
-   The specification doesn't require any particular human-readable format, but hex-pairs with separators
-   are strongly suggested, e.g. 01.AB.34.01.CD.E3.20.0E; decimal pairs could also be used, but in that case
-   it's important to provide a way to know which is use.
+   An event ID is intended to be globally unique and for a specific purpose defined either by user
+   configuration or enforced by the Event Identifiers Standard.  Any node may be configured to produce or
+   consume any event, regardless of its assigned Node ID.  However, logically, a unique event identifier is
+   defined to have a unique purpose, whether assigned by user configuration or explicitly defined in the
+   Event Identifier Standard.
 
-    
+2.3 References and Context
 
-    
+   This specification is in the context of the following OpenLCB Standards:
+
+     * The Message Network Standard, which defines the basic messages and how they interact. Higher-level
+       protocols are based on this message network, but are defined elsewhere.
+
+     * The Event Transport Standard, which defines the protocol for transporting events.
+
+     * The Unique Identifiers Standard witch defines the format and allocation of unique 48-bit
+       identifiers.
+
+2.4 Format
+
+   An event identifier are intended to be globally unique 64-bit values.
+
+2.5 Node ID Based
+
+   The majority of event identifiers fall into this category.  The 6 most significant bytes are derived
+   from a globally unique 6-by Node ID followed by the two least significant bytes which are typically
+   chosen through user configuration.
+
+  2.5.1 MERG CBUS
+
+   OpenLCB allocates a Node ID address space specifically for mapping MERG CBUS events into OpenLCB.  CBUS
+   events come in two types:  long and short.  A long event is uniquely identified by the combination of
+   16-bit Node ID + 16-bit Event ID.  A short event is only identified by its 16-bit Event ID.  A CBUS
+   short event is translated into an OpenLCB event by using 0x0000 as the Node ID in the “CBUS Node ID”
+   field of the OpenLCB event identifier.  This is allowed because in the CBUS standard, Node ID 0 is not
+   permitted.
+
+   CBUS events can also come in the form of a request.  These requests should be translated into an
+   Identify Producer on OpenLCB in order to solicit the response that the CBUS request is asking for.
+
+2.6 Well Known Automatically-Routed
+
+   Unlike Node ID Based event identifiers, the Well Known Automatically Routed event identifiers are
+   explicitly defined by the Event Identifiers Standard for a specific purpose.  Additionally, gateways are
+   required to route these events to all segments.
+
+  2.6.1 Emergency Off
+
+   The Emergency Off event identifier (01.00.00.00.00.00.FF.FF) is a request for a node to de-energize all
+   of its outputs.  A node receiving this event may continue to remain a powered participant of the OpenLCB
+   bus, but shall de-energize any outputs unrelated to maintaining OpenLCB communications.  For example:
+
+     * If the node is a DCC power booster, it must disable its amplified DCC power output.
+
+     * If the node is an accessory controlling turnout motors, it must remove power from the motors
 
                                           3 (Text to be integrated)
 
@@ -109,9 +159,19 @@
 
    2.1 Introduction
 
-   2.2 References and Context
+   2.2 Intended Use
 
-   2.3 Format
+   2.3 References and Context
+
+   2.4 Format
+
+   2.5 Node ID Based
+
+   2.5.1 MERG CBUS
+
+   2.6 Well Known Automatically-Routed
+
+   2.6.1 Emergency Off
 
    3 (Text to be integrated)
 
