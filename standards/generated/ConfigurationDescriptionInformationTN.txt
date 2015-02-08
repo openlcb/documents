@@ -52,12 +52,44 @@
    “Initialized State” means talking on the OpenLCB, so CDI is fixed while you're up. But it can change
    when the node e.g. resets.
 
+   The CDI information shall be constant. A node may not change it after any part of it has been retrieved
+   and before the next transition of the node away from the Initialized state. (The transition back to
+   Initialized stte tells other nodes to flush their caches and pick up any changed content)
+
 2.5 Format
 
    May extend later for e.g. compression, via changes to the 1^st character or some other method.
 
+   The first byte is used to distinguish the coding.
+
+   “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
+
+   UTF BOM: Various UniCode forms
+
+   0x01 – tag for compressed. One format defined for total start string of 0x0101. (If you want to use
+   another format, decompress on board)
+
+   (can't use 0x00 as lead, since that's the end-of-string indication)
+
+   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
+   what we check for conformance testing.
+
    No requirement that you validate against the schema. But since the contents are normative, you have to
    obey the defaults, etc, for missing elements.
+
+   By specifying XML 1.0 only, XInclude, XML Namespaces, XML Base, xml:id and other extensions have been
+   excluded.
+
+   Because the using node may not have external connections, XML features requiring those (Xinclude, schema
+   default values, …) shall not be assumed to be present.
+
+   OK to specify stylesheets (because the XML 1.0 standard is silent on that)
+
+   OK to include XML comments
+
+   Hexadecimal notation (0x1234) for numbers is not permitted. Although it may have made the CDI easier for
+   people to read, the XML is primarily intended for consumption by OpenLCB nodes. Providing optional
+   coding, such as hexadecimal numbers, makes those nodes more complex.
 
                                      3 Stuff to be merged into the above
 
@@ -596,4 +628,4 @@
    3.4 Implementation Notes 9
 
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 16 - Feb 8, 2015
+   1 of 17 - Feb 8, 2015
