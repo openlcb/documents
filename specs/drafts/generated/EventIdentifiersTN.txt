@@ -10,7 +10,7 @@
 
 2.1 Introduction
 
-   Though event identifiers generally take the format of a unique Node ID plus a 16-bit extention, there
+   Although event identifiers generally take the format of a unique Node ID plus a 16-bit extension, there
    are some exceptions to this noted in the Event Identifiers Standard which will be detailed in this
    document.
 
@@ -24,13 +24,13 @@
 
    The "globally unique" requirement only refers to the universe of connected nodes; nodes that never need
    to communicate with each other don't need to have separate Event Identifiers.  In general, however,
-   nodes can move: They can be sold or loaned for use on another layout, nodes on modular layouts can be
+   nodes can move: they can be sold or loaned for use on another layout, nodes on modular layouts can be
    connected to other arbitrary modules, and few assumptions can be made.  Therefore, we require globally
    uniqueness for all Event Identifiers.
 
    To ensure uniqueness, the top six bytes of an Event Identifier that you define are required to be within
-   the Node ID space that you control.  The low two bytes would be any number you prefer, so long as you
-   use each value for only one event.
+   a Node ID space that you control.  The low two bytes would be any number you prefer, so long as you use
+   each value for only one event.
 
    This requirement applies equally to events defined by a hardware node, like a push button, a software
    node in a computer, or Event Identifiers that are defined by a human writing them on a piece of paper.
@@ -53,7 +53,12 @@
    create large modular layouts.  Whatever the method, the Event Identifiers need to be globally unique,
    and we ensure that by requiring that people create Event Identifiers using Node ID numbers assigned to
    them (and therefore not assigned to anybody else), plus an additional 16 bits that they are responsible
-   for using only once.
+   for using only once.  This needs to be repeated, each Event ID can only be used once for a specific
+   state or meaning.  It doesn't mean that multiple nodes cannot use it, but rather it should not be used
+   for a different purpose or meaning.  This is because the meaning and its use is shared across all of the
+   nodes using it, and unless it can be guaranteed that they all have been changed there will be conflict
+   between them.  It is much safer to use a new Event ID, and nodes will usually have a mechanism to supply
+   new, “virgin” Event Ids.  
 
    Note that the Node ID part of an Event Identifier does not have to correspond to any physical node.  So
    long as you have some Node ID address space assigned to you, you can use that.  For example, a
@@ -70,6 +75,8 @@
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7      Byte 8      
    Assigned Node ID                          Unique 16 bit extension
    0x12   0x34   0x56   0x78   0x9A   Time Value
+
+    
 
    This is guaranteed to be unique, no matter where one of these devices is taken, because the node ID
    range is guaranteed to belong to the manufacturer, and he'll use it only once.
@@ -99,10 +106,12 @@
   2.5.1 MERG CBUS
 
    OpenLCB allocates a Node ID address space specifically for mapping MERG CBUS events into OpenLCB.  CBUS
-   events come in two types:  long and short.  A long event is uniquely identified by the combination of
-   16-bit Node ID + 16-bit Event ID.  A short event is only identified by its 16-bit Event ID.  A CBUS
-   short event is translated into an OpenLCB event by using 0x0000 as the Node ID in the “CBUS Node ID”
-   field of the OpenLCB event identifier.  This is allowed because in the CBUS standard, Node ID 0x0000 is
+   events come in two types:  long and short.  A long event is uniquely identified by the coEvent ID.  A
+   CBUS short event is translated into an OpenLCB event by using 0x0000 as the Node ID in the “CBUS Node
+   ID” field of the OpenLCB event identifier.  This is allowed because in the CBUS standard as combination
+   of 16-bit node-id + 16-bit event-id.  A short event is only identified by its 16-bit event-id.  A CBUS
+   short event is translated into an OpenLCB Event by using 0x0000 as the Node ID in the “CBUS Node ID”
+   field of the OpenLCB event identifier.  This is allowed because in the CBUS standard, node-id 0x0000 is
    not permitted.
 
    CBUS events can also come in the form of a request.  These requests should be translated into an
@@ -113,10 +122,11 @@
 2.6 Well Known Automatically-Routed
 
    Unlike Node ID Based event identifiers, the Well-Known Automatically Routed event identifiers are
-   explicitly defined by the Event Identifiers Standard for a specific purpose.  Additionally, gateways are
-   required to route these events to all segments.
+   explicitly defined by the Event Identifiers Standard for a specific purpose.  Additionally, gat
 
   2.6.1 Emergency Off
+
+    
 
    The Emergency Off event identifier (01.00.00.00.00.00.FF.FF) is a request for a node to de-energize all
    of its outputs.  A node receiving this event may continue to remain a powered participant of the OpenLCB
@@ -132,6 +142,8 @@
    the node joining the network until the next Emergency Off or Clear Emergency Off event is produced.
 
   2.6.2 Emergency Stop
+
+    
 
    The Emergency Stop event identifier (01.00.00.00.00.00.FF.FD) is a request for a node to command all of
    its outputs to a safe state.  A node receiving this event is not required to de-energize any of its
@@ -152,11 +164,9 @@
 2.7 Well-Known
 
    Unlike Node ID Based event identifiers, the Well-Known event identifiers are explicitly defined by the
-   Event Identifiers Standard for a specific purpose.  Gateways are not required to route these events to
-   all segments, and may maintain a static or learned routing table for these events to prevent unecessary
-   propagation.
-
-    
+   Event Identifiers Standard for a specific purpose.  Gateways are not required to actively route these
+   events to all segments, and may maintain a static or learned routing table for these events to prevent
+   unnecessary propagation.
 
    Table of Contents
 
