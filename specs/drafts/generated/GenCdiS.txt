@@ -1,31 +1,92 @@
                                          1 Introduction (Informative)
 
-   This document defines a standard for the storage of static information that described the configuration
+   This document defines a standard for the format of static information that describes the configuration
    options available on an OpenLCB node, called “Configuration Description Information (CDI)”.
+   “Configuration Description Information” in this context refers to fixed information available from an
+   OpenLCB device, via OpenLCB, so that other devices can properly and correctly configure it.
+
+   This Standard does not address how the CDI is stored, retrieved, or used.
 
                                          2 Intended Use (Informative)
 
-   Intended to be used to by configurable, self-contained OpenLCB  nodes.
+   CDI is intended to be used by a configurable, self-contained OpenLCB  node to tell a Configuration Tool
+   (CT) how to configure the node. The configuration tool will use the CDI information to help the user
+   configure all aspects of the node's capabilities.
 
-                                     3 References and Context (Normative)
+                                    3 References and Context (Informative)
 
    For more information on format and presentation, see:
 
      * OpenLCB Common Information Technical Note
 
-                                             4 Format (normative)
+   For information on one way to retrieve CDI from a node, see:
 
-4.1 Use of XML
+     * OpenLCB Memory Configuration Protocol
 
-4.2 CDI is constant
+   For information on XML encoding and XML Schema, see:
 
-4.3 Other stuff
+     * World Wide Web Consortium (W3C) “Extensible Markup Language (XML)”i
+
+     * World Wide Web Consortium (W3C) “XML Schema”ii
+
+                                            4 Content (normative)
+
+   The configuration description information for a node is invariant while the node has any OpenLCB
+   connections in the Initialized state.
+
+   The CDI has three parts:
+
+     * Identification: Provides specific information about the type of the node.
+
+     * ACDI: Indicates that certain configuration information in the node has a standard format.
+
+     * Segments: The configuration information in the node is organized in zero or more segments, each of
+       which contains zero or more configurable variables.  A variable is the basic unit of configuration.
+       The segment definition specifies the organization of each segment. A segment consists of zero or
+       more bytes with a linear address space.
+
+                                             5 Format (normative)
+
+   The CDI is provided as a zero-terminated string of bytes. The bytes encode UTF-8 characters. There is no
+   byte-order mark (BOM) at the start of the string. Lines in the string are delimited with 0x12 Newline
+   (NL) characters.
+
+   The content defines the configuration description information in XML 1.0 format using a specific XML
+   vocabulary defined by an XML Schema. This version of this Standard specifies version 1.1 of the schema.
+    That version of the schema is defined at http://openlcb.org/schema/1/1/cdi.xsl and in Appendix A of
+   this document.
+
+   The version number of an OpenLCB CDI schema contains two numbers: The major version first, and the minor
+   version second.  
+
+   The first line of the CDI is:
+
+   <?xml version="1.0"?>
+
+   to define the XML version of the content.
+
+   The root element of the CDI XML is:
+
+   <cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/1/1/cdi.xsd">
+
+   The schema contents are normative.
+
+    
+
+5.1 XML Contents
+
+   Sections:
+
+    
+
+5.2 Other stuff
 
    The CDI information shall be constant.  A node may not change it after any part of it has been retrieved
    and before the next transition of the node away from the Initialized state.  (The transition back to
    Initialized stte tells other nodes to flush their caches and pick up any changed content)
 
-                               5 Stuff to be merged into the above (or the TN)
+                               6 Stuff to be merged into the above (or the TN)
 
     
 
@@ -79,16 +140,20 @@
 
    2 Intended Use (Informative)
 
-   3 References and Context (Normative)
+   3 References and Context (Informative)
 
-   4 Format (normative)
+   4 Content (normative)
 
-   4.1 Use of XML
+   5 Format (normative)
 
-   4.2 CDI is constant
+   5.1 XML Contents
 
-   4.3 Other stuff
+   5.2 Other stuff
 
-   5 Stuff to be merged into the above (or the TN)
+   6 Stuff to be merged into the above (or the TN)
 
     
+
+   i http://www.w3.org/XML/
+
+   ii http://www.w3.org/XML/Schema
