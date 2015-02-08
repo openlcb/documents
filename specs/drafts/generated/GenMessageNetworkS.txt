@@ -343,7 +343,7 @@
 
    Error Codes
    Bits  Value            Description                                                                       
-   Error Type.  Exactly one of the following bits should be set:
+   Error Type.  Exactly zero or one of the following bits should be set:
          0x8000           Accept, no error. This value shall not be used in Reject messages.                
          0x4000           Reserved. Send as 0, treat it as unspecified Permanent error when received.       
    12-15 0x2000           Temporary error (resend OK). Re-trying the same interaction later is likely to    
@@ -357,10 +357,12 @@
          For Permanent error, the following flags are defined:
          0x1080           Invalid arguments. Some of the values sent in the message fall outside of the     
                           expected range, or do not match the expectations of the receiving node.           
+         0x1040           While this transport protocol is supported, the specific data content is not      
+                          recognized or note supported.                                                     
          0x1020           Source not permitted.                                                             
          0x1010           Unimplemented. The functionality that the message tried to invoke is not          
-                          implemented in the destination node.                                              
-   4-7   For Temporary error (resend OK), the following flags are defined:
+   4-7                    implemented in the destination node.                                              
+         For Temporary error (resend OK), the following flags are defined:
          0x2080           Transfer error.  The message or received message was ill-formed, failed checksum, 
                           or is otherwise uninterpretable.  On CAN, this is handled by the hardware.        
                           Unexpected, Out of order. An inconsistency was found in the message or frame      
@@ -400,6 +402,8 @@
    0x2D40: Temporary error – Unexpected – Timeout processing request.
 
     
+
+   Nodes may return 0x0000 as an error-code.  
 
 3.6 Routing
 
