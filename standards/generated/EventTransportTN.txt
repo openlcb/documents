@@ -4,7 +4,7 @@
 
                                                             OpenLCB Event Transport
 
-                                                    Feb 7, 2015                        Preliminary          
+                                                    Feb 8, 2015                        Preliminary          
 
                                                 1 Introduction
 
@@ -19,10 +19,10 @@
    and the action(s) taken by the consumer(s).
 
    Its main advantage is the knowledge independence it imparts between all of the nodes involved in an
-   event. Expressed in more anthropomorphic terms, neither the producers nor consumers or a PCER are aware
-   of each other. This adds flexibility to the system, since more producers or consumers of the PCER can be
-   added to implement the associated event, without concern of side effects to the the other nodes involved
-   in the event.^1^2
+   event. Expressed in more anthropomorphic terms, neither the producers nor consumers orof a PCER are
+   aware of each other. This adds flexibility to the system, since more producers or consumers of the PCER
+   can be added to implement the associated event, without concern of side effects to the the other nodes
+   involved in the event.^1^2
 
    The P/CProducer/Consumer Event ID included in a PCER message is a 8-byte unique identifier. The method
    for assigning these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and
@@ -42,9 +42,10 @@
    line N went off”; they will often use two consumers to represent “turn on output line N” and “turn off
    output line N”.
 
-   OpenLCB events therefore do not directly represent states. Rather, they represent state transitions. One
-   event might be interpreted as “go to output N on”, another as “go to output N off”, and only by seeing
-   which transition happened most recently can the state of output N be recovered.
+   OpenLCB events therefore do not directly represent states. Rather, they represent state transitions, or
+   rather a change to the state of the layout. One event might be interpreted as “go to output N on”,
+   another as “go to output N off”, and only by seeing which transition happened most recently can the
+   state of output N be recovered.
 
                                         2 Annotations to the Standard
 
@@ -52,6 +53,8 @@
    expected that two documents will be read together.
 
 2.1 Introduction
+
+   Nil to add to the Standard.
 
 2.2 Intended Use
 
@@ -113,12 +116,12 @@
    This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
    nodes. It is the backbone of the protocol, and forms most of the expected traffic.
 
-   The source node ID allows identification of which node sent the event. This can be used for diagnostic
+   The source Nnode ID allows identification of which node sent the event. This can be used for diagnostic
    and status purposes, but nodes must act on the event without regard to where it came from.
 
   2.4.2 Identify Consumer
 
-   This message is broadcast and requests every node to report if they consume this Event ID.
+   This message is broadcast and requests everyeach node to report whetherif theyit consumes this Event ID.
 
   2.4.3 Consumer Identified
 
@@ -156,7 +159,7 @@
 
   2.4.5 Identify Producer
 
-   This message is broadcast and requests every node to report whether they produce this Event ID.
+   This message is broadcast and requests everyeach node to report whether theyit produces this Event ID.
 
   2.4.6 Producer Identified
 
@@ -186,12 +189,14 @@
    kept under control.
 
    An example of a producer range would be a fast clock node that sends a range of events to indicate the
-   time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.
-   That could be expressed in 17 bits, so if the range was to start with an Event ID of
-   0x12.34.56.78.00.00.00.00, the range could be expressed as 0x12.34.56.78.00.01.FF.FF using 1 bits to
-   represent the mask. If the range had to start at 0x12.34.56.78.FF.FE.00.00 for some reason, 1 bits would
-   not properly represent the mask because 0x12.34.56.78.FF.FF.FF.FF is actually a different range. Using a
-   0 bit for the mask would work, giving 0x12.34.56.78.FF.FE.00.00 as the representation.
+   time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events. In
+   this case, rather than having to send 86,400 individual ProducerIdentified messages at start-up or on
+   request, it can send one ProducerRangeIdentifed message with the apropriate base/mask Event ID Range
+   value. using 1 bits to represent the mask. If the range had to start at 0x12.34.56.78.FF.FE.00.00 for
+   some reason, 1 bits would not properly represent the mask because 0x12.34.56.78.FF.FF.FF.FF is actually
+   a different range. Using a 0 bit for the mask would work, giving 0x12.34.56.78.FF.FE.00.00 as the
+   representation. That could be expressed in 17 bits, so if the range was to start with an Event ID of
+   0x12.34.56.78.00.00.00.00, the range could be expressed as 0x12.34.56.78.00.01.FF.FF
 
    This message is broadcast, in response to a received Identify Producer message, from each node that
    produces events in the range specified by the included event-ID-with-mask. This is one of the messages
@@ -199,8 +204,8 @@
 
   2.4.8 Identify Events
 
-   Identify events comes in both addressed and global forms. They are intended for different use cases.Two
-   forms of identify events; recommendation on uses for global form
+   Identify events comes in both addressed and global forms. They are intended to be used for different use
+   cases.Two forms of identify events; recommendation on uses for global form
 
    In some cases, the node may want to query a specific node as to whether it produces or consumes that
    event, in these case the directed form is appropriate.
@@ -215,7 +220,7 @@
 
    This message is part of a communication-based method for configuring various producers and consumers
    across the OpenLCB network to respond to a single Event ID. After those producers and consumers have
-   been selected via some other process, this message broadcast to carry a specific Event ID to all of
+   been selected via some other process, this message is broadcast to carry a specific Event ID to all of
    them.
 
 2.5 States
@@ -245,14 +250,14 @@
    Note that the Advertised/Not-Advertised state machine is reset by the Initialization Complete message,
    and not by any lower level link (CAN or other) state machine.
 
-   Delay in sending the Producer Identified/Producer Range Identified and Consumer Identified/Consumer
+   Delay in sending the Producer Identified / Producer Range Identified and Consumer Identified / Consumer
    Identified Range messages after Initialization Complete is allowed, but there's no delivery guarantee
    for this node's events until those have been sent and the state has transitioned to Advertised.
 
-   When a node changes the events it manages, it still needs to emit the PIProducer Identified/PRI/Producer
-   Range Identified and/or CI/CRI Consumer Identified/Consumer Range Identified messages. For example,
-   reconfiguration could cause this. It can be handled by sending individual messages, or by resetting and
-   sending them all as part of that process.
+   When a node changes the events it manages, it still needs to emit the PIProducer Identified/PRI /
+   Producer Range Identified and/or CI/CRI Consumer Identified / Consumer Range Identified messages. For
+   example, reconfiguration could cause this. It can be handled by sending individual messages, or by
+   resetting and sending them all as part of that process.
 
    There is no way to indicate that a node is no longer interested in a particular Event ID. (Sending
    ICIdentify Consumers again says that all events are not interesting, though). This could be added, but
@@ -277,16 +282,16 @@
 
   2.6.2 Event EInquiry
 
-   IdentifyEvents comes in both global and addressed forms. Two forms of identify events; recommendation on
-   uses for global form. This can be a huge load,The global form can place a very large load on the network
-   and should only be used when needed.
+   Identify Events comes in both global and addressed forms. Two forms of identify events; recommendation
+   on uses for global form. This can be a huge load,The global form can place a very large load on the
+   network and should only be used when needed.
 
-   The IdentifyEvents two forms of this message areis sent to request that the specified nodes report all
-   the events they produce or consume. These reports can be ether Identified messages specifying individual
-   Event IDs or ranges of events. One form is an unaddressed message sent globally to all nodes, and the
-   other is an addressed message to a specific node.
+   The Identify Events two forms of this message areis sent to request that the specified nodes report all
+   the events they produce or consume. These reports can be I etherIdentified Event messages specifying
+   individual Event IDs or ranges of events. One form is an unaddressed message sent globally to all nodes,
+   and the other is an addressed message to a specific node.
 
-   IdentifyEvents It is useful to be able to rapidly determine which, if any, P/CProducer/Consumer Event
+   Identify EventsIt is useful to be able to rapidly determine which, if any, P/CProducer/Consumer Event
    IDs that a particular node is listening for and that it can emit.
 
    This can be used as a configuration diagnostic.
@@ -328,7 +333,7 @@
 
   2.6.4 Consumer EInquiry
 
-   It is useful to be able to determine which, if any, nodes are listening for a specific
+   ItThis message is useful to be able to determine which, if any, nodes are listening for a specific
    P/CProducer/Consumer Event ID message.
 
    This can be used as a configuration diagnostic, and as a way of building routing tables.
@@ -374,20 +379,28 @@
 
    General Description
 
-     * On one or more 'learner'-node, using the Blue-button, choose a consumer/producer
+     * On one or more 'learner'-node(s), using the Blue-button, choose a consumer/producer, and then push
+       the Gold-button to set it to learn. This can be repeated on the same node or on others.
 
-     * On the 'teacher'-node, using the Blue-button, choose a consumer/producer
+     * On the 'teacher'-node, push the Gold-button to choose teach-mode, then using the Blue-button, choose
+       a consumer/producer.
 
-     * Push the Gold-button;
+     * Push the Gold-button to send the Learn Event message.
 
      * As a result, all producers selected above will activate all the consumers.
+
+   Summary:
+
+     * Select to learn: blue, blue, ..., gold.
+
+     * Select to teach: gold, blue, blue, …, gold.
 
    Notes:
 
      * Pushing the Blue-button selects consumer/producer's in a circular fashion, with a 'no-selection'
        before starting again at the beginning
 
-     * The teaching- producer/consumer can be a consumer.
+     * The teaching- producer/consumer can also be a 'learner'.
 
      * New teaching will replace the previous teaching.
 
@@ -397,21 +410,22 @@
 
    Given two Button-nodes, each with three buttons, A-C and D-F, respectively, and four Signals-nodes, 1-4:
 
-    1. Buttons set Aspects: Push the blue-button on Signal-1 until the 'green' aspect is selected. On the
-       first Button-node, push the blue-button once to select button-A, then push the gold-button. On
-       Signal-1 use the blue-button to select aspect 'red', and on the Button-node push the blue-button
-       twice to select button-B, and then the gold. Now, pushing button-A will change Signal-1 to green,
-       and button-B will change it to red.
+    1. Buttons set Aspects: Push blue on Signal-1 until the 'green' aspect is selected, then push gold. On
+       the first Button-node, push gold, and then blue once to select button-A, then push the gold again.
+       On Signal-1 use the blue-button to select aspect 'red', and push gold, and then on the Button-node
+       push gold and the blue twice to select button-B, and then gold again. Now, pushing button-A will
+       change Signal-1 to green, and button-B will change it to red.
 
-    2. Make a duplicate buttons: On the second Button-node, push blue once to select button-D, and on the
-       first Button-node, push blue once and then gold. On the second Button-node, push blue twice to
-       select button-E, and on the first Button-node, push blue twice and then gold. Now, button-D will
-       turn Signal-1 to green, and button-E will turn it to red.
+    2. Make a duplicate button: On the second Button-node, push blue once to select button-D, and then
+       gold, and on the first Button-node, push gold, then blue once and then gold. On the second
+       Button-node, push blue twice to select button-E, and then gold, and on the first Button-node, push
+       gold, then blue twice and then gold. Now, button-D will turn Signal-1 to green, and button-E will
+       turn it to red.
 
-    3. Add a second consumer-node: On Signal-2 push blue to select red, then on Signal-1 push blue to
-       select green, push gold. On Signal-2 push blue to select green, then on Signal-1 push blue to select
-       red, push gold. Now pushing button-A sets Signal-1 to green and signal-2 to red, and button-B turns
-       Signal-1 to red and Signal-2 to green.
+    3. Add a second consumer-node: On Signal-2 push blue to select red and then gold, then on Signal-1 push
+       gold, then blue to select green, and then gold. On Signal-2 push blue to select green and then gold,
+       then on Signal-1 push gold, then blue to select red, and then gold. Now pushing button-A sets
+       Signal-1 to green and signal-2 to red, and button-B turns Signal-1 to red and Signal-2 to green.
 
   2.6.6 Resetting to Default
 
@@ -426,10 +440,10 @@
    purpose, say “start of day”. The node 1.2.3.4.5.6 producer can then be reconfigured to contain some
    other event ID, say 6.5.4.3.2.1.99.99 which is used to mean “end of day”.
 
-   If the node is reset to defaults and returns to 1.2.3.4.5.6, that's no longer a “unique” Event ID. It's
-   being used by another part of the system for “start of day”. Node 1.2.3.4.5.6 will not be behaving as
-   expected for a reset node, as it'll be responding to events taking place on the network. Further, it's
-   1.2.3.4.5.6.0.1 Event ID is not safe to be copied out into other producers and consumers.
+   If the node is reset to defaults and returns to 1.2.3.4.5.6.0.1, that's no longer a “unique” Event ID.
+   It's being used by another part of the system for “start of day”. Node 1.2.3.4.5.6 will not be behaving
+   as expected for a reset node, as it'll be responding to events taking place on the network. Further,
+   it's 1.2.3.4.5.6.0.1 Event ID is not safe to be copied out into other producers and consumers.
 
    One way to do this is to maintain a counter of created unique Event IDs, and use the next set when doing
    a reset to defaults. There are 65,538 different Event IDs possible for a node, so even one that uses 512
@@ -439,7 +453,10 @@
    includes any of the messages that carry the Event ID, including but not limited to Teach Event, plus
    configuration memory reads and perhap other methods. If the Event ID in a producer or consumer has been
    retrieved and used, then it needs to be given a new Event ID. If not, it can keep it's existing Event
-   ID.
+   ID. While Identify Event messages can be used to discover if a particualr Event is being used, it will
+   not find any nodes that are not active, or have left the layout, so a conflict could occur if those
+   nodes become active of the layout again. It is therefore much safer to reset to defaults and obtain a
+   new set of unused Events. This is particularly inportant is the node is passed onto someone else.
 
                                           3 Background information 
 
@@ -467,7 +484,7 @@
 3.1 Gateways
 
    Gateways can route PCERs only to segments with nodes expressing interest by processing the other event
-   messages.
+   messages, including Consumer and Producer Identified.
 
    The automatically-routed event range always has to be routed. This can be done by making a permanent
    entry in routing tables, or any other implementation method.
@@ -603,16 +620,16 @@
    required to. (For ease of implementation, a gateway may just pass all events with the common values of
    the top 6 bytes).
 
-3.5 History section
+History section
 
-   For monitoring purposes, it was proposed that a PCER message carry a sequence number which increments
-   each time the associated P/CProducer/Consumer Event ID is sent. It is not at all clear how to do this
-   across nodes, or even across Producers within a single node, as there may be more than one thing that
-   can cause the same P/CProducer/Consumer Event ID to be sent by a single board;. We decided this would
-   cause more problems than it solved, and omitted it.
+   Producer/Consumer Event ID to be sent by a single board;. We decided this would cause more problems than
+   it solved, and omitted it.
 
    There is not room in a CAN frame for both a destination NID and a EID. This protocol has therefore been
-   constructed so that any message carrying an EID is globally addressed.
+   constructed so that any message carrying an EID is globally addressed.P/C Event ID is sent. It is not at
+   all clear how to do this across nodes, or even across Producers within a single node, as there may be
+   more than one thing that can cause the same Producer/ConsumerP/CFor monitoring purposes, it was proposed
+   that a PCER message carry a sequence number which increments each time the associated
 
    Table of Contents
 
@@ -638,13 +655,13 @@
 
    2.4.5 Identify Producer 4
 
-   2.4.6 Producer Identified 4
+   2.4.6 Producer Identified 5
 
    2.4.7 Producer Range Identified 5
 
    2.4.8 Identify Events 5
 
-   2.4.9 Learn Event 5
+   2.4.9 Learn Event 6
 
    2.5 States 6
 
@@ -652,37 +669,37 @@
 
    2.6.1 Event Transfer 7
 
-   2.6.2 Event Inquiry 7
+   2.6.2 Event EInquiry 7
 
-   2.6.3 Producer Inquiry 7
+   2.6.3 Producer EInquiry 7
 
-   2.6.4 Consumer Inquiry 8
+   2.6.4 Consumer EInquiry 8
 
    2.6.5 Teach/Learn Configuration 8
 
-   2.6.5.1 Blue/Gold Buttons Implementation Example 8
+   2.6.5.1 Blue/Gold Buttons Implementation Example 9
 
-   2.6.6 Resetting to Default 9
+   2.6.6 Resetting to Default 10
 
    3 Background information  10
 
-   3.1 Gateways 10
+   3.1 Gateways 11
 
    3.2 Examples 11
 
-   3.2.1 Case 1: All nodes initialized before link established, event X is sent 11
+   3.2.1 Case 1: All nodes initialized before link established, event X is sent 12
 
-   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above 11
+   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above 12
 
    3.2.3 Case 3: Node A1 comes up, then event X is sent 12
 
    3.2.4 Case 4: Node A1 comes up, then event Y is sent 12
 
-   3.3 Node Implementation hints 12
+   3.3 Node Implementation hints 13
 
    3.4 Well known events 13
 
-   3.5 History section 13
+   History section 14
 
    1D. Miorandi and S. Vitturi, “Performance analysis of producer/consumer protocols over IEEE 802.11
    wireless links”, Proc. IEEE Workshop Factory Communication Systems (WFCS), 2004
@@ -709,4 +726,4 @@
    8See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
 
    Copyright 20112011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 11 - Feb 7, 20152-7-2015
+   Page 1 of 16 - Feb 8, 20152-8-2015
