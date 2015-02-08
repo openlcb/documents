@@ -52,9 +52,10 @@
    (NL) characters.
 
    The content defines the configuration description information in XML 1.0 format using a specific XML
-   vocabulary defined by an XML Schema. This version of this Standard specifies version 1.1 of the schema.
-    That version of the schema is defined at http://openlcb.org/schema/1/1/cdi.xsl and in Appendix A of
-   this document.
+   vocabulary defined by an XML Schema. No extensions to XML 1.0 are permitted.
+
+   This version of this Standard specifies version 1.1 of the schema.  That version of the schema is
+   defined at http://openlcb.org/schema/1/1/cdi.xsl and in Appendix A of this document.
 
    The version number of an OpenLCB CDI schema contains two numbers: The major version first, and the minor
    version second.  
@@ -72,65 +73,681 @@
 
    The schema contents are normative.
 
-    
+   Numerical values in attributes and element text shall be specified as decimal numbers.  
 
-5.1 XML Contents
+5.1 XML Elements
 
-   Sections:
+  5.1.1 <identification> Element
 
-    
+  5.1.2 <acdi> Element
 
-5.2 Other stuff
-
-   The CDI information shall be constant.  A node may not change it after any part of it has been retrieved
-   and before the next transition of the node away from the Initialized state.  (The transition back to
-   Initialized stte tells other nodes to flush their caches and pick up any changed content)
-
-                               6 Stuff to be merged into the above (or the TN)
+  5.1.3 <segment> Element
 
     
 
-   The first byte is used to distinguish the coding.
-
-   “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
-
-   UTF BOM: Various UniCode forms
-
-   0x01 – tag for compressed.  One format defined for total start string of 0x0101. (If you want to use
-   another format, decompress on board)
-
-   (can't use 0x00 as lead, since that's the end-of-string indication)
+                                              6 Future Extension
 
     
-
-   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
-   what we check.
 
    But we add the <acdi> element to it, so the document isn't really complete; “Other protocols may add,
    but not remove, elements and attributes”?  Remove constraints? How does extensibility work here?
 
-    
+                                              A Appendix: Schema
 
-   Numbers for segments, offsets, etc must be specified as decimal numbers.  Hexadecimal notation (0x1234)
-   is not permitted. Although it may have made the CDI easier for people to read, the XML is primarily
-   intended for consumption by OpenLCB nodes.  Providing optional coding, such as hexadecimal numbers,
-   makes those nodes more complex.
+   <?xml version="1.0" encoding="utf-8"?>
 
-    
+   <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl"?>
 
-   The 'mask' attribute is for use with legacy equipment only.  New OpenLCB implementations should not use
-   it.  Instead, they should lay out their configuration variables are processed as if they each had their
-   own addressable location.  (How they are actually stored in memory is not specified.)
+   <!-- XML Schema for OpenLCB Configuration Description Information (CDI)     -->
 
-    
+   <xs:schema version="CDI 1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-   Nodes that use the 'mask' attribute in their CDI must properly implement the write-under-mask operation
-   in their memory configuration protocol support.
+     <xs:complexType name="mapType">
 
-    
+       <xs:annotation>
 
-   Because the using node may not have external connections, XML features requiring those (Xinclude, schema
-   default values, …) shall not be assumed to be present.
+         <xs:documentation>
+
+           A map relates one or more property elements (keys)
+
+           to specific values.
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="relation" minOccurs="0" maxOccurs="unbounded">
+
+           <xs:complexType>
+
+             <xs:sequence>
+
+               <xs:element name="property" minOccurs="1" maxOccurs="1" />
+
+               <xs:element name="value" minOccurs="1" maxOccurs="1" />
+
+             </xs:sequence>
+
+           </xs:complexType>
+
+         </xs:element>
+
+       </xs:sequence>
+
+     </xs:complexType>
+
+     <xs:complexType name="groupType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="repname" minOccurs="0" maxOccurs="1" />
+
+         <xs:choice minOccurs="0" maxOccurs="unbounded">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Allows any sequence of the contained element types
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+           <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="bit" type="bitType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="string" type="stringType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="int" type="intType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="eventid" type="eventidType" minOccurs="0" maxOccurs="1" />
+
+         </xs:choice>
+
+       </xs:sequence>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of
+
+             the previous element and the start of this group's contents.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="replication" type="xs:int" default="1" />
+
+     </xs:complexType>
+
+     <xs:complexType name="eventidType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of
+
+             the end of previous element and the start of
+
+             this elements's contents.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+     <xs:complexType name="datumType">
+
+       <xs:annotation>
+
+         <xs:documentation>
+
+           Base for all data types (except Event, which is fixed length),
+
+           providing an extension point for the future.
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+       <xs:attribute name="size" type="xs:int" default="1">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this datum in bytes.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the
+
+             address of the end of previous element and
+
+             the start of this elements's contents.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+     <xs:complexType name="intType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="min" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="max" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="default" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               The 'value' of each entry is displayed, and
+
+               the 'property' content (number) is sent
+
+               to/from the node
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+       </xs:sequence>
+
+       <xs:attribute name="size" type="xs:int" default="1">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the
+
+             address of the end of previous element and the
+
+             start of this elements's contents.
+
+             Offset of zero means that this element starts
+
+             immediately after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+     <xs:complexType name="bitType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               The 'value' of each entry is displayed, and
+
+               the 'property' content (number) is sent to/from the node
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+       </xs:sequence>
+
+       <xs:attribute name="size" type="xs:int" default="1">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bits.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of the
+
+             previous element and the start of this group's contents.
+
+             Offset of zero means that this element starts immediately
+
+             after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+     <xs:complexType name="stringType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+       <xs:attribute name="size" type="xs:int" use="required">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+             This includes the trailing null byte that
+
+             terminates the string content.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of the
+
+             previous element and the start of this group's contents.
+
+             Offset of zero means that this element starts
+
+             immediately after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+     <xs:element name="cdi">
+
+       <xs:annotation>
+
+         <xs:documentation>
+
+           This is the schema for Configuration
+
+           Description Information (cdi)
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:complexType>
+
+         <xs:sequence>
+
+           <xs:element name="identification" minOccurs="0" maxOccurs="1">
+
+             <xs:annotation>
+
+               <xs:documentation>
+
+                 Common first element to identify the decoder
+
+               </xs:documentation>
+
+             </xs:annotation>
+
+             <xs:complexType>
+
+               <xs:sequence>
+
+                 <xs:element name="manufacturer" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="model" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="hardwareVersion" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="softwareVersion" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+
+                   <xs:annotation>
+
+                     <xs:documentation>
+
+                       This map can be used to add arbitrary key/value
+
+                       descriptions of the node.
+
+                     </xs:documentation>
+
+                   </xs:annotation>
+
+                 </xs:element>
+
+               </xs:sequence>
+
+             </xs:complexType>
+
+           </xs:element>
+
+           <xs:element name="acdi" minOccurs="0" maxOccurs="1">
+
+             <xs:annotation>
+
+               <xs:documentation>
+
+                 Element that identifies that memory information is available
+
+                 as defined by the Abbreviated Common Description Information
+
+                 (ACDI) standard.
+
+               </xs:documentation>
+
+             </xs:annotation>
+
+             <xs:complexType>
+
+               <xs:attribute name="fixed" type="xs:int" default="1">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     The decimal version number of the format for the fixed
+
+                     definition information
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+               </xs:attribute>
+
+               <xs:attribute name="var" type="xs:int" default="1">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     The decimal version number of the format for
+
+                     the variable definition information
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+               </xs:attribute>
+
+             </xs:complexType>
+
+           </xs:element>
+
+           <xs:element name="segment" minOccurs="0" maxOccurs="unbounded">
+
+             <xs:annotation>
+
+               <xs:documentation>
+
+                 Define the contents of a memory space
+
+               </xs:documentation>
+
+             </xs:annotation>
+
+             <xs:complexType>
+
+               <xs:sequence>
+
+                 <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+                 <xs:choice minOccurs="0" maxOccurs="unbounded">
+
+                   <xs:annotation>
+
+                     <xs:documentation>
+
+                       Allows any sequence of the contained element types
+
+                     </xs:documentation>
+
+                   </xs:annotation>
+
+                   <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Allows grouping and replication of multiple locations.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                   <xs:element name="bit" type="bitType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes a bit field in the data.
+
+                         The field can be considered either a number,
+
+                         or a set of specific coded values via a map.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                   <xs:element name="string" type="stringType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes a human-readable UTF-8 string in the data.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                   <xs:element name="int" type="intType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes an integer value in the data.
+
+                         The field can be considered either a number,
+
+                         or a set of specific coded values via a map.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                   <xs:element name="eventid" type="eventidType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes an 8-byte Event ID in the data.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                 </xs:choice>
+
+               </xs:sequence>
+
+               <xs:attribute name="space" type="xs:int" use="required">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     The decimal number of the address space where the information is found.
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+               </xs:attribute>
+
+               <xs:attribute name="origin" type="xs:int" default="0">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     Starting address of the segment's contents
+
+                     within the memory space.
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+               </xs:attribute>
+
+             </xs:complexType>
+
+           </xs:element>
+
+         </xs:sequence>
+
+       </xs:complexType>
+
+     </xs:element>
+
+   </xs:schema>
 
     
 
@@ -146,11 +763,17 @@
 
    5 Format (normative)
 
-   5.1 XML Contents
+   5.1 XML Elements
 
-   5.2 Other stuff
+   5.1.1 <identification> Element
 
-   6 Stuff to be merged into the above (or the TN)
+   5.1.2 <acdi> Element
+
+   5.1.3 <segment> Element
+
+   6 Future Extension
+
+   A Appendix: Schema
 
     
 
