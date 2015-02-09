@@ -1,15 +1,14 @@
-librerunning := $(shell ps ax | grep -v grep | grep libreoffice)
-openrunning := $(shell ps ax | grep -v grep | grep openoffice)
-sofficerunning := $(shell ps ax | grep -v grep | grep soffice)
+RUNNING := $(shell ps ax | grep -v grep | grep soffice)
 
 OFFICE = soffice
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
 OUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
-test := $(librerunning) $(openrunning) $(sofficerunning)
-ifneq ($(test),)
+
+ifneq ($(RUNNING),)
 .PHONY: all
 all:
+	@echo $(test)
 	@echo "************************************************************"
 	@echo "* error!!!  office suite running                           *"
 	@echo "* please close all instances of office suite and try again *"
