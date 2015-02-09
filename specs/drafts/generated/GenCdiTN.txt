@@ -39,7 +39,7 @@
    Note that this section of the Standard is informative, not normative.
 
    The Memory Configuration Protocol is one use for the CDI, and one way to retrieve it, but CDI is
-   independent of that.
+   independent of that. See the OpenLCB Memory Configuration Protocol documentation.
 
    CiA 306 “Electronic data sheet specification” describes the CANopen version of a similar capability.
 
@@ -48,54 +48,35 @@
    “Initialized State” means talking on the OpenLCB, so CDI is fixed while you're up. But it can change
    when the node e.g. resets.
 
-   The CDI information shall be constant.  A node may not change it after any part of it has been retrieved
-   and before the next transition of the node away from the Initialized state.  (The transition back to
-   Initialized stte tells other nodes to flush their caches and pick up any changed content)
+   The CDI information isn't allowed to change while the node is up. A node may not change it after any
+   part of it has been retrieved and before the next transition of the node away from the Initialized
+   state.  (The transition back to Initialized state tells other nodes to flush their caches and pick up
+   any changed content) A node using the CDI can assume that, once it's read the CDI, it doesn't need to
+   read it again until the source node goes offline.  
 
 2.5 Format
 
-   May extend later for e.g. compression, via changes to the 1st character or some other method.
+   The format can be extended later for e.g. compression, via changes to the 1st character or some other
+   method.
 
     
 
-   The first byte is used to distinguish the coding.
-
-   “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
-
-   UTF BOM: Various UniCode forms
-
-   0x01 – tag for compressed.  One format defined for total start string of 0x0101. (If you want to use
-   another format, decompress on board)
-
-   (can't use 0x00 as lead, since that's the end-of-string indication)
+   The online schema is really the normative thing, because that's what we check for conformance testing.
 
     
 
-   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
-   what we check for conformance testing.
-
-    
-
-   No requirement that you validate against the schema. But since the contents are normative, you have to
-   obey the defaults, etc, for missing elements.
-
-    
-
-   By specifying XML 1.0 only, XInclude, XML Namespaces, XML Base, xml:id and other extensions have been
-   excluded.
+   There is no requirement that a node using the CDI validate against the schema. But since the contents
+   are normative, it has to obey the defaults, etc, for missing elements.
 
     
 
    Because the using node may not have external connections, XML features requiring those (Xinclude, schema
-   default values, …) shall not be assumed to be present.
+   default values, …) are not be assumed to be present. By specifying XML 1.0 only, XInclude, XML
+   Namespaces, XML Base, xml:id and other extensions have been excluded.
 
     
 
-   OK to specify stylesheets (because the XML 1.0 standard is silent on that)
-
-    
-
-   OK to include XML comments
+   The CDI may specify stylesheets (because the XML 1.0 standard is consistent with that)
 
     
 
@@ -105,7 +86,7 @@
 
     
 
-                                     3 Stuff to be merged into the above
+                                           3 Additional Information
 
     
 
@@ -135,27 +116,11 @@
 
   Design Points
 
-   Basic configuration is done with the configuration protocol defined elsewhere.
-
    The “Variables” described here are not exactly the same thing as “Configuration Variables” (CVs) or
-   “Node Variables” (NVs) that are discussed elsewhere. Those are aimed at storage, and so are grouped by
-   address. The “Variables” here are grouped by function. “Long address” might be several CVs, but would be
-   one variable to this proposal. Similarly, CV29 has lots of variables within it, each stored as bits.
-   Perhaps it would be better to use a different name here, such as “Setting” or “Option”?
-
-    
-
-    
-
-    
-
-3.2 Proposal
-
-    
-
-  3.2.1 Definition
-
-    
+   “Node Variables” (NVs) that are discussed elsewhere, e.g. in DCC documentation. Those are aimed at
+   storage, and so are grouped by address. The “Variables” here are grouped by function. “Long address”
+   might be several DCC CVs, but would be one variable to this proposal. Similarly, DCC CV29 has lots of
+   variables within it, each stored as bits.
 
     
 
@@ -218,7 +183,7 @@
 
     
 
-  3.2.2 Storage
+  3.1.3 Storage
 
    The configuration definition is stored in a hierarchical manner.
 
@@ -397,21 +362,7 @@
    details of the consumer function. This may include e.g. variables that define how any content in
    incoming messages will be used.
 
-  3.2.3 Serialization
-
-   The logical layout in the previous section has to be converted to some serial set of bytes for transfer
-   and storage.
-
-   The primary format is straight-forward XML. (Link to schema)
-
-   Another is compressed binary information. Either an aggressive compression algorithm, or some
-   context-aware compression, can be used. Size and ease of expansion are the key criteria; ease of
-   compression is much less important. XSLT can do some of the reformatting between compact and readable
-   form
-
-   We need to pick one format for a lingua franca.
-
-3.3 Example
+3.2 Example
 
    The following is not meant to show how configuration definition information would be stored, but what
    kinds of information would be stored. It's a description of a complex accessory decoder, the Digitrax
@@ -717,7 +668,7 @@
    3) The DS54 inputs also generate messages. They are specified as two producers (for the active and
    inactive messages).
 
-3.4 Implementation Notes
+3.3 Implementation and Expansion Notes
 
    This section is non-normative notes and suggestions for implementors.
 
@@ -745,12 +696,6 @@
 
    Internationalization of the XML content?
 
-   Talk about the encoding string in the <?xml first line, and UTF-8 coding as default; ASCII as subset.
-
-    
-
-   Mini-XML effort; we're using as simple a subset as possible.
-
     
 
    Table of Contents
@@ -769,7 +714,7 @@
 
    2.5 Format
 
-   3 Stuff to be merged into the above
+   3 Additional Information
 
    3.1 Environment of Proposal
 
@@ -779,17 +724,11 @@
 
    Design Points
 
-   3.2 Proposal
+   3.1.3 Storage
 
-   3.2.1 Definition
+   3.2 Example
 
-   3.2.2 Storage
-
-   3.2.3 Serialization
-
-   3.3 Example
-
-   3.4 Implementation Notes
+   3.3 Implementation and Expansion Notes
 
    4 Remaining items
 
