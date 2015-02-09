@@ -201,7 +201,9 @@
 
     2.3.3.1 Initialization Complete
 
-   (Nothing to add to the standard.)
+   This is one of the messages that informs Gateways whether its sender node is Simple or not.  It has two
+   forms, one of which has a modifier-bit set to indicate that the node is simple.  For more information,
+   see 2.4 Simple Node Protocol.  
 
     2.3.3.2 Verify Node ID
 
@@ -241,7 +243,11 @@
 
    This message could have been an addressed message, since the source information on the Verify Node ID
    request will be enough to get the Verified Node ID reply back to the originator.  However, it was left
-   as a global which will be carried everywhere and its routing can't fail.
+   as a global which will be carried everywhere and its routing can't fail.  
+
+   This is one of the messages that informs Gateways whether its sender node is Simple or not.  It has two
+   forms, one of which has a modifier-bit set to indicate that the node is simple.  For more information,
+   see 2.4 Simple Node Protocol.  
 
     2.3.3.4 Optional Interaction Rejected
 
@@ -515,30 +521,36 @@
 
 2.4 Simple Node Protocol Subset
 
-   This note describes the Simple Node Protocol. It is not normative on node implementors.
+   This note describes the Simple Node Protocol. It is not normative on node implementors.  
+
+   It is designed to reduce traffic on those segments that contain only self-declared Simple-nodes.  
 
    Simple nodes are defined as the leaf nodes that do basic layout control (input/output) operations. These
    nodes need to be able to2:
 
-     * Indicate their presence (by sending Initialization Complete messages and replying to Verify Node
-       messages)
+     * Indicate their presence, by sending Initialization Complete Simple messages and Verified Node Simple
+       messages;
 
-     * Send and receive event reports (through PCER messages and associated reports)
+     * Send and receive event reports, via PCER messages and associated reports;
 
-     * Be configured (through related messages, datagrams and in some cases streams)
+     * Be configured, via through related messages, datagrams, or streams;
 
-   and perhaps other things in the future. Those messages form the Simple Node Protocol subset of the full
-   OpenLCB protocols. Note that this is an asymmetric subset:  simple nodes can send some types of messages
-   but receive different types.
+     * and perhaps other things in the future.
 
-   On the other hand, gateways, configuration tools and other network-aware nodes are not simple nodes.
-   These nodes need access to the full OpenLCB protocol so they can:
+   The messages mentioned above form the Simple Node Protocol subset (Simple-set) of the full OpenLCB
+   protocols. Note that this is an asymmetric subset:  simple nodes can send some types of messages but
+   receive other types.  In particular, they do not receive non-directed messages that do not have their
+   Simple-bit set.  These include the Consumer and Producer Identified messages, and this will reduce
+   traffic, especially at system start-up.  
+
+   On the other hand, gateways, configuration tools and other network-aware nodes such as sniffers and
+   monitors are not simple nodes. These nodes need access to the full OpenLCB protocol so they can:
 
      * Learn about the appearance of other nodes (by receiving Initialization Complete messages)
 
      * Learn about other producers and consumers (by receiving status messages)
 
-   and similar. To do this, they must be able to send and receive every type of message.  
+   and similar activities. To do this, they must be able to send and receive every type of message.  
 
    For ease of filtering, a specific bit in the MTI identifies the global messages which are needed by
    simple nodes.  This bit allows OpenLCB to define new MTIs in the future and still include them in the
@@ -546,21 +558,40 @@
    information on this.  
 
    Gateways that are serving network segments (e.g. single CAN segments) that contain only simple nodes may
-   suppress unaddressed (global) messages that do not contain simple-node MTIs.
+   suppress unaddressed (global) messages that do not contain MTIs without the Simple-bit set.
 
   2.4.1 Protocol Description
 
     2.4.1.1 Messages Transmitted
 
+   Messages sent from Simple nodes are treated the same as any node.  
+
     2.4.1.2 Messages Received
+
+   Further to the Standard, Simple nodes need to receive each of these messages:
+
+     * Verify Node ID – because they need to reply to it;
+
+     * Verified Node ID –  because it may be the reply to their own request, and it might be used to e.g.
+       locate a node for delayed sending of status;
+
+     * Protocol Support Inquiry – because they need to reply to it;
+
+     * Identify Consumers, Identify Producers, Identify Events – because others will ask this of them, and
+       they may need to reply;
+
+     * Learn Event – so they can be programmed;
+
+     * P/C Event Report – so they can take actions.  
 
     2.4.1.3 Messages Not Received
 
-   These are brief descriptions of why the following message types are not necessary for simple nodes:
+   Further to the Standard, these are brief descriptions of why the following message types are not
+   necessary for simple nodes:
 
-     * Initialization Complete: Used to indicate that a node is newly available to the network. Simple
-       nodes only care about their specific tasks, and by definition are not interested in the overall
-       structure and availability of the network.
+     * Initialization Complete: These are used to indicate that a node is newly available to the network.
+       Simple nodes only care about their specific tasks, and by definition are not interested in the
+       overall structure and availability of the network.
 
      * Consumer Identified, Consumer Identify Range: These are of interest to gateways and configuration
        tools, but an individual producer does not need to know which (if any) nodes are consuming its
@@ -614,9 +645,9 @@
 
 2.6 Expansion
 
-   The system is designed to allow expansion.  This includes addition of new messages and new protocols,
-   but also includes the extending of messages by defining additional data.  Nodes made before any of these
-   additions will of necessity simply ignore these additional messages, protocols or data.  
+   OpenLCB is designed to allow expansion.  This includes addition of new messages and new protocols, but
+   also includes the extending of messages with additional data.  Nodes made before any of these additions
+   will, of necessity, simply ignore these additional messages, protocols or data.  
 
    Expansion past 16 bit MTIs for both for global and addressed messages is possible.   While it is easy
    add another byte, it is harder to get optimal use from it. To preserve the CAN priority structure, a
@@ -661,6 +692,8 @@
 
     2.7.2.1 References and Context
 
+   Nil to add to Standard.  
+
   2.7.3 Messages
 
     2.7.3.1 Message Format
@@ -668,15 +701,7 @@
       2.7.3.1.1 CAN Prefix Field
 
    The CAN Prefix Field is used to indicated CAN specific messages, which are used to perform Link layer
-   functions involving obtaining and managing CAN Aliases.  See CAN Transfer documents for more details.  
-
-        2.7.3.1.1.1
-
-        2.7.3.1.1.2 CAN Frame-type
-
-   Some house-keeping operations are CAN specific and do not need to be transmitted off this segment, CAN
-   Control Frames are used to perform those, such as determining a Node's Alias on start up.    See the
-   OpenLCB-CAN Frame Transfer S & TN documents for more details.   
+   functions involving obtaining and managing CAN Aliases.  See CAN Transfer documents for more details.   
 
       2.7.3.1.2 CAN MTI Mapping
 
@@ -735,30 +760,8 @@
        and may need to send multiple message fragments to complete the transfer.  The receiving node will
        know the protocol, and will have means to receive the message fragments.
 
-   For example, the PIP reply uses “break into N frames with MTI at start”:  One message becomes N smaller
-   ones.  As it is a directed reply, the requestor can ensure that the response will be processed on
-   receipt.  The end of the reply is indicated by a non-full CAN frame (though Io code sends those in the
-   middle [I think this was specified at that time].  If needed this is a zero-length frame.
-
-    
-
-   [[SNIP uses null, and is obselete----don't mention]]
-
-   Example of the general PIP Reply message broken into multiple CAN messages:
-
-         (0668, 456456789789, 123456123456, 19, 11223344556677889900112233445566778899)
-
-     becomes:
-
-        [19668, 456](8) 0123, 112233445566
-
-        [19668, 456](8) 0123, 778899001122
-
-        [19668, 456](8) 0123, 334455667788
-
-        [19668, 456](3) 0123, 99
-
-    
+   For example, the Protocol Support Reply message uses fragmentation bits to break the message into a
+   number of frames, if required, as illustrated below.  
 
         2.7.3.1.3.2 Multi-frame Messages
 
@@ -769,19 +772,19 @@
 
    Example of Multi-frame message:
 
-     The general PIP Reply message could have been: [[ protocol support reply ]]
+     The general Protocol Support Reply message:   
 
-         (0668, 456456789789, 123456123456, 19, 11223344556677889900112233445566778899)
+         (0x0668, 0x456456789789, 0x123456123456, 0x19, 0x11223344556677889900112233445566778899)
 
      becomes:
 
-        [19668, 456](8) 1123, 112233445566
+        [0x19668, 0x456](8) 0x1123, 0x112233445566
 
-        [19668, 456](8) 3123, 778899001122
+        [0x19668, 0x456](8) 0x3123, 0x778899001122
 
-        [19668, 456](8) 3123, 334455667788
+        [0x19668, 0x456](8) 0x3123, 0x334455667788
 
-        [19668, 456](3) 2123, 99
+        [0x19668, 0x456](3) 0x2123, 0x99
 
     
 
@@ -795,8 +798,6 @@
     
 
       2.7.3.1.4 Datagram and Stream Messages, CAN Frame Types 2-5 and 7
-
-   [[Only general comments, refer to DG Transport]]
 
    These formats are designed to include the Source and Destination Node ID Aliases in the CAN-header,
    allowing the full use of the CAN data-part for message data.  
@@ -1134,10 +1135,6 @@
    2.7.3.1 Message Format
 
    2.7.3.1.1 CAN Prefix Field
-
-   2.7.3.1.1.1
-
-   2.7.3.1.1.2 CAN Frame-type
 
    2.7.3.1.2 CAN MTI Mapping
 

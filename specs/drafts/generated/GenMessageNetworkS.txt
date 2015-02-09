@@ -1,5 +1,3 @@
-    
-
                                                 1 Introduction
 
    This Specification contains normative information about the OpenLCB Message Network. Corresponding
@@ -144,11 +142,11 @@
 
    Name                    Simple Protocol Dest ID Event ID Description              MTI    Data Content   
    Initialization Complete N               N       N        Full Protocol Required   0x0100 Source Node ID 
-                           Y               N       N        Simple Subset Sufficient 0x0110 
+                           N               N       N        Simple Subset Sufficient 0x0101 
 
    This message has two MTIs, distinguished by the modifier field, to indicate whether the node requires
-   delivery of all the messages in the full protocol, or only whether delivery of the Simple Protocol
-   subset is sufficient.
+   delivery of all the messages in the full protocol, or whether delivery of the Simple Protocol subset is
+   sufficient.
 
   3.3.2 Verify Node ID
 
@@ -167,11 +165,11 @@
                            Simple                                                                    
    Name                             Dest ID Event ID Description              MTI    Data Content
                            Protocol 
-   Verified Node ID Number N        N       N        Full Protocol Required   0x0160  Source Node ID 
-                           Y        N       N        Simple Subset Sufficient 0x0170 
+   Verified Node ID Number Y        N       N        Full Protocol Required   0x0170  Source Node ID 
+                           Y        N       N        Simple Subset Sufficient 0x0171 
 
    This message has two MTIs, distinguished by the modifier field, to indicate whether the node requires
-   delivery of all the messages in the full protocol, or  whether delivery of the Simple Protocol subset is
+   delivery of all the messages in the full protocol, or whether delivery of the Simple Protocol subset is
    sufficient.
 
   3.3.4 Optional Interaction Rejected (OIR)
@@ -342,68 +340,39 @@
    2-byte value of the following format:
 
    Error Codes
-   Bits  Value            Description                                                                       
-   Error Type.  Exactly zero or one of the following bits should be set:
-         0x8000           Accept, no error. This value shall not be used in Reject messages.                
-         0x4000           Reserved. Send as 0, treat it as unspecified Permanent error when received.       
-   12-15 0x2000           Temporary error (resend OK). Re-trying the same interaction later is likely to    
-                          succeed.                                                                          
-         0x1000           Permanent error. Re-trying the same interaction will result in the same error.    
+   Bits  Value  Description                                                                                 
+   Error Type.  Exactly zero or one of the following bits shall be set:
+         0x8000 Accept, no error. This value shall not be used in Reject messages.                          
+   12-15 0x4000 Reserved. Send as 0, treat it as unspecified Permanent error when received.                 
+         0x2000 Temporary error (resend OK). Re-trying the same interaction later is likely to succeed.     
+         0x1000 Permanent error. Re-trying the same interaction will result in the same error.              
    Specific Error Enumeration:
-         [numeric value between 1...15] Possible values for this field are documented in particular
-   8-11  protocol standards. Values may be re-used for different general-error-flags settings. A value of
-         zero in this field means no further information is available.
+   8-11  Reserved for future use.  
    General Error Flags:  
-         For Permanent error, the following flags are defined:
-         0x1080           Invalid arguments. Some of the values sent in the message fall outside of the     
-                          expected range, or do not match the expectations of the receiving node.           
-         0x1040           While this transport protocol is supported, the specific data content is not      
-                          recognized or note supported.                                                     
-         0x1020           Source not permitted.                                                             
-         0x1010           Unimplemented. The functionality that the message tried to invoke is not          
-   4-7                    implemented in the destination node.                                              
-         For Temporary error (resend OK), the following flags are defined:
-         0x2080           Transfer error.  The message or received message was ill-formed, failed checksum, 
-                          or is otherwise uninterpretable.  On CAN, this is handled by the hardware.        
-                          Unexpected, Out of order. An inconsistency was found in the message or frame      
-         0x2040           sequence received, the arrived message is unexpected or does not match the state  
-                          of the receiving node.                                                            
-         0x2020           Buffer unavailable or destination node busy.                                      
+         For Permanent error, the following flags are defined, and may be used:
+         0x1080 Invalid arguments. Some of the values sent in the message fall outside of the expected      
+                range, or do not match the expectations of the receiving node.                              
+                Unimplemented. The functionality that the message tried to invoke is not implemented in the 
+         0x1040 destination node.  Also, while the transport protocol is supported, the specific data       
+                content is not recognized or not supported.                                                 
+         0x1020 Source not permitted.                                                                       
+   4-7   0x1010 Unimplemented. The functionality that the message tried to invoke is not implemented in the 
+                destination node.                                                                           
+         For Temporary error (resend OK), the following flags are defined, and may be used:
+         0x2080 Transfer error.  The message or received message was ill-formed, failed checksum, or is     
+                otherwise uninterpretable.  On CAN, this is handled by the hardware.                        
+                Unexpected, Out of order. An inconsistency was found in the message or frame sequence       
+         0x2040 received, the arrived message is unexpected or does not match the state of the receiving    
+                node.                                                                                       
+         0x2020 Buffer unavailable or destination node busy.                                                
    Additional flags:
-   1-3   Reserved. Send as 0, ignore on receipt.
-   0     0x0001           Information logged. See the Logging protocol to retrieve the logged information.  
-                          This bit may be added to any error value.                                         
+         Reserved for use of specific protocols for error reporting.  Interpretation of these bits will be
+   0-3   defined in the specific protocol documentation.  A value of zero in this field means no further
+         information is available.  
 
     
 
-   Common Specific Error Enumeration values:
-
-    
-
-   0x1F10: Permanent error – Unimplemented – Unknown MTI or Transport protocol (datagrams/streams) not
-   supported.
-
-   0x1E10: Permanent error – Unimplemented – Datagram type unknown, Stream type unknown, or command
-   unknown.
-
-   0x1D10: Permanent error – Unimplemented – Subcommand unknown.
-
-    
-
-   0x1F80: Permanent error – Invalid arguments – Message too short / Required arguments missing
-
-    
-
-   0x2F40: Temporary error – Out of Order – Received a middle or final frame without a previous start
-   frame.
-
-   0x2E40: Temporary error – Out of Order – Timed out waiting for a final frame.
-
-   0x2D40: Temporary error – Unexpected – Timeout processing request.
-
-    
-
-   Nodes may return 0x0000 as an error-code.  
+   NB: Nodes may return 0x0000 as an error-code.  
 
 3.6 Routing
 
@@ -437,29 +406,31 @@
 
   4.1.1 Messages Transmitted
 
-   Simple nodes may transmit any message, which shall be propagate like messages transmitted from any other
-   type of node.
+   Simple nodes may transmit any message, which shall be propagate normally.   
 
   4.1.2 Messages Received
 
    Simple nodes shall receive any message specifically addressed to them, plus the following unaddressed
    global messages:
 
-     * Verify Node ID – They need to receive this so that they can reply to it.
+     * Verify Node ID ;
 
-     * Verified Node ID – They need to receive this because it's the reply to their own request, which
-       might be used to e.g. locate a node for delayed sending of status
+     * Verified Node ID;
 
-     * Protocol Support Inquiry – They need to receive this so that they can reply to it.
+     * Protocol Support Inquiry;
 
-     * Identify Consumers, Identify Producers, Identify Events – because others will ask this of them
+     * Identify Consumers;
 
-     * Learn Event – so they can be programmed
+     * Identify Producers;
 
-     * P/C Event Report – what they do for a living
+     * Identify Events;
+
+     * Learn Event;
+
+     * P/C Event Report;
 
    In the future, additional MTIs will be defined. If simple nodes need to received them, the MTI will
-   indicate that via the Simple bit; see previous section.
+   indicate that via the Simple bit – see previous section.
 
   4.1.3 Messages Not Received
 
@@ -543,8 +514,6 @@
 
    The CAN Prefix Field contains control bits specific to CAN.  
 
-      7.3.1.1.1
-
     7.3.1.2 CAN MTI Mapping
 
    The Common MTI is mapped to one of eight frame types:
@@ -622,19 +591,6 @@
 
     
 
-   Datagram and Stream Data messages are transmitted on CAN as one or more frames, using the frame formats
-   as described in the specifications for those protocols, with values of 2 through 5 and 7 in the CAN
-   Frame Type field, respectively.  The 12-bit destination alias is placed in the header, along with the
-   12-bit source alias.
-
-   Parts of a fragmented message may be lost during transmission.  If more than 500 milliseconds elapses
-   after the receipt of a first or middle datagram frame without receipt of a middle or end frame, the node
-   may, but is not required to, initiate error recovery by forwarding the message, marked as received in
-   error, for further internal processing.  The time used to process higher priority messages may be
-   subtracted from the elapsed time.  
-
-    
-
   7.3.2 States
 
    No special provisions for CAN transport layer.
@@ -645,75 +601,62 @@
 
     7.3.3.1 Initialization Complete
 
-   Name                    Description CAN-MTI CAN Header (hex) Data Content        
-   Initialization Complete Full        0x100   [0x19100sss]     Full Source Node ID 
-                           Simple      0x110   [0x19110sss]     
+   Name                    Description           CAN-MTI CAN Header   Data Content        
+   Initialization Complete Full protocol         0x100   [0x19100sss] Full Source Node ID 
+                           Simple-set sufficient 0x101   [0x19101sss] 
 
     7.3.3.2 Verify Node ID
 
-   Name           Description CAN-MTI CAN Header (hex) Data Content                 
-   Verify Node ID Addressed   0x498   [0x19498sss]     fddd5, Optional Full Node ID 
-                  Global      0x490   [0x19490sss]     Optional Full Node ID        
+   Name           Description CAN-MTI CAN Header   Data Content                 
+   Verify Node ID Addressed   0x498   [0x19498sss] fddd5, Optional Full Node ID 
+                  Global      0x490   [0x19490sss] Optional Full Node ID        
 
     7.3.3.3 Verified Node ID.
 
-   Name             Description CAN-MTI CAN Header (hex) Data Content        
-   Verified Node ID Full        0x160   [0x19160sss]     Full Source Node ID 
-                    Simple      0x170   [0x19170sss]     
+   Name             Description           CAN-MTI CAN Header   Data Content        
+   Verified Node ID Full protocol         0x170   [0x19170sss] Full Source Node ID 
+                    Simple-set sufficient 0x171   [0x19171sss] 
 
     7.3.3.4 Optional Interaction Rejected
 
-   Name                          CAN-MTI CAN Header (hex) Data Content               
-   Optional Interaction Rejected 0x068   [0x19068sss]     fddd, error, optional info 
+   Name                          CAN-MTI CAN Header   Data Content               
+   Optional Interaction Rejected 0x068   [0x19068sss] fddd, error, optional info 
 
     7.3.3.5 Terminate Due to Error
 
-   Name                   CAN-MTI CAN Header (hex) Data Content               
-   Terminate Due to Error 0x0A8   [0x190A8sss]     fddd, error, optional info 
+   Name                   CAN-MTI CAN Header   Data Content               
+   Terminate Due to Error 0x0A8   [0x190A8sss] fddd, error, optional info 
 
     7.3.3.6 Protocol Support Inquiry  
 
-   Name                     CAN-MTI CAN Header (hex) Data Content 
-   Protocol Support Inquiry 0x828   [0x19828sss]     fddd         
+   Name                     CAN-MTI CAN Header   Data Content 
+   Protocol Support Inquiry 0x828   [0x19828sss] fddd         
 
     7.3.3.7 Protocol Support Reply
 
-   Name                   CAN-MTI CAN Header (hex) Data Content         
-   Protocol Support Reply 0x668   [0x19668sss]     fddd, Protocol flags 
+   Name                   CAN-MTI CAN Header   Data Content         
+   Protocol Support Reply 0x668   [0x19668sss] fddd, Protocol flags 
 
-   This can be a multi-part message when there are more than 48 protocol-bits.  
+   This shall be a multi-part message when there are more than 48 protocol-bits.  
 
-    
-
-    7.3.3.8 Extensibility
+  7.3.4 Extensibility
 
    Since the earlier nodes may reply as soon as they have processed only the data of which they are aware,
    their replies may be earlier than the last message fragment is received.  Sending-nodes shall be able to
    receive and process these replies as they are received.  
 
-  7.3.4 Interactions
+  7.3.5 Interactions
 
    No special provisions for CAN transport layer.
 
-  7.3.5 Error Handling
+  7.3.6 Error Handling
 
    No special provisions for CAN transport layer.
 
-  7.3.6 Routing
+  7.3.7 Routing
 
    CAN implementations shall send the frames of a message together to reduce buffering.   Higher-priority
    messages may be sent in the middle of a lower-priority message.   
-
-    
-
-   Appendix 1
-
-   Object1
-
-   Illustration 1: Summary of General Message protocol messages
-
-   The following table is for reference only.  In the case of errors, the values in the text of the body of
-   the document shall take precedence.     
 
     
 
@@ -803,8 +746,6 @@
 
    7.3.1.1 CAN Prefix Field
 
-   7.3.1.1.1
-
    7.3.1.2 CAN MTI Mapping
 
    7.3.1.3 Global and Addressed Messages, CAN Frame Type 1
@@ -829,15 +770,13 @@
 
    7.3.3.7 Protocol Support Reply
 
-   7.3.3.8 Extensibility
+   7.3.4 Extensibility
 
-   7.3.4 Interactions
+   7.3.5 Interactions
 
-   7.3.5 Error Handling
+   7.3.6 Error Handling
 
-   7.3.6 Routing
-
-   Appendix 1
+   7.3.7 Routing
 
     
 
