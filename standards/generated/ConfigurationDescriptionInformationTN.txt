@@ -4,7 +4,7 @@
 
                                                      Configuration Description Information
 
-                                                    Feb 8, 2015                        Preliminary          
+                                                    Feb 9, 2015                        Preliminary          
 
                                                 1 Introduction
 
@@ -43,7 +43,7 @@
    Note that this section of the Standard is informative, not normative.
 
    See The Memory Configuration Protocol. That's o is one use for the CDI, and one way to retrieve it, but
-   CDI is independent of that.
+   CDI is independent of that. See the OpenLCB Memory Configuration Protocol documentation.
 
    CiA 306 “Electronic data sheet specification” describes the CANopen version of a similar capability.
 
@@ -52,46 +52,33 @@
    “Initialized State” means talking on the OpenLCB, so CDI is fixed while you're up. But it can change
    when the node e.g. resets.
 
-   The CDI information shall be constant. A node may not change it after any part of it has been retrieved
-   and before the next transition of the node away from the Initialized state. (The transition back to
-   Initialized stte tells other nodes to flush their caches and pick up any changed content)
+   The CDI information isn't allowed to change while the node is up. A node may not change it after any
+   part of it has been retrieved and before the next transition of the node away from the Initialized
+   state. (The transition back to Initialized state tells other nodes to flush their caches and pick up any
+   changed content) A node using the CDI can assume that, once it's read the CDI, it doesn't need to read
+   it again until the source node goes offline.
 
 2.5 Format
 
-   May extend later for e.g. compression, via changes to the 1^st character or some other method.
+   The format can be extended later for e.g. compression, via changes to the 1^st character or some other
+   method.
 
-   The first byte is used to distinguish the coding.
+   The online schema is really the normative thing, because that's what we check for conformance testing.
 
-   “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
-
-   UTF BOM: Various UniCode forms
-
-   0x01 – tag for compressed. One format defined for total start string of 0x0101. (If you want to use
-   another format, decompress on board)
-
-   (can't use 0x00 as lead, since that's the end-of-string indication)
-
-   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
-   what we check for conformance testing.
-
-   No requirement that you validate against the schema. But since the contents are normative, you have to
-   obey the defaults, etc, for missing elements.
-
-   By specifying XML 1.0 only, XInclude, XML Namespaces, XML Base, xml:id and other extensions have been
-   excluded.
+   There is no requirement that a node using the CDI validate against the schema. But since the contents
+   are normative, it has to obey the defaults, etc, for missing elements.
 
    Because the using node may not have external connections, XML features requiring those (Xinclude, schema
-   default values, …) shall not be assumed to be present.
+   default values, …) are not be assumed to be present. By specifying XML 1.0 only, XInclude, XML
+   Namespaces, XML Base, xml:id and other extensions have been excluded.
 
-   OK to specify stylesheets (because the XML 1.0 standard is silent on that)
-
-   OK to include XML comments
+   The CDI may specify stylesheets (because the XML 1.0 standard is consistent with that)
 
    Hexadecimal notation (0x1234) for numbers is not permitted. Although it may have made the CDI easier for
    people to read, the XML is primarily intended for consumption by OpenLCB nodes. Providing optional
    coding, such as hexadecimal numbers, makes those nodes more complex.
 
-                                     3 Stuff to be merged into the above
+                          3 Stuff to be merged into the aboveAdditional Information
 
 3.1 Environment of Proposal
 
@@ -122,14 +109,16 @@
    Basic configuration is done with the configuration protocol defined elsewhere.
 
    The “Variables” described here are not exactly the same thing as “Configuration Variables” (CVs) or
-   “Node Variables” (NVs) that are discussed elsewhere. Those are aimed at storage, and so are grouped by
-   address. The “Variables” here are grouped by function. “Long address” might be several CVs, but would be
-   one variable to this proposal. Similarly, CV29 has lots of variables within it, each stored as bits.
-   Perhaps it would be better to use a different name here, such as “Setting” or “Option”?
+   “Node Variables” (NVs) that are discussed elsewhere, e.g. in DCC documentation. Those are aimed at
+   storage, and so are grouped by address. The “Variables” here are grouped by function. “Long address”
+   might be several DCC CVs, but would be one variable to this proposal. Similarly, DCC CV29 has lots of
+   variables within it, each stored as bits.
 
 3.2 Proposal
 
   3.2.1 Definition
+
+   Perhaps it would be better to use a different name here, such as “Setting” or “Option”?
 
    2) The primary design constraints are complexity and size in the OpenLCB device providing CDI, and
    complexity and size in the device consuming the CDI.
@@ -291,7 +280,7 @@
    details of the consumer function. This may include e.g. variables that define how any content in
    incoming messages will be used.
 
-  3.2.3 Serialization
+  Serialization
 
    The logical layout in the previous section has to be converted to some serial set of bytes for transfer
    and storage.
@@ -561,7 +550,7 @@
    3) The DS54 inputs also generate messages. They are specified as two producers (for the active and
    inactive messages).
 
-3.4 Implementation Notes
+3.4 Implementation and Expansion Notes
 
    This section is non-normative notes and suggestions for implementors.
 
@@ -587,9 +576,8 @@
 
                                               4 Remaining items
 
-   Internationalization of the XML content?
-
-   Talk about the encoding string in the <?xml first line, and UTF-8 coding as default; ASCII as subset.
+   Internationalization of the XML content?Talk about the encoding string in the <?xml first line, and
+   UTF-8 coding as default; ASCII as subset.
 
    Mini-XML effort; we're using as simple a subset as possible.
 
@@ -628,4 +616,4 @@
    3.4 Implementation Notes 9
 
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 17 - Feb 8, 2015
+   1 of 16 - Feb 9, 2015
