@@ -1,6 +1,6 @@
                                                 1 Introduction
 
-   This technical note contains informative discussion and background for the corresponding “Event
+   This technical note contains informative discussion and background for the corresponding “OpenLCB Event
    Identifiers Standard”. This explanation is not normative in any way.
 
                                         2 Annotations to the Standard
@@ -16,7 +16,7 @@
 
 2.2 Intended Use
 
-   An event ID is intended to be globally unique and for a specific purpose defined either by user
+   An Event Identifier is intended to be globally unique and for a specific purpose defined either by user
    configuration or enforced by the Event Identifiers Standard.  Any node may be configured to produce or
    consume any event, regardless of its assigned Node ID.  However, logically, a unique event identifier is
    defined to have a unique purpose, whether assigned by user configuration or explicitly defined in the
@@ -51,14 +51,14 @@
    prefer some other pushbutton configuration process.  A modular club may decide that certain events form
    the “boundaries” of modules, and need to be assigned well-known Event Identifiers to make it easier to
    create large modular layouts.  Whatever the method, the Event Identifiers need to be globally unique,
-   and we ensure that by requiring that people create Event Identifiers using Node ID numbers assigned to
-   them (and therefore not assigned to anybody else), plus an additional 16 bits that they are responsible
-   for using only once.  This is worth to be repeated, each Event ID can only be used once for a specific
+   and we ensure that by requiring Event Identifiers to be created using Node ID numbers assigned to them
+   (and therefore not assigned to anybody else), plus an additional 16 bits that they are responsible for
+   using only once.  This is worth repeating, each Event Identifier can only be used once for a specific
    state or meaning.  It doesn't mean that multiple nodes cannot use it, but rather it should not be used
    for a different purpose or meaning.  This is because the meaning and its use is shared across all of the
    nodes using it, and unless it can be guaranteed that they all have been changed there will be conflict
-   between them.  It is much safer to use a new Event ID, and nodes will usually have a mechanism to supply
-   new, “virgin” Event Ids.  
+   between them.  It is much safer to use a new Event Identifier, and nodes will usually have a mechanism
+   to supply new, “virgin” Event Ids.  
 
    Note that the Node ID part of an Event Identifier does not have to correspond to any physical node.  So
    long as you have some Node ID address space assigned to you, you can use that.  For example, a
@@ -68,7 +68,8 @@
    Node IDs assigned already, so can use 8-bits worth of that space, plus the extra 16 bits in the Event
    Identifiers below the Node ID-like-part, to do this.  For example, if a manufacturer had a range of Node
    IDs that included at least 0x123456789A00 through 0x123456789AFF (in other words, all possible values of
-   the low byte), he could create a set of Event IDs with the low 24 bits used to carry a time value:
+   the low byte), he could create a set of Event Identifiers with the low 24 bits used to carry a time
+   value:
 
    Table 2: Example of defining a Set of Events
 
@@ -90,20 +91,21 @@
 
      * The Event Transport Standard, which defines the protocol for transporting events.
 
-     * The Unique Identifiers Standard witch defines the format and allocation of unique 48-bit
-       identifiers.
+   The Unique Identifiers Standard witch defines the format and allocation of unique 48-bit identifiers.
 
 2.4 Format
 
    Event Identifiers are intended to be globally unique 64-bit values.
 
-2.5 Node ID Based
+2.5 Allocation
+
+  2.5.1 Node ID Based
 
    The majority of event identifiers fall into this category.  The six most significant bytes are derived
    from a globally unique six byte Node ID followed by the two least significant bytes which are typically
    chosen through user configuration.
 
-  2.5.1 MERG CBUS
+    2.5.1.1 MERG CBUS
 
    OpenLCB allocates a Node ID address space specifically for mapping MERG CBUS events into OpenLCB.  CBUS
    events come in two types:  long and short.  A long event is uniquely identified by the coEvent ID.  A
@@ -119,13 +121,19 @@
    Identify Producer messages will have to be sent, one for the ON state range and another for an OFF state
    range, the response of which will need to be translated back for CBUS.
 
-2.6 Well Known Automatically-Routed
+  2.5.2 Well-Known Automatically-Routed
 
    Unlike Node ID Based event identifiers, the Well-Known Automatically Routed event identifiers are
    explicitly defined by the Event Identifiers Standard for a specific purpose.  Additionally, gateways are
    required to route these events to all segments.
 
-  2.6.1 Emergency Off
+   Note that it is not specified whether or not the well-known automatically routed events shall
+   participate in producer/consumer identify.  The primary purpose of the producer/consumer identify is to
+   pair consumers with produces, especially for the purpose of routing between OpenLCB segments.  Since
+   these well-known automatically-routed events must always be routed, it could be argued that the identify
+   events are redundant for these well-known Event Identifiers.
+
+    2.5.2.1 Emergency Off
 
     
 
@@ -138,11 +146,13 @@
      * If the node is an accessory controlling turnout motors, it must remove power from the motors
 
    A node may revert to its previous energized state following the reception of a Clear Emergency Off event
-   (01.00.00.00.00.00.FF.FE).  A node that has recently joined the OpenLCB network is not expected to know
-   about or react in any specifically prescribed way to the current Emergency Off status defined prior to
-   the node joining the network until the next Emergency Off or Clear Emergency Off event is produced.
+   (01.00.00.00.00.00.FF.FE).
 
-  2.6.2 Emergency Stop
+   A node that has recently joined the OpenLCB network is not expected to know about or react in any
+   specifically prescribed way to the current Emergency Off status defined prior to the node joining the
+   network until the next Emergency Off or Clear Emergency Off event is produced.
+
+    2.5.2.2 Emergency Stop
 
     
 
@@ -162,9 +172,9 @@
    defined prior to the node joining the network until the next Emergency Stop or Clear Emergency Stop
    event is produced.
 
-2.7 Well-Known
+2.6 Well-Known
 
-   Unlike Node ID Based event identifiers, the Well-Known event identifiers are explicitly defined by the
+   Unlike Node ID Based Event Identifiers, the Well-Known Event Identifiers are explicitly defined by the
    Event Identifiers Standard for a specific purpose.  Gateways are not required to actively route these
    events to all segments, and may maintain a static or learned routing table for these events to prevent
    unnecessary propagation.
@@ -183,16 +193,18 @@
 
    2.4 Format
 
-   2.5 Node ID Based
+   2.5 Allocation
 
-   2.5.1 MERG CBUS
+   2.5.1 Node ID Based
 
-   2.6 Well Known Automatically-Routed
+   2.5.1.1 MERG CBUS
 
-   2.6.1 Emergency Off
+   2.5.2 Well-Known Automatically-Routed
 
-   2.6.2 Emergency Stop
+   2.5.2.1 Emergency Off
 
-   2.7 Well-Known
+   2.5.2.2 Emergency Stop
+
+   2.6 Well-Known
 
     
