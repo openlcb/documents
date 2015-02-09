@@ -112,39 +112,55 @@
 
 3.2 Presentation of a OpenLCB message
 
-   OpenLCB messages are described in this format:
+   OpenLCB messages are described in this common format:
 
     
 
-                                     Common                          
-   Name Dest ID Event ID Simple Node        CAN format  Data Content
-                                     MTI    
-        N       N        N           0x0000 0x1800,0sss              
+                                                 Common              
+   Name Description Simple Node Dest ID Event ID        Data Content
+                                                 MTI    
+                    N           N       N        0x0000              
 
     
 
      * Name: Standard name of the message.
 
-     * Dest ID: Whether this message includes a destination address for a specific node. If no, the message
-       is global.
-
-     * Event ID: Whether this message includes an Event ID.
+     * Description: Optional field, generally used if there is variant forms.
 
      * Simple Node: Whether the message is included in the “simple node subset” (defined in the Message
        Networking TN).
 
-     * Common MTI: The 16-bit value, typically in hex notation, of the full Message Type Indicator.
+     * Dest ID: Whether this message includes a destination address for a specific node. If not, the
+       message is global.
 
-     * CAN format: Typical CAN frame representation of the MTI, including header and data byte if present.
-        Source node ID alias is represented by “sss”.  Destination node ID alias, if present, is
-       represented by “ddd”.
+     * Event ID: Whether this message includes an Event ID.
 
-     * Data Content: Summary description of data bytes, if any, included after fixed fields such as MTI and
+     * Common MTI: The 16-bit value, typically in hex notation, of the full Message Type Indicator.Data
+       Content: Summary description of data bytes, if any, included after fixed fields such as MTI and
        destination address.
 
+    
+
+   Adaptation to CAN messages are described in this format:
+
+   Name Description CAN-MTI CAN Header  Data Content 
+                    0x000   0x1800,0sss              
+
+     * Name: Standard name of the message.
+
+     * Description: Optional field, generally used if there is variant forms.
+
+     * CAN-MTI format: Typical CAN frame representation of the MTI.
+
+     * CAN Header: Contains the CAN header.  Source node ID alias is represented by “sss”.  Destination
+       node ID alias, if present, is represented by “ddd”.
+
+     * Data Content: Summary description of data bytes, if any, included after a fixed destination
+       address., represented as “fsss”, where the “f” represents fragmentation flags.  
+
    Note that this information is not completely independent.  The MTI value depends on simple subset,
-   priority subgroup, etc, values. We present the full set, at some risk of inconsistency, to make it
-   easier to understand the containing Standard.
+   priority subgroup, etc, values.  The messages are detailed in specific associated documentation.  That
+   documentation is considered normative.  
 
    For more information, see the various “Message Networking” Standards and Technical Notes.
 
