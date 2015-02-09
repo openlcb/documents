@@ -1,6 +1,10 @@
 RUNNING := $(shell ps ax | grep -v grep | grep soffice)
 
-OFFICE = soffice
+OFFICE := $(shell sh -c \
+            "if [ -d /Applications/LibreOffice.app/Contents/MacOS ]; then echo /Applications/LibreOffice.app/Contents/MacOS/soffice; \
+           elif [ -d /Applications/OpenOffice.app/Contents/MacOS ]; then echo /Applications/LibreOffice.app/Contents/MacOS/soffice; \
+           else echo soffice; fi" \
+           )
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
 OUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
