@@ -37,7 +37,7 @@ pdf: $(OUTPUT)
 .ods.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
-# test documents
+# text documents
 .odt.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
