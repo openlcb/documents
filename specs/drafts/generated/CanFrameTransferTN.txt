@@ -160,7 +160,7 @@
 
    In the Inhibited state, a node can only communicate on the CAN segment to allocate its Node ID
    alias(es).  This involves sending CID and RID frames with a tentative Node ID alias value.  Once that
-   process is complete, the node has an assigned Node ID alias and can transfer to the Permitted state,
+   process is complete, the node has an assigned Node ID alias and can transition to the Permitted state,
    where all communications are possible.
 
    If a node fails, it should restart in the Inhibited state. In general, this state transition is not
@@ -232,7 +232,7 @@
    a permanent lock-step error.
 
    The delay at the end of the algorithm is to ensure that higher latency nodes, such as software nodes
-   working through USB convertors, can reply to CID frames from nodes that come up on a working link.
+   working through USB converters, can reply to CID frames from nodes that come up on a working link.
    OpenLCB is a soft-real-time system, and software that's interacting with it needs to have response times
    of a couple tens of milliseconds or better to be reliable. The algorithm provides a wait of a few times
    that to enable those programs to take part.
@@ -291,12 +291,12 @@
    contain an alias.  They just work with the alias itself. They also don't need to track other nodes'
    state, etc.
 
-   In order to acquire the map between CANids and node IDs, a gateway needs to be able to send a CAN frame
-   requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to return
-   the node ID of just the specific CAN-attached hardware, not all the node IDs that can be e.g. reached
-   through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN level.
-   It must not be a OpenLCB common message, though higher level protocols may want to provide a similar
-   capability that spans the entire OpenLCB installation.
+   In order to acquire the map between CAN aliases and node IDs, a gateway needs to be able to send a CAN
+   frame requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to
+   return the node ID of just the specific CAN-attached hardware, not all the node IDs that can be e.g.
+   reached through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN
+   level. It must not be a OpenLCB common message, though higher level protocols may want to provide a
+   similar capability that spans the entire OpenLCB installation.
 
     2.6.2.4 Transition to Inhibited State
 
@@ -370,7 +370,7 @@
 
    (For simplicity, B has not transmitted yet) B discovers that it's alias has been duplicated.
 
-   B: 0x10703nnn (AMR frame)
+   B: 0x10703nnn 55 AA 44 AA 33 AA (AMR frame with Node ID 0x55AA,44AA,33AA)
 
    B then goes back into operation by reserving a new alias value and transitioning to Permitted state:
 
@@ -389,7 +389,7 @@
     2.6.2.6 Duplicate Node ID Handling
 
    This should never happen, of course, but it's possible that two nodes will have the same Node ID
-   assigned.  This will result in frame loss and operational difficulties. OpenLCB-CAN does not guarantee
+   assigned.  This will result in frame loss and operational difficulties. OpenLCB does not guarantee
    prompt detection of this condition, at any level of the protocol stack, but it's extremely likely that
    it will be detected. At the Frame Transfer level, two nodes on the same CAN segment sharing a common
    Node ID will be detected when a node receives a Alias Map Definition frame that contains its own Node
@@ -425,7 +425,7 @@
    The CAN Standard defines the “Error Active”, “Error Inactive” and “bus off” states, along with extensive
    fault-confinement rules.  By using qualified CAN implementations, OpenLCB-CAN nodes pick these behaviors
    up. The interactions in this section are then about reporting the results of the CAN Standard
-   operations. The “Error Information Report 0” through “Error Information Report 1” control frames
+   operations. The “Error Information Report 0” through “Error Information Report 3” control frames
    indicate specific transitions in the node's state.  No OpenLCB-CAN node is required to react to those
    reports. The reports only provide information.
 
@@ -441,8 +441,6 @@
 
    It's not possible for a node to emit a frame to indicate that it has entered the “Bus Off” state, so
    there's no message corresponding to that.
-
-    
 
   2.6.3 Node ID Alias Generation
 
@@ -481,7 +479,7 @@
     The sequence on the CAN bus will be clearer, and in some cases the allocation process will be faster,
    if nodes identify duplicate aliases in sequence, and just go on to the next one.
 
-   graphics2
+    
 
                                       3 Gateways and segment management
 
@@ -504,7 +502,7 @@
    aliases using the conventional technique, and then assign them to off-segment nodes as they need to
    communicate on the segment.  Many algorithms are possible for that assignment.
 
-   If/when a full NID is needed, it can be obtained by sending a "Alias Mapping Enquiry" frame with an
+   If/when a full NID is needed, it can be obtained by sending an "Alias Mapping Enquiry" frame with an
    appropriate Destination Node ID in local alias form. The reply will eventually come back with the Source
    ID in local alias form and carrying the full NID in the frame body.
 
@@ -514,7 +512,7 @@
    varying slightly with bit-stuffing.
 
    125Kbps with max-length extended header frames is about 900 frames/second. CAN is very good at running
-   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place.The CAN
+   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place. The CAN
    network itself does not require any inter-frame spacing, limitations on bandwidth usage, etc; the
    segment can be allowed to run at 100%.
 
