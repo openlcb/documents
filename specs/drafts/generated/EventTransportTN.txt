@@ -13,10 +13,10 @@
    Its main advantage is the knowledge independence it imparts between all of the nodes involved in an
    event.  Expressed in more anthropomorphic terms, neither the producers nor consumers of a PCER are aware
    of each other.  This adds flexibility to the system, since more producers or consumers of the PCER can
-   be added to implement the associated event, without concern of side effects to the the other nodes
-   involved in the event.12
+   be added to implement the associated event, without concern of side effects to the other nodes involved
+   in the event.12
 
-   The Producer/Consumer Event ID included in a PCER message is a 8-byte unique identifier. The method for
+   The Producer/Consumer Event ID included in a PCER message is an 8-byte unique identifier. The method for
    assigning these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical
    Note.
 
@@ -29,7 +29,7 @@
 
    OpenLCB event IDs carry no specific information about whether they are coding “on” or “off”, “active” or
    “inactive” for some output state.  It's possible for multiple consumers to do different things in
-   response to a single event:  A event that means “set nightime lighting” might turn some outputs off and
+   response to a single event:  A event that means “set nighttime lighting” might turn some outputs off and
    turn others on.  Simple nodes will often use two producers to represent “input line N went on” and
    “input line N went off”; they will often use two consumers to represent “turn on output line N” and
    “turn off output line N”.
@@ -115,10 +115,10 @@
 
    If the lowest base bit is a 1, then mask bits are 0s.  
 
-   Ranges can only be specified in powers of 2, ie they can specify ranges of 2, 4, 8, … .Therefore, if a
-   range of n is required, then the next larger power of two is used.  Ranges should not be over specified,
-   so the standard requires that a range not extend past the next power of two by requiring that at least
-   50% of the EventIDs in the range be relevant.   
+   Ranges can only be specified in powers of 2, i.e., they can specify ranges of 2, 4, 8, … .Therefore, if
+   a range of n is required, then the next larger power of two is used.  Ranges should not be over
+   specified, so the standard requires that a range not extend past the next power of two by requiring that
+   at least 50% of the EventIDs in the range be relevant.
 
    Encoding a range is done by determining how many values are required, choosing the next higher power of
    two, choosing a base value and the mask, and finally combining the two, inverting the mask if necessary.
@@ -133,8 +133,8 @@
 
   2.4.1 Producer/Consumer Event Report (PCER)
 
-   This message transports an Event-number from a producer node(s) to zero or more unspecified consumer
-   nodes.  It is the backbone of the protocol, and forms most of the expected traffic.
+   This message transports an Event ID from a producer node(s) to zero or more unspecified consumer nodes.
+    It is the backbone of the protocol, and forms most of the expected traffic.
 
    The source Node ID allows identification of which node sent the event. This can be used for diagnostic
    and status purposes, but nodes must act on the event without regard to where it came from.
@@ -165,8 +165,8 @@
   2.4.4 Consumer Range Identified
 
    This message broadcasts, in response to a received Identify Consumer message, from each node that
-   consumes event is in the range specified by the included event-ID-with-mask.  This is one of the
-   messages that allows bridges to do automatic routing of event messages.     
+   consumes events in the range specified by the included event-ID-with-mask.  This is one of the messages
+   that allows bridges to do automatic routing of event messages.     
 
    The requirement that 50% or more of the Event IDs in a range are consumed is to allow rounding the range
    up to the enclosing bit, but no further. This keeps the Event ID ranges in the complete OpenLCB system
@@ -211,7 +211,7 @@
    An example of a producer range would be a fast clock node that sends a range of events to indicate the
    time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.  In
    this case, rather than having to send 86,400 individual ProducerIdentified messages at start-up or on
-   request, it can send one ProducerRangeIdentifed message with the apropriate base/mask Event ID Range
+   request, it can send one Producer Range Identified message with the appropriate base/mask Event ID Range
    value.   
 
    This message is broadcast, in response to a received Identify Producer message, from each node that
@@ -220,17 +220,19 @@
 
   2.4.8 Identify Events
 
-   Identify events comes in both addressed and global forms. They are intended to be used for different use
+   Identify Events comes in both addressed and global forms. They are intended to be used for different use
    cases.
 
-   In some cases, the node may want to query a specific node as to whether it produces or consumes that
-   event, in these case the directed form is appropriate.
+   In some cases, the node may want to query a specific node as to what events it produces or consumes. In
+   these cases the directed form is appropriate.  This message will minimize the load on the network as
+   only the node of interest will respond.
 
-   In other cases, the node producing the Identify Event will not know if any node uses that event, and
-   therefore the global form is the more appropriate choice. Be aware that since this latter form is
-   transmitted throughout the network, it can be relatively expensive in terms of bandwidth. The global
-   form of Identify Event is similar to the combination of an Identify Producers and an Identify Consumers
-   message.
+   In other cases, the node producing the Identify Events message has a lack of knowledge to which nodes
+   produce or consume the events of interest, and therefore the global form is the more appropriate choice.
+    The global form of Identify Events is similar to the combination of an Identify Producers and an
+   Identify Consumers message for every possible enumeration of Event Ids.  This event is useful to build
+   routing tables for networks segments or network browsing tool but be aware that since this form is
+   transmitted throughout the network, it can be relatively expensive in terms of bandwidth.
 
   2.4.9 Learn Event
 
@@ -241,10 +243,10 @@
 
 2.5 States
 
-   After the IC message is sent, but before any  Producer/Consumer Event Report messages are sent, each
-   node must identify all events produced or consumed  via zero or more Identify Consumers, Identify
-   Consumed Range, Identify Producers and Identify Consumed Range messages. These are not required to be in
-   any particular order.
+   After the Initialization Complete message is sent, but before any  Producer/Consumer Event Report
+   messages are sent, each node must identify all events produced or consumed  via zero or more Identify
+   Consumer, Identify Consumer Range, Identify Producer and Identify Producer Range messages. These are not
+   required to be in any particular order.
 
 2.6 Interactions
 
@@ -253,7 +255,7 @@
    reply can be sent when time/priority is available.
 
    Nodes can send identify/identified messages for automatically-routed Event IDs. Nodes aren't required to
-   reply to Identify Producer/Consumer messages for automatically-advertised Event IDs to simplify node
+   reply to Identify Producer/Consumer messages for automatically-routed Event IDs to simplify node
    programming, but it is useful if they do.
 
    Identify Producer/Consumer messages for well-known Event IDs require response; there's no exemption for
@@ -267,7 +269,7 @@
    and not by any lower level link (CAN or other) state machine.
 
    Delay in sending the Producer Identified / Producer Range Identified and Consumer Identified / Consumer
-   Identified Range messages after Initialization Complete is allowed, but there's no delivery guarantee
+   Range Identified messages after Initialization Complete is allowed, but there's no delivery guarantee
    for this node's events until those have been sent and the state has transitioned to Advertised.
 
    When a node changes the events it manages, it still needs to emit the Producer Identified / Producer
@@ -276,10 +278,10 @@
    sending them all as part of that process.
 
    There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending
-   Identify Consumers again says that all events are not interesting, though).  This could be added, but it
-   is much harder for gateways to decide that an Event ID is not interesting than that it is interesting,
-   because they have to keep a list of all the node IDs that are interested,and back that off.  Better to
-   just let the set of interesting Event IDs grow until the layout or gateway is reset.
+   Initialization Complete again says that all events are not interesting, though).  This could be added,
+   but it is much harder for gateways to decide that an Event ID is not interesting than that it is
+   interesting, because they have to keep a list of all the node IDs that are interested, and back that
+   off.  Better to just let the set of interesting Event IDs grow until the layout or gateway is reset.
 
    To ensure that event messages are properly routed, nodes must announce when they start to produce or
    consume messages. Specifically, they must do this at two times:

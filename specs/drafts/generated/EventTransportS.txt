@@ -5,17 +5,17 @@
                                          2 Intended Use (Informative)
 
    Transporting events provides general and flexible messaging between nodes, following the principles of
-   the Producer-Consumer model.  The information is carried by an Event Identifier (Event ID ), a number
+   the Producer-Consumer model.  The information is carried by an Event Identifier (Event ID), a number
    which in of itself does not have any explicit information.  Instead the Event ID is assigned by the user
    to one specific concept, such as a specific lighting configuration, or a more abstract concept, such as
    the “start of the day” or “global stop”.   That concept can then be implemented and shared by
    cooperative action between nodes that “produce” the event by sending messages, and nodes that “consume”
-   the event by receiving messages and acting up them.  This document defines that interaction between
-   produces and consumers in terms of OpenLCB messages.
+   the event by receiving messages and acting upon them.  This document defines that interaction between
+   producers and consumers in terms of OpenLCB messages.
 
    This document describes the required message formats for event transport. Section 4 gives an overview of
    the message types with an abstract numeric description intended as a normative guide to the construction
-   of concrete message types over specific physical transport media. Section 7 describe in concrete detail
+   of concrete message types over specific physical transport media. Section 7 describes in concrete detail
    the implementation of the event transport message formats for the specific physical transport media that
    have been adopted as normative standards.
 
@@ -30,8 +30,8 @@
      * The OpenLCB Event Identifiers Standard, which defines the format and content of  Event IDs including
        the class of Well-Known Event IDs and Automatically-Routed Event IDs.
 
-     * The OpenLCB CAN Frame Transport Standard, which defines the formats for transporting OpenLCB over
-       CAN networks.
+     * The OpenLCB CAN Frame Transport Standard, which defines the formats for transporting OpenLCB
+       messages over CAN networks.
 
                                         4 Message Formats (Normative)
 
@@ -54,7 +54,7 @@
 4.1 Producer/Consumer Event Report (PCER)
 
    Name                           Dest ID Event ID Simple Node Common MTI Data Content 
-   Producer/Consumer Event Report N       Y        N           0x05B4     Event ID     
+   Producer/Consumer Event Report N       Y        Y           0x05B4     Event ID     
 
     
 
@@ -91,7 +91,7 @@
     
 
    Nodes shall not emit Consumer Range Identified messages where more than 50% of the Event IDs included in
-   the range are not consumed by the node, except when specified by another OpenLCB Standard
+   the range are not consumed by the node, except when specified by another OpenLCB Standard.
 
 4.5 Identify Producer
 
@@ -168,8 +168,8 @@
      * The producer or consumer sends a Producer Range Identified or Consumer Range Identified,
        respectively, message where the indicated range contains the Event ID.
 
-     * Producers and consumers of Event IDs in the automatically-advertised range are in the Advertised
-       state once the node is in the Initialized state.
+     * Producers and consumers of Event IDs in the Automatically-Routed range are in the Advertised state
+       once the node is in the Initialized state.
 
    The messages defined by this Standard shall only be sent when the sending node is in Initialized state.
 
@@ -193,7 +193,7 @@
 
 6.1 Event Transfer
 
-   To produce an event, the node containing the producer shall emit a PCER message containing the related
+   To produce an event, the node containing the producer shall emit a PCER message containing the specific
    Event ID. The OpenLCB message network shall transport that message to all attached nodes, except as
    described in the next paragraph. Nodes containing consumers shall check for a match between the message
    Event ID and their consumers. If a match is found, the consumer shall perform any local operations
@@ -253,7 +253,7 @@
    well-known Event IDs or Event IDs defined based on this node's unique ID.
 
    If a producer or consumer within the node contains an Event ID based on the node's unique ID, and if
-   that Event ID could have been copied from the node, resetting the node to default shall reload that
+   that Event ID could have been copied from the node, resetting the node to default shall reconfigure that
    producer or consumer with a newly-defined Event ID that has not been used before.
 
                                 7 Implementation via CAN Transport (Normative)
@@ -267,7 +267,7 @@
    in the following table.
 
    MessageName                       Dest ID Event ID Simple Node Header Format           Data-part Content 
-   Producer/Consumer Event Report    N       Y        N           0x195B,4sss1            Event ID          
+   Producer/Consumer Event Report    N       Y        Y           0x195B,4sss1            Event ID          
    (PCER)                            
    Identify Consumer                 N       Y        Y           0x198F,4sss             Event ID          
                                                                   0x194C,4sss — Valid                       
