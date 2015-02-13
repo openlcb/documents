@@ -4,7 +4,7 @@
 
                                                                 Event Transport
 
-                                                   Feb 12, 2015                         In Review           
+                                                   Feb 13, 2015                         In Review           
 
                                                 1 Introduction
 
@@ -208,7 +208,7 @@
    message will minimize the load on the network as only the node of interest will respond.
 
    In other cases, the node producing the Identify Events message willhas a lack of knowledge to which
-   nodes produce or consume the events of interestthat event not know if any node uses , and therefore the
+   nodes produce or consume the events of interest not know if any node uses that event, and therefore the
    global form is the more appropriate choice. Be aware that since this latter form is transmitted
    throughout the network, it can be relatively expensive in terms of bandwidth. The global form of
    Identify Events is similar to the combination of an Identify Producers and an Identify Consumers message
@@ -455,7 +455,58 @@
    ID. While Identify Event messages can be used to discover if a particualr Event is being used, it will
    not find any nodes that are not active, or have left the layout, so a conflict could occur if those
    nodes become active of the layout again. It is therefore much safer to reset to defaults and obtain a
-   new set of unused Events. This is particularly inportant is the node is passed onto someone else.
+   new set of unused Events. This is particularly inportantimportant is the node is passed onto someone
+   else.
+
+2.7 CAN Adaptation
+
+   For reference, we describe the messages defined in this standard as formatted for the CAN transport
+   protocol. This section is not normative; should there be a conflict between this document and the
+   Standards, then the Standards take precedence.
+
+   The CAN Frame Transport Standard and Message Network Standard define how OpenLCB messages are carried
+   across CAN networks. Following those standards, the Event Transport messages used on CAN are as defined
+   in the following table.
+
+               MessageName             Dest ID  Event ID  Simple      Header Format      Data-part Content  
+                                                           Node   
+
+    Producer/Consumer Event Report        N        Y        Y     0x195B,4sss^5          Event ID           
+    (PCER)                             
+
+    Identify Consumer                     N        Y        Y     0x198F,4sss            Event ID           
+
+                                                                  0x194C,4sss — Valid                       
+                                                                                         
+    Consumer Identified                   N        Y        N     0x194C,5sss — Invalid  Event ID
+                                                                                         
+                                                                  0x194C,7sss — Unknown  
+
+    Consumer Range Identified             N        Y        N     0x194A,4sss            Event ID Range     
+
+    Identify Producer                     N        Y        Y     0x1991,4sss            Event ID           
+
+                                                                  0x1954,4sss — Valid                       
+                                                                                         
+    Producer Identified                   N        Y        N     0x1954,5sss — Invalid  Event ID
+                                                                                         
+                                                                  0x1954,7sss — Unknown  
+
+    Producer Identified Range             N        Y        N     0x1952,4sss            Event ID Range     
+
+                                          N        N        Y     0x1997,0sss            
+    Identify Events
+                                          Y        N        N     0x1996,8sss            fddd^6             
+
+    Teach Event                           N        Y        Y     0x1959,4sss            Event ID           
+
+  2.7.1 CAN States
+
+   There are no CAN-specific modifications to the states described in Section 5 above.
+
+  2.7.2 CAN Interactions
+
+   There are no CAN-specific modifications to the interactions described in Section 6 above.
 
                                           3 Background information 
 
@@ -463,7 +514,7 @@
 
    An OpenLCB Event represents the sum of all the causes and actions associated with particular concept ,
    such as “Night is falling”, and implements a many-to-many relationship. It has been referred to as the
-   Producer-Consumer Model, in opposition to the Master-Slave Model.^5  Each Event is abstracted into a
+   Producer-Consumer Model, in opposition to the Master-Slave Model.^7  Each Event is abstracted into a
    single unique event-number. An Event-message contains only this event-number. An advantage of this model
    is that new triggers or new causes which cause the production of the event-number, or new actions
    resulting from the consumption the event-number, can be implemented by a node without reference to other
@@ -471,7 +522,7 @@
 
    Events are most often used to advertise changes in system state, for example a occupancy detector's
    state. The model maintains the distributed-state model of a layout because Events-messages are
-   broadcast^6 to all nodes, and this allows individual producers and consumers to use them to change their
+   broadcast^8 to all nodes, and this allows individual producers and consumers to use them to change their
    knowledge of the distributed state.
 
    Other important, and perhaps not obvious, uses include: publishing a capability using an event from a
@@ -606,7 +657,7 @@
    trigger reactions to them), but they must also be well-known. All of these are assigned with the
    01.00.00.00.00.00 or 01.01.00.00.00.00 reserved IDs in their upper six bytes to ensure uniqueness and
    simplify recognition.  The OpenLCB group maintains a central list of the individual assigned Event
-   IDs.^7
+   IDs.^9
 
    The Event IDs that start 01.00.00.00.00.00 are the automatically-routed events, a subset of the
    well-known events.
@@ -628,7 +679,7 @@
 
    2.3 References and Context 2
 
-   2.4 Message Formats 3
+   2.4 Message Formats 2
 
    2.4.1 Producer/Consumer Event Report (PCER) 4
 
@@ -666,23 +717,29 @@
 
    2.6.6 Resetting to Default 10
 
-   3 Background information  10
+   2.7 CAN Adaptation 10
 
-   3.1 Gateways 11
+   2.7.1 CAN States 11
 
-   3.2 Examples 11
+   2.7.2 CAN Interactions 11
 
-   3.2.1 Case 1: All nodes initialized before link established, event X is sent 11
+   3 Background information  11
 
-   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above 12
+   3.1 Gateways 12
 
-   3.2.3 Case 3: Node A1 comes up, then event X is sent 12
+   3.2 Examples 12
 
-   3.2.4 Case 4: Node A1 comes up, then event Y is sent 12
+   3.2.1 Case 1: All nodes initialized before link established, event X is sent 12
 
-   3.3 Node Implementation hints 12
+   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above 13
 
-   3.4 Well known events 13
+   3.2.3 Case 3: Node A1 comes up, then event X is sent 13
+
+   3.2.4 Case 4: Node A1 comes up, then event Y is sent 13
+
+   3.3 Node Implementation hints 13
+
+   3.4 Well known events 14
 
    1D. Miorandi and S. Vitturi, “Performance analysis of producer/consumer protocols over IEEE 802.11
    wireless links”, Proc. IEEE Workshop Factory Communication Systems (WFCS), 2004
@@ -696,14 +753,19 @@
    products. Some work has gone into a system for doing this with two buttons and two LEDs, called the
    “Blue/Gold configuration”, but this has not become a consensus solution as of the time of this writing.
 
-   5 For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html and
+   5sss — The 12-bit source alias field.
+
+   6fddd — First two bytes of the data-part, representing the flag bits and 12-bit destination Alias. See
+   the CAN Frame Transport Standard.
+
+   7 For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html and
    http://openlcb.org/trunk/scratchpads/JohnSL/Tech_Note_Introduction_to_the_PC_Model_2007-10-10.pdf
 
-   6 OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
+   8 OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
    those bus segments on which a node has expressed interest. Event-ranges are used to express interest in
    a classes of events.
 
-   7See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
+   9See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
 
    Copyright 2011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 11 - Feb 12, 2015
+   1 of 12 - Feb 13, 2015
