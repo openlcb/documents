@@ -150,7 +150,7 @@
 
      * Address
 
-     * Size
+     * Size (in bytes)
 
      * End Address, which shall be Address + Size.
 
@@ -165,7 +165,7 @@
    more Data Elements. This sequence is considered to contain a Data Element of size 0 (zero) before the
    specified Data Elements1.
 
-   The Address of a <group> is defined as the Address of the previous Element plus the value of the
+   The Address of a <group> is defined as the End Address of the previous Element plus the value of the
    attribute `offset'.
 
    If the `replication' attribute is present with the value of N, then the group shall be considered as if
@@ -187,8 +187,8 @@
    The Size of the <bit> Element is defined as the value of the `size' attribute divided by 8 rounded up to
    the next integer.
 
-   A value of true / on / yes shall be represented by writing a non-zero integer value to the data pointed
-   to. A value of false / off / no shall be represented by writing zeros to the data pointed to.
+   A value of true / on / yes shall be represented by writing the bit 1 to the LSB of the data pointed to.
+   A value of false / off / no shall be represented by writing all zeros to the data pointed to.
 
     5.1.4.3 <int> Element
 
@@ -215,6 +215,21 @@
 
    The string value shall be written to the bytes pointed to, starting at the Address of the <string>
    Element. When writing a shorter string, any unused bytes shall be set to 0 (zero).
+
+   If the <map> enumeration is present, then values not present in the list of <property> entries of the
+   enumeration are invalid and shall not be written.
+
+    5.1.4.5 <eventid> Element
+
+   The <eventid> Element defines a variable holding an 8-byte value representing an Event ID.
+
+   The Address of the <eventid> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
+
+   The Size of the <eventid> Element is defined as 8 bytes.
+
+   The Event ID shall be written to the bytes pointed to in big-endian byte order (most significant byte
+   first).
 
    If the <map> enumeration is present, then values not present in the list of <property> entries of the
    enumeration are invalid and shall not be written.
@@ -915,6 +930,8 @@
    5.1.4.3 <int> Element
 
    5.1.4.4 <string> Element
+
+   5.1.4.5 <eventid> Element
 
    6 Future Extension (Normative)
 
