@@ -343,36 +343,59 @@
    Numerous messages are defined to carry status information and error codes. An OpenLCB Error code is a
    2-byte value of the following format:
 
-   Error Codes
-   Bits  Value  Description                                                                                 
-   Error Type.  Exactly zero or one of the following bits shall be set:
-         0x8000 Accept, no error. This value shall not be used in Reject messages.                          
-   12-15 0x4000 Reserved. Send as 0, treat it as unspecified Permanent error when received.                 
-         0x2000 Temporary error (resend OK). Re-trying the same interaction later is likely to succeed.     
-         0x1000 Permanent error. Re-trying the same interaction will result in the same error.              
-   Specific Error Enumeration:
-   8-11  Reserved for future use.  
-   General Error Flags:  
-         For Permanent error, the following flags are defined, and may be used:
-         0x1080 Invalid arguments. Some of the values sent in the message fall outside of the expected      
-                range, or do not match the expectations of the receiving node.                              
-                Unimplemented. The functionality that the message tried to invoke is not implemented in the 
-         0x1040 destination node.  Also, while the transport protocol is supported, the specific data       
-                content is not recognized or not supported.                                                 
-         0x1020 Source not permitted.                                                                       
-   4-7   0x1010 Unimplemented. The functionality that the message tried to invoke is not implemented in the 
-                destination node.                                                                           
-         For Temporary error (resend OK), the following flags are defined, and may be used:
-         0x2080 Transfer error.  The message or received message was ill-formed, failed checksum, or is     
-                otherwise uninterpretable.  On CAN, this is handled by the hardware.                        
-                Unexpected, Out of order. An inconsistency was found in the message or frame sequence       
-         0x2040 received, the arrived message is unexpected or does not match the state of the receiving    
-                node.                                                                                       
-         0x2020 Buffer unavailable or destination node busy.                                                
-   Additional flags:
-         Reserved for use of specific protocols for error reporting.  Interpretation of these bits will be
-   0-3   defined in the specific protocol documentation.  A value of zero in this field means no further
-         information is available.  
+    
+
+   Error Code Format
+   Bits  Description                                                                                        
+   12-15 Error type flags.                                                                                  
+   8-11  Reserved.  Send as zero, ignore on receipt.                                                        
+   4-7   General Error Enumeration 0-15.                                                                    
+         Reserved for use of specific protocols for error reporting.  Interpretation of these bits will be  
+   0-3   defined in the specific protocol documentation.  A value of zero in this field means no further    
+         information is available.                                                                          
+
+   The following error codes are defined:
+
+    
+
+   Error Codes   
+   Value         Description                                                                                
+   Permanent Error Enumeration. Re-trying the same interaction will result in the same error.
+   0x1000        Permanent error, not further specified.                                                    
+   0x1010        Unimplemented, not further specified.                                                      
+   0x1020        Source not permitted.                                                                      
+   0x1030        Reserved.                                                                                  
+   0x1040        Unimplemented, not further specified.                                                      
+   0x1050        Unimplemented, subcommand is unknown.                                                      
+   0x1060        Unimplemented, Datagram-type, Stream-type, or command is unknown.                          
+   0x1070        Unimplemented, unknown MTI, or Transport protocol (datagrams/streams) is not supported.    
+   0x1080        Invalid arguments. Some of the values sent in the message fall outside of the expected     
+                 range, or do not match the expectations of the receiving node.                             
+   0x1090-0x10F0 Reserved.                                                                                  
+   Temporary Error (resent OK).  Re-trying the same interaction later is likely to succeed.
+   0x2000        Temporary error, not further not specified.                                                
+   0x2010        Reserved.                                                                                  
+   0x2020        Buffer unavailable or destination node busy.                                               
+   0x2030        Reserved.                                                                                  
+                 Unexpected, Out of order. An inconsistency was found in the message or frame sequence      
+   0x2040        received, the arrived message is unexpected or does not match the state of the receiving   
+                 node.                                                                                      
+   0x2050-0x2070 Reserved.                                                                                  
+   0x2080        Transfer error.  The message or received message was ill-formed, failed checksum, or is    
+                 otherwise uninterpretable.  On CAN, this is handled by the hardware.                       
+   0x2090-0x20F0 Reserved.                                                                                  
+   Reserved      
+   0x4000        Reserved.  Write as zero, ignored on read.                                                 
+   Accept Flag   
+   0x8000        Accept, no error.  This value shall not be used in reject messages.                        
+
+    
+
+    
+
+    
+
+    
 
     
 
