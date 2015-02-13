@@ -18,8 +18,8 @@
 
                                          2 Intended Use (Informative)
 
-   Any limitations to the area of use of the StandardIntendedCDI is intended to be used to by a
-   configurable, self-contained OpenLCB nodes.. to tell a Configuration Tool (CT) how to configure the
+   IntendedAny limitations to the area of use of the StandardCDI is intended to be used to by a
+   configurable, self-contained OpenLCB node..s to tell a Configuration Tool (CT) how to configure the
    node. The configuration tool will use the CDI information to help the user configure all aspects of the
    node's capabilities.
 
@@ -30,7 +30,9 @@
    Variables can be grouped together, groups can be repeated (for example if a Node has multiple outputs)
    and nested to express complex configuration setups with concise description.
 
-              3 References and Context (NormativeInformative)Citations to other docs, as needed.
+                               3 References and Context (NormativeInformative)
+
+                                    4 Citations to other docs, as needed.
 
    For more information on format and presentation, see:
 
@@ -46,7 +48,7 @@
 
      * World Wide Web Consortium (W3C) “XML Schema”^ii
 
-                                         4 FormatContent (nNormative)
+                                         5 FormatContent (nNormative)
 
    The configuration description information for a node is invariant while the node has any OpenLCB
    connections in the Initialized state.
@@ -62,7 +64,7 @@
        The segment definition specifies the organization of each segment. A segment consists of zero or
        more bytes with a linear address space.
 
-                                             5 Format (normative)
+                                             6 Format (normative)
 
    The CDI is provided as a zero-terminated string of bytes. The bytes encode UTF-8 characters. There is no
    byte-order mark (BOM) at the start of the string. Lines in the string are delimited with 0x12 Newline
@@ -93,9 +95,9 @@
 
    Numerical values in attributes and element text shall be specified as decimal numbers.
 
-5.1 Use of XMLXML Elements
+6.1 Use of XMLXML Elements
 
-  5.1.1 <identification> Element
+  6.1.1 <identification> Element
 
    The <identification> element, if included, specifies manufacturer-provided identification information
    about the node. This information is not user-editable. If this Element is provided and the node also
@@ -104,7 +106,7 @@
    provides the <acdi> Element, the contents provided by the ACDI spaces shall match the respective tags in
    the <identification> Element.
 
-  5.1.2 <acdi> Element
+  6.1.2 <acdi> Element
 
    The <acdi> Element, if specified without the attribute `fixed', with the attribute `fixed=”1”',
    `fixed=”4”' or higher, specifies that the following information is available for read:
@@ -146,15 +148,13 @@
    A node may, but is not required to, express the same configuration options as specific segments and
    Elements therein. entries.
 
-  5.1.3 <segment> Element
+  6.1.3 <segment> Element
 
-5.2 CDI is constant
+6.2 Other stuff
 
-5.3 Other stuff
-
-5.4 A <segment> element defines the value of Space in the attribute `space', which shall apply to all
-otherData Elements within, and the value of `origin', which shall be considered as the Address of an Element
-of size 0 (zero) at the beginning of the <segment>^1.
+6.3 CDI is constantA <segment> element defines the value of Space in the attribute `space', which shall apply
+to all otherData Elements within, and the value of `origin', which shall be considered as the Address of an
+Element of size 0 (zero) at the beginning of the <segment>^1.
 
    A Configuration Tool may, but is not required to, perform visual separation of the contents of different
    segments by appropriate UI elements, such as tabs, boxes or horizontal bars.
@@ -162,7 +162,7 @@ of size 0 (zero) at the beginning of the <segment>^1.
    A <segment> element shall contain an optional user-readable name and description tags, and a sequence of
    zero or more Data Elements.
 
-  5.4.1 Data Elements
+  6.3.1 Data Elements
 
    The following Elements are considered Data Elements: <group>, <bit>, <int>, <string>, <eventid>.
 
@@ -172,11 +172,11 @@ of size 0 (zero) at the beginning of the <segment>^1.
 
      * Address
 
-     * Size
+     * Size (in bytes)
 
      * End Address, which shall be Address + Size.
 
-    5.4.1.1 <group> Element
+    6.3.1.1 <group> Element
 
    The <group> Element allows logical grouping of Variables, providing common documentation for them, and
    making multiple copies of the contained Variables occupying a contiguous memory area. Nodes may, but are
@@ -187,7 +187,7 @@ of size 0 (zero) at the beginning of the <segment>^1.
    more Data Elements. This sequence is considered to contain a Data Element of size 0 (zero) before the
    specified Data Elements^1.
 
-   The Address of a <group> is defined as the Address of the previous Element plus the value of the
+   The Address of a <group> is defined as the End Address of the previous Element plus the value of the
    attribute `offset'.
 
    If the `replication' attribute is present with the value of N, then the group shall be considered as if
@@ -199,7 +199,7 @@ of size 0 (zero) at the beginning of the <segment>^1.
 
    The Size of a <group> Element is defined as the End Address minus the Address of the <group> Element.
 
-    5.4.1.2 <bit> Element
+    6.3.1.2 <bit> Element
 
    The <bit> Element defines a Variable of boolean value.
 
@@ -209,10 +209,11 @@ of size 0 (zero) at the beginning of the <segment>^1.
    The Size of the <bit> Element is defined as the value of the `size' attribute divided by 8 rounded up to
    the next integer.
 
-   A value of true / on / yes shall be represented by writing a non-zero integer value to the data pointed
-   to. A value of false / off / no shall be represented by writing zeros to the data pointed to.
+   A value of true / on / yes shall be represented by writing a non-zero integerthe bit 1 to the LSB value
+   t ofo the data pointed to. A value of false / off / no shall be represented by writing all zeros to the
+   data pointed to.
 
-    5.4.1.3 <int> Element
+    6.3.1.3 <int> Element
 
    The <int> Element defines a Variable of boolean value.
 
@@ -226,7 +227,7 @@ of size 0 (zero) at the beginning of the <segment>^1.
    are invalid and shall not be written. If the <map> enumeration is present, then values not present in
    the list of <property> entries of the enumeration are invalid and shall not be written.
 
-    5.4.1.4 <string> Element
+    6.3.1.4 <string> Element
 
    The <string> Element defines a variable holding a UTF-8 string that is user-readable.
 
@@ -241,7 +242,22 @@ of size 0 (zero) at the beginning of the <segment>^1.
    If the <map> enumeration is present, then values not present in the list of <property> entries of the
    enumeration are invalid and shall not be written.
 
-                 6 Stuff to be merged into the above (or the TN)Future Extension (Normative)
+    6.3.1.5 <eventid> Element
+
+   The <eventid> Element defines a variable holding an 8-byte value representing an Event ID.
+
+   The Address of the <eventid> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
+
+   The Size of the <eventid> Element is defined as 8 bytes.
+
+   The Event ID shall be written to the bytes pointed to in big-endian byte order (most significant byte
+   first).
+
+   If the <map> enumeration is present, then values not present in the list of <property> entries of the
+   enumeration are invalid and shall not be written.
+
+                 7 Stuff to be merged into the above (or the TN)Future Extension (Normative)
 
    Configuration Tools implementing a future version of this Standard must be able to process CDI content
    defined according to any earlier version of the Standard, including this version.
@@ -259,10 +275,12 @@ of size 0 (zero) at the beginning of the <segment>^1.
        Element plus the value of the `offset' attribute, and Size defined as the value of the `size'
        attribute in bytes. The `size' attribute of all future Data Elements shall be required.
 
-   No assumptions may be made about major version 2 and up of this Standard.But we add the <acdi> element
-   to it, so the document isn't really complete; “Other protocols may add, but not remove, elements and
-   attributes”? Remove constraints? How does extensibility work here?The first byte is used to distinguish
-   the coding.
+   No assumptions may be made about major version 2 and up of this Standard.
+
+   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
+   what we check.
+
+   The first byte is used to distinguish the coding.
 
    “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
 
@@ -271,10 +289,9 @@ of size 0 (zero) at the beginning of the <segment>^1.
    0x01 – tag for compressed. One format defined for total start string of 0x0101. (If you want to use
    another format, decompress on board)
 
-   (can't use 0x00 as lead, since that's the end-of-string indication)
-
-   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's
-   what we check.
+   (can't use 0x00 as lead, since that's the end-of-string indication)But we add the <acdi> element to it,
+   so the document isn't really complete; “Other protocols may add, but not remove, elements and
+   attributes”? Remove constraints? How does extensibility work here?
 
                                              A.  B. Appendix: Schema
 
