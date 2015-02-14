@@ -214,7 +214,7 @@
 
    Nodes shall process this message even if not all of the contents are provided.
 
-   For error codes see section #Error Codes  and section #3.4.3.Error Handling.  
+   For error codes see section #3.5.5 Error Codes  and section #3.4.3.Error Handling.  
 
   3.3.6 Protocol Support Inquiry
 
@@ -356,9 +356,11 @@
 
     
 
-   The following error codes are defined:
+    
 
-   Error Codes   
+   The following General Error Codes are defined, and shall be used by all Protocols:
+
+   General Error Codes
    Value         Description                                                                                
    Permanent Error Enumeration. Re-trying the same interaction will result in the same error.
    0x1000        Permanent error, not further specified.                                                    
@@ -375,7 +377,7 @@
    0x1090-0x10F0 Reserved.                                                                                  
    Temporary Error (resent OK).  Re-trying the same interaction later is likely to succeed.
    0x2000        Temporary error, not further not specified.                                                
-   0x2010        Reserved.                                                                                  
+   0x2010        Timeout, the expected message or message-part did not arrive in time.                      
    0x2020        Buffer unavailable or destination node busy.                                               
    0x2030        Reserved.                                                                                  
                  Not expected, Out of order. An inconsistency was found in the message or frame sequence    
@@ -391,6 +393,17 @@
    0x8000        Accept, no error.  This value shall not be used in reject messages.                        
 
    NB: Nodes may return 0x0000 as an error-code.  
+
+    
+
+   The following Error Codes shall be specifically used by the Message Network Protocol:
+
+   Message Network Specific Error Codes
+   Value            Description                                                             
+   Temporary Error (resent OK).  Re-trying the same interaction later is likely to succeed.
+   0x2011           Time-out, waiting for End-frame.                                        
+   0x2041           Out of Order, Middle- or End-frame without a Start-frame.               
+   0x2042           Out of Order, Start-frame before finishing previous message.            
 
 3.6 Routing
 
