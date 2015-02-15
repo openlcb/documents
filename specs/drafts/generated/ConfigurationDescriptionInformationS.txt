@@ -146,12 +146,20 @@
    A Configuration Tool may, but is not required to, perform visual separation of the contents of different
    segments by appropriate UI elements, such as tabs, boxes or horizontal bars.
 
-   A <segment> element shall contain an optional user-readable name and description tags, and a sequence of
-   zero or more Data Elements.
+   A <segment> element shall contain an optional user-readable name and optional description tags, and a
+   sequence of zero or more Data Elements.
 
   5.1.4 Data Elements
 
    The following elements are considered Data Elements: <group>, <int>, <string>, <eventid>.
+
+   The value of the address within the segment is accumulated during a depth-first traversal of the
+   contents of the segment definition element.  Address is initialized with the value of the attribute
+   `origin' on the <segment> element.  Each time an offset attribute is encountered, the value of the
+   address is incremented by the offset (which may be negative) before any other processing of the element
+   is done.  If the element defines a variable, the variable is located at the current address, and the
+   address is then incremented by the size of that variable before advancing to the next element. This is
+   formalized as follows.
 
    For each Data Element the following values are defined:
 
@@ -162,7 +170,7 @@
 
      * Size (in bytes)
 
-     * End Address, which is defined as Address + Size, unless otherwise specified,
+     * End Address, which is defined as Address + Size, unless otherwise specified.
 
     5.1.4.1 <group> Element
 
@@ -855,7 +863,7 @@
 
    2 http://www.w3.org/XML/Schema
 
-   3 This is required to make “previous Element” an unambiguous reference for the first Element in the
+   3 This is required to make “previous element” an unambiguous reference for the first element in the
    contained sequence.
 
    4 No name, no description and no Data Elements contained.
