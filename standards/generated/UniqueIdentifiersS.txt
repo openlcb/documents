@@ -88,22 +88,25 @@
    details of these ranges are defined in in either the Event Identifiers Standard or another Standard.
 
     Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Organization                  Comment                   
+                                                                  Reserved for automatically-touted Event   
+      01      00      00      00      00      00      OpenLCB     Identifiers. See Event Identifiers        
+                                                                  Standard.                                 
                                                                   Reserved for well-known Event             
       01      01      00      00      00      00      OpenLCB     Identifiers. See Event Identifiers        
                                                                   Standard.                                 
                                                                   Reserved for CBUS-defined Event           
-      01      01      01      00       Node ID          MERG      Identifiers (ON state). See Event         
+      01      01      01      00     CBUS Node ID       MERG      Identifiers (ON state). See Event         
                                                                   Identifiers Standard.                     
                                                                   Reserved for CBUS-defined Event           
-      01      01      01      01       Node ID          MERG      Identifiers (OFF state). See Event        
+      01      01      01      01     CBUS Node ID       MERG      Identifiers (OFF state). See Event        
                                                                   Identifiers Standard.                     
-      01      01      01      *        Node ID          MERG      Reserved for CBUS-defined future          
+      01      01      01      *      CBUS Node ID       MERG      Reserved for CBUS-defined future          
                                                                   expansion.                                
       01      63      *       *       *       *       OpenLCB     XpressNet translation                     
       01      81      *       *       *       *       OpenLCB     LocoNet translation                       
       01      EE      *       *       *       *       OpenLCB     DCC Translation                           
 
-5.4 Manufacture Specific
+5.4 Manufacturer Specific
 
    Manufacturers shall ensure uniqueness for identifiers they assign.
 
@@ -118,7 +121,7 @@
       02      01      0D        Self-Assigned             DIY         space, not recommended for            
                                                                       individual use)                       
       02      01      12        Self-Assigned             JMRI        JMRI (for use in software solutions)  
-      02      01      A5      *        Node ID            MERG        MERG Node ID translation              
+      02      01      A5      *      CBUS Node ID         MERG        MERG Node ID translation              
       02      01      EE      *       *       *           NMRA        NMRA Reserved (for extended           
                                                                       manufacture ID numbers)               
 
@@ -138,7 +141,7 @@
       03      04      Membership Number       *         MERG      to, use their MERG membership number to   
                                                                   self-assign Unique Identifiers. The       
                                                                   least significant byte is self-assigned.  
-      03      08      Layout ID        Node ID          MERG      CBUS – for mapping existing modules,      
+      03      08    CBUS Layout ID   CBUS Node ID       MERG      CBUS – for mapping existing modules,      
                                                                   using the Layout ID defined by CBUS       
 
 5.6 Assigned by Software at Runtime
@@ -228,16 +231,23 @@
 
 5.10 Temporary Assigned by Software at Runtime
 
-   A program running in a computer with an IP address must not use that address to directly formulate a
-   unique identifier. Furthermore, a program may dynamically allocate nodes who need a Unique Identifier
-   assigned to them. The program may use an IP connection, or another unspecified method, to request a
-   unique identifier from openlcb.org, or from another organization that is distributing unique identifiers
-   from a range designated to it.
+   This range has been reserved for specialized software and network services specifically designed to
+   lease a Unique Identifier to nodes upon request. Nodes that come without a Unique Identifier (such as
+   computer programs) may contact an instance of such leasing service to obtain a Unique Identifier. Nodes
+   may use any method outside the OpenLCB network to locate and communicate with a leasing service (for
+   example an Internet connection or a local TCP/IP network). The leases shall be limited in time, and a
+   node shall not use an identifier after the lease time expires. The node may communicate with the leasing
+   service to periodically extend the lease.
 
-   These Unique Identifiers are assigned on a leased basis. A temporary (leased) Unique Identifier server
-   will issue a Unique Identifier that is valid for a designated period of time. When the lease period is
-   up, the Unique Identifier server may re-issue the same Unique Identifier to another node as needed. The
-   Unique Identifier server and client can periodically negotiate an extension of the lease indefinitely.
+   Each such service shall operate from a range assigned to the specific instance, and is responsible for
+   ensuring uniqueness among its clients. The owner or maintainer of an OpenLCB Installation is responsible
+   for ensuring that all the leasing services that all the nodes participating in the installation are
+   using, have disjoint ranges. In particular, if the Installation operates one or more leasing services,
+   they must be assigned disjoint ranges to hand out identifiers from. Globally available leasing services
+   (such as over the Internet) shall have a unique range assigned to them.
+
+   It is possible that a future OpenLCB protocol may, or may not, define a mechanism to negociate a Unique
+   Identifier lease over an OpenLCB network.
 
     Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6    Organization                  Comment                 
       08      00      00    Sequentially Assigned       OpenLCB       Allocated through OpenLCB.org         
