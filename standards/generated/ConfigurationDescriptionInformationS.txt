@@ -77,7 +77,7 @@
 
    This version of this Standard specifies version 1.1 of the schema. That version of the schema is defined
    at http://openlcb.org/schema/1/1/cdi.xsl and in Appendix A of this document. The CDI content shall pass
-   validation against itsthe particularreferenced schema. Nodes are not required to thischeckdo the
+   validation against itsthe particularreferenced schema. Nodes are not required to check thisdo the
    validation.
 
    The version number of an OpenLCB CDI schema contains two numbers: The major version first, and the minor
@@ -163,12 +163,20 @@
    A Configuration Tool may, but is not required to, perform visual separation of the contents of different
    segments by appropriate UI elements, such as tabs, boxes or horizontal bars.
 
-   A <segment> element shall contain an optional user-readable name and description tags, and a sequence of
-   zero or more Data Elements.
+   A <segment> element shall contain an optional user-readable name and optional description tags, and a
+   sequence of zero or more Data Elements.
 
   5.1.4 Data Elements
 
    The following Elementelements are considered Data Elements: <group>, <bit>, <int>, <string>, <eventid>.
+
+   The value of the address within the segment is accumulated during a depth-first traversal of the
+   contents of the segment definition element.  Address is initialized with the value of the attribute
+   `origin' on the <segment> element. Each time an offset attribute is encountered, the value of the
+   address is incremented by the offset (which may be negative) before any other processing of the element
+   is done.  If the element defines a variable, the variable is located at the current address, and the
+   address is then incremented by the size of that variable before advancing to the next element. This is
+   formalized as follows.
 
    For each Data Element the following values are defined:
 
@@ -179,7 +187,7 @@
 
      * Size (in bytes)
 
-     * End Address, which shallis defined as be Address + Size., unless otherwise specified,
+     * End Address, which shallis defined as be Address + Size., unless otherwise specified.
 
     5.1.4.1 <group> Element
 
@@ -205,27 +213,29 @@
    The Size of a <group> Elementelement is defined as the End Address minus the Address of the <group>
    Elementelement.
 
-   Configuration Tools shall not render a <group> element with no child elements^4 on their UI. is defined
-   as the value of the `size' attribute divided by 8 rounded up to the next integer.
+   Configuration Tools shall not render a <group> element with no child elements^4 on their UI.
+
+   <bit> Element
+
+   The <bit> Element defines a Variable of boolean value.
+
+   The Address of the <bit> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
+
+   The Size of the <bit> Element is defined as the value of the `size' attribute divided by 8 rounded up to
+   the next integer.
 
    A value of true / on / yes shall be represented by writing the bit 1 to the LSB of the data pointed to.
-   A value of false / off / no shall be represented by writing all zeros to the data pointed to.Element is
-   defined as the End Address of the previous Data Element plus the value of the `offset' attribute.
-
-   The Size of the <bit> Element defines a Variable of boolean value.
-
-   The Address of the <bit> Element<bit> Element
-
-   The <bit>
+   A value of false / off / no shall be represented by writing all zeros to the data pointed to.
 
     5.1.4.2 <int> Element
 
    The <int> Elementelement defines a Variable of booleaninteger value.
 
-   is defined as the End Address of the previous Data Element plus the value of the `offset' attribute.
+   The Address of the <int> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
 
-   ElementThe Address of the <int> The Size of the <int> Elementelement is defined as the value of the
-   `size' attribute in bytes.
+   The Size of the <int> Elementelement is defined as the value of the `size' attribute in bytes.
 
    The integer value shall be written to the bytes pointed to in big-endian byte order. All bytes shall be
    written. Values falling outside of the range smaller than defined by the <min> or larger than defined by
@@ -237,10 +247,10 @@
 
    The <string> Elementelement defines a variable holding a UTF-8 string that is user-readable.
 
-   is defined as the End Address of the previous Data Element plus the value of the `offset' attribute.
+   The Address of the <string> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
 
-   ElementThe Address of the <string> The Size of the <string> Elementelement is defined as the value of
-   the `size' attribute in bytes.
+   The Size of the <string> Elementelement is defined as the value of the `size' attribute in bytes.
 
    The string value shall be written to the bytes pointed to, starting at the Address of the <string>
    Elementelement, with at least one trailing 0 (null) byte. When writing a shorter string, any unused
@@ -253,9 +263,10 @@
 
    The <eventid> Elementelement defines a variable holding an 8-byte value representing an Event ID.
 
-   is defined as the End Address of the previous Data Element plus the value of the `offset' attribute.
+   The Address of the <eventid> Element is defined as the End Address of the previous Data Element plus the
+   value of the `offset' attribute.
 
-   ElementThe Address of the <eventid> The Size of the <eventid> Elementelement is defined as 8 bytes.
+   The Size of the <eventid> Elementelement is defined as 8 bytes.
 
    The Event ID shall be written to the bytes pointed to in big-endian byte order (most significant byte
    first).
@@ -1499,10 +1510,10 @@
 
    2http://www.w3.org/XML/Schema
 
-   3This is required to make “previous Element” an unambiguous reference for the first Element in the
+   3This is required to make “previous Eelement” an unambiguous reference for the first Eelement in the
    contained sequence.
 
    4No name, no description and no Data Elements contained.
 
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 13 - Feb 15, 2015
+   1 of 20 - Feb 15, 2015
