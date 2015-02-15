@@ -1,10 +1,10 @@
    PowerPlusWaterMarkObject1
 
-                                                                OpenLCB Standard
+                                                                   OpenLCB Standard
 
-                                                      Memory Access Configuration Protocol
+                                                                 Memory Configuration
 
-                                                 Feb 15, 2015                         In Review             
+                                                      Feb 15, 2015                     In Review            
 
                                          1 Introduction (Informative)
 
@@ -19,7 +19,7 @@
 
    This Standard is in the context of the following OpenLCB Standards:
 
-     * OpenLCB Configuration Description Information Protocol, which defines fixed information to allow a
+     * OpenLCB Configuration Description Information (CDI), which defines fixed information to allow a
        Configuration Tool (CT) to configure a node.
 
      * OpenLCB Datagram Transport Protocol, which defines the protocol for transporting 0-72 byte datagrams
@@ -27,9 +27,6 @@
 
      * OpenLCB Message Network, which defines message interchange for OpenLCB, specifically how this
        protocol appears in the Protocol Support Reply message and Error Codes.
-
-     * The OpenLCB CAN Frame Transport Standard, which defines the formats for transporting OpenLCB over
-       CAN networks.
 
      * The OpenLCB Stream Transport Standard, which defines the protocol for transporting data from node to
        node.
@@ -55,8 +52,8 @@
      * (space=0xFE, control bits=0b00000010) All memory – This special space provides access to all memory
        in the device, where “all” is defined by the designer.
 
-     * (space=0xFD, control bits=0b00000001) Configuration – A writeable basic configuration space, with
-       the structure of the 32-bit space defined by the designer.
+     * (space=0xFD, control bits=0b00000001) Configuration – A writeablewritable basic configuration space,
+       with the structure of the 32-bit space defined by the designer.
 
    These three spaces, inclusive, can (but do not have to) be addressed without an extra byte in the
    datagram using control bits in the flag byte (byte 1). All others must be specified as a byte value in
@@ -64,115 +61,172 @@
 
 4.3 Message Formats
 
-   The following table shows available configuration message formats. All other formats are reserved.
+   The following table shows available configuration message formats. All other formats are reserved. Note
+   that Byte 6 is optional. If Byte 6 is not used, it is not present in the message, and the remaining
+   bytes directly follow Byte 5 with no Byte 6 padding.
 
   4.3.1 Error Handling
 
    An unknown command in byte 1 shall return a datagram rejected reply with an error-code as defined in the
    OpenLCB Message Network Standard.
 
+   !!br0ken!!
+
   4.3.2 Read Command
 
-    Byte 0  Byte 1                Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Byte 7/6                   
-                                                                  (optional)     
+    Byte 0   Byte 1                 Byte 2             Byte 6          Byte 7/6                             
+                                                       (optional)      
+                                    Byte 3             
+                                                       
+                                    Byte 4             
+                                                       
+                                    Byte -5            
 
-    0x20    0x40 Space in byte 6         Starting Address         Address Space      Read Count (1-64)      
-            0x41 Space 0xFD                                                                                 
-            0x42 Space 0xFE                                                      Upper bit reserved, must   
-            0x43 Space 0xFF                                                             be ignored          
+    0x20     0x40 Space in byte 6   Starting Address   Address Space      Read Count (1- – 64 bytes64)      
+             0x41 Space 0xFD                                                                                
+             0x42 Space 0xFE                                           Upper bit reserved, must be ignored  
+             0x43 Space 0xFF        
 
   4.3.3 Read Reply
 
-    Byte 0  Byte 1              Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Byte 7/6.                    
-                                                                (optional)     
+    Byte 0  Byte 1                Byte 2            Byte 6         Byte 7/6.Remaining Bytes                 
+                                                    (optional)                                              
+                                  Byte 3                           (in network order, top to bottom)        
+                                                    
+                                  Byte 4            
+                                                    
+                                  Byte -5           
 
-    0x20    OK status:                 Starting Address         Address Space          Data (1-64)          
-                                
-            0x50 Space in byte  
-            6                   
-            0x51 Space 0xFD     
-            0x52 Space 0xFE     
-            0x53 Space 0xFF     
+    0x20    OK status:            Starting Address  Address Space          Data (1-64 – 64 bytes)           
+                                                                   
+            0x50 Space in byte 6  Starting Address  Address Space  
+            0x51 Space 0xFD       
+            0x52 Space 0xFE       
+            0x53 Space 0xFF       
 
-            Failure status:            Starting Address         Address Space          Error Code           
+            Failure status:                                          * Error Code                           
                                                                                                             
-            0x58 Space in byte                                                        (two bytes),          
-            6                                                                                               
-            0x59 Space 0xFD                                                       followed by optional      
-            0x5A Space 0xFE                                                      zero-terminated message    
-            0x5B Space 0xFF                                                              string             
+            0x58 Space in byte 6                                     * (two bytes),                         
+            0x59 Space 0xFD                                                                                 
+            0x5A Space 0xFE                                          * followed by optional                 
+            0x5B Space 0xFF                                            zero-terminated message string (0 –  
+                                                                       63 bytes)                            
 
   4.3.4 Read Stream Command
 
-    Byte 0  Byte 1                Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Remaining Bytes            
-                                                                  (optional)     
+    Byte 0  Byte 1                 Bytes 2-5         Byte 6         Remaining Bytes                         
+                                                     (optional)                                             
+                                                                    (in network order, top to bottom)       
 
-    0x20    0x60 Space in byte 6         Starting Address         Address Space    Read Count (4 bytes),    
-            0x61 Space 0xFD                                                         followed by stream      
-            0x62 Space 0xFE                                                       definition information    
-            0x63 Space 0xFF       
+    0x20    0x60 Space in byte 6   Starting Address  Address Space    * Read Count (4 bytes)                
+            0x61 Space 0xFD                                                                                 
+            0x62 Space 0xFE                                           * , followed by stream definition     
+            0x63 Space 0xFF Bits                                        informationDestination Stream ID    
+            7..6: 0b01                                                  (1 byte)                            
+                                   
+            Bit 5: 0b1 = stream    
+                                   
+            Bit 5: 0b0 = datagram  
+                                   
+            Bit 4: 0b1 = under     
+            mask                   
+                                   
+            Bit 4: 0b0 = not       
+            under mask             
+                                   
+            Bit 3: 0b0             
+                                   
+            Bit 2: 0b0, reserved   
+                                   
+            Bits 1..0: 0b00 =      
+            Space in byte 6        
+            Bits 1..0: 0b01 =      
+            Space 0xFD             
+            Bits 1..0: 0b10 =      
+            Space 0xFE             
+            Bits 1..0: 0b11 =      
+            Space 0xFF             
 
   4.3.5 Read Stream Reply
 
-    Byte 0  Byte 1                Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Byte 7/6                   
-                                                                  (optional)     
+    Byte 0  Byte 1                Bytes 2           Byte 6         Byte 7/6Remaining Bytes                  
+                                                    (optional)                                              
+                                  Byte 3                           (in network order, top to bottom)        
+                                                    
+                                  Byte 4            
+                                                    
+                                  Byte 5-5          
 
-    0x20    OK status:                   Starting Address         Address Space         Read Count          
+    0x20    OK status:            Starting Address  Address Space    * Read Count                           
                                                                                                             
-            0x70 Space in byte 6                                                        (4 bytes),          
+            0x70 Space in byte 6  Starting Address  Address Space    * (4 bytes),                           
             0x71 Space 0xFD                                                                                 
-            0x72 Space 0xFE                                                          Source Stream ID       
+            0x72 Space 0xFE                                          * Source Stream ID                     
             0x73 Space 0xFF                                                                                 
-                                                                                         (1 byte)           
+                                                                     * (1 byte)                             
 
-            Failure status:              Starting Address         Address Space         Error Code          
+            Failure status:                                          * Error Code                           
                                                                                                             
-            0x78 Space in byte 6                                                       (two bytes),         
+            0x78 Space in byte 6                                     * (two 2 bytes),                       
             0x79 Space 0xFD                                                                                 
-            0x7A Space 0xFE                                                        followed by optional     
-            0x7BSpace 0xFF                                                        zero-terminated message   
-                                                                                          string            
+            0x7A Space 0xFE                                          * followed by optional                 
+            0x7BSpace 0xFF                                             zero-terminated message string (0 –  
+                                                                       63 bytes)                            
 
   4.3.6 Write Command
 
-    Byte 0   Byte 1                 Byte 2   Byte 3   Byte 4   Byte 5   Byte 6          Remaining Bytes     
-                                                                        (optional)      
+    Byte 0      Byte 1                    Byte 2             Byte 6             Remaining Bytes             
+                                                             (optional)         
+                                          Byte 3             
+                                                             
+                                          Byte 4             
+                                                             
+                                          Byte -5            
 
-    0x20     0x00 Space in byte 6            Starting Address           Address Space   Data (1-64 bytes)   
-             0x01 Space 0xFD        
-             0x02 Space 0xFE        
-             0x03 Space 0xFF        
+    0x20        0x00 Space in byte 6      Starting Address     Address Space      Data (1-64 – 64 bytes)    
+                0x01 Space 0xFD           
+                0x02 Space 0xFE           
+                0x03 Space 0xFF           
 
   4.3.7 Write Reply
 
-    Byte 0  Byte 1              Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Remaining Bytes              
-                                                                (optional)     
+    Byte 0  Byte 1                Byte 2            Byte 6         Remaining Bytes                          
+                                                    (optional)                                              
+                                  Byte 3                           (in network order, top to bottom)        
+                                                    
+                                  Byte 4            
+                                                    
+                                  Byte -5           
 
-    0x20    OK status:                 Starting Address         Address Space            (None)             
-                                
-            0x10 Space in byte  
-            6                   
-            0x11 Space 0xFD     
-            0x12 Space 0xFE     
-            0x13 Space 0xFF     
+    0x20    OK status:            Starting Address  Address Space                  (None)                   
+                                                                   
+            0x10 Space in byte 6  Starting Address  Address Space  
+            0x11 Space 0xFD       
+            0x12 Space 0xFE       
+            0x13 Space 0xFF       
 
-            Failure status:            Starting Address         Address Space          Error Code           
+            Failure status:                                          * Error Code                           
                                                                                                             
-            0x18 Space in byte                                                        (two bytes),          
-            6                                                                                               
-            0x19 Space 0xFD                                                       followed by optional      
-            0x1A Space 0xFE                                                      zero-terminated message    
-            0x1B Space 0xFF                                                              string             
+            0x18 Space in byte 6                                     * (two bytes),                         
+            0x19 Space 0xFD                                                                                 
+            0x1A Space 0xFE                                          * followed by optional                 
+            0x1B Space 0xFF                                            zero-terminated message string (0 –  
+                                                                       63 bytes)                            
 
   4.3.8 Write Under Mask Command
 
-    Byte 0   Byte 1                 Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Remainder                
-                                                                    (optional)     
+    Byte 0      Byte 1                    Byte 2             Byte 6             Remainder                   
+                                                             (optional)         
+                                          Byte 3             
+                                                             
+                                          Byte 4             
+                                                             
+                                          Byte -5            
 
-    0x20     0x08 Space in byte 6          Starting Address         Address Space  Data pairs (2-64 bytes)  
-             0x09 Space 0xFD        
-             0x0A Space 0xFE        
-             0x0B Space 0xFF        
+    0x20        0x08 Space in byte 6      Starting Address     Address Space     Data pairs (2-64 bytes)    
+                0x09 Space 0xFD           
+                0x0A Space 0xFE           
+                0x0B Space 0xFF           
 
    The data pairs are (Mask, Data) where each of Mask and Data are single bytes. Bits in Data where the
    corresponding bit in Mask is a 1 will be written to the memory location. Bits in memory where the
@@ -181,87 +235,120 @@
 
   4.3.9 Write Stream Command
 
-    Byte 0    Byte 1                 Byte 2   Byte 3   Byte 4   Byte 5   Byte 6          Remainder          
-                                                                         (optional)      
+    Byte 0       Byte 1                      Byte 2             Byte 6              Remainder               
+                                                                (optional)          
+                                             Byte 3             
+                                                                
+                                             Byte 4             
+                                                                
+                                             Byte -5            
 
-    0x20      0x20 Space in byte 6            Starting Address           Address Space   Source Stream ID   
-              0x21 Space 0xFD                                                                (1 byte)       
-              0x22 Space 0xFE        
-              0x23 Space 0xFF        
+    0x20         0x20 Space in byte 6        Starting Address     Address Space        Source Stream ID     
+                 0x21 Space 0xFD                                                           (1 byte)         
+                 0x22 Space 0xFE             
+                 0x23 Space 0xFF             
 
   4.3.10 Write Stream Reply
 
-    Byte 0  Byte 1              Byte 2  Byte 3  Byte 4  Byte 5  Byte 6         Remaining Bytes              
-                                                                (optional)     
+    Byte 0  Byte 1                Byte 2            Byte 6         Remaining Bytes                          
+                                                    (optional)                                              
+                                  Byte 3                           (in network order, top to bottom)        
+                                                    
+                                  Byte 4            
+                                                    
+                                  Byte -5           
 
-    0x20    OK status:                 Starting Address         Address Space            (None)             
-                                
-            0x30 Space in byte  
-            6                   
-            0x31 Space 0xFD     
-            0x32 Space 0xFE     
-            0x33 Space 0xFF     
+    0x20    OK status:            Starting Address  Address Space                  (None)                   
+                                                                   
+            0x30 Space in byte 6  Starting Address  Address Space  
+            0x31 Space 0xFD       
+            0x32 Space 0xFE       
+            0x33 Space 0xFF       
 
-            Failure status:            Starting Address         Address Space          Error Code           
+            Failure status:                                          * Error Code                           
                                                                                                             
-            0x38 Space in byte                                                        (two bytes),          
-            6                                                                                               
-            0x39 Space 0xFD                                                       followed by optional      
-            0x3A Space 0xFE                                                      zero-terminated message    
-            0x3B Space 0xFF                                                              string             
+            0x38 Space in byte 6                                     * (two bytes),                         
+            0x39 Space 0xFD                                                                                 
+            0x3A Space 0xFE                                          * followed by ooptional                
+            0x3B Space 0xFF                                            zero-terminated message string (0 –  
+                                                                       63 bytes)                            
 
   4.3.11 Get Configuration Options Command
 
-    Byte 0      Byte 1      Byte 2      Byte 3      Byte 4      Byte 5      Byte 6          Remainder       
-                                                                            (Optional)      (Optional)      
+    Byte 0       Byte 1                                                                                     
 
-    0x20        0x80        
+    0x20         0x80                                                                                       
 
   4.3.12 Get Configuration Reply
 
-    Byte 0  Byte 1  Byte 2    Byte 3    Byte 4         Byte 5             Byte 6               Remainder    
+    Byte 0  Byte 1  Byte 2              Byte 4         Byte 5             Byte 6               Remainder    
                                                                           (Optional)           (Optional)   
+                    Byte -3             
 
     0x20    0x82    Available Commands  Write Lengths  Highest Address    Lowest Address       Name String  
                                                        Space              Space                
 
   4.3.13 Get Address Space Information Command
 
-    Byte 0      Byte 1      Byte 2             Byte 3      Byte 4      Byte 5      Byte 6     Remainder     
+    Byte 0       Byte 1        Byte 2                                                                       
 
-    0x20        0x84        Address Space      
+    0x20         0x84          Address Space                                                                
 
   4.3.14 Get Address Space Information Reply
 
-    Byte 0  Byte 1  Byte 2     Byte   Byte   Byte   Byte   Byte 7  Byte   Byte   Byte   Byte   Byte 12      
-                               3      4      5      6              8      9      10     11     
+    Byte 0      Byte 1     Byte 2         Byte 3              Byte 7     Byte 8             Byte 12         
+                                                                                            
+                                          Byte 4                         Byte 9             
+                                                                                            
+                                          Byte 5                         Byte 10            
+                                                                                            
+                                          Byte -6                        Byte -11           
 
-    0x20    0x86    Address    Highest Address             Flags   Lowest Address              Description  
-                    Space      
+    0x20        0x86       Address Space   Highest Address      Flags     Lowest Address     Description    
 
   4.3.15 Freeze Command
 
-    Byte 0      Byte 1      Byte 2             Byte 3      Byte 4      Byte 5      Byte 6     Remainder     
+    Byte 0       Byte 1        Byte 2                                                                       
 
-    0x20        0xA1        Address Space      
+    0x20         0xA1          Address Space                                                                
 
   4.3.16 Unfreeze Command
 
-    Byte 0      Byte 1      Byte 2             Byte 3      Byte 4      Byte 5      Byte 6     Remainder     
+    Byte 0       Byte 1        Byte 2                                                                       
 
-    0x20        0xA0        Address Space      
+    0x20         0xA0          Address Space                                                                
 
   4.3.17 Lock/Reserve Command
 
-    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+    Byte 0       Byte 1        Byte 2                                                                       
+                                                                                                            
+                               Byte 3                                                                       
+                                                                                                            
+                               Byte 4                                                                       
+                                                                                                            
+                               Byte 5                                                                       
+                                                                                                            
+                               Byte 6                                                                       
+                                                                                                            
+                               Byte -7                                                                      
 
-    0x20         0x88                                      Reserving Node ID
+    0x20         0x88                                       Reserving Node ID                               
 
   4.3.18 Lock/Reserve Reply
 
-    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+    Byte 0       Byte 1        Byte 2                                                                       
+                                                                                                            
+                               Byte 3                                                                       
+                                                                                                            
+                               Byte 4                                                                       
+                                                                                                            
+                               Byte 5                                                                       
+                                                                                                            
+                               Byte 6                                                                       
+                                                                                                            
+                               Byte -7                                                                      
 
-    0x20         0x8A                                       Reserved Node ID
+    0x20         0x8A                                       Reserved Node ID                                
 
   4.3.19 Get Unique ID Command
 
@@ -271,34 +358,44 @@
 
   4.3.20 Get Unique ID Reply
 
-    Byte 0         Byte 1         Remainder                                                                 
+    Byte 0       Byte 1        Remainder                                                                    
 
-    0x20           0x8D           1-8 requested EventIDs, a total of 8-64 bytes                             
+    0x20         0x8D          1-8 requested EventIDs, a total of 8-64 bytes                                
 
   4.3.21 Indicate Command
 
-    Byte 0         Byte 1                                                                                   
+    Byte 0       Byte 1                                                                                     
 
-    0x20           0xA3 on                                                                                  
-                   0xA2 off                                                                                 
+    0x20         0xA3 on                                                                                    
+                 0xA2 off                                                                                   
 
   4.3.22 Update Complete Command
 
-    Byte 0         Byte 1                                                                                   
+    Byte 0       Byte 1                                                                                     
 
-    0x20           0xA8                                                                                     
+    0x20         0xA8                                                                                       
 
   4.3.23 Reset/Reboot Command
 
-    Byte 0         Byte 1                                                                                   
+    Byte 0       Byte 1                                                                                     
 
-    0x20           0xA9                                                                                     
+    0x20         0xA9                                                                                       
 
   4.3.24 Reinitialize/Factory Reset Command
 
-    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+    Byte 0       Byte 1        Byte 2                                                                       
+                                                                                                            
+                               Byte 3                                                                       
+                                                                                                            
+                               Byte 4                                                                       
+                                                                                                            
+                               Byte 5                                                                       
+                                                                                                            
+                               Byte 6                                                                       
+                                                                                                            
+                               Byte -7                                                                      
 
-    0x20         0xAA         Node ID      
+    0x20         0xAA                                            Node ID                                    
 
 4.4 Operations
 
@@ -503,7 +600,7 @@
    board. “Start” (bit 0 = 1) means that the board should start indicating, and “Stop” (bit 0 = 0) means
    that the board should stop indicating. The data portion carries information that lets the board know
    what kind of indication to do. It's not always appropriate to operate outputs if they're e.g. driving
-   large mechanical systems like doors. (This needs to be specified more precisely)
+   large mechanical systems like doors.
 
    Table of Contents
 
