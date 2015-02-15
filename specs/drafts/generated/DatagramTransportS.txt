@@ -35,8 +35,8 @@
 
 4.1 Datagram Content
 
-   Name             Dest ID Event ID Common MTI Data Content 
-   Datagram Content Y       N        0x1C48     0-72 bytes   
+   Name             Simple Node Dest ID Event ID Common MTI Data Content 
+   Datagram Content N           Y       N        0x1C48     0-72 bytes   
 
     
 
@@ -47,8 +47,8 @@
 
     
 
-   Name                 Dest ID Event ID Common MTI Data Content   
-   Datagram Received OK Y       N        0x0A28     Flags (1 byte) 
+   Name                 Simple Node Dest ID Event ID Common MTI Data Content   
+   Datagram Received OK N           Y       N        0x0A28     Flags (1 byte) 
 
     
 
@@ -56,7 +56,7 @@
 
      * MSB 0x80 – Reply Pending – Use is defined by higher-level protocols.  
 
-     * Low four bits 0x0F – Timeout Value – Zero indicates no timeout value. A value N of 0X01 through 0x0F
+     * Low four bits 0x0F – Timeout Value – Zero indicates no timeout value. A value N of 0x01 through 0x0F
        indicates that the pending reply will be transmitted before 2N seconds have elapsed; if not, an
        error has occurred.
 
@@ -67,10 +67,10 @@
 
 4.3 Datagram Rejected
 
-   Name              Dest ID Event ID Common MTI Data Content 
-                                                 Error Code   
-   Datagram Rejected Y       N        0x0A48                  
-                                                 (2 bytes)    
+   Name              Simple Node Dest ID Event ID Common MTI Data Content 
+                                                             Error Code   
+   Datagram Rejected N           Y       N        0x0A48                  
+                                                             (2 bytes)    
 
     
 
@@ -82,12 +82,8 @@
    The Error Code field contains 16 bits and shall use the codes defined in the OpenLCB Message Network
    Standard.
 
-    
-
-   Nodes may, but are not required to, use 8-11of the error code field to define specific error codes in
+   Nodes may, but are not required to, use 0-3 of the error code field to define specific error codes in
    concert with the flag bits defined above.
-
-    
 
                                              5 States (Normative)
 
@@ -114,11 +110,11 @@
    Datagram Content message, it may, but is not required to, reject the 2nd Datagram by sending a Datagram
    Rejected message with the Transport error and Resend OK error flag bits set.
 
-   Upon receipt of a Datagram Rejected message with the Resend OK bit sent, the original transmitting node
+   Upon receipt of a Datagram Rejected message with the Resend OK bit set, the original transmitting node
    may resend the same Datagram Content message, or may abandon the transmission attempt.
 
-   Upon receipt of a Datagram Rejected message with the Resend OK bit resent, the original transmitting
-   node shall abandon the transmission attempt and not resend the original Datagram Content message.
+   Upon receipt of a Datagram Rejected message with the Resend OK bit clear, the original transmitting node
+   shall abandon the transmission attempt and not resend the original Datagram Content message.
 
                                   7 Adaptation to CAN Transport (Normative)
 
@@ -130,16 +126,18 @@
    messages are carried across CAN networks. Following those standards, the Datagram Transport messages
    used on CAN are as defined in the following table.
 
-   Name                 Dest ID Event ID Header Format          Data-part Content  
-                                         0x1Add,dsss1 — Single2                    
-                                                                
-                                         0x1Bdd,dsss — First    
-   Datagram Content     Y       N                               0–8 bytes
-                                         0x1Cdd,dsss — Middle   
-                                                                
-                                         0x1Ddd,dsss — Last     
-   Datagram Received OK Y       N        0x19A2,8sss            0xfddd3, Flags     
-   Datagram Rejected    Y       N        0x19A4,8sss            0xfddd, Error Code 
+   Name                 CAN-MTI Can Header             Data Content       
+                                0x1Add,dsss2 – Single3                    
+                                                       
+                                0x1Bdd,dsss – First    
+   Datagram Content     0xddd1                         0–8 bytes
+                                0x1Cdd,dsss – Middle   
+                                                       
+                                0x1Ddd,dsss – Last     
+   Datagram Received OK 0xA28   0x19A2,8sss            0xfddd4, Flags     
+   Datagram Rejected    0xA48   0x19A4,8sss            0xfddd, Error Code 
+
+    
 
 7.2 CAN States
 
@@ -174,7 +172,7 @@
      * One Datagram Content Single Frame
 
      * One Datagram Content First Frame, followed by zero or more Datagram Content Middle Frame, followed
-       by one Datagram Content Last Frame
+       by one Datagram Content Last Frame5
 
    the receiving node shall send a Datagram Rejected message with the Transport error and Resend OK bits
    set.
@@ -223,10 +221,14 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 sss —The 12-bit source alias field
+   1 ddd – The 12-bit destination alias field
 
-   2 Because CAN frames are limited to 8 bytes, datagrams larger than 8 bytes must be broken up among
+   2 sss – The 12-bit source alias field
+
+   3 Because CAN frames are limited to 8 bytes, datagrams larger than 8 bytes must be broken up among
    multiple messages. Thus, four distinct message types are defined to aid in flow control.
 
-   3 fddd — First two bytes of the data-part, representing the 4-bit flag field and 12-bit destination
+   4 fddd — First two bytes of the data-part, representing the 4-bit flag field and 12-bit destination
    Alias. See the OpenLCB-CAN Frame Transport Standard.
+
+   5 The total payload bytes sent, including any First, Middle, and Last Frames, cannot exceed 72 bytes.
