@@ -4,7 +4,7 @@
 
                                                                   Datagram Transport
 
-                                                      Feb 10, 2015                     In Review            
+                                                      Feb 15, 2015                     In Review            
 
                                                 1 Introduction
 
@@ -65,8 +65,7 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
    This is an addressed message. The destination address (full Node ID or alias) can be taken directly from
    the received Datagram Content message.
 
-   Nodes are required to handle missing a missing Datagram Received OK flag byte for backwards
-   compatibility.
+   Nodes are required to handle a missing Datagram Received OK flag byte for backwards compatibility.
 
    When a datagram contains a command within some higher-level protocol, it's very convenient to have a way
    to signify success of that operation without having to send an additional datagram as a reply. The Reply
@@ -85,7 +84,7 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
        whether it needs to wait for a further reply.
 
    The Timeout Value field can be used by higher-level protocols to provide feedback on how long an
-   operation will take. This could be used to provide a progress indictor or trip an error recovery
+   operation will take. This could be used to provide a progress indicator or trip an error recovery
    operation when needed. A zero value, the default with nothing is provided, means no information. The
    higher level protocol that defines use of the datagram should define how to recover from timeout errors.
 
@@ -143,7 +142,7 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
    sequence and/or in the CAN frames making up a datagram. This is probably a subset of the Transport error
    cases.
 
-   The bits 8-11 can be used for code for the specific condition that lead the receiving node to reject the
+   The bits 0-3 can be used for code for the specific condition that lead the receiving node to reject the
    Datagram Content message. This is a good idea, because it helps debug persistent problems. Node
    manufacturers should make the definition of those codes available in documentation, but that's not
    required by the Standard.
@@ -181,7 +180,7 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
    for dealing with the semi-infinite number of possible out-of-spec transmissions. Nodes can use the
    various error replies to indicate whatever they know, but they don't have to.
 
-2.7 Implementation via CAN Transport
+2.7 Adaptation to CAN Transport
 
   2.7.1 CAN Message Formats
 
@@ -440,11 +439,12 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
    At the low end, datagrams should go all the way down to zero bytes, because they are distinct from
    Events (which have a fixed 8-byte payload).
 
-   If one byte is used for the datagram content ID field (see §3.4), the first CAN-link datagram contains 7
-   payload bytes (the following datagrams can contain 8). The datagram format field counts as part of the
-   information that the datagram is transporting, though. We could make the maximum datagram size nine
-   segments, (9*8) = 72-1 data bytes, to ensure that even with a little bit of additional overhead from an
-   application-layer protocol, say up to 6 bytes, 64 bytes of actual data can be delivered at a shot.
+   If one byte is used for the datagram content ID field (see 3.4 Datagram Content), the first CAN-link
+   datagram contains 7 payload bytes (the following datagrams can contain 8). The datagram format field
+   counts as part of the information that the datagram is transporting, though. We could make the maximum
+   datagram size nine segments, (9*8) = 72-1 data bytes, to ensure that even with a little bit of
+   additional overhead from an application-layer protocol, say up to 6 bytes, 64 bytes of actual data can
+   be delivered at a shot.
 
    Alternately, because of the binary nature of addressing, a 64-byte buffer size might be more convenient
    that a 72-byte one, even at the cost of some lost possible capacity in the last frame.
@@ -556,7 +556,7 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
 
    2.6.2 Rejected Transmission 4
 
-   2.7 Implementation via CAN Transport 5
+   2.7 Adaptation to CAN Transport 5
 
    2.7.1 CAN Message Formats 5
 
@@ -574,15 +574,15 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
 
    3.2 Discussion 7
 
-   3.3 Examples 8
+   3.3 Examples 7
 
-   3.3.1 Normal CAN case 8
+   3.3.1 Normal CAN case 7
 
    3.3.2 Short CAN datagram case 8
 
    3.3.3 Rejected short CAN datagram case 8
 
-   3.3.4 Rejected interleaved CAN datagram case: 9
+   3.3.4 Rejected interleaved CAN datagram case 9
 
    3.3.5 Command/Reply Example 10
 
@@ -603,4 +603,4 @@ Datagram type allows general datagram handler to dispatch datagrams to proper ha
    1http://www.bosch-semiconductors.de/media/pdf_1/canliteratur/can_fd.pdf
 
    Copyright 2011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 14 - Feb 10, 2015
+   1 of 14 - Feb 15, 2015
