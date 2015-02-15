@@ -80,36 +80,42 @@
    OpenLCB defines specific well-known identification numbers and number ranges for specific uses. The
    details of these ranges are defined in in either the Event Identifiers Standard or another Standard.
 
-   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization Comment                                           
-   01     01     00     00     00     00     OpenLCB      Reserved for well-known Event Identifiers.  See   
-                                                          Event Identifiers Standard.                       
-   01     01     01     00     Node ID       MERG         Reserved for CBUS-defined Event Identifiers (ON   
-                                                          state).  See Event Identifiers Standard.          
-   01     01     01     01     Node ID       MERG         Reserved for CBUS-defined Event Identifiers (OFF  
-                                                          state).  See Event Identifiers Standard.          
-   01     01     01     *      Node ID       MERG         Reserved for CBUS-defined future expansion.       
-   01     63     *      *      *      *      OpenLCB      XpressNet translation                             
-   01     81     *      *      *      *      OpenLCB      LocoNet translation                               
-   01     EE     *      *      *      *      OpenLCB      DCC Translation                                   
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization Comment                                     
+                                                                Reserved for automatically-touted Event     
+   01     00     00     00     00        00        OpenLCB      Identifiers.  See Event Identifiers         
+                                                                Standard.                                   
+   01     01     00     00     00        00        OpenLCB      Reserved for well-known Event Identifiers.  
+                                                                 See Event Identifiers Standard.            
+                                                                Reserved for CBUS-defined Event Identifiers 
+   01     01     01     00     CBUS        Node ID MERG         (ON state).  See Event Identifiers          
+                                                                Standard.                                   
+                                                                Reserved for CBUS-defined Event Identifiers 
+   01     01     01     01     CBUS        Node ID MERG         (OFF state).  See Event Identifiers         
+                                                                Standard.                                   
+   01     01     01     *      CBUS        Node ID MERG         Reserved for CBUS-defined future expansion. 
+   01     63     *      *      *         *         OpenLCB      XpressNet translation                       
+   01     81     *      *      *         *         OpenLCB      LocoNet translation                         
+   01     EE     *      *      *         *         OpenLCB      DCC Translation                             
 
     
 
-5.4 Manufacture Specific
+5.4 Manufacturer Specific
 
    Manufacturers shall ensure uniqueness for identifiers they assign.
 
-   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization     Comment                                       
-                                                              Manufactures who have been assigned a DCC     
-                                                              Manufacturer ID code may, but are not         
-   02     01     DCC ID Self-Assigned        DCC Manufacturer required to, use this range.  These IDs are   
-                                                              defined within the NMRA standard “S-9.2.2     
-                                                              Appendix A, DCC Manufacture ID Codes”         
-   02     01     0D     Self-Assigned        DIY              Do-It-Yourself (shared unmanaged space, not   
-                                                              recommended for individual use)               
-   02     01     12     Self-Assigned        JMRI             JMRI (for use in software solutions)          
-   02     01     A5     *      Node ID       MERG             MERG Node ID translation                      
-   02     01     EE     *      *      *      NMRA             NMRA Reserved (for extended manufacture ID    
-                                                              numbers)                                      
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
+                                                                    Manufactures who have been assigned a   
+                                                                    DCC Manufacturer ID code may, but are   
+   02     01     DCC ID Self-Assigned              DCC Manufacturer not required to, use this range.  These 
+                                                                    IDs are defined within the NMRA         
+                                                                    standard “S-9.2.2 Appendix A, DCC       
+                                                                    Manufacture ID Codes”                   
+   02     01     0D     Self-Assigned              DIY              Do-It-Yourself (shared unmanaged space, 
+                                                                    not recommended for individual use)     
+   02     01     12     Self-Assigned              JMRI             JMRI (for use in software solutions)    
+   02     01     A5     *      CBUS        Node ID MERG             MERG Node ID translation                
+   02     01     EE     *      *         *         NMRA             NMRA Reserved (for extended manufacture 
+                                                                    ID numbers)                             
 
     
 
@@ -120,17 +126,20 @@
    into the OpenLCB Unique Identifier space designated in the table below.  Future definition of ranges for
    additional groups will use unique values in Byte 2.
 
-   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization Comment                                           
-                                                          NMRA members may, but are not required to, use    
-   03     00     Membership Number    *      NMRA         their NMRA membership number to self-assign       
-                                                          Unique Identifiers.  The least significant byte   
-                                                          is self-assigned.                                 
-                                                          MERG members may, but are not required to, use    
-   03     04     Membership Number    *      MERG         their MERG membership number to self-assign       
-                                                          Unique Identifiers.  The least significant byte   
-                                                          is self-assigned.                                 
-   03     08     Layout ID     Node ID       MERG         CBUS – for mapping existing modules, using the    
-                                                          Layout ID defined by CBUS                         
+   Byte 1 Byte 2 Byte 3     Byte 4     Byte 5    Byte 6    Organization Comment                             
+                                                                        NMRA members may, but are not       
+                                                                        required to, use their NMRA         
+   03     00     Membership Number               *         NMRA         membership number to self-assign    
+                                                                        Unique Identifiers.  The least      
+                                                                        significant byte is self-assigned.  
+                                                                        MERG members may, but are not       
+                                                                        required to, use their MERG         
+   03     04     Membership Number               *         MERG         membership number to self-assign    
+                                                                        Unique Identifiers.  The least      
+                                                                        significant byte is self-assigned.  
+                                                                        CBUS – for mapping existing         
+   03     08     CBUS        Layout ID CBUS        Node ID MERG         modules, using the Layout ID        
+                                                                        defined by CBUS                     
 
     
 
@@ -222,16 +231,27 @@
 
 5.10 Temporary Assigned by Software at Runtime
 
-   A program running in a computer with an IP address must not use that address to directly formulate a
-   unique identifier.  Furthermore, a program may dynamically allocate nodes who need a Unique Identifier
-   assigned to them.  The program may use an IP connection, or another unspecified method, to request a
-   unique identifier from openlcb.org, or from another organization that is distributing unique identifiers
-   from a range designated to it.
+    
 
-   These Unique Identifiers are assigned on a leased basis.  A temporary (leased) Unique Identifier server
-   will issue a Unique Identifier that is valid for a designated period of time.  When the lease period is
-   up, the Unique Identifier server may re-issue the same Unique Identifier to another node as needed.  The
-   Unique Identifier server and client can periodically negotiate an extension of the lease indefinitely.
+   This range has been reserved for specialized software and network services specifically designed to
+   lease a Unique Identifier to nodes upon request. Nodes that come without a Unique Identifier (such as
+   computer programs) may contact an instance of such leasing service to obtain a Unique Identifier. Nodes
+   may use any method outside the OpenLCB network to locate and communicate with a leasing service (for
+   example an Internet connection or a local TCP/IP network). The leases shall be limited in time, and a
+   node shall not use an identifier after the lease time expires. The node may communicate with the leasing
+   service to periodically extend the lease.
+
+    
+
+   Each such service shall operate from a range assigned to the specific instance, and is responsible for
+   ensuring uniqueness among its clients. The owner or maintainer of an OpenLCB Installation is responsible
+   for ensuring that all the leasing services that all the nodes participating in the installation are
+   using, have disjoint ranges. In particular, if the Installation operates one or more leasing services,
+   they must be assigned disjoint ranges to hand out identifiers from. Globally available leasing services
+   (such as over the Internet) shall have a unique range assigned to them.
+
+   It is possible that a future OpenLCB protocol may, or may not, define a mechanism to negociate a Unique
+   Identifier lease over an OpenLCB network.
 
    Byte 1 Byte 2 Byte 3 Byte 4    Byte 5    Byte 6   Organization     Comment                               
    08     00     00     Sequentially Assigned Values OpenLCB          Allocated through OpenLCB.org         
@@ -281,7 +301,7 @@
 
    5.3 Well-Known Global Identifiers
 
-   5.4 Manufacture Specific
+   5.4 Manufacturer Specific
 
    5.5 Self-Assigning Groups
 
