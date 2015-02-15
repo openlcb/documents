@@ -26,6 +26,18 @@ all: pdf
 #	@echo $(TSRC)
 #	@echo $(OUTPUT)
 
+nmra: \
+	UniqueIdentifiersS.pdf UniqueIdentifiersTN.pdf \
+	GlossaryTN.pdf CommonInformationTN.pdf \
+	MessageNetworkS.pdf MessageNetworkTN.pdf  \
+	EventIdentifiersS.pdf EventIdentifiersTN.pdf \
+	EventTransportS.pdf EventTransportTN.pdf \
+	DatagramTransportS.pdf DatagramTransportTN.pdf \
+	ConfigurationDescriptionInformationS.pdf ConfigurationDescriptionInformationTN.pdf \
+	MemoryConfigurationS.pdf MemoryConfigurationTN.pdf \
+	SimpleNodeInformationS.pdf SimpleNodeInformationTN.pdf
+
+
 
 .PHONY: pdf
 pdf: $(OUTPUT)
