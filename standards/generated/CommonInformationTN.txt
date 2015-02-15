@@ -1,3 +1,5 @@
+   PowerPlusWaterMarkObject1
+
                                                                 OpenLCB Technical Note
 
                                                                   Common Information
@@ -8,7 +10,7 @@
 
    The OpenLCB Standards are independently normative. That is, each document contains statements that
    assert how things should or ought to be, and each document is written to be self consistent. In general,
-   documents marked as Standards focus on explicit requirements and assertions, while Technical notes
+   documents marked as Standards focus on explicit requirements and assertions, while Technical Notes
    provide non-binding context and rationale; to avoid confusion, the terms Normative and Informative are
    liberally used in section headings.
 
@@ -19,30 +21,44 @@
 
                                                     2 Data
 
-   Reserved quantities are created with a zero value unless otherwise specified. When processing a message,
-   ignore reserved quantities unless otherwise specified. When transporting a message, transport reserved
-   quantities unchanged. The zero value sometimes indicates a non-initialized value.
+2.1 Reserved fields
 
-2.1 Numerical representation
+   When sending a message, set reserved fields to zero value unless otherwise specified. When transporting
+   a message, transport reserved quantities unchanged.
+
+   When receiving a message, consult the Standard: reserved fields come in two flavors. One is “reserved,
+   send as zero, ignore upon receipt”. This means that a receiving node shall process the message, ignoring
+   the value in the reserved field (or assuming it was the default value of zero). Some future extension or
+   additional information may not be available, but the interaction can be continued without it. The other
+   flavor is “reserved, send as zero, check upon receipt”. This means that if the receiving node finds a
+   non-zero value in that field, it must abort processing the message, not perform any action requested by
+   it, and if appropriate, should respond with an error code, preferably some form of “unimplemented”.
+   Future versions of the standard may define the bits marked with “check upon receipt” in a way that is
+   incompatible with previous versions of the standard, including giving the rest of the message a
+   completely different meaning when the reserved field is not the default value.
+
+   The zero value sometimes indicates a non-initialized value.
+
+2.2 Numerical representation
 
    Unless otherwise specified, OpenLCB fields are unsigned.
 
    OpenLCB does not define a floating point representation. IEEE half-size (16 bit) floats are used in e.g.
    the Throttle protocols under development.
 
-2.2 Byte sequences
+2.3 Byte sequences
 
    Bytes are defined as 8 bits.
 
    OpenLCB is, by default, big-endian. When sending multi-byte data, the byte containing the most
-   significant bits is sent first. This is the same as the CAN header, Ethernet and the common Internet
+   significant bits is sent first. This is the same as the CAN header, Ethernet and the common internet
    protocols, but not the same as the Intel x86 architecture.
 
-   Unless otherwise specified, when a sequence of bytes is being documented or described, the first or most
-   significant is labelled 0, the next is labelled 1, etc. This results in phrases like “byte 0” and “the
-   first byte” referring to the same thing.
+   When a sequence of bytes is being documented or described, the first or most significant is labeled 0,
+   the next is labeled 1, etc. This results in phrases like “byte 0” and “the first byte” referring to the
+   same thing.
 
-2.3 Bit sequences
+2.4 Bit sequences
 
    The OpenLCB protocol descriptions use LSB 0 coding, where the the least significant bit in any word,
    byte or field is numbered 0, with bits to the left (toward the MSB) then given higher numbers.
@@ -57,7 +73,7 @@
    the RFC series of protocols and the Ethernet definition. It's unfortunate that there's no single
    convention that OpenLCB could adopt to be consistent with the entire world, but there isn't.
 
-2.4 Strings
+2.5 Strings
 
    OpenLCB strings are sequences of UTF-8 values^1. This allows OpenLCB devices to represent all the
    international writing systems that are described by Unicode^2 with only a small processing burden in the
@@ -75,7 +91,7 @@
    Certain standards retain the 0x80 bit in the first byte as a way of eventually indicating other codings,
    particularly compression of the UTF-8 text. If this is possible, it's specified in the relevant
    standard. For example, XML CDI strings can start with either the UTF-8 text for “<?xml” which starts
-   with 0x3C, or with a 0x80 followed by an indication of the format of the compressed UFT-8 text that
+   with 0x3C, or with a 0x80 followed by an indication of the format of the compressed UTF-8 text that
    follows. See the individual standards for more information.
 
                                                 3 Presentation
@@ -120,11 +136,11 @@
 
    OpenLCB messages are described in this common format:
 
-       Name         Description      Simple Node    Dest ID     Event ID    Common        Data Content      
-                                                                                      
-                                                                              MTI     
+       Name          Description        Simple Node     Dest ID    Event ID    Common      Data Content     
+                                                                                        
+                                                                                MTI     
 
-                                           N            N          N        0x0000    
+                   (optional field)           N            N          N        0x0000   
 
      * Name: Standard name of the message.
 
@@ -138,27 +154,32 @@
 
      * Event ID: Whether this message includes an Event ID.
 
-     * Common MTI: The 16-bit value, typically in hex notation, of the full Message Type Indicator.Data
-       Content: Summary description of data bytes, if any, included after fixed fields such as MTI and
+     * Common MTI: The 16-bit value, typically in hex notation, of the full Message Type Indicator.
+
+     * Data Content: Summary description of data bytes, if any, included after fixed fields such as MTI and
        destination address.
 
    Adaptation to CAN messages are described in this format:
 
-         Name        Description               CAN-MTI      CAN Header                 Data Content         
+        Name      Description                     CAN-MTI         CAN Header             Data Content       
 
-                                                0x000          0x1800,0sss      
+                     (optional field)              0x000            0x1800,0sss              fddd           
+                                                                  
+                                             (optional field)     
 
      * Name: Standard name of the message.
 
      * Description: Optional field, generally used if there is variant forms.
 
-     * CAN-MTI format: Typical CAN frame representation of the MTI.
+     * CAN-MTI format: Typical CAN frame representation of the MTI. Optional field, used only if the
+       CAN-MTI is not equal to the low 12 bits of the Common MTI.
 
      * CAN Header: Contains the CAN header. Source node ID alias is represented by “sss”. Destination node
        ID alias, if present, is represented by “ddd”.
 
-     * Data Content: Summary description of data bytes, if any, included after a fixed destination
-       address., represented as “fsss”, where the “f” represents fragmentation flags.
+     * Data Content: Summary description of data bytes, if any. For addressed messages, also include the
+       fixed destination address format, represented as “fddd”, where the “f” represents fragmentation
+       flags.
 
    Note that this information is not completely independent. The MTI value depends on simple subset,
    priority subgroup, etc, values. The messages are detailed in specific associated documentation. That
@@ -172,19 +193,21 @@
 
    2 Data 1
 
-   2.1 Numerical representation 1
+   2.1 Reserved fields 1
 
-   2.2 Byte sequences 1
+   2.2 Numerical representation 1
 
-   2.3 Bit sequences 1
+   2.3 Byte sequences 1
 
-   2.4 Strings 2
+   2.4 Bit sequences 2
 
-   3 Presentation 2
+   2.5 Strings 2
+
+   3 Presentation 3
 
    3.1 Presentation of CAN Quantities 3
 
-   3.2 Presentation of a OpenLCB message 3
+   3.2 Presentation of an OpenLCB message 3
 
    1For an introduction to UTF-8 coding and how it represents international character sets, see e.g.
    http://en.wikipedia.org/wiki/UTF-8
@@ -195,4 +218,4 @@
    sections 3.9 and 3.10 in the Unicode specification, link above.
 
    Copyright 2011-15. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 4 - Feb 15, 2015
+   of 5 - Feb 15, 2015
