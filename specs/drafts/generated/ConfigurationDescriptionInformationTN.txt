@@ -287,72 +287,49 @@
 
   Design Points
 
-   The “Variables” described here are not exactly the same thing as “Configuration Variables” (CVs) or
-   “Node Variables” (NVs) that are discussed elsewhere, e.g. in DCC documentation. Those are aimed at
-   storage, and so are grouped by address. The “Variables” here are grouped by function. “Long address”
-   might be several DCC CVs, but would be one variable to this proposal. Similarly, DCC CV29 has lots of
-   variables within it, each stored as bits.
+     * The “Variables” described here are not exactly the same thing as “Configuration Variables” (CVs) or
+       “Node Variables” (NVs) that are discussed elsewhere, e.g. in DCC documentation. Those are aimed at
+       storage, and so are grouped by address. The “Variables” here are grouped by function. “Long address”
+       might be several DCC CVs, but would be one variable in this proposal. Similarly, DCC CV29 has lots
+       of variables within it, each stored as bits.
 
     
 
-   2) The primary design constraints are complexity and size in the OpenLCB device providing CDI, and
-   complexity and size in the device consuming the CDI.
+     * The primary design constraints are complexity and size in the OpenLCB device providing CDI, and
+       complexity and size in the device consuming the CDI.
 
-    
+          * Size and complexity in the providing device is the more important constraint. There are more of
+            those devices, they are cost sensitive, and they may not be upgradeable once delivered.
 
-   2A) Size and complexity in the providing device is the more important constraint. There are more of
-   those devices, they are cost sensitive, and they may not be upgradeable once delivered.
+          * Size and complexity in the CDI-consuming device should also be considered. In particular, code
+            complexity is an issue which must be addressed.
 
-    
+     * Secondary constraints are testability of the provided information, scalability of the format, and
+       the convenience and availability of a suitable toolchain.
 
-   2B) Size and complexity in the CDI-consuming device should also be considered. In particular, code
-   complexity is an issue which must be addressed.
+     * There is a physical/logical structure to the configuration which the CDI can and should reflect:
 
-    
+          * The basic OpenLCB unit is a "Node". Nodes provide CDI for their needed configuration
+            information. One possible protocol for that is the Memory Configuration Protocol.
 
-    
+          * A Node can contain zero or more "Producers". Each Producer is independently configured. There
+            is no ordering between separate Producers, but they can be numbered for ease of reference.
 
-   3) Secondary constraints are testability of the provided information, scalability of the format, and the
-   convenience and availability of a suitable toolchain.
+          * A Node can contain zero or more "Consumers". Each Consumer is independently configured. There
+            is no ordering between separate Consumers, or between individual Consumers and Producers, but
+            they can be numbered for ease of reference.
 
-    
+          * Each Producer or Consumer can be configured with zero or one Events. A hardware port may have
+            more than one Producer or Consumer (for example two: off and on).
 
-    
+          * Each Event has an Identifier which uniquely defines it.
 
-   4) There is a physical/logical structure to the configuration which the CDI can and should reflect:
-
-    
-
-   4A) The basic OpenLCB unit is a "Node". Nodes provide CDI for their needed configuration information.
-   The protocol for that will be defined elsewhere/elsewhen.
-
-    
-
-   4B) A Node can contain zero or more "Producers". Each Producer is independently configured. There is no
-   ordering between separate Producers, but they can be numbered for ease of reference.
-
-    
-
-   4C) A Node can contain zero or more "Consumers". Each Consumer is independently configured. There is no
-   ordering between separate Consumers, or between individual Consumers and Producers, but they can be
-   numbered for ease of reference.
-
-    
-
-   4D) Each Producer or Consumer can be configured with zero or one Events. A hardware port may have
-   morethan one Producer or Consumer (for example two: off and on).
-
-    
-
-   4E) Each Event has an Identifier which uniquely defines it.
-
-    
-
-   4F) To ensure future growth, there is no required "device", "channel" or other grouping within a node.
-   Those may be present in some node types, and CDI must be able to represent them, but may not require any
-   specific organization. In other words, organizing the configuration is left up to the Node developers.
-   One OpenLCB product may be considered superior to another of equivalent hardware capabilities purely
-   because its configuration is easier to understand and use for the end-user.
+          * To ensure future growth, there is no required "device", "channel" or other grouping within a
+            node. Those may be present in some node types, and CDI must be able to represent them, but may
+            not require any specific organization. In other words, organizing the configuration is left up
+            to the Node developers. One OpenLCB product may be considered superior to another of equivalent
+            hardware capabilities purely because its configuration is easier to understand and use for the
+            end-user.
 
     
 
@@ -378,12 +355,12 @@
 
     
 
-   Name: Optional String, if present required to be unique within enclosing group or node
+     * Name: Optional String, if present required to be unique within enclosing group or node
 
-   Description: Optional String
+     * Description: Optional String
 
-   1 or more "Key", "Value" pairs. Each element of the pair can be of any supported type, depending only on
-   how it is to be used.
+     * 1 or more "Key", "Value" pairs. Each element of the pair can be of any supported type, depending
+       only on how it is to be used.
 
    Map elements provide a mapping between the pairs they contain. For example, a map can relate numeric
    values for a variable to descriptive strings. A map can also be used to provide free-form documentation
@@ -397,16 +374,14 @@
 
     
 
-   Manufacturer: String
+     * Manufacturer: String
 
-   Model: If present, the human-readable model name the manufacturer gives to this node.
+     * Model: If present, the human-readable model name the manufacturer gives to this node.
 
-   Version: If present, the human-readable version string for the current board.
+     * Version: If present, the human-readable version string for the current board.
 
-    
-
-   An optional Map for storing custom attributes defined by the manufacturer. Any other information desired
-   can be added to this map.
+     * An optional Map for storing custom attributes defined by the manufacturer. Any other information
+       desired can be added to this map.
 
     
 
@@ -414,13 +389,13 @@
 
     
 
-   Name: String, required to be unique within enclosing group or node
+     * Name: String, required to be unique within enclosing group or node
 
-   Description: Documents to the end-user the logical contents.
+     * Description: Documents to the end-user the logical contents.
 
-   Replication count: Integer >= 1 (number of times this group is replicated within the parent item)
+     * Replication count: Integer >= 1 (number of times this group is replicated within the parent item)
 
-    
+        
 
    A group with a replication count > 1 (called a replicated group) can be used to represent a type of
    replicated device. For example, a node with 4 identical input devices and 6 identical output devices can
@@ -446,27 +421,26 @@
 
     
 
-   Type: represented by the element tag. Can be int, string (UTF-8), eventid. Previously other types were
-   also considered, e.g. "bit", "digit" (an unsigned binary-coded-decimal value), "signed" (a binary value
-   with a sign), "unsigned" (a binary value without a sign), "blob" (arbitrary byte vector).
+     * Type: represented by the element tag. Can be int, string (UTF-8), eventid. Previously other types
+       were also considered, e.g. "bit", "digit" (an unsigned binary-coded-decimal value), "signed" (a
+       binary value with a sign), "unsigned" (a binary value without a sign), "blob" (arbitrary byte
+       vector).
 
-   Name: String, required to be unique within enclosing group or node
+     * Name: String, required to be unique within enclosing group or node
 
-   Type:
+     * Max: Integer - the maximum value allowed.
 
-   Max: Integer - the maximum value allowed.
+     * Min: Integer - the minimum value allowed.
 
-   Min: Integer - the minimum value allowed.
+     * Size: describes how many bytes are occupied by this variable. Also used for integers to describe the
+       data type size (e.g. byte, word, dword etc).
 
-   Size: describes how many bytes are occupied by this variable. Also used for integers, to describe the
-   data type size (e.g. byte, word, dword etc).
+     * Description: Optional String
 
-   Description: Optional String
+     * Default: optional, for integer type only
 
-   Default: optional, for integer type only
-
-   Offset: Optional integer offset to skip before this element in the layout, data is otherwise laid out by
-   length in depth-first order.
+     * Offset: Optional integer offset to skip before this element in the layout, data is otherwise laid
+       out by length in depth-first order.
 
     
 
@@ -504,353 +478,374 @@
 
     
 
-   Manufacturer (String): Digitrax
+   <?xml version="1.0"?>
 
-   Model (String): DS54
-
-   Version (String): 2.33
-
-   Description (Optional String): For more information, see http://digitrax.com/asdf/123
+   <cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/1/1/cdi.xsd">
 
     
 
-   Group start:
+   <identification>
 
-   Name (String): Decoder
+   <manufacturer>Digitrax</manufacturer>
 
-   Description (Optional String): These variables describe the entire board
+   <model>DS54</model>
 
-   Replication count (integer): 1
+   <hardwareVersion>2.33</hardwareVersion>
 
-    
-
-   Variable:
-
-   Name: Address
-
-   Type: Integer
-
-   Max: 2044
-
-   Min: 0
-
-   Description: This is the board address, in DCC space originally
+   </identification>
 
     
 
-    
-
-   Group start: (Note this is nested in "Decoder")
-
-   Name (String): Channel
-
-   Description (Optional String): Each Channel is one pair of output wires and contains two inputs
-
-   Replication count (integer): 4
+   <acdi/>
 
     
 
-   Group start: (Note this is nested in "Channel")
+   <segment space='251'>
 
-   Name (String): Input
+     <name>User Identification</name>
 
-   Description (Optional String): Each Channel has two inputs, called "Switch" and "Aux"
+     <description>Lets the user add his own description</description>
 
-    
+     <int size='1'>
 
-   Group start:
+       <name>Version</name>
 
-   Name: Switch Input Active
+     </int>
 
-   Description: Driven by the 1st input wire for this channel. The variables control ....
+     <string size='63'>
 
-    
+       <name>Node Name</name>
 
-   Variable:
+     </string>
 
-   Name: Producer Active
+     <string size='64'>
 
-   Type: event id
+       <name>Node Description</name>
 
-   Variable End
+     </string>
 
-    
-
-   Variable:
-
-   Name: Producer Inactive
-
-   Type: event id
-
-   Variable End
+   </segment>
 
     
 
-   Variable:
+   <segment space="253">
 
-   Name: Input Type
+     <int size="2">
 
-   Type: Integer
+       <name>Address</name>
 
-   Max: 10
+       <description>The DCC address of the accessory decoder. This is not needed in OpenLCB
+   operation.</description>
 
-   Min: 0
+       <min>0</min><max>2044</max>
 
-   Default: 0
-
-   Description: Specify the type of signal expected on this input
-
-   Map:
-
-   Name: Values
-
-   "0", "positive edge"
-
-   "1", "negative edge"
-
-   "2", "either edge"
-
-   ...
-
-   Map End
-
-   Variable End
+     </int>
 
     
 
-   Variable:
+     <group replication="4">
 
-   Name: Input Task
+       <name>Channels</name>
 
-   Type: Integer
+       <description>Each channel is one pair of output wires and contains two inputs.</description>
 
-   Max: 8
-
-   Min: 0
-
-   Default: 0
-
-   Description: Specify the local action when this input is active
+       <repname>Channel</repname>
 
     
 
-   Map:
+       <group>
 
-   Name: Values
-
-   "0", "Output toggle"
-
-   "1", "No output change"
-
-   "2", "Output thrown"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   Group end:
+         <name>Turnout output</name>
 
     
 
-   Group start:
+         <int size="1"><name>Output option</name>
 
-   Name: Aux Input Active
+           <default>1</default>
 
-   Description: Driven by the 2nd input wire for this channel. The variables control ....
+           <map>
 
-    
+           <relation><property>1</property><value>Pulse re-triggerable</value></relation>
 
-   Variable:
+           <relation><property>2</property><value>Pulse non-retriggerable</value></relation>
 
-   Name: Producer Active
+           <relation><property>3</property><value>Static light or slow-motion turnout
+   machine</value></relation>
 
-   Type: event id
+           <relation><property>4</property><value>Blinking lamp</value></relation>
 
-   Variable End
+           </map>
 
-    
-
-   Variable:
-
-   Name: Producer Inactive
-
-   Type: event id
-
-   Variable End
+         </int>
 
     
 
-   Variable:
+         <int size="1"><name>Pulse length</name>
 
-   Name: Input Type
+           <description>Specifies the length of the output pulses for the pulsed output options. Ignored
+   when output option is not pulsed.</description>
 
-   Type: Integer
+           <default>0</default>
 
-   Max: 10
+           <map>
 
-   Min: 0
+           <relation><property>0</property><value>0.125 sec</value></relation>
 
-   Default: 0
+           <relation><property>1</property><value>0.25 sec</value></relation>
 
-   Description: Specify the type of signal expected on this input
+           <relation><property>2</property><value>0.35 sec</value></relation>
 
-   Map:
+           <relation><property>3</property><value>0.5 sec</value></relation>
 
-   Name: Values
+           <relation><property>4</property><value>0.625 sec</value></relation>
 
-   "0", "positive edge"
+           <relation><property>5</property><value>0.75 sec</value></relation>
 
-   "1", "neither edge"
+           <relation><property>6</property><value>0.9 sec</value></relation>
 
-   "2", "either edge"
+           <relation><property>7</property><value>1 sec</value></relation>
 
-   ...
+           <relation><property>8</property><value>2 sec</value></relation>
 
-   Map End
+           <relation><property>9</property><value>3 sec</value></relation>
 
-   Variable End
+           <relation><property>10</property><value>4 sec</value></relation>
 
-    
+           <relation><property>11</property><value>5 sec</value></relation>
 
-   Variable:
+           <relation><property>12</property><value>6 sec</value></relation>
 
-   Name: Input Task
+           <relation><property>13</property><value>7.5 sec</value></relation>
 
-   Type: Integer
+           <relation><property>14</property><value>10 sec</value></relation>
 
-   Max: 8
+           <relation><property>15</property><value>12 sec</value></relation>
 
-   Min: 0
+           </map>
 
-   Default: 0
-
-   Description: Specify the local action when this input is active
-
-    
-
-   Map:
-
-   Name: Values
-
-   "0", "Output toggle"
-
-   "1", "No output change"
-
-   "2", "Output thrown"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   Group end:
+         </int>
 
     
 
-   Group end: (This is the end of the input group)
+         <eventid>
+
+           <name>Turnout closed</name>
+
+           <description>When this event arrives, a turnout will be moved to the closed position or a lamp
+   will be switched to ON.</description>
+
+         </eventid>
+
+         <eventid>
+
+           <name>Turnout thrown</name>
+
+           <description>When this event arrives, a turnout will be moved to the thrown position or a lamp
+   will be switched to OFF.</description>
+
+         </eventid>      
+
+       </group>
 
     
 
-   Variable:
+       <group replication="2"><name>Inputs</name>
 
-   Name: Output Type
+         <description>Input 1 is the SWITCH input, Input 2 is the AUX input for this channel</description>
 
-   Type: Integer
+         <repname>Input</repname>
 
-   Max: 40
+         <eventid>
 
-   Min: 0
+           <name>Input active</name>
 
-   Default: 0
+           <description>This event is generated when the input line goes active. Independent from trigger
+   setup.</description>
 
-   Description: Determines what the output leads do in response to events ....
+         </eventid>
 
-    
+         <eventid>
 
-   Variable start:
+           <name>Input inactive</name>
 
-   Type: eventid
+           <description>This event is generated when the input line goes inactive. Independent from trigger
+   setup.</description>
 
-   Name: Turnout Active Thrown
-
-   Description: Set the thrown output lead active and closed lead inactive.
-
-   Variable end:
+         </eventid>
 
     
 
-   Variable start:
+         <group><name>Trigger</name>
 
-   Type: eventid
-
-   Name: Turnout Active Closed
-
-   Description: Set the closed output lead active and thrown lead inactive.
-
-   Variable end:
+           <description>Advanced triggering and local actions</description>
 
     
 
-   Variable start:
+           <int size="1">
 
-   Type: eventid
+             <name>Trigger condition</name>
 
-   Name: Turnout Active Both
+             <map>
 
-   Description: Sets both output leads active.
+               <relation><property>0</property><value>Positive Edge: OFF to ON</value></relation>
 
-   Variable end:
+               <relation><property>8</property><value>Negative Edge: ON to OFF</value></relation>
+
+               <relation><property>1</property><value>Positive Level: ON</value></relation>
+
+               <relation><property>9</property><value>Negative Level: OFF</value></relation>
+
+               <relation><property>2</property><value>Output following: Output ON -- Positive
+   Edge</value></relation>
+
+               <relation><property>3</property><value>Reverse output following: Output ON -- Negative
+   Edge</value></relation>
+
+             </map>
+
+           </int>
+
+           <eventid>
+
+             <name>Trigger event</name>
+
+             <description>If set, this event is generated when triggered</description>
+
+           </eventid>
+
+           <int size="1">
+
+             <name>Action</name>
+
+             <default>1</default>
+
+             <map>
+
+               <relation><property>1</property><value>No Action</value></relation>
+
+               <relation><property>0</property><value>Output toggle</value></relation>
+
+               <relation><property>2</property><value>Output Thrown</value></relation>
+
+               <relation><property>3</property><value>Output Closed</value></relation>
+
+               <relation><property>7</property><value>Output Follows Input</value></relation>
+
+               <relation><property>4</property><value>Turntable Pause</value></relation>
+
+               <relation><property>5</property><value>Turntable Continue</value></relation>
+
+               <relation><property>6</property><value>Local Route</value></relation>
+
+             </map>
+
+           </int>
+
+         </group>
+
+       </group>
 
     
 
-   Variable start:
+       <int size="1"><name>Generate output events</name>
 
-   Type: eventid
+         <description>If set, local output modification by Advanced triggers will generate the same events
+   that would trigger that output change.</description>
 
-   Name: Turnout Inactive
+         <default>0</default>
 
-   Description: Sets both output leads inactive.
+         <map>
 
-   Variable end:
+           <relation><property>0</property><value>off</value></relation>
 
-    
+           <relation><property>1</property><value>on</value></relation>
 
-   Group end: (This is end of the "Channel" group)
+         </map>
 
-    
+       </int>
 
-   Group end: (This is end of the "Decoder" group)
+     </group>
 
-    
+   </segment>
 
-    
-
-   Some thoughts based on putting this example together:
-
-    
-
-   1) In a real DS54, there are subtle differences between the Switch and Aux configuration choices on the
-   various channels. For a real device, they could either be separately specified or (more likely) the
-   differences wouldn't matter in a P/C-based device.
+   </cdi>
 
     
 
-   2) A DS54 can receive messages that put its output into four states: One side on, the other side on,
-   both sides on, and neither side on. These four interacts with the "Output Type" setting in weird and
-   wonderful ways. This was represented as four consumers. This seems a much more logical way to configure
-   the device, as it gives more flexibility to the rest of the layout that's originating the requests.
+   This example tries to follow the configuration options of the DS54 moderately accurately. This means
+   that most of the features are present, and where meaningful, the enumeration values were kept, but in a
+   number of cases the conceptual model that the DS54 is following (LocoNet device and DCC accessory
+   decoder) does not fit the conceptual model of an OpenLCB node. These conceptual differences were
+   incorporated in some cases, but there was no attempt made on redesigning the product into a great
+   OpenLCB Accessory Decoder, since that is not subject of this Technical Note.
 
     
 
-   3) The DS54 inputs also generate messages. They are specified as two producers (for the active and
-   inactive messages).
+     * Addressing
+
+          * The CV addressing scheme is not kept, because the address space of OpenLCB Configuration Space
+            is not limited in size like that of DCC CVs using handheld throttles as configuration tools.
+
+          * In particular there is no reason to encode multiple options in one CV, so the upper nibble –
+            lower nibble encoding that the Triggers and Actions use was not reproduced. The conceptual
+            requirement for the Variables in CDI is that each variable must be independently addressable,
+            and byte is the smallest addressing unit.
+
+          * No attempt was made to make the address layout friendly to the decoder code. In real life one
+            might want to use the offset feature to lay out variables at aligned boundaries and repeated
+            groups to have some nice alignment (say each repetition is 32 bytes) to allow for easier
+            pointer manipulation.
+
+     * In a real DS54, there are subtle differences between the Switch and Aux configuration choices on the
+       various channels. Here we just used replication. For a real device, they could either be separately
+       specified or (more likely) the differences wouldn't matter in a P/C-based device. Also for a product
+       choice the inputs would probably be better as numbered than named.
+
+     * Commands
+
+          * Instead of receiving DCC turnout commands, the Output entities receive a pair of events to set
+            the output to thrown or closed. There are alternate design options here: since each output
+            channel is actually a pair of independently controllable outputs, there are four actual states
+            (off-off, off-on, on-off, on-on). To reach all four states, a real device might want to add
+            additional consumers and their configurable Event IDs. Also when receiving the DCC turnout
+            commands, the four states interact with the “Output Type” setting in weird and wonderful ways.
+            This was not represented in the example above.
+
+     * Inputs
+
+          * The input lines, symmetrically to the output lines, use a pair of Event IDs to generate native
+            OpenLCB commands. For most of the use-cases this makes the Advanced Triggering feature
+            unnecessary. For example the input's native Event ID can be configured to be the same as the
+            output thrown event, which will establish both the necessary local control as well as the
+            reporting of local control (see “Generate output events” setting). In fact this is even more
+            powerful, since local control is not restricted to the same output channel as the input button
+            is assigned to.
+
+          * Nevertheless, the Triggering concept was mapped into this configuration, and the Trigger can
+            also be observed on the OpenLCB bus if needed by programming an Event ID into the Trigger
+            producer. In a real world the user would probably either use the Active+Inactive producers or
+            the Trigger producer, but probably not both.
+
+     * Loconet messages
+
+          * The original DS54 has extensive settings for generating various LocoNet messages. These are all
+            superfluous, since the OpenLCB Event concept subsumes all the different use-cases (including
+            power off, turnout feedback, sensor input, etc. -- they are all just Events)
+
+     * Local routes and turnout chaining
+
+          * In the Producer/Consumer model in OpenLCB these features are unnecessary, because the control
+            model natively supports throwing multiple turnouts by a single Event on the bus. Just configure
+            the same Event ID into all the respective turnouts for the desired direction. It is also
+            possible to cause the feedback message from one input to throw another turnout by configuring
+            them for the same Event ID.
+
+    
 
 3.3 Notes about compression
 
-   This section is non-normative notes and suggestions for implementors.
+   This section is non-normative notes and suggestions for implementors and future standardization efforts.
 
    Some references for XML compression:
 
@@ -871,6 +866,8 @@
    compression type.  (We don't want to have too many kinds, as receivers need to implement all of them to
    be able to use the CDI!)  0x80 00 is the code for our choice of default, see
    http://excamera.com/sphinx/article-compression.html
+
+    
 
     
 
