@@ -2,11 +2,11 @@
 
                                                      Configuration Description Information
 
-                                             Feb 17, 2015Feb 17, 2015              PreliminaryAdopted       
+                                                   Feb 17, 2015                          Adopted            
 
                                                 1 Introduction
 
-   “"Configuration description information"” in this context refers to fixed information available from an
+   “Configuration description information” in this context refers to fixed information available from an
    OpenLCB device, via OpenLCB, so that other devices can properly and correctly configure it. The
    information is fixed, so that it can be pre-compressed, stored in the device, and just supplied when
    needed with minimal work on the part of the device and the device's developers. This means that e.g. the
@@ -69,26 +69,17 @@
    The CDI may specify stylesheets (because the XML 1.0 standard is consistent with that).
 
    The online schema is really the normative thing, because that's what we check for conformance testing.
-
-   There is no requirement that a node using the CDI to perform validate ion against the schema. But since
+   There is no requirement that a node using the CDI to perform validation against the schema. But since
    the contents of the schema are normative, it has to obey the defaults, etc, for missing elements. There
    is further information about schema versions in the Section Future Extension.
-
-   Because the using node may not have external connections, XML features requiring those (Xinclude, schema
-   default values, …) are not be assumed to be present. By specifying XML 1.0 only, XInclude, XML
-   Namespaces, XML Base, xml:id and other extensions have been excluded.
-
-   The CDI may specify stylesheets (because the XML 1.0 standard is consistent with that)
 
    Hexadecimal notation (0x1234) for numbers is not permitted. Although it may have made the CDI easier for
    people to read, the XML is primarily intended for consumption by OpenLCB nodes. Providing optional
    coding, such as hexadecimal numbers, makes those nodes more complex.
 
-  2.5.1
+  2.5.1 XML Elements
 
-  2.5.2 XML Elements
-
-    2.5.2.1 <identification> Element
+    2.5.1.1 <identification> Element
 
    There is a basic set of identifiers that allow a user to recognize a Node. These are: the manufacturer
    name, model name, certain version numbers; as well as a user-definable name and description. The first
@@ -110,7 +101,7 @@
    This Standard specifies the CDI-held information and for format and access to the ACDI-held information.
    The standard also requires that all these different access methods must return the same values.
 
-    2.5.2.2 <acdi> Element
+    2.5.1.2 <acdi> Element
 
    ACDI defines two specific memory spaces that contain the basic identification information. The layout of
    these spaces is fixed in the standard, and allows the Configuration Tool to access these values without
@@ -193,7 +184,7 @@
    Manufacturers are encouraged to put these segments definitions into their CDI as well, especially the
    user-editable portion.
 
-    2.5.2.3 <segment> Element
+    2.5.1.3 <segment> Element
 
    A <segment> element is used to define information that is stored in a Memory Space (see the OpenLCB
    Memory Configuration Protocol). Some nodes may have only one memory space, others may have multiple.
@@ -202,7 +193,7 @@
    Node developers are advised to assign relatively short <name> values to segments, because certain
    Configuration Tools may use these as labels for a tabbed dialog box.
 
-    2.5.2.4 Data Elements
+    2.5.1.4 Data Elements
 
    This is the point of the whole standard: the actual Variables. The most important information for each
    variable is how to access is.
@@ -264,7 +255,7 @@
    algorithm in a completely different way that prevents a Configuration Tool designed for an earlier
    version of the standard for properly following the layout algorithm.
 
-                                      3 AdditionalBackground Information
+                                           3 Background Information
 
 3.1 Environment of Proposal
 
@@ -295,50 +286,44 @@
      * The “Variables” described here are not exactly the same thing as “Configuration Variables” (CVs) or
        “Node Variables” (NVs) that are discussed elsewhere, e.g. in DCC documentation. Those are aimed at
        storage, and so are grouped by address. The “Variables” here are grouped by function. “Long address”
-       might be several DCC CVs, but would be one variable toin this proposal. Similarly, DCC CV29 has lots
+       might be several DCC CVs, but would be one variable in this proposal. Similarly, DCC CV29 has lots
        of variables within it, each stored as bits.
 
-     * 2) The primary design constraints are complexity and size in the OpenLCB device providing CDI, and
+     * The primary design constraints are complexity and size in the OpenLCB device providing CDI, and
        complexity and size in the device consuming the CDI.
 
-          * * 2A) Size and complexity in the providing device is the more important constraint. There are
-          more of those devices, they are cost sensitive, and they may not be upgradableupgradeable once
-          delivered.
+          * Size and complexity in the providing device is the more important constraint. There are more of
+            those devices, they are cost sensitive, and they may not be upgradeable once delivered.
 
-        * * * 2B) Size and complexity in the CDI-consuming device should also be considered. In particular,
-          code complexity is an issue which must be addressed.
+          * Size and complexity in the CDI-consuming device should also be considered. In particular, code
+            complexity is an issue which must be addressed.
 
-     * * * * 3) Secondary constraints are testability of the provided information, scalability of the
-       format, and the convenience and availability of a suitable toolchain.
+     * Secondary constraints are testability of the provided information, scalability of the format, and
+       the convenience and availability of a suitable toolchain.
 
-     * * * * 4) There is a physical/logical structure to the configuration which the CDI can and should
-       reflect:
+     * There is a physical/logical structure to the configuration which the CDI can and should reflect:
 
-          * * * 4A) The basic OpenLCB unit is a "Node". Nodes provide CDI for their needed configuration
-            information. TheOne possible protocol for that will be defined elsewhere/elsewhenis the Memory
-            Configuration Protocol.
+          * The basic OpenLCB unit is a "Node". Nodes provide CDI for their needed configuration
+            information. One possible protocol for that is the Memory Configuration Protocol.
 
-          * * * 4B) A Node can contain zero or more "Producers". Each Producer is independently configured.
-            There is no ordering between separate Producers, but they can be numbered for ease of
-            reference.
+          * A Node can contain zero or more "Producers". Each Producer is independently configured. There
+            is no ordering between separate Producers, but they can be numbered for ease of reference.
 
-          * * * 4C) A Node can contain zero or more "Consumers". Each Consumer is independently configured.
-            There is no ordering between separate Consumers, or between individual Consumers and Producers,
-            but they can be numbered for ease of reference.
+          * A Node can contain zero or more "Consumers". Each Consumer is independently configured. There
+            is no ordering between separate Consumers, or between individual Consumers and Producers, but
+            they can be numbered for ease of reference.
 
-          * * * 4D) Each Producer or Consumer can be configured with zero or one Events. A hardware port
-            may have more than one Producer or Consumer (for example two: off and on).
+          * Each Producer or Consumer can be configured with zero or one Events. A hardware port may have
+            more than one Producer or Consumer (for example two: off and on).
 
-          * * * 4E) Each Event has an Identifier which uniquely defines it.
+          * Each Event has an Identifier which uniquely defines it.
 
-          * An event may optionally carry additional data.
-
-          * * 4F) To ensure future growth, there is no required "device", "channel" or other grouping
-            within a node. Those may be present in some node types, and CDI must be able to represent them,
-            but may not require any specific organization. In other words, organizing the configuration is
-            left up to the Node developers. One OpenLCB product may be considered superior to another of
-            equivalent hardware capabilities purely because its configuration is easier to understand and
-            use for the end-user.
+          * To ensure future growth, there is no required "device", "channel" or other grouping within a
+            node. Those may be present in some node types, and CDI must be able to represent them, but may
+            not require any specific organization. In other words, organizing the configuration is left up
+            to the Node developers. One OpenLCB product may be considered superior to another of equivalent
+            hardware capabilities purely because its configuration is easier to understand and use for the
+            end-user.
 
   3.1.3 Storage
 
@@ -354,42 +339,33 @@
 
      * Name: Optional String, if present required to be unique within enclosing group or node
 
-     * * Description: Optional String
+     * Description: Optional String
 
-     * * 1 or more "Key", "Value" pairs. Each element of the pair can be of any supported type, depending
+     * 1 or more "Key", "Value" pairs. Each element of the pair can be of any supported type, depending
        only on how it is to be used.
 
    Map elements provide a mapping between the pairs they contain. For example, a map can relate numeric
-   values for a variable to descriptionve strings. A map can also be used to provide free-form
-   documentation when neither the key nor the value are specified in advance. It may be useful in the
-   future to specify how maps can be defined at the group level to reduce duplication. Having the
-   possibility of a “Name” is meant to ease that future effort.
+   values for a variable to descriptive strings. A map can also be used to provide free-form documentation
+   when neither the key nor the value are specified in advance. It may be useful in the future to specify
+   how maps can be defined at the group level to reduce duplication. Having the possibility of a “Name” is
+   meant to ease that future effort.
 
    II) At the top, root level is the information for a "node". This includes:
 
      * Manufacturer: String
 
-     * Descriptive Map: May contain “Model”, “Version”, “URL” and “Description” keys, along with any others
-   desired.
-
-     * * Model: If present, the human-readable model name the manufacturer gives to this node.
+     * Model: If present, the human-readable model name the manufacturer gives to this node.
 
      * Version: If present, the human-readable version string for the current board.
 
-     * * An optional Map for storing custom attributes defined by the manufacturer.Description: Optional
-       String
-
-   URL: If present, a URL for more information. No specific content is expected at the URL; If desired,
-   that can be dealt with in a different specification.
-
-     * Any other information desired can be added via additional keysto this map.
+     * An optional Map for storing custom attributes defined by the manufacturer. Any other information
+       desired can be added to this map.
 
    III) Within the node is zero or more "groups". Each group contains:
 
      * Name: String, required to be unique within enclosing group or node
 
-     * Descriptive Mapon: Map of documentation information; the “Description” key is the basic
-       item.Documents to the end-user the logical contents.
+     * Description: Documents to the end-user the logical contents.
 
      * Replication count: Integer >= 1 (number of times this group is replicated within the parent item)
 
@@ -397,13 +373,13 @@
    replicated device. For example, a node with 4 identical input devices and 6 identical output devices can
    be compactly described by two groups, with replication counts of 4 and 6 respectively.
 
-   Individual groupsInstances within replicated groups are numbered from 1 to the replication count. If
-   more than one replicated group is present, the numbering for each starts again with 1.
+   Instances within replicated groups are numbered from 1 to the replication count. If more than one
+   replicated group is present, the numbering for each starts again with 1.
 
    Groups may contain one or more inner groups, with the same representation. This may continue to any
    desired level.
 
-   IV) Groups may contain "variable", "producer" and/or "consumer" descriptions. of various types.
+   IV) Groups may contain "variable" descriptions of various types.
 
    IV-a) A "variable" description contains:
 
@@ -414,29 +390,23 @@
 
      * Name: String, required to be unique within enclosing group or node
 
-     * Type: Exactly one of "boolean", "digit" (an unsigned binary-coded-decimal value), "signed" (a binary
-       value with a sign), "unsigned" (a binary value without a sign), "string" (a UTF-8 string, not-null
-       terminated), or "blob" (arbitrary byte vector).
+     * Max: Integer - the maximum value allowed.
 
-     * Max: Integer - For string and blob variables, the maximum number of bytes that can be stored. For
-       digit, signed and unsigned types, the maximum value allowed.
-
-     * Min: Integer - For digit, signed and unsigned values, the minimum value allowed.
+     * Min: Integer - the minimum value allowed.
 
      * Size: describes how many bytes are occupied by this variable. Also used for integers to describe the
        data type size (e.g. byte, word, dword etc).
 
      * Description: Optional String
 
-     * Default: value of this Type, requiredoptional, for integer type only
+     * Default: optional, for integer type only
 
-     * Offset: Optional integer offset with in the configuration address space for this item; if not
-       present, to skip before this element in the layout, data is otherwise laid out by length in
-       depth-first order.
+     * Offset: Optional integer offset to skip before this element in the layout, data is otherwise laid
+       out by length in depth-first order.
 
    A variable may contain zero or one map descriptions. If present, the map represents a mapping between
-   possible values (the "KeyProperty" part of the map's pairs) and convenient names for them (the "Value"
-   part of the map's pairs).
+   possible values (the "Property" part of the map's pairs) and convenient names for them (the "Value" part
+   of the map's pairs).
 
    Note that the current value of a variable is not considered configuration definition information (see
    item 1A and 1B in the introduction).
@@ -448,37 +418,6 @@
    is about access to the information, not about how it's laid out in physical memory. A possible way to
    organize internally bit-mapped information is to use an address translation scheme which maps each bit
    to a byte.)
-
-   IV-b) A "producer" description contains:
-
-   Name: String, required to be unique within enclosing group or node
-
-   Description: Optional String
-
-   Replication count: Integer >= 1 (number of times this producer definition is replicated within the
-   parent item)
-
-   Offset: Optional integer offset with in the configuration address space for this item; if not present,
-   data is laid out by length in depth-first order.
-
-   A producer description may contain zero or more variable descriptions for any variables that configure
-   details of the producer's function.
-
-   IV-c) A "consumer" description contains:
-
-   Name: String, required to be unique within enclosing group or node
-
-   Description: Optional String
-
-   Replication count: Integer >= 1 (number of times this consumer definition is replicated within the
-   parent item)
-
-   Offset: Optional integer offset with in the configuration address space for this item; if not present,
-   data is laid out by length in depth-first order.
-
-   A consumer description may contain zero or more variable descriptions for any variables that configure
-   details of the consumer function. This may include e.g. variables that define how any content in
-   incoming messages will be used.
 
 3.2 Example
 
@@ -754,241 +693,6 @@
 
    </cdi>
 
-   based on putting this example together:
-
-   thoughtsSome end:
-
-   Group end: (This is end of the "Channel" group)
-
-   Group end: (This is end of the "Decoder" group)
-
-   ConsumerName: Turnout Inactive
-
-   Description: Sets both output leads inactive.
-
-   Consumer start:
-
-   end:
-
-   ConsumerName: Turnout Active Both
-
-   Description: Sets both output leads active.
-
-   Consumer start:
-
-   end:
-
-   Consumer
-
-   Name: Turnout Active Closed
-
-   Description: Set the closed output lead active and thrown lead inactive.
-
-   Consumer start: end:
-
-   Consumer start:
-
-   Name: Turnout Active Thrown
-
-   Description: Set the thrown output lead active and closed lead inactive.
-
-   Consumer end:
-
-   Group end: (This is the end of the input group)
-
-   Variable:
-
-   Name: Output Type
-
-   Type: Integer
-
-   Max: 40
-
-   Min: 0
-
-   Default: 0
-
-   Description: Determines what the output leads do in response to events ....
-
-   Producer start:
-
-   Name: Aux Input Active
-
-   Description: Driven by the 2nd input wire for this channel. The variables control ....
-
-   Variable:
-
-   Name: Input Type
-
-   Type: Integer
-
-   Max: 10
-
-   Min: 0
-
-   Default: 0
-
-   Description: Specify the type of signal expected on this input
-
-   Map:
-
-   Name: Values
-
-   "0", "positive edge"
-
-   "1", "neither edge"
-
-   "2", "either edge"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   Variable:
-
-   Name: Input Task
-
-   Type: Integer
-
-   Max: 8
-
-   Min: 0
-
-   Default: 0
-
-   Description: Specify the local action when this input is active
-
-   Map:
-
-   Name: Values
-
-   "0", "Output toggle"
-
-   "1", "No output change"
-
-   "2", "Output thrown"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   Producer end:
-
-   ProducerType: Integer
-
-   Max: 10
-
-   Min: 0
-
-   Default: 0
-
-   Description: Specify the type of signal expected on this input
-
-   Map:
-
-   Name: Values
-
-   "0", "positive edge"
-
-   "1", "negative edge"
-
-   "2", "either edge"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   Variable:
-
-   Name: Input Task
-
-   Type: Integer
-
-   Max: 8
-
-   Min: 0
-
-   Default: 0
-
-   Description: Specify the local action when this input is active
-
-   Map:
-
-   Name: Values
-
-   "0", "Output toggle"
-
-   "1", "No output change"
-
-   "2", "Output thrown"
-
-   ...
-
-   Map End
-
-   Variable End
-
-   start:
-
-   Name: Switch Input Active
-
-   Description: Driven by the 1st input wire for this channel. The variables control ....
-
-   Variable:
-
-   Name: Input Type
-
-   Producer
-
-   Replication count (integer): 2
-
-   Group start:
-
-   Name (String): Decoder
-
-   Description (Optional String): These variables describe the entire board
-
-   Replication count (integer): 1
-
-   Variable:
-
-   Name: Address
-
-   Type: Integer
-
-   Max: 2044
-
-   Min: 0
-
-   Description: This is the board address, in DCC space originally
-
-   Group start: (Note this is nested in "Decoder")
-
-   Name (String): Channel
-
-   Description (Optional String): Each Channel is one pair of output wires and contains two inputs
-
-   Replication count (integer): 4
-
-   Group start: (Note this is nested in "Channel")
-
-   Name (String): Input
-
-   Description (Optional String): Each Channel has two inputs, called "Switch" and "Aux"Manufacturer
-   (String): Digitrax
-
-   Model (String): DS54
-
-   Version (String): 2.33
-
-   Description (Optional String): For more information, see http://digitrax.com/asdf/123
-
    This example tries to follow the configuration options of the DS54 moderately accurately. This means
    that most of the features are present, and where meaningful, the enumeration values were kept, but in a
    number of cases the conceptual model that the DS54 is following (LocoNet device and DCC accessory
@@ -1011,11 +715,10 @@
             groups to have some nice alignment (say each repetition is 32 bytes) to allow for easier
             pointer manipulation.
 
-     * 1) In a real DS54, there are subtle differences between the Switch and Aux configuration choices on
-       the various channels. I blurred those here by documenting them identically via replication. Here we
-       just used replication. For a real device, they could either be separately specified or (more likely)
-       the differences wouldn't matter in a P/C-based device. Also for a product choice the inputs would
-       probably be better as numbered than named.
+     * In a real DS54, there are subtle differences between the Switch and Aux configuration choices on the
+       various channels. Here we just used replication. For a real device, they could either be separately
+       specified or (more likely) the differences wouldn't matter in a P/C-based device. Also for a product
+       choice the inputs would probably be better as numbered than named.
 
      * Commands
 
@@ -1056,15 +759,7 @@
             possible to cause the feedback message from one input to throw another turnout by configuring
             them for the same Event ID.
 
-   2) A DS54 can receive messages that put its output into four states: One side on, the other side on,
-   both sides on, and neither side on. These four interacts with the "Output Type" setting in weird and
-   wonderful ways. This was represented as four consumers. This seems a much more logical way to configure
-   the device, as it gives more flexibility to the rest of the layout that's originating the requests.
-
-   3) The DS54 inputs also generate messages. They are specified as two producers (for the active and
-   inactive messages).
-
-3.3 Implementation and Expansion NotesNotes about compression
+3.3 Notes about compression
 
    This section is non-normative notes and suggestions for implementors and future standardization efforts.
 
@@ -1086,9 +781,7 @@
    A first byte of 0x80 is defined as the “Compressed” indicator(s), followed by a byte that indicates the
    compression type. (We don't want to have too many kinds, as receivers need to implement all of them to
    be able to use the CDI!) 0x80 00 is the code for our choice of default, see
-   http://excamera.com/sphinx/article-compression.htmlRemaining items
-
-   Internationalization of the XML content?
+   http://excamera.com/sphinx/article-compression.html
 
    Table of Contents
 
@@ -1135,4 +828,4 @@
    3.3 Notes about compression 13
 
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 19 - Feb 17, 2015Feb 17, 2015
+   1 of 14 - Feb 17, 2015
