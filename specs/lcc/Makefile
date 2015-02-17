@@ -1,4 +1,4 @@
-RUNNING := $(shell ps ax | grep -v grep | grep soffice)
+BRUNNING := $(shell ps ax | grep -v grep | grep soffice)
 
 OFFICE := $(shell sh -c \
             "if [ -d /Applications/LibreOffice.app/Contents/MacOS ]; then echo /Applications/LibreOffice.app/Contents/MacOS/soffice; \
@@ -69,9 +69,9 @@ endef
 #  $(1) is the basename of the file which is like 9.7.0.1
 #  $(2) is the designation S or TN (also part of the filename)
 #  $(3) is the basename of the source pdf (example MemoryConfiguration)
-DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(1)-$(2)-$(3).pdf)
+DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(1)-$(2)-$(3)-20150217.pdf)
 
-DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,$(1)-S-$(2).pdf) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,$(1)-TN-$(2).pdf)
+DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,$(1)-S-$(2)-20150217.pdf) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,$(1)-TN-$(2)-20150217.pdf)
 
 
 $(eval $(call DOCU_call,9.7.0.1,TN,Glossary))
