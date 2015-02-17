@@ -1,8 +1,10 @@
+   PowerPlusWaterMarkObject1
+
                                                                    OpenLCB Standard
 
                                                                  Memory Configuration
 
-                                                       Feb 17, 2015                      Adopted            
+                                                      Feb 17, 2015                     In Review            
 
                                          1 Introduction (Informative)
 
@@ -303,6 +305,166 @@
    Should an error occur prior to or during the establishment of the stream, the Read Stream Reply shall
    indicate a failure with the error code set appropriately.
 
+4.13 Get Configuration Options Command
+
+    Byte 0       Byte 1                                                                                     
+
+    0x20         0x80                                                                                       
+
+4.14 Get Configuration Options Reply
+
+    Byte 0  Byte 1  Byte 2-3            Byte 4         Byte 5             Byte 6               Remainder    
+                                                                          (Optional)           (Optional)   
+
+    0x20    0x82    Available Commands  Write Lengths  Highest Address    Lowest Address       Name String  
+                                                       Space              Space                
+
+     * Available operations mask (2 bytes, bit coded): Indicate which operations are available so the using
+       software can know whether convenience operations (which are not possible on some hardware) are
+       available.
+
+          * 0x8000 Write under mask supported
+
+          * 0x4000 Unaligned reads supported. If not set, reads have to start on an address with the low
+            bits, as given by the data size, all zero. For example a 4-byte write must have the low two
+            address bits zero.
+
+          * 0x2000 Unaligned writes supported. If not set, reads have to start on an address with the low
+            bits, as given by the data size, all zero. For example a 4-byte write must have the low two
+            address bits zero.
+
+          * 0x0800 Read from address space 0xFC available (this is the manufacturer part of Abbreviated
+            CDI)
+
+          * 0x0400 Read from address space 0xFB available (this is the user-entered part of Abbreviated
+            CDI)
+
+          * 0x0200 Write to address space 0xFB available (this is the user-entered part of Abbreviated CDI)
+
+          * Others reserved, must be ignored on receipt and sent as zero.
+
+     * Write lengths supported (One byte, bit coded): (provided for devices that can only write certain
+       sizes to memory) (at least one bit must be set)
+
+          * 0x80 1 byte write
+
+          * 0x40 2 byte write
+
+          * 0x20 4 byte writes
+
+          * 0x10 64 byte writes (full datagram, but not 63 bytes or arbitrary length, just exactly 64)
+
+          * 0x02 arbitrary writes of any length OK
+
+          * 0x01 stream writes supported (stream support will identify buffer size)
+
+          * Others reserved, must be ignored on receipt and sent as zero.
+
+     * Highest Address Space (byte): Highest number space available. Not all up to that need be available,
+       but sparse allocation will slow down the process as “Get Address Space Information” is needed to
+       determine whether they are present.
+
+     * Lowest Address spaces (byte): Lowest number space available. Note that spaces 0xFD, 0xFE and 0xFF
+       are assumed to be included even if the low space ↔ high space range doesn't include them. (also
+       0xFC, 0xFB of Abbreviated Default CDI if bits indicate they're available)
+
+   A node that only has the high spaces could have Highest Address Space = 255, Lowest Address Space = 253
+   or 251.
+
+   A node that has additional low address spaces, e.g. to make more memory available with a 28-bit address,
+   could have Highest Address Space = 127, Lowest Address Space = 0 and leave the top spaces assumed.
+
+4.15 Get Address Space Information Command
+
+    Byte 0       Byte 1        Byte 2                                                                       
+
+    0x20         0x84          Address Space                                                                
+
+4.16 Get Address Space Information Reply
+
+    Byte 0      Byte 1     Byte 2         Byte 3-6            Byte 7     Byte 8-11          Remaining       
+
+    0x20        0x86       Address Space   Highest Address      Flags     Lowest Address     Description    
+                           
+                0x87       
+
+     * Command (Byte 1)
+
+          * Byte 1 – 0x87: present, else if 0x86: not present
+
+     * Address Space (Byte 2) – provided to identify request this reply is in response to
+
+     * Highest Address (Bytes 3 - 6)
+
+     * Flags (Byte 7)
+
+          * Bits 7..2 – Reserved
+
+          * Bit 1 – 0b0: low address is zero, else if 0b1: low address specified in next four bytes
+
+          * Bit 0 – 0b0: writable, else if 0b1: read-only
+
+     * Lowest Address (Bytes 8 - 11) – optional, omit if zero, as that will let reply fit in single CAN
+       frame; if present, “non-zero lowest address” bit in prior byte must be 1.
+
+     * Description (Bytes 12+, variable length) – optional null-terminated string giving the user-readable
+       name of this space
+
+4.17 Lock/Reserve Command
+
+    Byte 0       Byte 1        Byte 2-7                                                                     
+
+    0x20         0x88                                       Reserving Node ID                               
+
+   At the start of configuration, a configuring node sends a Lock message with its NodeID. If no node has
+   locked this node, indicated by zero content in the lock memory, the incoming NodeID is placed in the
+   lock memory. If a node has locked this node, the non-zero NodeID in the lock memory is not changed. In
+   either case, the content of the lock memory is returned in the reply. This acts as a test and set
+   operation, and informs the requesting node whether it successfully reserved the node. To release the
+   node, repeat the lock operation with a zero Node ID. The lock memory is set to zero when the node is
+   reset. Note that this is a voluntary protocol in the configuring nodes only; the node being configured
+   does not change it's response to configuration operations when locked or unlocked.
+
+4.18 Lock/Reserve Reply
+
+    Byte 0       Byte 1        Byte 2-7                                                                     
+
+    0x20         0x8A                                       Reserved Node ID                                
+
+4.19 Get Unique ID Command
+
+    Byte 0       Byte 1       Byte 2                                                                        
+
+    0x20         0x8C         Number requested (1-8, 3 bits); upper bits reserved and must be ignored       
+
+   Nodes maintain a list of unique Event IDs for use in configuration. These are allocated based on the
+   node's unique Node ID. This command allows a configuration tool to get new unique Event IDs from the
+   node's pool, for example to interact with the Blue/Gold configuration process. Each request must provide
+   a different Event ID, without repeat, even through node resets and factory resets.
+
+4.20 Get Unique ID Reply
+
+    Byte 0       Byte 1        Remainder                                                                    
+
+    0x20         0x8D          1-8 requested Event IDs, a total of 8-64 bytes                               
+
+4.21 Reset/Reboot Command
+
+    Byte 0       Byte 1                                                                                     
+
+    0x20         0xA9                                                                                       
+
+   After reset successfully processing this command, the receiving node shall reset/reboot into its power
+   on reset state, as if it has been put through a power cycle.
+
+4.22 Reinitialize/Factory Reset Command
+
+    Byte 0       Byte 1        Byte 2-7                                                                     
+
+    0x20         0xAA                                            Node ID                                    
+
+   “Reinitialize/Factory Reset” restores the node's configuration as if factory reset.
+
    Table of Contents
 
    1 Introduction (Informative) 1
@@ -337,5 +499,25 @@
 
    4.12 Write Stream Reply 6
 
+   4.13 Get Configuration Options Command 7
+
+   4.14 Get Configuration Options Reply 7
+
+   4.15 Get Address Space Information Command 8
+
+   4.16 Get Address Space Information Reply 8
+
+   4.17 Lock/Reserve Command 9
+
+   4.18 Lock/Reserve Reply 9
+
+   4.19 Get Unique ID Command 9
+
+   4.20 Get Unique ID Reply 9
+
+   4.21 Reset/Reboot Command 10
+
+   4.22 Reinitialize/Factory Reset Command 10
+
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 8 - Feb 17, 2015
+   1 of 10 - Feb 17, 2015
