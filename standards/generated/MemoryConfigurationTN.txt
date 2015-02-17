@@ -2,9 +2,9 @@
 
                                                                  OpenLCB Technical Note
 
-                                                          Memory Access Configuration Protocol
+                                                                  Memory Configuration
 
-                                                        Feb 15, 2015            PreliminaryIn-Workn Review  
+                                                        Feb 17, 2015                     In Review          
 
                                                 1 Introduction
 
@@ -114,8 +114,8 @@
     Space bits above == 0b00
 
     Remainder                                   Data       Data and Mask      Stream           Count        
-                                            (1-64 bytes)    (2-64 bytes)    Definition        (1 byte,      
-                                                                               Info            1-64)        
+                                            (1-64 bytes)    (2-64 bytes)    Definition     (1 byte, 1-64)   
+                                                                               Info       
 
                                                    Read           Read-Reply        Read Stream             
 
@@ -245,7 +245,7 @@
 
   2.4.4 Operations
 
-   This protocol consists of a idempotent operations. A command areis sent and causes some desired thing to
+   This protocol consists of idempotent operations. A command is sent and causes some desired thing to
    happen. That in turn results in a positive reply, the return of the requested information, or an error
    code. Each operation is independent of others and carries all the information needed to do the
    operation. For example, a read operation contains the address information, and the reply carries that
@@ -286,9 +286,6 @@
   A typical memory write operation. The Write Command and data are carried to the node being configured in a
 single datagram. Since the write operation succeeds immediately, the only reply needed is the datagram reply.
 
-   If the memory configuration protocol is being used to control e.g. DCC CV reads and writes, those
-   operations can take a very long time, 30 seconds or more.
-
    Most writes are assumed to always complete immediately and without error. Writes into memory are
    certainly like that, but writes to DCC CVs might not be. Into-memory writes are well served by “when the
    positive reply to the datagram arrives, the write completed successfully”. That requires no extra
@@ -326,7 +323,7 @@ single datagram. Since the write operation succeeds immediately, the only reply 
 
     2.4.4.8 Indicate
 
-   This is likely to move to another standard.No extra information given
+   No extra information given
 
                                                   3 General
 
@@ -394,9 +391,9 @@ single datagram. Since the write operation succeeds immediately, the only reply 
   3.1.4 CAN Aspects
 
    CAN configuration datagrams have seven payload bytes in the 1^st frame (the first byte is the datagram
-   type byte that identifies that it's a configuration transfer). See the “Datagram Protocol”OpenLCB
-   Datagram Transport Standard document for more info. Read operations and 2-byte (or 1-byte-under-mask)
-   writes can be done with a single CAN frame.
+   type byte that identifies that it's a configuration transfer). See the OpenLCB Datagram Transport
+   Standard document for more info. Read operations and 2-byte (or 1-byte-under-mask) writes can be done
+   with a single CAN frame.
 
    Read-Stream and Write-Stream need to rendezvous on the stream IDs to know which stream is carrying the
    data. See Examples section below.
@@ -729,4 +726,4 @@ single datagram. Since the write operation succeeds immediately, the only reply 
    4 To Be Merged 18
 
    Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 21 - Feb 15, 2015
+   1 of 19 - Feb 17, 2015
