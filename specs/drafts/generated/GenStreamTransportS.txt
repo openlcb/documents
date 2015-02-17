@@ -9,7 +9,7 @@
     Streaming transport can also be used when the data transfer is unknown or indefinite in its volume or
    persistence.
 
-                                     3 References and Context (Normative)
+   References and Context (Normative)
 
    This specification is in the context of the following OpenLCB Standards:
 
@@ -21,7 +21,7 @@
      * The OpenLCB Memory Access Configuration Protocol Standard, which will be used as an example of an
        application-level protocol that interacts with the Streaming protocol for data transport.
 
-                                          4 Definitions (Normative)
+                                          3 Definitions (Normative)
 
    Stream is a uni-directional sequence of bytes transmitted from one OpenLCB node to another OpenLCB node.
    There is no out-of-band information that can be sent along with the payload using the Streaming
@@ -46,28 +46,31 @@
    in-flight; that is, the maximum number of bytes the source node may send without receiving a reception
    acknowledgement from the destination node.
 
-                                              5  Message Formats
+                                              4  Message Formats
 
    In the following, the “common MTI” column specifies the MTI value to be used when communicating in
    OpenLCB common format.  The Common MTI is an abstract numeric description intended as a normative guide
    to the construction of concrete message formats over specific physical transport media.
 
-5.1 Stream Initiate Request
+4.1 Stream Initiate Request
 
-   Stream Initiate Request is an addressed message sent by the Source node to the Destination node to
-   request creating the stream. This is the only method to create a stream.
+   Stream Initiate Request is an addressed message sent by the Source node to the destination node to
+   request creating the stream. This is the only method to create a stream.  The Destination Stream ID is
+   only to be suggested if previously negotiated with the destination node using some other prerequisite
+   protocol.
 
    Data content:
 
    Name            Dest ID Event ID Common MTI Data Content
                                                6 or 12 bytes
-                                               Byte 0     Reserved, send as 0xFF, ignore on receipt.        
+                                               Byte 0     Suggested Destination Stream ID, else 0xFF if     
+                                                          none is to be suggested.                          
                                                Byte 1     Source Stream ID, value 0xFF is reserved.         
                                                Bytes 2-3  Max Buffer Size (proposed by source).             
                                                           Flags:                                            
-                                                                                                            
-   Stream Initiate Y       N        0x0CC8     Byte 4     LSB (bit 0): Deprecated, send as 0, check upon    
-   Request                                                receipt.                                          
+   Stream Initiate                                                                                          
+   Request         Y       N        0x0CC8     Byte 4     LSB (bit 0): Deprecated, send as 0, check upon    
+                                                          receipt.                                          
                                                                                                             
                                                           bit 1-7: Reserved, send as 0, check on receipt.   
                                                           Additional Flags:                                 
@@ -77,7 +80,7 @@
 
     
 
-5.2 Stream Initiate Reply
+4.2 Stream Initiate Reply
 
    Name            Dest ID Event ID Common MTI Data Content
                                                6 bytes + optional error string
@@ -120,7 +123,7 @@
 
     
 
-5.3 Stream Data Send
+4.3 Stream Data Send
 
    Name             Dest ID Event ID Common MTI Data Content
                                                 1 – <Max Buffer Size + 1> Bytes
@@ -129,16 +132,16 @@
 
     
 
-5.4 Stream Data Proceed
+4.4 Stream Data Proceed
 
    Name                Dest ID Event ID Common MTI Data Content
                                                    2 Bytes
    Stream Data Proceed Y       N        0x0888     Byte 0 Destination Stream ID, value 0xFF is reserved. 
                                                    Byte 1 Source Stream ID, value 0xFF is reserved.      
 
-    
+4.5
 
-5.5 Stream Data Control
+4.6 Stream Data Control
 
    Name                Dest ID Event ID Common MTI Data Content
                                                    2 or 6 Bytes
@@ -176,7 +179,7 @@
 
     
 
-                                             6 States (Normative)
+                                             5 States (Normative)
 
    A stream can be in one of the following states:
 
@@ -194,9 +197,9 @@
    Open. The Destination node has sent a Stream Initiate Reply to the Source node with the Source Stream ID
    and the Destination Stream ID and the error code set to Accepted.
 
-                                          7 Interactions (Normative)
+                                          6 Interactions (Normative)
 
-7.1 Opening a stream with announcement
+6.1 Opening a stream with announcement
 
    In this method the streaming protocol works together with a higher-level protocol. It is the
    higher-level protocol that requests the transfer, and defines the format, contents and possibly the
@@ -235,7 +238,7 @@
    stream is transitioned to the Closed state. If needed, the interaction may be re-started using the
    higher-level protocol.
 
-7.2 Opening a stream without announcement
+6.2 Opening a stream without announcement
 
    This method may only be used if the interaction is started by the Source node.
 
@@ -243,12 +246,12 @@
    Initiate Request to the Destination node. This message must carry a 6-byte Stream Content UID, which
    specifies for the destination node the content and format of the data carried, and transitions the
    stream to the Initiated state. From this state onwards the interaction continues as in described in
-   Section 7.1.
+   Section 6.1.
 
    If the Stream Content UID is unknown to the Destination node, it should use the Permanent Error,
    Unimplemented error code in the rejection message.
 
-7.3 Data transfer
+6.3 Data transfer
 
    Once a stream transitioned to Open state, the Source node may start sending payload bytes using Stream
    Data Send messages. The source node may send up to Max Buffer Size bytes using one or more Stream Data
@@ -263,7 +266,7 @@
    required to periodically send Stream Data Send messages with zero payload bytes to ensure that the
    destination node and any gateways in the transfer path are still aware of the stream transmission.
 
-7.4 Closing the stream
+6.4 Closing the stream
 
    The Source node signals completion of the transfer by sending a Stream Data Complete message to the
    Destination node, providing the Source Stream ID and the Destination Stream ID with it. Optionally the
@@ -278,7 +281,7 @@
    sends a Terminate Due To Error or Optional Interaction Rejected message with no MTI value or with the
    MTI value of Stream Data Proceed. When possible, the specific MTI value should be used.
 
-7.5 Special provisions for Gateways
+6.5 Special provisions for Gateways
 
    A Gateway needs to be prepared for buffering up to Max Buffer Size bytes for each open stream. It may
    reduce the Max Buffer Size in the Stream Initiate Request message if the buffer size available is
@@ -297,11 +300,11 @@
    A Gateway must drop all data in its internal buffer and all delayed messages if the Stream is terminated
    with an error message of Terminate Due To Error or Optional Interaction Rejected.
 
-                                  8 Adaptation to CAN Transport (Normative)
+                                  7 Adaptation to CAN Transport (Normative)
 
    This section describes the CAN implementation of stream transport message formats.
 
-8.1 Stream Data Send
+7.1 Stream Data Send
 
    Stream Data Send messages are sent on a CAN network using the Frame Type of 7 (Stream Data), the
    Destination node alias and the Source node alias in the CAN header, and the Destination Stream ID in the
@@ -313,7 +316,7 @@
 
     
 
-8.2 All Other Messages
+7.2 All Other Messages
 
    All other messages are sent as described in the OpenLCB Message Network Standard. Note that the Stream
    Initiate Request message may need to be sent in two CAN frames if it contains a Stream Content UID. The
@@ -411,9 +414,9 @@
    a four-byte length of the stream data transferred for checking. A zero value, if present, means the
    length is unknown. When this message is received by the destination, the transfer is complete.
 
-                                           9 Background Information
+                                           8 Background Information
 
-9.1 Stream Content Type Identification
+8.1 Stream Content Type Identification
 
    Stream senders can, but don't have to, identify the content type (format, meaning, etc) of the data
    stream at the front. As part of their private protocol, they can use whatever structure they'd like for
@@ -424,7 +427,7 @@
    be allocated via the same mechanisms as EventIDs. Well-known ones will be published by OpenLCB. These
    identifiers are recorded in a separate worksheet.
 
-9.2 Buffer Size
+8.2 Buffer Size
 
    The buffer size can be up to 216-1 bytes = 64KB-1. This is driven by the size of the initiate messages,
    which we want to keep in a single CAN frame. Although some transport mechanisms might be able to
@@ -433,7 +436,7 @@
    the future, an alternate form for the stream initialization messages can be defined for those
    large-message nodes. (It's unlikely they're running over CAN)
 
-9.3 CAN Discussion
+8.3 CAN Discussion
 
    On a CAN segment, the data limit is 8 bytes. This requires use of as little control information as
    possible, so that as many of those eight bytes can be used for data as possible.
@@ -450,7 +453,7 @@
    Destination Stream ID to restore it to the full format. Since they are tracking the stream in any case
    for buffering purposes, this is thought to be not a large problem.
 
-9.4 Implementation Notes
+8.4 Implementation Notes
 
    The "Stream Data Proceed" from the destination is clearance to send another buffer-size-worth of data.
    To achieve better performance, the destination can send it before receiving the entire buffer-size-worth
@@ -475,50 +478,50 @@
 
    2 Intended Use (Informative)
 
-   3 References and Context (Normative)
+   3 Definitions (Normative)
 
-   4 Definitions (Normative)
+   4  Message Formats
 
-   5  Message Formats
+   4.1 Stream Initiate Request
 
-   5.1 Stream Initiate Request
+   4.2 Stream Initiate Reply
 
-   5.2 Stream Initiate Reply
+   4.3 Stream Data Send
 
-   5.3 Stream Data Send
+   4.4 Stream Data Proceed
 
-   5.4 Stream Data Proceed
+   4.5
 
-   5.5 Stream Data Control
+   4.6 Stream Data Control
 
-   6 States (Normative)
+   5 States (Normative)
 
-   7 Interactions (Normative)
+   6 Interactions (Normative)
 
-   7.1 Opening a stream with announcement
+   6.1 Opening a stream with announcement
 
-   7.2 Opening a stream without announcement
+   6.2 Opening a stream without announcement
 
-   7.3 Data transfer
+   6.3 Data transfer
 
-   7.4 Closing the stream
+   6.4 Closing the stream
 
-   7.5 Special provisions for Gateways
+   6.5 Special provisions for Gateways
 
-   8 Adaptation to CAN Transport (Normative)
+   7 Adaptation to CAN Transport (Normative)
 
-   8.1 Stream Data Send
+   7.1 Stream Data Send
 
-   8.2 All Other Messages
+   7.2 All Other Messages
 
-   9 Background Information
+   8 Background Information
 
-   9.1 Stream Content Type Identification
+   8.1 Stream Content Type Identification
 
-   9.2 Buffer Size
+   8.2 Buffer Size
 
-   9.3 CAN Discussion
+   8.3 CAN Discussion
 
-   9.4 Implementation Notes
+   8.4 Implementation Notes
 
     
