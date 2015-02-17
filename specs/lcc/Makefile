@@ -38,6 +38,7 @@ SRCFILE:=$$(3)$$(2).pdf
 #  $(1) is the composite name of the file like 9.7.0.1-S
 #  $(2) is the designation S or TN
 #  $(3) is the full name of the source pdf (example MemoryConfigurationS.pdf)
+#  $(4) is the output filename
 define DOCU_template
 
 obj/$(1)-header.tex: header_template.tex
@@ -54,10 +55,10 @@ obj/$(1)-body.pdf: $(3) obj/$(1)-header.pdf
 	pdftk $$< multibackground obj/$(1)-header.pdf output $$@
 
 
-$(1).pdf: obj/$(1)-Cover.pdf obj/$(1)-body.pdf 
+$(4): obj/$(1)-Cover.pdf obj/$(1)-body.pdf 
 	pdftk $$+ cat output $$@
 
-all: $(1).pdf
+all: $(4)
 
 endef
 
@@ -68,9 +69,9 @@ endef
 #  $(1) is the basename of the file which is like 9.7.0.1
 #  $(2) is the designation S or TN (also part of the filename)
 #  $(3) is the basename of the source pdf (example MemoryConfiguration)
-DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf)
+DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(1)-$(2)-$(3).pdf)
 
-DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf)
+DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,$(1)-S-$(2).pdf) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,$(1)-TN-$(2).pdf)
 
 
 $(eval $(call DOCU_call,9.7.0.1,TN,Glossary))
