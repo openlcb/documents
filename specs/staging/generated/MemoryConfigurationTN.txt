@@ -41,10 +41,20 @@
 
    Configuration messages use a specific datagram format consisting of the datagram type byte, followed by
    a single byte combining the operation “Command Type” field and flags. This is then followed by data in
-   an operation-specific format.
+   an operation-specific format.  The table below summarizes some of the possible data formats supported by
+   Memory Configuration messages.
 
-   Byte 0        Byte 1       Byte 2-5         Byte 6 (Optional) Remaining Bytes  
-   Datagram Type Command Type Starting Address Address Space     Command Specific 
+   Byte 0         Byte 1       Byte 2      Byte 3 Byte 4      Byte 5       Byte 6           Remaining Bytes 
+                               Starting Address                            Address Space    Command         
+                                                                           (Optional)       Specific        
+                                                  Write       Highest      Lowest Address   Name String     
+                               Available Commands Lengths     Address      Space            (Optional)      
+   Datagram Type  Command Type                                Space        
+   (0x20)                      Node ID     
+                               Address     Highest Address                                  Additional ...  
+                               Space       
+                               Address            
+                               Space       
 
     
 
@@ -84,8 +94,8 @@
 
   2.4.1 Address Space Size
 
-   The four-byte address allows directly addressing 4GB of data. The use of address spaces (see 2.4.2
-   Address Space Selection) allows direct access to 1TB of data.
+   The four-byte address allows directly addressing 4GB of data. The use of address spaces
+   (see#2.4.2.Address Space Selection) allows direct access to 1TB of data.
 
    The large address range removes the need for address registers and other non-idempotent accesses when
    accessing e.g. sound information in a large memory.
@@ -113,7 +123,7 @@
 
      * 0x1050 – Not implemented, subcommand is unknown
 
-     * 0x1060 – Not implemented, Datagram-type, Stream-type, or command is unknwon
+     * 0x1060 – Not implemented, Datagram-type, Stream-type, or command is unknown
 
      * 0x1070 – Not implemented, unknown MTI, or Transport protocol (datagrams/streams) is not supported
 
@@ -148,7 +158,7 @@
 
    This message is sent in response to a Read Command which was previously responded to with a
    corresponding Datagram OK message having had the Reply Pending bit set.  If the Read Command was
-   previosuly responded to with a corresponding Datagram Rejected message, no Read Reply message is
+   previously responded to with a corresponding Datagram Rejected message, no Read Reply message is
    required or expected.
 
    A Read Reply is not considered to be in error unless it responds with zero bytes of data.  In this case,
@@ -218,6 +228,137 @@
    Stream support within the OpenLCB Memory Configuration Protocol is considered experimental.  A version
    of this Technical Note and corresponding Standard containing updated information on the usage of streams
    will likely be adopted at a future time.
+
+  2.4.13 Get Configuration Options Command
+
+   See section 2.4.14 Get Configuration Options Reply for additional information.
+
+  2.4.14 Get Configuration Options Reply
+
+   To make it possible to make simple/cheap nodes, not every configuration operation & option needs to be
+   provided. The reply to “Get Configuration Options” provides information that a configuring device can
+   use to control how it communicates with the node so that it only uses available modes.
+
+  2.4.15 Get Address Space Information Command
+
+   See section 2.4.16 Get Address Space Information Reply for additional information.
+
+  2.4.16 Get Address Space Information Reply
+
+   To ease automated access, a configuring node can inquire about the address spaces in the
+   being-configured node. Whether or not the address space is present, a reply is required.
+
+  2.4.17 Lock/Reserve Command
+
+   Although nodes can be configured by multiple other nodes, this can also lead to inconsistencies. The
+   optional Lock/Release command can be used to avoid this.
+
+  2.4.18 Lock/Reserve Reply
+
+   See section 2.4.17 Lock/Reserve Command for additional information.
+
+  2.4.19 Get Unique ID Command
+
+   Event IDs are considered to be 'virgin' until they are taught to another node.  Learned Event IDs are
+   not virgin by definition, since they are shared by the taught node and by the node that did the
+   teaching.  
+
+   This command is used to obtain new virgin Event IDs and return them to the requesting node.  The node
+   should draw these from some pool of unique virgin Event IDs.  This may be from the 64k Event IDs
+   assigned to the node associated with its Node ID, or some other pool, but it must maintain the
+   uniqueness of the Event IDs.  If the node maintains a counter or pointer to the pool, then the value of
+   this variable must be maintained even if the node goes through a reboot or rest.  This means that its
+   value must be keep in non-volatile memory.  
+
+   This command does not need to be implemented.  However, if it is not, then some alternate method of
+   refreshing the node to virgin Event IDs should be implemented, such as Blue/Gold or other alternate
+   local method.  Some nodes may not need even this if they only implement fixed or well-known Event IDs,
+   and a reusable range of Event IDs, for example time-events.  If this protocol is not implemented, but a
+   button method is used, then other methods, such as the Remote Button Protocol might be used to allow
+   this function remotely.  
+
+   Maintaining the uniqueness of Event IDs is a crucial underlying principle of OpenLCB, and needs to be
+   understood well so that inadvertent collisions of Event IDs are prevented.  Manufacturers should go out
+   of their way to maintain Event ID uniqueness and should teach users the significance of maintaining this
+   fundamental principle.  
+
+   Once Event IDs are taught, they represent an abstract idea, although that idea may ceratinly have
+   concrete consequences.  For example, the abstract idea “Night has fallen” can be represented by a shared
+   Event ID between many nodes, and sending it can have many consequences.  The important point is that
+   Event ID cannot be used for any other idea or purpose, unless it is removed from all nodes that use it.
+    That may be possible in a closed system, like a private layout, especially with the appropriate
+   software tools.  However, not all systems are closed and not all nodes are reachable or active.
+    Consider a node that is non-powered, or one on the work-bench, or even more important the one that you
+   sold.  The “Night has fallen” Event ID may still be used by any of those nodes, and they  can be used to
+   teach it to yet more nodes.  So, in general, it is much safer to have other mechanisms available to
+   prevent any inadvertent reuse of Event IDs.  
+
+   One method is to provide a mechanism to reset the node such that all its Event IDs are replaced by a set
+   of new virgin Event IDs.  For small nodes that use 2-100 Event IDs this is reasonable.  Each node has
+   64k Event IDs assigned to it, and so these nodes can be reset 600-30k times before running out of virgin
+   Event IDs.  
+
+   Another method, that is more frugal of Event IDs, is to only replace non-virgin Event IDs, ie those that
+   have been taught or learned, on a reset.  Flag-bits would be used to remember which ones are non-virgin,
+   and thus which need replacing.  
+
+   A further sophistication is to use a 'just-in-time' method.   Each Event ID would be flagged as virgin
+   or non-virgin.  When the node was to teach a non-virgin Event-ID, it would be replaced with a new virgin
+   one before the teaching occurred.  The disadvantage to this method is that an EventID would only be able
+   to be taught once, whereas there are situations where it is desired to extend an abstract idea to
+   additional nodes.  Unfortunately, by definition these Event IDs would already be considered non-virgin
+   and would be replaced by a new virgin Event ID.   This coul dbe mitigated by a more complicated UI, but
+   it would likely be confusing to the user.  
+
+   As stated above, in a typical node, there is enough address space to produce nearly 64K of of Event IDs
+   based on the nodes single assigned Node ID.  Though highly unlikely, it is possible that over time, a
+   node that has been reconfigured many times, could run out of Unique IDs.  How a node behaves if/when it
+   runs out of Unique IDs is undefined, but here are some possible suggestions:
+
+     * Mark the affected Producers / Consumers with Event ID of zero, hence making them unusable;
+
+     * Reply using a Datagram Rejected message with permanent error for subsequent requests;
+
+     * Permanently stop working (never announce as initialized);
+
+     * Allow for manual user intervention to reset, or reassign the Unique ID space in the node.
+
+   However this is managed, the implementation must ensure that non-virgin event IDs are not re-used.  
+
+   Solutions to the above limitations include:
+
+     * Design the node with more than 64k Event IDs, by using some of the Node ID bits to extend the Event
+       ID space.  For example a node that is assigned a range of Node IDs, say a.b.c.d.e.00 – a.b.c.d.e.FF
+       could use 256x64k Event IDs;
+
+     * Teach an Event ID from another node (which has not run out of its space yet);
+
+     * Overwrite the zero Event ID, with a configuration tool, from another pool assigned to you.  
+
+  2.4.20 Get Unique ID Reply
+
+   See section 2.4.19 Get Unique ID Command for additional information.
+
+  2.4.21 Reset/Reboot Command
+
+   The “Reboot/Reset” command is meant to reinitialize a node, equivalent to powering it up. Nodes should
+   finish any pending operations, e.g. non-volatile memory writes, before doing the initialization. It's
+   expected that the datagram reply will be sent before the reset, but this might not be entirely reliable.
+   Configuration tools should not count on the reply. The configuring node will receive a “Node
+   Initialization Complete” when the node is back up. This operation must not reset any configuration
+   information to default contents.
+
+  2.4.22 Reinitialize/Factory Reset Command
+
+   This is a heavy-weight operation which may require some form of interlock, e.g. the user pressing a
+   button, to prevent inadvertent data loss. As a small safety precaution, the Node ID of the node being
+   reset is redundantly carried in the data part of the datagram.
+
+   There may also be implications if the node supports the Get Unique ID Command.  If the node has
+   previously handed out Unique IDs, future Unique ID assignment is not prescribed by the standard.  The
+   node could choose to continue assigning Unique IDs from where it left off before the reset, require the
+   user to enter in a new Unique ID pool into the node, or use some other unprescribed method to handle (or
+   not handle) potential conflicts as a result of the reset.
 
                                                   3 General
 
@@ -311,7 +452,7 @@
 
    ← datagram reply
 
-     * ← Read Reply [d]
+   ← Read Reply [d]
 
    datagram reply →
 
@@ -339,12 +480,10 @@
 
    datagram reply →
 
-    
-
    which is significantly less efficient. Better to send the positive acknowledgement to the read reply
    datagram before sending the next read command.
 
-  3.1.4 Delays Due to Non-Volatile Memory
+    3.1.3.4 Delays Due to Non-Volatile Memory
 
    Some microcontrollers can't continue to operate while writing configuration information to non-volatile
    memory.
@@ -372,7 +511,7 @@
    smaller than the memory write size (page size), the node can ensure that the stream will pause during a
    write operation.
 
-  3.1.5 Large Volume Operations
+  3.1.4 Large Volume Operations
 
    The stream protocol is meant for large reads and writes, but the datagram protocol can also work well on
    a single CAN segment. The difference in performance comes from the (potential) larger datagram buffer
@@ -389,6 +528,10 @@
    the node should indicate that stream-write operations are not supported in its reply to Get
    Configuration. Since read operations don't have the same timing issues, streams may still be useful in
    that case.
+
+    
+
+    
 
    Table of Contents
 
@@ -428,6 +571,26 @@
 
    2.4.12 Write Stream Reply
 
+   2.4.13 Get Configuration Options Command
+
+   2.4.14 Get Configuration Options Reply
+
+   2.4.15 Get Address Space Information Command
+
+   2.4.16 Get Address Space Information Reply
+
+   2.4.17 Lock/Reserve Command
+
+   2.4.18 Lock/Reserve Reply
+
+   2.4.19 Get Unique ID Command
+
+   2.4.20 Get Unique ID Reply
+
+   2.4.21 Reset/Reboot Command
+
+   2.4.22 Reinitialize/Factory Reset Command
+
    3 General
 
    3.1 Environment of Protocol
@@ -444,8 +607,8 @@
 
    3.1.3.3 Performance Note
 
-   3.1.4 Delays Due to Non-Volatile Memory
+   3.1.3.4 Delays Due to Non-Volatile Memory
 
-   3.1.5 Large Volume Operations
+   3.1.4 Large Volume Operations
 
     
