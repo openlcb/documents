@@ -35,7 +35,7 @@
    Configuration memory addresses are 32 bits. The addressable quantity is the byte. There are 256 unique
    address spaces, which are specified using an address space selectors.  Address spaces may be wholly
    designated as read-only or write-only by the implementing node.  An address space may not be partially
-   designated as read-only or write-only
+   designated as read-only or write-only.
 
 4.2 Address Space Selection
 
@@ -60,19 +60,23 @@
 
 4.3 Generic Error Handling
 
-   An unknown command in byte 1 shall return a datagram rejected reply with an error-code as defined in the
-   OpenLCB Message Network Standard.
+   The Error Codes returned by failed operations, either in the Datagram Rejected message, or the Failed
+   response datagrams, shall conform to the general Error Code specification as defined by the OpenLCB
+   Message Network Standard.
+
+   An unknown command in byte 1 shall return a datagram rejected reply. Nodes may, but are not required to
+   use the error code “Not implemented, subcommand unknown”..
 
    Additionally, the following protocol specific enumerated error code extensions (logically or'd into bits
-   0-3 of the error code as defined in the OpenLCB Message Network Standard) are defined for use with
+   0-3 of the base error code as defined in the OpenLCB Message Network Standard) are defined for use with
    commands that are supported and known to the node:
 
-     * 0x0001 – Out of bounds, the address space is valid, however the address within the space is not
-       implemented.
+     * “Permanent error, invalid argument” | 0x0001 – Address space is not known.
 
-     * 0x0002 – Write access to a read-only address space.
+     * “Permanent error, invalid argument” | 0x0002 – Out of bounds, the address space is valid, however
+       the address within the space is not implemented.
 
-     * 0x0003 – Read access to a write-only address space.
+     * “Permanent error, invalid argument” | 0x0003 – Write access to a read-only address space.
 
 4.4 Read Command
 
@@ -92,10 +96,6 @@
 
    If the interval is provided and has elapsed without a Read Reply message being returned, the node
    requesting the Read operation may, but is not required to, repeat the request.
-
-   Attempts to read from an invalid location, either outside the available address range in a valid address
-   space, or from an invalid address space, still require a returning a Read Reply datagram with a data
-   length of zero.
 
 4.5 Read Reply
 
@@ -369,7 +369,7 @@
    A node that only has the high spaces could have Highest Address Space = 255, Lowest Address Space = 253
    or 251.
 
-   A node that has additional low address spaces, e.g. to make more memory available with a 28-bit address,
+   A node that has additional low address spaces, e.g. to make more memory available with a 39-bit address,
    could have Highest Address Space = 127, Lowest Address Space = 0 and leave the top spaces assumed.
 
 4.15 Get Address Space Information Command
@@ -452,7 +452,19 @@
 
     
 
-4.21 Reset/Reboot Command
+4.21 Update Complete Command
+
+   Byte 0 Byte 1 
+   0x20   0xA8   
+
+    
+
+   This command notifies the target node that the configuration update operation sequence has completed.
+    Nodes do not have to require this operation, but receiving it must be permitted. Configuration tools
+   should send it at the end of operations. Nodes may, but are not required to, reset after sending the
+   reply to this message.
+
+4.22 Reset/Reboot Command
 
    Byte 0 Byte 1 
    0x20   0xA9   
@@ -462,14 +474,24 @@
    After reset successfully processing this command, the receiving node shall reset/reboot into its power
    on reset state, as if it has been put through a power cycle.
 
-4.22 Reinitialize/Factory Reset Command
+4.23 Reinitialize/Factory Reset Command
 
    Byte 0 Byte 1 Byte 2-7 
    0x20   0xAA   Node ID  
 
     
 
-   “Reinitialize/Factory Reset” restores the node's configuration as if factory reset.
+   “Reinitialize/Factory Reset” restores the node's configuration as if factory reset. Node ID shall carry
+   the destination Node ID for redundancy.
+
+4.24 Enter Bootloader Command
+
+   Byte 0 Byte 1 
+   0x20   0xAB   
+
+    
+
+   This command is reserved for the future specification of a firmware upgrade protocol.
 
     
 
@@ -523,8 +545,12 @@
 
    4.20 Get Unique ID Reply
 
-   4.21 Reset/Reboot Command
+   4.21 Update Complete Command
 
-   4.22 Reinitialize/Factory Reset Command
+   4.22 Reset/Reboot Command
+
+   4.23 Reinitialize/Factory Reset Command
+
+   4.24 Enter Bootloader Command
 
     
