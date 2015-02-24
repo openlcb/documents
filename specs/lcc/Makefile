@@ -71,7 +71,7 @@ DATE=2015-02-17
 #  $(1) is the basename of the file which is like 9.7.0.1
 #  $(2) is the designation S or TN (also part of the filename)
 #  $(3) is the basename of the source pdf (example MemoryConfiguration)
-DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(2)-$(1)-$(3)-$(DATE).pdf)
+DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(1)-$(2)-$(3)-$(DATE).pdf)
 
 DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,$(1)-S-$(2)-$(DATE).pdf) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,$(1)-TN-$(2)-$(DATE).pdf)
 
