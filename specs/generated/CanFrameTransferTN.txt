@@ -160,7 +160,7 @@
 
    In the Inhibited state, a node can only communicate on the CAN segment to allocate its Node ID
    alias(es).  This involves sending CID and RID frames with a tentative Node ID alias value.  Once that
-   process is complete, the node has an assigned Node ID alias and can transfer to the Permitted state,
+   process is complete, the node has an assigned Node ID alias and can transition to the Permitted state,
    where all communications are possible.
 
    If a node fails, it should restart in the Inhibited state. In general, this state transition is not
@@ -181,6 +181,13 @@
 
    The coding is done to allow up to 7 separate CID sequence numbers, for use by protocols with longer node
    IDs.
+
+   The coding of the 0x07NN field was selected to allow expansion of control fields in the 0x070N range,
+   and expansion of error indications in the 0x071N range.
+
+   The block of CAN frames with Variable field from 0x1000 to 0x3FFF are not used by OpenLCB.  Although
+   formally reserved, they can serve as a convenient 26-bit (with bit 28) address block for experimentation
+   and migration of other equipment.
 
   2.6.2 Interactions
 
@@ -225,7 +232,7 @@
    a permanent lock-step error.
 
    The delay at the end of the algorithm is to ensure that higher latency nodes, such as software nodes
-   working through USB convertors, can reply to CID frames from nodes that come up on a working link.
+   working through USB converters, can reply to CID frames from nodes that come up on a working link.
    OpenLCB is a soft-real-time system, and software that's interacting with it needs to have response times
    of a couple tens of milliseconds or better to be reliable. The algorithm provides a wait of a few times
    that to enable those programs to take part.
@@ -267,12 +274,20 @@
    Note that there is no requirement that the node's alias value be consistent from one power-up reset to
    the next.
 
+    2.6.2.3 Node ID Alias validation
+
    The Alias Mapping Enquiry provides a mechanism for determining which alias is associated with each Node
    ID.  This can be used when a new node attaches and needs the information.  Operating nodes can also
    track this information by watching CAN segment traffic for control frames, without having to use the
    Alias Mapping Enquiry protocol.
 
-    2.6.2.3 Node ID Alias validation
+   The AME has two distinct usages:
+
+     * AME without Node ID: all active nodes reply with AMD and their Node ID;
+
+     * AME with Node ID and the receiving node has matching Node ID, it replies with AMD and its Node ID;
+
+    
 
    Node ID alias validation provides a way for a node joining a segment to rapidly learn the Node IDs and
    Node ID aliases of the reachable nodes.  This may be useful for e.g. a gateway that is connecting two
@@ -284,12 +299,12 @@
    contain an alias.  They just work with the alias itself. They also don't need to track other nodes'
    state, etc.
 
-   In order to acquire the map between CANids and node IDs, a gateway needs to be able to send a CAN frame
-   requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to return
-   the node ID of just the specific CAN-attached hardware, not all the node IDs that can be e.g. reached
-   through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN level.
-   It must not be a OpenLCB common message, though higher level protocols may want to provide a similar
-   capability that spans the entire OpenLCB installation.
+   In order to acquire the map between CAN aliases and node IDs, a gateway needs to be able to send a CAN
+   frame requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to
+   return the node ID of just the specific CAN-attached hardware, not all the node IDs that can be e.g.
+   reached through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN
+   level. It must not be a OpenLCB common message, though higher level protocols may want to provide a
+   similar capability that spans the entire OpenLCB installation.
 
     2.6.2.4 Transition to Inhibited State
 
@@ -308,7 +323,7 @@
 
    Gateways have to obtain unique aliases for remote nodes they are proxying onto the segment. Gateways
    maintain the mapping between remote node's node ID and the local alias. If they need to break that
-   mapping, e.g. because they need to repurpose a local alias due to resource limitations in the mapping
+   mapping, e.g. because they need to re-purpose a local alias due to resource limitations in the mapping
    tables, they must send a "Alias Map Reset" frame to force nodes to drop their alias information. "Alias
    Map Reset" is a CAN-specific frame limited to the segment, but all gateways on the segment must act on
    it.  This is then followed by an "Alias Map Definition" when the alias is allocated to a new node ID.  
@@ -363,26 +378,46 @@
 
    (For simplicity, B has not transmitted yet) B discovers that it's alias has been duplicated.
 
-   B: 0x10703nnn (AMR frame)
+   B: 0x10703nnn 55 AA 44 AA 33 AA (AMR frame with Node ID 0x55AA,44AA,33AA)
+
+   Node A also discovers that it's alias has been duplicated.
+
+   A: 0x10703nnn 01 02 03 04 05 06 (AMR frame with Node ID  0x0102,0304,0506)
 
    B then goes back into operation by reserving a new alias value and transitioning to Permitted state:
 
-   B: 0x17iiimmm (1st CID)
+   B: 0x1755Ammm (1st CID)
 
-   B: 0x16iiimmm (2nd CID)
+   B: 0x16A44mmm (2nd CID)
 
-   B: 0x15iiimmm (3rd CID)
+   B: 0x15AA3mmm (3rd CID)
 
-   B: 0x14iiimmm (4th CID)
+   B: 0x143AAmmm (4th CID)
+
+   Node A will also reserve a new alias.
+
+   A: 0x17010kkk (1st CID)
+
+   A: 0x16203kkk (2nd CID)
+
+   A: 0x15040kkk (3rd CID)
+
+   A: 0x14506kkk (4th CID)
+
+   After 200 ms both nodes finish their alias reservation and transition to Permitted state.
 
    B: 0x10700mmm (RID)
 
-   B: 0x10701mmm ii ii ii ii ii ii (AMD with B's node ID attached)
+   B: 0x10701mmm 55 AA 44 AA 33 AA (AMD with B's node ID attached)
+
+   A: 0x10700kkk (RID)
+
+   A: 0x10701kkk 01 02 03 04 05 06 (AMD with A's node ID attached)
 
     2.6.2.6 Duplicate Node ID Handling
 
    This should never happen, of course, but it's possible that two nodes will have the same Node ID
-   assigned.  This will result in frame loss and operational difficulties. OpenLCB-CAN does not guarantee
+   assigned.  This will result in frame loss and operational difficulties. OpenLCB does not guarantee
    prompt detection of this condition, at any level of the protocol stack, but it's extremely likely that
    it will be detected. At the Frame Transfer level, two nodes on the same CAN segment sharing a common
    Node ID will be detected when a node receives a Alias Map Definition frame that contains its own Node
@@ -413,6 +448,28 @@
 
    If the two nodes have also assigned the same alias value, that interaction is also invoked here.
 
+    2.6.2.7 Reporting CAN Link Status
+
+   The CAN Standard defines the “Error Active”, “Error Inactive” and “bus off” states, along with extensive
+   fault-confinement rules.  By using qualified CAN implementations, OpenLCB-CAN nodes pick these behaviors
+   up. The interactions in this section are then about reporting the results of the CAN Standard
+   operations. The “Error Information Report 0” through “Error Information Report 3” control frames
+   indicate specific transitions in the node's state.  No OpenLCB-CAN node is required to react to those
+   reports. The reports only provide information.
+
+   Designers of monitoring equipment that attaches to the CAN link can use this information directly.
+   Designers of gateway nodes that connect CAN segments together or connect CAN segments to other types of
+   OpenLCB links may want to convert these control frames (which are not allowed to go off their original
+   CAN segment) to higher level messages.  There are well-known EventIDs for this purpose, but that use is
+   beyond the scope of this Standard and Technical Note.
+
+   Since CAN nodes are required by the CAN standard to initialize in Bus Active state, no Error Information
+   N frame(s) can be emitted at startup.  They cannot be emitted until there's an actual state transition
+   in the interface.
+
+   It's not possible for a node to emit a frame to indicate that it has entered the “Bus Off” state, so
+   there's no message corresponding to that.
+
   2.6.3 Node ID Alias Generation
 
    We have a preferred implementation for node ID alias generation which is described in Section 6
@@ -421,10 +478,11 @@
    The Standard is written to specify the minimum needed to ensure proper operation. This allows developers
    to create other implementations if needed.
 
-   “of the same type” is meant to cover “from the same manufacturer”. The idea is that manufacturer will
-   likely number their boards sequentially, and it's possible that an OpenLCB installation will have
-   multiple boards from the same manufacturer.  This rule just says that the low bits of the sequential
-   number appear in the alias, so that boards from a single manufacturer are not likely to collide.
+   The term “of the same type” is meant to cover “from the same manufacturer”. The idea is that
+   manufacturer will likely number their boards sequentially, and it's possible that an OpenLCB
+   installation will have multiple boards from the same manufacturer.  This rule just says that the low
+   bits of the sequential number appear in the alias, so that boards from a single manufacturer are not
+   likely to collide.
 
    Two other criteria that were considered:
 
@@ -450,7 +508,12 @@
     The sequence on the CAN bus will be clearer, and in some cases the allocation process will be faster,
    if nodes identify duplicate aliases in sequence, and just go on to the next one.
 
-   graphics2
+   Image2
+
+   Note that in the diagram above, the 'Fails' are due to the node receiving a message which uses its
+   tentative Alias, and it therefore needs to back off and try a new tentative Alias.  
+
+    
 
                                       3 Gateways and segment management
 
@@ -473,7 +536,7 @@
    aliases using the conventional technique, and then assign them to off-segment nodes as they need to
    communicate on the segment.  Many algorithms are possible for that assignment.
 
-   If/when a full NID is needed, it can be obtained by sending a "Alias Mapping Enquiry" frame with an
+   If/when a full NID is needed, it can be obtained by sending an "Alias Mapping Enquiry" frame with an
    appropriate Destination Node ID in local alias form. The reply will eventually come back with the Source
    ID in local alias form and carrying the full NID in the frame body.
 
@@ -483,7 +546,7 @@
    varying slightly with bit-stuffing.
 
    125Kbps with max-length extended header frames is about 900 frames/second. CAN is very good at running
-   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place.The CAN
+   at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place. The CAN
    network itself does not require any inter-frame spacing, limitations on bandwidth usage, etc; the
    segment can be allowed to run at 100%.
 
@@ -564,8 +627,8 @@
 
    To get the full payload (8 bytes) for streaming requires getting the rest of the protocol control,
    including two aliases for source and destination, in the 29 bit header. Allowing 1 bit for
-   priority/extension, 1 for protocol control, 3 for MTI and stream control (all very bare minima) leads to
-   a 12-bit node ID alias length.
+   priority/extension, 1 for protocol control, 3 for MTI and stream control (all very bare minimum) leads
+   to a 12-bit node ID alias length.
 
                                      6 Preferred Alias Allocation Method
 
@@ -655,9 +718,9 @@
 
       // add
 
-      lfsr2 = lfsr2 + temp2 + 0x7A4BA9l;
+      lfsr2 = lfsr2 + temp2 + 0x7A4BA9L;
 
-      lfsr1 = lfsr1 + temp1 + 0x1B0CA3l;
+      lfsr1 = lfsr1 + temp1 + 0x1B0CA3L;
 
     
 
@@ -748,6 +811,8 @@
    2.6.2.5 Node ID Alias Collision Handling
 
    2.6.2.6 Duplicate Node ID Handling
+
+   2.6.2.7 Reporting CAN Link Status
 
    2.6.3 Node ID Alias Generation
 
