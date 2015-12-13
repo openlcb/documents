@@ -1,8 +1,8 @@
-                                                                OpenLCB Technical Note
+                                                               OpenLCB Technical Note
 
-                                                                  CAN Physical Layer
+                                                                 CAN Physical Layer
 
-                                                      Feb 17, 2015                       Adopted            
+                                                    Feb 17, 2015                     AdoptedDraft           
 
                                                 1 Introduction
 
@@ -14,7 +14,12 @@
    This section provides background information on corresponding sections of the OpenLCB CAN Standard
    document. It's expected that the two documents will be read together.
 
-2.1 Intended Use
+2.1 Introduction
+
+   The CAN Physical Layer provides a means by which to transport OpenLCB data over a CAN bus using a
+   standardized mechanical connection and cabeling.
+
+2.2 Intended Use
 
    Users can expect to be able to form networks within limitations. For example, reliable operations on a
    single CAN segment is subject to multiple limitations, including:
@@ -59,13 +64,13 @@
    The Standard discusses single CAN segments, and is silent on interconnecting multiple segments. For more
    discussion of options for interconnection, see the “Repeaters, Bridges and Gateways” section below.
 
-2.2 References and Context
+2.3 References and Context
 
    Conformance testing is simplified when it can be done by referring to vendor documentation, rather than
    requiring specific tests of parameters. The Standard therefore refers to other existing standards, where
    possible, instead of repeating the information.
 
-2.3 Physical Interconnection
+2.4 Physical Interconnection
 
    The Standard envisions two basic kinds of nodes: A board with 2 connectors and a box with a pig-tail
    cable, e.g. a handheld throttle. At the same time, the Standard should not rule out other
@@ -170,7 +175,7 @@
    against over-voltage damage might be worthwhile if the maximum rating of the component is less than the
    maximum DCC track voltage.
 
-2.4 Data Transport
+2.5 Data Transport
 
    A reduced slew rate is preferred to reduce the effect of stubs on the network (c.f. the calculation in
    section 4.8 of TI SLLA 270 http://focus.ti.com/lit/an/slla270/slla270.pdf) It's expected that model
@@ -187,7 +192,74 @@
 
    The Standard is silent on the use of specific CAN frame formats or features.
 
-2.5 Supply of Power
+2.6 ALT_L / ALT_H
+
+   After meeting the requirements to carry CAN data and power, there remains a spare conductor pair
+   available for use. The use of these conductors is not fixed, and additional uses may be defined in the
+   future. It is also possible that a given OpenLCB CAN installation may choose to take advantage of more
+   than one of the additional uses. This is allowed, so long as the two uses are not electrically tied to
+   one another. In other words, the OpenLCB ALT_L / ALT_H conductor path would need to be broken between
+   differing uses.
+
+   Several methods may be used to break the conduction path of ALT_L / ALT_H, and no one method is
+   prescribed by the standard.
+
+    1. A custom cable can be made that does not carry conductors 4 & 5
+
+    2. A node manufacture might choose to provide a node with jumpers for passing conductors 4 & 5 through
+       the node
+
+   Though OpenLCB cabling is not required to carry conductors 4 & 5, it is important to note that all nodes
+   that do not use conductors 4 & 5 must still pass these signals through their node so as to not disturb
+   the conduction path.
+
+  2.6.1 DCC Signal
+
+   For this use case, conductors 4 & 5 carry the DCC signal typically sourced by a DCC command station and
+   typically consumed by a DCC power station, commonly known as a DCC Booster. Either one of the signaling
+   methods mentioned by the NMRA standard S-9.1.2 may be used:
+
+     * Opto-isolated (Current) Interface
+
+     * Driver/Receiver (Voltage) Interface
+
+   It is important to note that in order to be compliant to the CAN Physical Standard, an OpenLCB node that
+   sources or consumes the DCC signal must also conform to the requirements in NMRA standard S-9.1.2. This
+   includes labeling requirements which identifies the type of signal(s) that a command station is capable
+   of sourcing as well as the type of signal(s) that a power station is capable of consuming.
+
+   The DCC signal use case of conductors 4 & 5 are indented to be used such there is exactly one DCC signal
+   source and one or more DCC signal consumers.
+
+   While it is relatively difficult to produce a DCC consumer that is capable of simultaneously meeting the
+   requirements of both signaling methods outlined in NMRA standard S-9.1.2, it is possible, and relatively
+   straight forward, for a DCC source to produce a signal that is voltage level compatible with both
+   signaling methods outlined NMRA standard S-9.1.2. Manufacturers of DCC signal source nodes are
+   encouraged, but not required, to consider these points when producing their products.
+
+   Though there are potentially multiple methods for DCC signal consumers to meet the requirement that
+   current is consumed symmetrically between the ALT_L / ALT_H conductors, it is strongly encouraged that
+   manufacturers consider galvanic isolation. Below is pictured an example circuit that is commonly used in
+   many existing DCC power stations which meets these requirements for the S-9.1.2 Opto-isolated (Current)
+   interface.
+
+                          Figure 1: Opto-isolated DCC Booster Input Circuit Example
+
+   Galvanic Isolation is not required between the ALT_L / ALT_H and the other physical interconnection
+   signals in a DCC source node. The current sourcing capability of a DCC signal source node must still
+   meet the limits as required by the NMRA standard S-9.1.2. Because of these required limits, as well as
+   the requirement for DCC signal consumers to have symmetrical current consumption on ALT_L / ALT_H, the
+   ALT_L / ALT_H conductors cannot be used as a power station common. NMRA standard S-9.1.2 requires a
+   separate power station common be provided, and clearly labeled.
+
+   Nodes must be marked with their capability to either source or consume the DCC signal in order to make
+   installation for the user both simple and reliable: Just make sure that DCC signal consumers exist on
+   the same segment as exactly one DCC signal source. Simple icons may be used, such as:
+
+   While DCC power stations are logical DCC signal consumers, other types of nodes may also consume the DCC
+   signal so long as they meet the requirements of NMRA standard S-9.1.2.
+
+2.7 Supply of Power
 
    The power supply section is meant to define a 12V nominal system with wide margins on production and
    consumption of power over the UTP cable. The Standard is written to allow nodes to use this power in a
@@ -230,7 +302,7 @@
    isolating diode on the PWR_POS output. The closer the supply outputs are to the 12V nominal value, the
    better this will work.
 
-2.6 Consumption of Power
+2.8 Consumption of Power
 
    The labeling provision is to make the calculation of total power required simple and reliable: Just add
    up the numbers on the labels. The requirement that the label is always present, even when zero, is to
@@ -714,4 +786,4 @@
    5.5.2 IXAAT 14
 
    Copyright 2010-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms. Page
-   1 of 15 - Feb 17, 2015
+   1 of 16 - Feb 17, 2015
