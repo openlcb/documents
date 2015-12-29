@@ -4,7 +4,7 @@
 
                                                             Firmware Upgrade(title)
 
-                                                   Sep 18, 2015                    PreliminaryProposal      
+                                                   Dec 29, 2015                    PreliminaryProposal      
 
                                          1 Introduction (Informative)
 
@@ -28,8 +28,8 @@
    operations that are expected to happen during a firmware upgrade.
 
    The intended use of this subset is to allow manufacturers to supply their hardware with dual firmware,
-   consisting of a “bootloader” component with the minimum required support for firmware update, as well as
-   a replaceable “production” firmware for full node operation.
+   consisting of a “firmware upgrade” component with the minimum required support for firmware update, as
+   well as a replaceable “production” firmware for full node operation.
 
                                      3 References and Context (Normative)
 
@@ -40,22 +40,21 @@
    For information on OpenLCB message transport and OpenLCB communications, see:
 
      * OpenLCB Message Network Standard. That Standard also defines the Uninitialized state and the Node
-       Initialization Complete message.
+       Initialization Complete message, as well as the Protocol Support protocol messages.
 
    The defined method relies on commands and messages defined in the following standards:
 
      * Citations to other docs, as needed.
 
-     * OpenLCB Memory Configuration Standard, which defines, among others, the commands “Reset/Reboot”,
-       “Enter Bootloader”, “Stream Write”.
+     * OpenLCB Memory Configuration Standard, which defines, among others, the commands “Freeze”,
+       “Unfreeze”, “Write” and “Stream Write”.
 
-     * OpenLCB Stream Transport Draft StandardThis specification is in the context of the following
-       OpenLCB-CAN Standards:
+     * OpenLCB Stream Transport Draft Standard Standards:
 
      * For more information on format and presentation, see:
 
-     * OpenLCB Common Information Technical Note, which defined how streams are opened, data transferred,
-       aborted with error and completed.
+     * OpenLCB Common Information Technical Note-CANThis specification is in the context of the following
+       OpenLCB, which defined how streams are opened, data transferred, aborted with error and completed.
 
                                         4 Message Formats (Normative)
 
@@ -67,10 +66,10 @@
    Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. A powered-on hardware
    node may be in one of the following two states:
 
-     * Bootloader state. In this state the node supports a writable Memory Space under the number of the
-       Firmware Space to receive the firmware upgrade data, as defined in the firmware upgrade interaction.
-       The hardware is not expected to perform any of its regular operations. The OpenLCB node shall still
-       be standards compliant.
+     * Firmware Upgrade state. In this state the node supports a writable Memory Space under the number of
+       the Firmware Space to receive the firmware upgrade data, as defined in the firmware upgrade
+       interaction. The hardware is not expected to perform any of its regular operations. The OpenLCB node
+       shall still be standards compliant.
 
      * Operating state. In this state the node performs its desired function. The node in Operating state
        must not export a writable Memory Space under the number of the Firmware Space.
@@ -88,7 +87,7 @@
 
 6.2 State transitions
 
-   A node may not transition between Bootloader state and Operating state without returning to
+   A node may not transition between Firmware Upgrade state and Operating state without returning to
    Uninitialized state, as defined by the OpenLCB Message Network standard.
 
    At power-up a hardware node shall start up in Operating state by default, unless one of the following
@@ -102,28 +101,36 @@
        case, the Target Node may, but is not required to, emit a PCER message with the Well-Known Event ID
        “Firmware Upgrade Requested by Hardware Switch” after reaching Initialized state.
 
-   To request a Target Node to transition from Bootloader state to Operating state, the Configuration Tool
-   shall send a Memory Configuration protocol “Reset/Reboot” command. The Target Node acknowledges the
-   completion of the state transition by sending a Node Initialization Complete message.
+   To request a Target Node to transition from Firmware Upgrade state to Operating state, the Configuration
+   Tool shall send a Memory Configuration protocol “Unfreeze” command for the memory space designated as
+   Firmware Space. The Target Node shall acknowledge the completion of the state transition by sending a
+   Node Initialization Complete message.
 
-   To request a Target Node to transition to Bootloader state (from either Bootloader or Operating state),
-   a Configuration Tool shall send a Memory Configuration protocol “Enter Bootloader” command. The node
-   acknowledges the completion of the state transition, if one was necessary, by sending a Node
-   Initialization Complete message.
+   To request a Target Node to transition to Firmware Upgrade state (from either Firmware Upgrade or
+   Operating state), a Configuration Tool shall send a Memory Configuration protocol “Freeze” command for
+   the memory space designated as Firmware space. The node shall acknowledge the completion of the state
+   transition by sending a Node Initialization Complete message.
 
-6.3 Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. Data Transfer
+6.3 State identification
 
-   The Configuration Tool shall transfer the manufacturer-supplied firmware data by performing a Memory
-   Configuration protocol Stream Write to the memory space of Firmware Space, with a starting offset of
-   zero (0). The stream data bytes are the unmodified, uninterpreted, exact sequence of the
-   manufacturer-supplied firmware upgrade file.
+   A Target Node that supports the Firmware Upgrade Standard shall set the following bit(s) in the Protocol
+   Support Reply message depending on its state:
 
-   If the node being upgraded encounters an error, it may abort the data transfer by aborting the stream
-   with an error code. If the transfer is aborted, the node is required to stay in Bootloader state. If the
-   CT re-tries the transfer, it shall do so from offset zero again. If the Target Node aborted the
-   transfer, it is not required to be able to return to Operating state until the transfer is re-tried and
-   successfully completed; however, it is required to be able to boot after a power cycle and return to
-   Bootloader state, able to accept a new firmware upgrade attempt.
+    State                             Protocol bit (Normative)            Bit value (Informative)           
+
+    Operating state                   Firmware Upgrade Protocol           0x00 00 20                        
+
+    Firmware Upgrade state            Firmware Upgrade Active             0x00 00 10                        
+
+6.4 Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. Data Transfer
+
+  6.4.1 Streaming transfer
+
+   If the Target Node, while in Firmware Upgrade state, sets the “Stream Protocol” bit in the Protocol
+   Support Reply packet, then the Configuration Tool shall transfer the manufacturer-supplied firmware data
+   by performing a Memory Configuration protocol Stream Write to the memory space of Firmware Space, with a
+   starting offset of zero (0). The stream data bytes are the unmodified, uninterpreted, exact sequence of
+   the manufacturer-supplied firmware upgrade file.
 
    The Target Node being upgraded may, but is not required to, throttle the incoming data on the stream by
    means allowed by the Stream protocol.
@@ -133,19 +140,50 @@
    the stream as defined in the Stream protocol. Afterwards the CT may, but is not required to, initiate a
    transition to Operating state.
 
-6.4 Full sequence of firmware upgrade
+  6.4.2 Datagram transfer
+
+   If the Target Node, while in Firmware Upgrade state, doe not set the “Stream Protocol” bit in the
+   Protocol Support Reply packet, the Configuration Tool shall transfer the manufacturer-supplied firmware
+   data by performing a sequence of Memory Configuration protocol Write commands, starting at offset 0,
+   with exactly 64 bytes of payload in each datagram except the last, and the datagrams' offsets increasing
+   by 64 bytes after each. The concatenated payloads of the Write messages sent shall be are the
+   unmodified, uninterpreted, exact sequence of the manufacturer-supplied firmware upgrade file.
+
+   The Target Node being upgraded may, but is not required to, throttle the incoming data on the stream by
+   means allowed by the Datagram protocol and Memory Configuration Protocol.
+
+   After transferring all the bytes in the manufacturer-supplied firmware data file, the CT shall wait
+   until the last datagram is responded to as the Memory Configuration Protocol requires. Afterwards the CT
+   may, but is not required to, initiate a transition to Operating state.
+
+  6.4.3 Aborting and Completing the transfer
+
+   If the node being upgraded encounters an error, it may abort the data transfer by aborting the stream
+   with an error code when using the Stream protocol, or, respectively, returning a Datagram Reject with an
+   error code or a Write Response Failed Memory Configuration datagram. If the transfer is aborted, the
+   node is required to stay in Firmware Upgrade state. If the CT re-tries the transfer, it shall do so from
+   offset zero again. If the Target Node aborted the transfer, it is not required to be able to return to
+   Operating state until the transfer is re-tried and successfully completed; however, it is required to be
+   able to boot after a power cycle and return to Firmware Upgrade state, able to accept a new firmware
+   upgrade attempt.
+
+6.5 Full sequence of firmware upgrade
 
    For a more detailed description of the messages transferred, please see the Firmware Upgrade Technical
    Note.
 
-    1. The CT sends a Memory Configuration datagram command “Enter Bootloader”. Note that a Datagram
-       Received OK reply message is not always returned to this request.
+    1. The CT sends a Memory Configuration datagram command “Freeze” with an argument of Firmware Space.
+       Note that a Datagram Received OK reply message is not always returned to this request.
 
     2. The CT waits for a Node Initialization Complete message from the Target Node.
 
-    3. The CT performs the Data Transfer.
+    3. The CT sends a Protocol Support Inquiry to the Target Node to check whether it supports Stream
+       protocol.
 
-    4. The CT resets the Target Node using a Memory Configuration datagram command “Reset”.
+    4. The CT performs the Data Transfer.
+
+    5. The CT resets the Target Node using a Memory Configuration datagram command “Unfreeze” with an
+       argument of Firmware Space.
 
                                     7 Section TitleAllocations (Normative)
 
@@ -176,15 +214,7 @@
 
    01.01.00.00.00.00.06.02 Firmware Upgrade Requested by Hardware Switch
 
-  Sub-subsection Title
-
-   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
-   odio.
-
-     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-   Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci sed
-   massa.Sub-subsection Title
+   Sub-subsection Title
 
    Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
    odio.
@@ -238,6 +268,16 @@
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
    aliquet luctus.
 
+  Sub-subsection Title
+
+   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
+   odio.
+
+     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+   Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci sed
+   massa.
+
    Table of Contents
 
    1 Introduction (Informative) 1
@@ -271,4 +311,4 @@
    that other technologies may use other conventions.
 
    Copyright 2013-XX5. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 3 - Sep 18, 2015
+   1 of 4 - Dec 29, 2015
