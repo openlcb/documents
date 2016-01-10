@@ -179,7 +179,7 @@
    differing uses.
 
    Several methods may be used to break the conduction path of ALT_L / ALT_H, and no one method is
-   prescribed by the standard.
+   prescribed by the standard.  For example:
 
     1. A custom cable can be made that does not carry conductors 4 & 5
 
@@ -202,10 +202,24 @@
 
    It is important to note that in order to be compliant to the CAN Physical Standard, an OpenLCB node that
    sources or consumes the DCC signal must also conform to the requirements in NMRA standard S-9.1.2.  This
-   includes labeling requirements which identifies the type of signal(s) that a command station is capable
-   of sourcing as well as the type of signal(s) that a power station is capable of consuming.
+   includes:
 
-   The DCC signal use case of conductors 4 & 5 are indented to be used such there is exactly one DCC signal
+    1. Labeling requirements which identify the type of signal(s) that a command station is capable of
+       sourcing as well as the type of signal(s) that a power station is capable of consuming.
+
+    2. Current limits on what source nodes are allowed to output.  This requirement makes the ALT_L/ALT_H
+       unsuitable as a low impedance path between power stations.
+
+    3. Current limits on what consumer nodes are allowed to consume.  This requirement makes the
+       ALT_L/ALT_H unsuitable as a low impedance path between power stations.
+
+    4. Consumers must provide a user accessible connection for the common side of their DC power supplies.
+        The intent is provide a low impedance path between power stations when a load is transitioning from
+       one power station to another.  This is sometimes referred to as a common ground.  The intent is to
+       prevent large asymmetric currents from traveling across the ALT_L/ALT_H conductors carrying the DCC
+       signal, which could lead to exceeding their current carrying capacity and producing unwanted EMI.
+
+   The DCC signal use case of conductors 4 & 5 is indented to be used such there is exactly one DCC signal
    source and one or more DCC signal consumers.
 
    While it is relatively difficult to produce a DCC consumer that is capable of simultaneously meeting the
@@ -214,11 +228,9 @@
    signaling methods outlined NMRA standard S-9.1.2.  Manufacturers of DCC signal source nodes are
    encouraged, but not required, to consider these points when producing their products.
 
-   Though there are potentially multiple methods for DCC signal consumers to meet the requirement that
-   current is consumed symmetrically between the ALT_L / ALT_H conductors, it is strongly encouraged that
-   manufacturers consider galvanic isolation.  Below is pictured an example circuit that is commonly used
-   in many existing DCC power stations which meets these requirements for the S-9.1.2 Opto-isolated
-   (Current) interface.
+   It is strongly encouraged that manufacturers consider galvanic isolation.  Below is pictured an example
+   circuit that is commonly used in many existing DCC power stations which meets these requirements for the
+   S-9.1.2 Opto-isolated (Current) interface.
 
    Image1
 
@@ -226,14 +238,12 @@
 
    Galvanic Isolation is not required between the ALT_L / ALT_H and the other physical interconnection
    signals in a DCC source node.  The current sourcing capability of a DCC signal source node must still
-   meet the limits as required by the NMRA standard S-9.1.2.  Because of these required limits, as well as
-   the requirement for DCC signal consumers to have symmetrical current consumption on ALT_L / ALT_H, the
-   ALT_L / ALT_H conductors cannot be used as a power station common.  NMRA standard S-9.1.2 requires a
-   separate power station common be provided, and clearly labeled.
+   meet the limits as required by the NMRA standard S-9.1.2.  Because of these required limits, the ALT_L /
+   ALT_H conductors cannot be used as a power station common.
 
    Nodes must be marked with their capability to either source or consume the DCC signal in order to make
-   installation for the user both simple and reliable:  Just make sure that DCC signal consumers exist on
-   the same segment as exactly one DCC signal source.  Simple icons may be used, such as:
+   installation for the user both simple and reliable:  The user must insure that DCC signal consumers
+   exist on the same segment as exactly one DCC signal source.  Simple icons may be used, such as:
 
    Image2
 
