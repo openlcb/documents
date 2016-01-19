@@ -1,9 +1,8 @@
-file deleted with last contents:
-                                                                    OpenLCB Standard
+                                                                   OpenLCB Standard
 
                                                                     Message Network
 
-                                                         Feb 15, 2015                    In Review          
+                                                       Feb 15, 2015                    AdoptedDraft         
 
                                                 1 Introduction
 
@@ -73,7 +72,7 @@ file deleted with last contents:
     Bit(s)  15   14     13          12       11   10   9  8  7  6  5     4         3        2      1    0   
 
     Field   Reserved  Special   Stream or    Priority   Type within    Simple   Address   Event   Modifier
-                                 datagram                Priority               Present  Present  
+                                 Datagram                Priority               Present  Present  
                                                                       Protocol  
 
                                           MTI Bit-field Descriptions
@@ -303,6 +302,10 @@ file deleted with last contents:
 
             Function Configuration                                                            0x00 00 40    
 
+            Firmware Upgrade Protocol                                                         0x00 00 20    
+
+            Firmware Upgrade Active                                                           0x00 00 10    
+
             Reserved for future protocol bits. Shall be sent as 0 and ignored upon            All others    
             receipt.                                                                        
                                                                                             
@@ -352,22 +355,22 @@ file deleted with last contents:
 
   3.5.2 Reject Unaddressed Optional-Interaction
 
-   If a Node receives an unaddressed message with an MTI that indicates the start of an non-mandatory /
-   optional interaction, and the Node does not want to take part in that optional interaction, it silently
-   drops the message without reply.
+   If a Node receives an unaddressed message with an MTI that indicates the start of a non-mandatory /
+   optional interaction, and the Node does nottake part in that optional interaction, it may silently drop
+   the message without reply.
 
   3.5.3 Reject Addressed Standard Interaction Due to Error
 
    If a Node is taking part in an addressed interaction with another node, where either node may be able to
    send the next message, and some error condition prevents this Node from continuing the interaction, to
-   terminate the interaction, this Node sends a Terminate Due to Error message to the other Node. It then
-   resets its state so as to no longer be taking part in the addressed interaction. The message content
-   contains the most recent MTI received in this interaction, a mandatory reason code and an optional data
-   value. Although the use of these fields is to be defined, space must reserved for messages, so we
-   specified the number of bytes.
+   terminate the interaction, this Node shall send a Terminate Due to Error message to the other Node. It
+   shall reset its state so as to no longer be taking part in the addressed interaction. The message
+   content shall contain the most recent MTI received in this interaction, a mandatory reason code and an
+   optional data value. Although the use of these fields is to be defined, space must reserved for
+   messages, so we specified the number of bytes.
 
-   In addition, upon receipt of the Terminate Due to Error message, the other Node also resets its state so
-   as to no longer be taking part in the addressed interaction.
+   In addition, upon receipt of the Terminate Due to Error message, the other Node also shall reset its
+   state so as to no longer be taking part in the addressed interaction.
 
   3.5.4 Duplicate Node ID Discovery
 
@@ -412,13 +415,6 @@ file deleted with last contents:
 
        0x1040      Not implemented, not further specified.                                                  
 
-       0x1050      Not implemented, subcommand is unknown.                                                  
-
-       0x1060      Not implemented, Datagram-type, Stream-type, or command is unknown.                      
-
-       0x1070      Not implemented, unknown MTI, or Transport protocol (datagrams/streams) is not           
-                   supported.                                                                               
-
        0x1080      Invalid arguments. Some of the values sent in the message fall outside of the expected   
                    range, or do not match the expectations of the receiving node.                           
 
@@ -459,15 +455,23 @@ file deleted with last contents:
 
                                      Message Network Specific Error Codes
 
-           Value         Description                                                                        
+     Value   Description                                                                                    
+
+    Permanent Error Enumeration. Re-trying the same interaction will result in the same error.
+
+    0x1041   Not implemented, subcommand is unknown.                                                        
+
+    0x1042   Not implemented, Datagram-type, Stream-type, or command is unknown.                            
+
+    0x1043   Not implemented, unknown MTI, or Transport protocol (datagrams/streams) is not supported.      
 
     Temporary Error (resent OK). Re-trying the same interaction later is likely to succeed.
 
-    0x2011               Time-out, waiting for End-frame.                                                   
+    0x2011   Time-out, waiting for End-frame.                                                               
 
-    0x2041               Out of Order, Middle- or End-frame without a Start-frame.                          
+    0x2041   Out of Order, Middle- or End-frame without a Start-frame.                                      
 
-    0x2042               Out of Order, Start-frame before finishing previous message.                       
+    0x2042   Out of Order, Start-frame before finishing previous message.                                   
 
 3.6 Routing
 
@@ -698,7 +702,7 @@ file deleted with last contents:
 
      * You can think of these as active-zero start and end bits, respectively.
 
-     * Messages are limited to 72 bytes of data.
+     * Messages are limited to 72254 bytes of data.
 
    CAN frames marked as First or Middle frame shall carry eight total data bytes. CAN frames marked as Last
    or Only frame shall have from two through eight total data bytes.
@@ -814,7 +818,7 @@ file deleted with last contents:
 
    3.3.5 Terminate Due to Error 5
 
-   3.3.6 Protocol Support Inquiry 5
+   3.3.6 Protocol Support Inquiry 6
 
    3.3.7 Protocol Support Reply 6
 
@@ -848,7 +852,7 @@ file deleted with last contents:
 
    4.1.1 Messages Transmitted 11
 
-   4.1.2 Messages Received 11
+   4.1.2 Messages Received 12
 
    4.1.3 Messages Not Received 12
 
@@ -890,9 +894,9 @@ file deleted with last contents:
 
    7.3.3.4 Optional Interaction Rejected 16
 
-   7.3.3.5 Terminate Due to Error 17
+   7.3.3.5 Terminate Due to Error 16
 
-   7.3.3.6 Protocol Support Inquiry 17
+   7.3.3.6 Protocol Support Inquiry 16
 
    7.3.3.7 Protocol Support Reply 17
 
@@ -920,4 +924,4 @@ file deleted with last contents:
    “ddd”. See TN.
 
    Copyright 2011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 19 - 2-15-2015
+   1 of 20 - Feb 15, 2015
