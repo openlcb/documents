@@ -2,9 +2,9 @@
 
                                                              OpenLCB Technical Note
 
-                                                            (title)Firmware Upgrade
+                                                                Firmware Upgrade
 
-                                                   Sep 18, 2015                    PreliminaryProposal      
+                                                   Jan 19, 2016                         Proposal            
 
                                                 1 Introduction
 
@@ -69,7 +69,7 @@
 
    Despite the above recommendation, the actual firmware upgrade protocol described in the standard is
    agnostic to the actual implementation, therefore it is the manufacturer's choice whether they implement
-   the firmware upgrade process with double firmware, or some other method.Served Use Cases
+   the firmware upgrade process with double firmware, or some other method.
 
 1.1 Served Use Cases
 
@@ -116,21 +116,15 @@
 
 2.3 References and Context
 
-   Fusce ornare mattis justo vitae imperdiet. Fusce ornare mattis justo vitae imperdiet. ^1
-
-   Lorem ipsum dolor sit amet, consectetur adipiscing elit.There is no additional commentary to this
-   section.
+   There is no additional commentary to this section.
 
 2.4 Message Formats
-
-   Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
 
    There is no additional commentary to this section.
 
 2.5 States
 
-   Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. There is no
-   additional commentary to this section.
+   There is no additional commentary to this section.
 
 2.6 Interactions
 
@@ -196,11 +190,10 @@
        needed for Bootloader state is intact. It is not required by this standard for the node to come with
        a hardware switch, if the manufacturer decides that this option is not necessary for their hardware.
 
-   Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. The remaining
-   state transitions describe how a Configuration Tool may request a node to change to a specific state.
-   Note that the user may also perform these transitions without a CT: to transition from Bootloader state
-   to Operating state it is enough to power cycle the node, and to transition into Bootloader state, the
-   user may use the hardware switch while power cycling the node.
+   The remaining state transitions describe how a Configuration Tool may request a node to change to a
+   specific state. Note that the user may also perform these transitions without a CT: to transition from
+   Bootloader state to Operating state it is enough to power cycle the node, and to transition into
+   Bootloader state, the user may use the hardware switch while power cycling the node.
 
    It is important that the CT has no real means to detect whether a given node is in Bootloader state or
    in Operating state. Therefore the state transition is defined in a way that it is legal to request
@@ -212,7 +205,7 @@
    The data transfer is defined as sending a file as-is from the manufacturer to the node. The file must be
    sent binary-accurately. This allows maximum freedom to the manufacturer in defining the format and
    contents of the file, while also keeps the standard and the CT implementation complexity at a minimum.
-   More discussion about the file format is at Section 3.1. The transfer is also required to start at
+   More discussion about the file format is at Section 4.1. The transfer is also required to start at
    offset zero, because the offsets are not required to match any physical hardware address in the Target
    Node – most manufacturers would want to prefix the binary data with at least a header to check if the
    firmware is intended for the given hardware it is being downloaded to. Making offset translation is not
@@ -230,13 +223,9 @@
    loss. Upon power-up the bootloader firmware shall detect that the main firmware is corrupted, and start
    up in Bootloader state.
 
- 3 BackgroundQuisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim
-  velit id felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id
-                                            lectus aliquet luctus.
+                                                 3 Background
 
-                                               4 Section Title
-
-4.1 Payload content format
+3.1 Payload content format
 
    The Firmware Upgrade Standard purposefully does not specify anything about the format and contents of
    the firmware data file. It is fully up to the manufacturer how the data contents are defined. The only
@@ -249,7 +238,7 @@
    it detects an incompatibility. More elaborate implementations may create internal headers and packet
    format inside the binary stream with an arbitrary encoding of the choice of the manufacturer to convey a
    diverse set of information, such as checksums, offsets at which the data is to be written, or
-   signatures^2. It is also possible to encode a configuration memory update script inside the firmware
+   signatures^1. It is also possible to encode a configuration memory update script inside the firmware
    upgrade file, if the manufacturer so chooses, and supplies the respective Bootloader with the necessary
    interpreter.
 
@@ -282,9 +271,9 @@
        boards with different pricing are based on the same hardware but a different firmware to achieve a
        richer feature set.
 
-4.2 Alternatives considered
+3.2 Alternatives considered
 
-  4.2.1 Using Datagram-based Memory Configuration writes
+  3.2.1 Using Datagram-based Memory Configuration writes
 
    A valid standards-compliant alternative is to perform the data transfer using datagram-based writes of
    the Memory Configuration protocol.
@@ -320,7 +309,7 @@
    The amount of additional code required in the bootloader for the stream implementation is not
    significant, since it can replace the need for support of segmented datagram packets.
 
-  4.2.2 Using a directly initiated stream
+  3.2.2 Using a directly initiated stream
 
    It would be possible to eliminate the Memory Configuration protocol from the bootloading process, and
    allow the Data Transfer to start directly with the Stream Initiate command from the CT to the Target
@@ -334,7 +323,7 @@
    in Bootloader state in order to facilitate the state transition back to Operating state. Defining a
    custom message for reboot request would create unwanted parallelism in the OpenLCB protocol stack.
 
-  4.2.3 Using custom protocol instead of Memory Configuration
+  3.2.3 Using custom protocol instead of Memory Configuration
 
    It would be possible to define custom messages for carrying bootloader data.
 
@@ -351,7 +340,7 @@
    the engineering cost of implementation, especially that standard solutions of existing stacks (like that
    of the Stream protocol of the Memory Configuration) could not be used.
 
-  4.2.4 Using non-OpenLCB messages
+  3.2.4 Using non-OpenLCB messages
 
    The physical bus can carry other messages than OpenLCB. These messages, however, cannot be routed
    through OpenLCB gateways, thus there is no standard method of ensuring that the Configuration Tool,
@@ -363,7 +352,7 @@
    base to build on. There can also be different encodings that make the operation on the same CAN bus
    segment as OpenLCB impossible. Sometimes even the bit rate would not be matching.
 
-  4.2.5 Using a different bus
+  3.2.5 Using a different bus
 
    There can be many alternate methods of supplying data to a microcontroller in a hardware node, for
    example through USB, UART, SPI, etc. Any such alternative connections would require on one hand
@@ -377,9 +366,9 @@
    when the recommendations of this document are adhered to, there should be no case where a device in the
    field can corrupt itself to this recovery need.
 
-  4.2.6 Structured payload content
+  3.2.6 Structured payload content
 
-   Please read Section 3.1 (Payload content format) before reading this section.
+   Please read Section 4.1 (Payload content format) before reading this section.
 
    An important alternative to consider is to have the firmware file be supplied in a structured file
    format, and require the CT to implement the parser of this file format, executing a series of operations
@@ -408,9 +397,9 @@
 
    In summary, the benefits of this alternative are questionable while it introduces significant complexity
    and thus we chose the simpler alternative to standardize. The desired additional features are achievable
-   to the manufacturers if they so choose by using the methods outlined in Section 3.1.
+   to the manufacturers if they so choose by using the methods outlined in Section 4.1.
 
-                                   5 Section TitleDetailed interaction flow
+                                         4 Detailed interaction flow
 
    This section describes the exact flow of packets between the Configuration Tool and the Target Node.
    Each message is printed formatted for CAN-bus in GridConnect format for brevity, albeit the protocol is
@@ -455,40 +444,6 @@
 
     >                             Memory config reboot                                                      
 
-
-                                               Subsection Title
-
-  5.1.1 Sub-subsection Title
-
-   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
-   odio.
-
-     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
-       sed massa.
-
-                                               6 Section Title
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
-
-   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
-   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
 
    Table of Contents
 
@@ -544,14 +499,10 @@
 
    6 Section Title 10
 
-   1See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte numbering.
-   Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
-   that other technologies may use other conventions.
-
-   2For example it is valid to have a HEX file be the firmware upgrade data file; the interpretation of the
+   1For example it is valid to have a HEX file be the firmware upgrade data file; the interpretation of the
    HEX file contents would be up to the receiving node (i.e. the Bootloader firmware). This is not
    particularly efficient use of bus bandwidth (since we are transferring 4 bits per byte), but certainly a
    valid implementation of the standard.
 
-   Copyright 20113. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 8 - Sep 18, 20159/18/2015
+   Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
+   11 - Jan 19, 2016
