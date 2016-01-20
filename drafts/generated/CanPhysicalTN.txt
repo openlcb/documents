@@ -1,8 +1,8 @@
-                                                               OpenLCB Technical Note
+                                                             OpenLCB Technical Note
 
-                                                                 CAN Physical Layer
+                                                               CAN Physical Layer
 
-                                                    Feb 17, 2015                     AdoptedDraft           
+                                             Feb 17, 2015Jan 20, 2016                 AdoptedDraft          
 
                                                 1 Introduction
 
@@ -94,8 +94,8 @@
    Recommendation CiA 303 (2009) of the CAN in Automation e.V. group.
 
    High-quality RJ45 connections are reliable even after thousands of connections and disconnections. (c.f.
-   An HP survey of RJ45 use as a strain guage connector, a much more demanding application than this one:
-   http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf) It's
+   An HP survey of RJ45 use as a strain guage connector, a much more demanding application than this one^1:
+   http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf). It's
    recommended that manufacturers use high-quality RJ45 jacks. They should also recommend that customers
    assemble CAN segments using high-quality RJ45 cables and plugs. In particular, cables with strain-relief
    boots and tab protectors will reduce connection problems for e.g. modular layouts.
@@ -178,7 +178,7 @@
 2.5 Data Transport
 
    A reduced slew rate is preferred to reduce the effect of stubs on the network (c.f. the calculation in
-   section 4.8 of TI SLLA 270 http://focus.ti.com/lit/an/slla270/slla270.pdf) It's expected that model
+   section 4.8 of TI SLLA 270^2 http://focus.ti.com/lit/an/slla270/slla270.pdf). It's expected that model
    railroad networks will eventually use stubs to e.g. connect to handheld devices, so it's important to
    build support for a reasonable number of stubs into the network specification from the start. Note that
    many off-the-shelf CAN transceiver parts have slew rates greater than 10V/microsecond by default. The
@@ -231,16 +231,17 @@
        sourcing as well as the type of signal(s) that a power station is capable of consuming.
 
     2. Current limits on what source nodes are allowed to output. This requirement makes the ALT_L/ALT_H
-       unsuitable as a low impedance path between power stations.
+       unsuitable as a low impedance return path for current between power stations.
 
     3. Current limits on what consumer nodes are allowed to consume. This requirement makes the ALT_L/ALT_H
-       unsuitable as a low impedance path between power stations.
+       unsuitable as a low impedance return path for current between power stations.
 
     4. Consumers must provide a user accessible connection for the common side of their DC power supplies.
-       The intent is provide a low impedance path between power stations when a load is transitioning from
-       one power station to another. This is sometimes referred to as a common ground. The intent is to
-       prevent large asymmetric currents from traveling across the ALT_L/ALT_H conductors carrying the DCC
-       signal, which could lead to exceeding their current carrying capacity and producing unwanted EMI.
+       The intent is provide a low impedance return path for current between power stations when a load is
+       transitioning from one power station to another. This is sometimes referred to as a common ground.
+       The intent is to prevent large asymmetric currents from traveling across the ALT_L/ALT_H conductors
+       carrying the DCC signal, which could lead to exceeding their current carrying capacity and producing
+       unwanted EMI.
 
    The DCC signal use case of conductors 4 & 5 is indented to be used such there is exactly one DCC signal
    source and one or more DCC signal consumers.
@@ -248,12 +249,14 @@
    While it is relatively difficult to produce a DCC consumer that is capable of simultaneously meeting the
    requirements of both signaling methods outlined in NMRA standard S-9.1.2, it is possible, and relatively
    straight forward, for a DCC source to produce a signal that is voltage level compatible with both
-   signaling methods outlined NMRA standard S-9.1.2. Manufacturers of DCC signal source nodes are
-   encouraged, but not required, to consider these points when producing their products.
+   signaling methods outlined NMRA standard S-9.1.2. Manufacturers of DCC signal source and consumer nodes
+   are encouraged, but not required, to consider these points when producing their products.
 
-   It is strongly encouraged that manufacturers consider galvanic isolation. Below is pictured an example
-   circuit that is commonly used in many existing DCC power stations which meets these requirements for the
-   S-9.1.2 Opto-isolated (Current) interface.
+   It is strongly encouraged that manufacturers consider galvanic isolation, especially in DCC signal
+   consumer nodes that have a high current potential which exceeds the limits of the CAN Physical
+   Interconnection's capabilities. Below is pictured an example circuit that is commonly used in many
+   existing DCC power stations which meets these requirements for the S-9.1.2 Opto-isolated (Current)
+   interface.
 
                           Figure 1: Opto-isolated DCC Booster Input Circuit Example
 
@@ -261,6 +264,10 @@
    signals in a DCC source node. The current sourcing capability of a DCC signal source node must still
    meet the limits as required by the NMRA standard S-9.1.2. Because of these required limits, the ALT_L /
    ALT_H conductors cannot be used as a power station common.
+
+   Because the DCC source node must reference ALT_L / ALT_H to PWR_NEG within a specifically defined range,
+   it is possible to use the PWR_POS / PWR_NEG supply signals to power a high impedance (greater 50K ohm)
+   input circuit using an op-amp or comparator.
 
    Nodes must be marked with their capability to either source or consume the DCC signal in order to make
    installation for the user both simple and reliable: The user must insure that DCC signal consumers exist
@@ -352,15 +359,15 @@
    common connected via a capacitor to ground. This provides a bypass to ground for common mode noise. The
    tolerance on the individual resistor values is significantly tighter than on their total resistance.
    Several references recommend 1% tolerance resistors to reduce coupling of the differential CAN signal
-   into common mode noise (http://focus.ti.com/lit/an/slla270/slla270.pdf)
+   into common mode noise^3 (http://focus.ti.com/lit/an/slla270/slla270.pdf)
    (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf). Selecting matched pairs of resistors with
    looser nominal tolerance might be another solution.
 
     3.1.1.3 Biased split termination
 
    As in (3.1.1.2), but the common of the resistors is also tied to a fixed voltage. This can be to nominal
-   2.5V via a voltage divider (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf), or by using a
-   voltage reference (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf)
+   2.5V via a voltage divider^4 (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf), or by using a
+   voltage reference^5 (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf)
    (http://www.nxp.com/documents/application_note/AN10211.pdf). If there is a significant offset of ground
    between two nodes, then this offset will be transmitted to the CAN lines with consequent degradation of
    common-mode rejection.
@@ -398,7 +405,7 @@
 
    Manufacturers may want to provide a special termination node to provide some  indication of bus health
    as well as providing termination.  Industrial diagnostic equipment provides some examples of what can be
-   done. (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
+   done.^6. (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
    (http://www.ixxat.com/cancheck_en.html?markierung=cancheck)
    (http://www.ixxat.com/can_bus_tester_cbt_en.html)
    (http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html)
@@ -408,7 +415,7 @@
    Electro-Magnetic Compatibility (EMC) refers to ensuring that a system, e.g. a CAN bus, does not cause
    interference with other systems. CAN is a robust signaling method developed for use in the difficult
    environment of automobiles. Issues of EMC, noise immunity, etc have been discussed in numerous vendor
-   application notes including, but not limited to:
+   application notes^7 including, but not limited to:.
 
    http://www.nxp.com/documents/application_note/AN10211.pdf
 
@@ -420,7 +427,8 @@
 
    A series choke or transformer can improve the noise immunity of a CAN transceiver. The Standard permits
    the use of one, but doesn't require it. The advantages and disadvantages of including one are discussed
-   in the NXP (Philips) and Texas Instruments application notes referenced above. See also:
+   in the NXP (Philips) and Texas Instruments application notes referenced above. See also the footnote
+   below^8.:
 
    http://www.ti.com/lit/an/slla271/slla271.pdf
 
@@ -434,10 +442,10 @@
    additional protection, but have to balance the costs and benefits of that. For a longer discussion, see:
 
    J. Lepkowski and B. Wolfe, ON Semiconductor: EMI/ESD protection solutions for the CAN bus; CAN in
-   Automation, iCC 2005
+   Automation, iCC 2005^9
    www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
 
-   For an example of external protection, see:
+   For an example of external protection, see the footnote below^10.:
 
    http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
 
@@ -476,7 +484,7 @@
    requires detailed understanding of CAN characteristics.
 
    Repeaters are sometimes referred to as “working at the bit level”. The CAN transmission is delayed by
-   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.
+   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.^11
 
    http://www.softing.com/home/en/industrial-automation/products/can-bus/more-can-bus/high-speed/iso-11898-2-repeater.php
 
@@ -503,7 +511,7 @@
    Because bridges break the timing connection between the connected segments, they can also be used for
    remote connections via non-CAN cables, wireless, etc. In this case, a bridge device is usually used at
    each end of the remote link, and the protocol between the two devices is specific to the CAN bridge
-   function.
+   function^12.
 
    http://www.ixxat.com/introduction_bridges_en.html
 
@@ -524,7 +532,7 @@
    USB-CAN adapter may convert the CAN frame bytes into some form of human-readable text.
 
    This reformatting may be independent of the CAN frame content information, or specific to some protocol
-   that defines meaning for the CAN frames.
+   that defines meaning for the CAN frames^13.
 
    http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
 
@@ -540,8 +548,8 @@
 5.1 Standards
 
    The OpenLCB CAN Physical Layer Standard references ISO 11898-1 and ISO 11898-2 for CAN specifications.
-   The ISO (http://www.iso.org) sells PDF and paper copies of these. Copies can generally be found in
-   engineering libraries.
+   The ISO^14 (http://www.iso.org) sells PDF and paper copies of these. Copies can generally be found in
+   engineering libraries^15.
    (http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422)
    (http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33423)
 
@@ -550,7 +558,7 @@
    found online, is similar to ISO 11898-1 and -2, but not identical.
 
    The OpenLCB CAN Physical Layer Standard references TIA/EIA-568-B or the successor TIA/EIA- 568-C for
-   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA
+   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA^16
    (http://www.tiaonline.org) sells PDF and paper copies of these. Copies can generally be found in
    engineering libraries.
 
@@ -592,56 +600,58 @@
 
   5.3.1 Anixter
 
-   “ANSI/TIA/EIA-568-B Standards Reference Guide”
-   (http://www.anixter.com/AXECOM/AXEDocLib.nsf/(UnID)/8F2E0839A6190F4986257309005757CC/$file/ANSI-TIA-EIA-568-B.pdf)
+   “ANSI/TIA/EIA-568-B Standards Reference
+   Guide”^17(http://www.anixter.com/AXECOM/AXEDocLib.nsf/(UnID)/8F2E0839A6190F4986257309005757CC/$file/ANSI-TIA-EIA-568-B.pdf)
 
   5.3.2 Mohawk.com
 
-   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”
+   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”^18
    (http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html)
 
   5.3.3 Microchip Corp
 
-   AN713 “Controller Area Network (CAN) Basics” (http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf)
+   AN713 “Controller Area Network (CAN) Basics”^19
+   (http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf)
 
-   AN228 “A CAN Physical Layer Discussion” (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf)
+   AN228 “A CAN Physical Layer Discussion”^20)f (http://ww1.microchip.com/downloads/en/AppNotes/00228a.pd
 
-   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”
+   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”^21
    (http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf)
 
   5.3.4 ON Semiconductor
 
-   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”
+   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”^22
    (http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF)
 
   5.3.5 NXP Electronics (Philips)
 
-   AN96116 “PCA82C250 / 251 CAN Transceiver” (http://www.nxp.com/documents/application_note/AN96116.pdf)
+   AN96116 “PCA82C250 / 251 CAN Transceiver”^23 (http://www.nxp.com/documents/application_note/AN96116.pdf)
 
-   AN10211 “TJA1040 high speed CAN transceiver” (http://www.nxp.com/documents/application_note/AN10211.pdf)
+   AN10211 “TJA1040 high speed CAN transceiver”^24
+   (http://www.nxp.com/documents/application_note/AN10211.pdf)
 
   5.3.6 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
-   differential signaling (LVDS)” (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
+   differential signaling (LVDS)”^25 (http://focus.ti.com/lit/an/slyt197/slyt197.pdf)
 
-   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”
+   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”^26
    (http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf)
 
-   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”
+   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”^27
    (http://focus.ti.com/lit/an/slla270/slla270.pdf)
 
-   Application Report SLLA298B “Isolated CAN Reference Design”
+   Application Report SLLA298B “Isolated CAN Reference Design”^28
    (http://focus.ti.com/lit/an/slla298b/slla298b.pdf)
 
-   Application Report SLOU262 “Isolated CAN Transceiver EVM”
+   Application Report SLOU262 “Isolated CAN Transceiver EVM”^29
    (http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf)
 
-   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”
+   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”^30
    (http://www.ti.com/lit/an/slla271/slla271.pdf)
 
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
-   transceiver” (http://focus.ti.com/lit/an/slyt249/slyt249.pdf)
+   transceiver”^31 (http://focus.ti.com/lit/an/slyt249/slyt249.pdf)
 
 5.4 Component data sheets
 
@@ -652,35 +662,35 @@
 
   5.4.1 Microchip
 
-   MCP2551 High-Speed CAN Transceiver (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
+   MCP2551 High-Speed CAN Transceiver^32 (http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf)
 
-   MCP2515 Stand-Alone CAN Controller With SPI Interface
+   MCP2515 Stand-Alone CAN Controller With SPI Interface^33
    (http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf)
 
   5.4.2 NXP Electronics (Philips)
 
-   PCA82C250 CAN controller interface (http://www.nxp.com/documents/data_sheet/PCA82C250.pdf)
+   PCA82C250 CAN controller interface^34 (http://www.nxp.com/documents/data_sheet/PCA82C250.pdf)
 
-   TJA1043 High-speed CAN transceiver
+   TJA1043 High-speed CAN transceiver^35
    (http://www.nxp.com/documents/data_sheet/TJA1043.pdf)
 
-   PESD1CAN CAN bus ESD protection diode
+   PESD1CAN CAN bus ESD protection diode^36
    (http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf)
 
   5.4.3 STMicroelectronics
 
-   L9615 transceiver
+   L9615 transceiver^37
    (http://www.st.com/internet/com/TECHNICAL_RESOURCES/TECHNICAL_LITERATURE/DATASHEET/CD00001375.pdf)
 
   5.4.4 Texas Instruments
 
-   ISO1050 Isolated CAN Transceiver (http://focus.ti.com/lit/ds/symlink/iso1050.pdf)
+   ISO1050 Isolated CAN Transceiver^38 (http://focus.ti.com/lit/ds/symlink/iso1050.pdf)
 
-   SN55HVD251, SN65HVD251 Industrial CAN Transceiver (http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf)
+   SN55HVD251, SN65HVD251 Industrial CAN Transceiver^39 (http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf)
 
-   SN65HVD1050 EMC Optimized CAN Transceiver (http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf)
+   SN65HVD1050 EMC Optimized CAN Transceiver^40 (http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf)
 
-   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers
+   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers^41
    (http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf)
 
 5.5 Tools
@@ -692,15 +702,15 @@
 
   5.5.1 Microchip
 
-   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”
+   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”^42
    (http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534)
 
   5.5.2 IXAAT
 
-   CANcheck “Installation tester for CAN networks”
+   CANcheck “Installation tester for CAN networks”^43
    (http://www.ixxat.com/cancheck_en.html?markierung=cancheck)
 
-   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”
+   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”^44
    (http://www.ixxat.com/can_bus_tester_cbt_en.html)
 
    Table of Contents
@@ -709,91 +719,215 @@
 
    2 Annotations to the Standard 1
 
-   2.1 Intended Use 1
+   2.1 Introduction 1
 
-   2.2 References and Context 2
+   2.2 Intended Use 1
 
-   2.3 Physical Interconnection 2
+   2.3 References and Context 2
 
-   2.4 Data Transport 4
+   2.4 Physical Interconnection 2
 
-   2.5 Supply of Power 5
+   2.5 Data Transport 4
 
-   2.6 Consumption of Power 6
+   2.6 ALT_L / ALT_H 4
 
-   3 Design Issues 6
+   2.6.1 DCC Signal 5
 
-   3.1 Bus Termination 6
+   2.7 Supply of Power 6
 
-   3.1.1 Termination Circuits 6
+   2.8 Consumption of Power 7
 
-   3.1.1.1 Passive single resistor 6
+   3 Design Issues 8
 
-   3.1.1.2 Passive split resistors bypassed to ground 6
+   3.1 Bus Termination 8
 
-   3.1.1.3 Biased split termination 6
+   3.1.1 Termination Circuits 8
 
-   3.1.1.4 Active termination 7
+   3.1.1.1 Passive single resistor 8
 
-   3.1.1.5 Distributed termination 7
+   3.1.1.2 Passive split resistors bypassed to ground 8
 
-   3.1.2 Terminator Placement 7
+   3.1.1.3 Biased split termination 8
 
-   3.2 EMC Management and Noise Immunity 7
+   3.1.1.4 Active termination 9
 
-   3.2.1 Chokes 8
+   3.1.1.5 Distributed termination 9
 
-   3.2.2 ESD and surge protection 8
+   3.1.2 Terminator Placement 9
 
-   3.3 Sample Schematic 8
+   3.2 EMC Management and Noise Immunity 9
 
-   4 Repeaters, Bridges and Gateways 8
+   3.2.1 Chokes 10
 
-   4.1 Repeaters 9
+   3.2.2 ESD and surge protection 10
 
-   4.2 Bridges 9
+   3.3 Sample Schematic 10
 
-   4.3 Gateways 10
+   4 Repeaters, Bridges and Gateways 10
 
-   5 References 10
+   4.1 Repeaters 11
 
-   5.1 Standards 10
+   4.2 Bridges 11
 
-   5.2 Books 11
+   4.3 Gateways 12
 
-   5.2.1 Recommended 11
+   5 References 12
 
-   5.2.2 Not Recommended 11
+   5.1 Standards 12
 
-   5.3 Application Notes 11
+   5.2 Books 13
 
-   5.3.1 Anixter 11
+   5.2.1 Recommended 13
 
-   5.3.2 Mohawk.com 11
+   5.2.2 Not Recommended 13
 
-   5.3.3 Microchip Corp 11
+   5.3 Application Notes 13
 
-   5.3.4 ON Semiconductor 12
+   5.3.1 Anixter 13
 
-   5.3.5 NXP Electronics (Philips) 12
+   5.3.2 Mohawk.com 13
 
-   5.3.6 Texas Instruments 12
+   5.3.3 Microchip Corp 14
 
-   5.4 Component data sheets 12
+   5.3.4 ON Semiconductor 14
 
-   5.4.1 Microchip 13
+   5.3.5 NXP Electronics (Philips) 14
 
-   5.4.2 NXP Electronics (Philips) 13
+   5.3.6 Texas Instruments 14
 
-   5.4.3 STMicroelectronics 13
+   5.4 Component data sheets 15
 
-   5.4.4 Texas Instruments 13
+   5.4.1 Microchip 15
 
-   5.5 Tools 13
+   5.4.2 NXP Electronics (Philips) 15
 
-   5.5.1 Microchip 13
+   5.4.3 STMicroelectronics 15
 
-   5.5.2 IXAAT 14
+   5.4.4 Texas Instruments 15
 
-   Copyright 2010-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms. Page
-   1 of 17 - Feb 17, 2015
+   5.5 Tools 16
+
+   5.5.1 Microchip 16
+
+   5.5.2 IXAAT 16
+
+   1http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf
+
+   2http://focus.ti.com/lit/an/slla270/slla270.pdf
+
+   3http://focus.ti.com/lit/an/slla270/slla270.pdf, http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+
+   4http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+
+   5http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+
+   http://www.nxp.com/documents/application_note/AN10211.pdf
+
+   6http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
+
+   http://www.ixxat.com/cancheck_en.html?markierung=cancheck
+
+   http://www.ixxat.com/can_bus_tester_cbt_en.html
+
+   http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html
+
+   7http://www.nxp.com/documents/application_note/AN10211.pdf
+
+   http://focus.ti.com/lit/an/slla270/slla270.pdf
+
+   8http://www.ti.com/lit/an/slla271/slla271.pdf
+
+   9www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
+
+   10http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+
+   11http://www.ixxat.com/introduction-repeater_en.html
+
+   http://www.esd-electronics-usa.com/shared/datasheets/repeat-e.pdf
+
+   http://www.ixxat.com/can_cr200_en.html
+
+   12http://www.ixxat.com/introduction_bridges_en.html
+
+   http://www.ieee-icnp.org/1996/papers/1996-21.pdf
+
+   http://doi.ieeecomputersociety.org/10.1109/ISPAN.1996.509033
+
+   http://www.ixxat.com/can_bridge_en.html
+
+   http://www.wrcakron.com/devicenet/CAN_Bus_Applications.pdf
+
+   http://www.matric.com/canbridge.html
+
+   13http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
+
+   http://news.thomasnet.com/fullstory/Gateway-converts-from-CAN-into-Ethernet-529941
+
+   http://www.icpdas-usa.com/products.php?PID=3075
+
+   14http://www.iso.org
+
+   15http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422
+
+   http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33423
+
+   16http://www.tiaonline.org
+
+   17https://www.anixter.com/content/dam/Anixter/Guide/12H0001X00-Anixter-Standard-Ref-Guide-ECS-US.pdf
+
+   18http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html
+
+   19http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf
+
+   20http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+
+   21http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf
+
+   22http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF
+
+   23http://www.nxp.com/documents/application_note/AN96116.pdf
+
+   24http://www.nxp.com/documents/application_note/AN10211.pdf
+
+   25http://focus.ti.com/lit/an/slyt197/slyt197.pdf
+
+   26http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+
+   27http://focus.ti.com/lit/an/slla270/slla270.pdf
+
+   28http://focus.ti.com/lit/an/slla298b/slla298b.pdf
+
+   29http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf
+
+   30http://www.ti.com/lit/an/slla271/slla271.pdf
+
+   31http://focus.ti.com/lit/an/slyt249/slyt249.pdf
+
+   32http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf
+
+   33http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf
+
+   34http://www.nxp.com/documents/data_sheet/PCA82C250.pdf
+
+   35http://www.nxp.com/documents/data_sheet/TJA1043.pdf
+
+   36http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+
+   37http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00001375.pdf
+
+   38http://focus.ti.com/lit/ds/symlink/iso1050.pdf
+
+   39http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf
+
+   40http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf
+
+   41http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf
+
+   42http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
+
+   43http://www.ixxat.com/cancheck_en.html?markierung=cancheck
+
+   44http://www.ixxat.com/can_bus_tester_cbt_en.html
+
+   Copyright 2010-20152016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.
+   Page 1 of 21 - Feb 17, 2015Jan 20, 2016
