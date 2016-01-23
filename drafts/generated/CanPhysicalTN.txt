@@ -2,7 +2,7 @@
 
                                                                CAN Physical Layer
 
-                                             Feb 17, 2015Jan 21, 2016                 AdoptedDraft          
+                                             Feb 17, 2015Jan 23, 2016                 AdoptedDraft          
 
                                                 1 Introduction
 
@@ -243,7 +243,7 @@
        carrying the DCC signal, which could lead to exceeding their current carrying capacity and producing
        unwanted EMI.
 
-   The DCC signal use case of conductors 4 & 5 is indended to be used such there is exactly one DCC signal
+   The DCC signal use case of conductors 4 & 5 is intended to be used such there is exactly one DCC signal
    source and one or more DCC signal consumers.
 
    While it is relatively difficult to produce a DCC consumer that is capable of simultaneously meeting the
@@ -267,19 +267,9 @@
 
    Because the DCC source node must reference ALT_L / ALT_H to PWR_NEG within a specifically defined range,
    it is possible to use the PWR_POS / PWR_NEG supply signals to power a high impedance (greater than 50K
-   ohm) input circuit using an op-amp or comparator. Below is pictured an example circuit which meets these
-   requirements for the S-9.1.2 Opto-isolated (Current) interface.
-
-                          Figure 2: High Impedance DCC Signal Input Circuit Example
-
-    1. Input voltages on ALT_H less than 4.5 volts are rejected
-
-    2. Input voltage on ALT_H greater than 6.5 volts are accepted
-
-    3. The input hysteresis is 2 volts
-
-    4. Common mode voltage offsets up to 500 mV on ALT_L / ALT_H with respect to PWR_GND will not
-       negatively impact the operation of the circuit.
+   ohm) input circuit. However, care must be taken in the design of this circuit to account for a common
+   mode voltage shift in ALT_L / ALT_H with respect to PWR_NEG largely due to current flow through the
+   resistance of long cable lengths.
 
    Nodes must be marked with their capability to either source or consume the DCC signal in order to make
    installation for the user both simple and reliable: The user must insure that DCC signal consumers exist
@@ -340,6 +330,19 @@
    For their thermal calculations, node designers should assume that power is supplied at 15V.
 
    For their power calculations, node designers should assume that power is supplied at 7.5V.
+
+2.9 Injection Current
+
+   If the sum of the current on all eight conductors going into and out of the node does not sum to zero,
+   there exists an alternate path for current to flow between two nodes that is not isolated from the
+   Physical Interconnection described by this standard. Whenever two disparate current paths exist, it is
+   difficult, if not impossible, for the manufacture to have control of which path the current will take
+   given that the installation details are typically left up to the user.
+
+   Specifically, the existence of this requirement makes all of the eight conductors in the Physical
+   Interconnection unsuitable for use as a low impedance current path between DCC signal consumers, such as
+   DCC Power Stations, or for similar use cases where a return path between externally powered nodes is
+   required.
 
                                                3 Design Issues
 
@@ -944,4 +947,4 @@
    45http://www.ixxat.com/can_bus_tester_cbt_en.html
 
    Copyright 2010-20152016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.
-   Page 1 of 21 - Feb 17, 2015Jan 21, 2016
+   Page 1 of 21 - Feb 17, 2015Jan 23, 2016
