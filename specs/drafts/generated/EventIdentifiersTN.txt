@@ -10,7 +10,7 @@
 
 2.1 Introduction
 
-   Although event identifiers generally take the format of a unique Node Identifier plus a 16-bit
+   Although event identifiers generally take the format of a Unique Node Identifier plus a 16-bit
    extension, there are some exceptions to this noted in the Event Identifiers Standard which will be
    detailed in this document.
 
@@ -29,8 +29,8 @@
    uniqueness for all Event Identifiers.
 
    To ensure uniqueness, the top six bytes of an Event Identifier that the manufacturer or user defines are
-   required to be within a Node ID space that the manufacturer or user controls.  The low two bytes would
-   be any number, so long as each value is used for only one event.
+   required to be within a Node ID space that the manufacturer or user controls.  The low two bytes can be
+   any number, so long as each value is used for only one event.
 
    This requirement applies equally to events defined by a hardware node, like a push button, a software
    node in a computer, or Event Identifiers that are defined by a human writing them on a piece of paper.
@@ -42,31 +42,28 @@
 
     
 
-   The Node ID part could be from real nodes that you own.  For example, the Blue/Gold algorithm for
-   assigning Event Identifiers automatically puts the Node ID of the first node to use in the Event
-   Identifier, guaranteeing it to be unique.
+   The Node ID part canbe from real nodes which a user owns.  
 
-   Not all Event Identifiers need to be assigned through the Blue/Gold algorithm.  For example, a software
-   configuration tool might define events and assign Event Identifiers to them.  A board manufacturer may
-   prefer some other pushbutton configuration process.  A modular club may decide that certain events form
-   the “boundaries” of modules, and need to be assigned well-known Event Identifiers to make it easier to
-   create large modular layouts.  Whatever the method, the Event Identifiers need to be globally
-   unique,which is ensured by requiring Event Identifiers to be created using Node ID numbers assigned to
+   A software configuration tool might define events and assign Event Identifiers to them.  A board
+   manufacturer may prefer a pushbutton configuration process.  A modular club may decide that certain
+   events form the “boundaries” of modules, and need to be assigned Well-Known Event Identifiers to make it
+   easier to create large modular layouts.  Whatever the method, the Event Identifiers need to be globally
+   unique, which is ensured by requiring Event Identifiers to be created using Node ID numbers assigned to
    them (and therefore not assigned to anybody else), plus an additional 16 bits that they are responsible
    for using only once.  This is worth repeating, each Event Identifier can only be used once for a
    specific state or meaning.  It doesn't mean that multiple nodes cannot use it, but rather it should not
    be used for a different purpose or meaning.  This is because the meaning and its use is shared across
    all of the nodes using it, and unless it can be guaranteed that they all have been changed there will be
    conflict between them.  It is much safer to use a new Event Identifier, and nodes will usually have a
-   mechanism to supply new, “virgin” Event Ids.  
+   mechanism to supply new, “virgin” Event Identifiers.  
 
    Note that the Node ID part of an Event Identifier does not have to correspond to any physical node.  So
-   long as it is assigned out of a Node ID address space that the assigning body owns and, by extension,
+   long as it is assigned out of a Node ID address space that the assigning body owns, and, by extension,
    has control of over, it can be used.  For example, a fast-clock manufacturer might want to define a
    range of Event Identifiers so that a different event is emitted every fast minute.  For the sake of
    argument, let's say 24 bits worth of specific events are needed (it's actually smaller, but let's use
    this as an example).  The manufacturer has a large range of Node IDs assigned already, so can use 8-bits
-   worth of that space, plus the extra 16 bits in the Event Identifiers below the Node ID-like-part, to do
+   worth of that space, plus the extra 16 bits in the Event Identifiers below the Node ID portion, to do
    this.  If a manufacturer had a range of Node IDs that included at least 12.34.56.78.9A.00 through
    12.34.56.78.9A.FF (in other words, all possible values of the low byte), they could create a set of
    Event Identifiers with the low 24 bits used to carry a time value:
@@ -80,7 +77,7 @@
     
 
    This is guaranteed to be unique, no matter where one of these devices is used, because the node ID range
-   is guaranteed to belong to the manufacturer, and they'll use it only once for this purpose.  
+   is guaranteed to belong to the manufacturer, and they will use it only once for this purpose.  
 
 2.3 References and Context
 
@@ -91,7 +88,8 @@
 
      * The Event Transport Standard, which defines the protocol for transporting events.
 
-   The Unique Identifiers Standard which defines the format and allocation of unique 48-bit identifiers.
+     * The Unique Identifiers Standard which defines the format and allocation of unique 48-bit
+       identifiers.
 
 2.4 Format
 
@@ -101,7 +99,7 @@
 
   2.5.1 Node ID Based
 
-   The majority of event identifiers fall into this category.  The six most significant bytes are derived
+   The majority of Event Identifiers fall into this category.  The six most significant bytes are derived
    from a globally unique six byte Node ID followed by the two least significant bytes which are typically
    chosen through user configuration.
 
@@ -109,15 +107,15 @@
 
   2.5.2 Well-Known Automatically-Routed
 
-   Unlike Node ID Based event identifiers, the Well-Known Automatically Routed event identifiers are
+   Unlike Node ID Based Event Identifiers, the Well-Known Automatically Routed Event Identifiers are
    explicitly defined by the Event Identifiers Standard for a specific purpose.  Additionally, gateways are
    required to route these events to all segments.
 
-   Note that it is not specified whether or not the Well-Known Automatically Routed events shall
-   participate in producer/consumer identify.  The primary purpose of the producer/consumer identify is to
-   pair consumers with produces, especially for the purpose of routing between OpenLCB segments.  Since
-   these Well-Known Automatically-Routed events must always be routed, it could be argued that the identify
-   events are redundant for these well-known Event Identifiers.
+   Note that it is not specified whether or not the Well-Known Automatically Routed events  participate in
+   producer/consumer identify.  The primary purpose of the producer/consumer identify is to pair consumers
+   with produces, especially for the purpose of routing between OpenLCB segments.  Since these Well-Known
+   Automatically-Routed events must always be routed, it could be argued that the identify events is
+   redundant for these Well-Known Event Identifiers.
 
    Though not explicitly required, it would be prudent for a manufacture to identify in a product's
    documentation as to which Well-Known Automatically Routed events it produces and consumes,  and the
@@ -127,13 +125,13 @@
 
     
 
-   The Emergency Off event identifier (01.00.00.00.00.00.FF.FF) is a request for a node to de-energize all
+   The Emergency Off Event Identifier (01.00.00.00.00.00.FF.FF) is a request for a node to de-energize all
    of its outputs.  A node receiving this event may continue to remain a powered participant of the OpenLCB
    bus, but may de-energize any outputs unrelated to maintaining OpenLCB communications.  The meaning of
    de-energize is not prescribed for any given node, it is up to the node manufacturer and/or user to
    prescribe what, if anything, should happen in the node if it receives this event.  For example:
 
-     * If the node is a DCC power booster, it might disable its amplified DCC power output.
+     * If the node is a DCC Power Station, it might disable its amplified DCC output.
 
      * If the node is an accessory controlling turnout motors, it might remove power from the motors
 
@@ -148,7 +146,7 @@
 
     
 
-   The Emergency Stop event identifier (01.00.00.00.00.00.FF.FD) is a request for a node to command all of
+   The Emergency Stop Event Identifier (01.00.00.00.00.00.FF.FD) is a request for a node to command all of
    its outputs to a safe state.  A node receiving this event is not required to de-energize any of its
    outputs.  The meaning of “safe state” is not prescribed for any given node, it is up to the node
    manufacturer and/or user to prescribe what, if anything, should happen in the node if it receives this
@@ -168,8 +166,6 @@
 
     2.5.2.3 Other Well-Known Automatically Routed
 
-    2.5.2.4 Other Well-Known
-
    Other Well-Known Automatically Routed Event Identifiers not discussed here have their uses prescribed
    and/or discussed elsewhere.  No assumptions should be made about the use of these Well-Known
    Automatically Routed Event Identifiers as prescribed by this document.
@@ -181,7 +177,7 @@
    events to all segments, and may maintain a static or learned routing table for these events to prevent
    unnecessary propagation.
 
-   Though not explicitly required, it would be prudent for a manufacture to identify in a products
+   Though not explicitly required, it would be prudent for a manufacture to identify in a product's
    documentation as to which Well-Known events it produces and consumes and the resulting actions it takes
    when these events occur.
 
@@ -237,8 +233,6 @@
    2.5.2.2 Emergency Stop
 
    2.5.2.3 Other Well-Known Automatically Routed
-
-   2.5.2.4 Other Well-Known
 
    2.5.3 Well-Known
 
