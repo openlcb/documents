@@ -205,8 +205,8 @@
      * Two bytes of MTI. If the frame transport only delivered part of the MTI^3, that content is returned
        with the rest of the MTI bits set to zero.
 
-     * Any extra bytes that the node wishes to include. There can be zero or more of these. These shall be
-       described in the node documentation.
+     * Any extra bytes that the node wishes to include. There can be zero or more of these, to a maximum of
+       64 bytes. These shall be described in the node documentation.
 
    Nodes shall process this message even if not all of the contents are provided.
 
@@ -229,8 +229,8 @@
      * Two bytes of MTI. If the frame transport only delivered part of the MTI^4, that content is returned
        with the rest of the MTI bits set to zero.
 
-     * Any extra bytes that the node wishes to include. There can be zero or more of these. These shall be
-       described in the node documentation.
+     * Any extra bytes that the node wishes to include. There can be zero or more of these, to a maximum of
+       64 bytes. These shall be described in the node documentation.
 
    Nodes shall process this message even if not all of the contents are provided.
 
@@ -356,7 +356,7 @@
   3.5.2 Reject Unaddressed Optional-Interaction
 
    If a Node receives an unaddressed message with an MTI that indicates the start of a non-mandatory /
-   optional interaction, and the Node does nottake part in that optional interaction, it may silently drop
+   optional interaction, and the Node does not take part in that optional interaction, it may silently drop
    the message without reply.
 
   3.5.3 Reject Addressed Standard Interaction Due to Error
@@ -397,57 +397,58 @@
               will be defined in the specific protocol documentation. A value of zero in this field means   
               no further information is available. Default as 0, and ignored on receipt.                    
 
-   The following General Error Codes are defined, and may be used by all Protocols:
+   The following General Error Codes are defined, and may be used by all Protocols:. All protocols shall
+   use at least Error Codes 0x0000, 0x1000, and 0x2000, and may use the extended Error Codes.
 
                                              General Error Codes
 
-        Value      Description                                                                              
+         Value       Description                                                                            
 
     Permanent Error Enumeration. Re-trying the same interaction will result in the same error.
 
-       0x1000      Permanent error, not further specified.                                                  
+        0x100x0      Permanent error, not further specified.                                                
 
-       0x1010      Reserved.                                                                                
+        0x101x0      Reserved.                                                                              
 
-       0x1020      Source not permitted.                                                                    
+        0x102x0      Source not permitted.                                                                  
 
-       0x1030      Reserved.                                                                                
+        0x103x0      Reserved.                                                                              
 
-       0x1040      Not implemented, not further specified.                                                  
+        0x104x0      Not implemented, not further specified.                                                
 
-       0x1080      Invalid arguments. Some of the values sent in the message fall outside of the expected   
-                   range, or do not match the expectations of the receiving node.                           
+        0x108x0      Invalid arguments. Some of the values sent in the message fall outside of the          
+                     expected range, or do not match the expectations of the receiving node.                
 
-    0x1090-0x10F0  Reserved.                                                                                
+    0x109x0-0x10Fx0  Reserved.                                                                              
 
-    Temporary Error (resent OK). Re-trying the same interaction later is likely to succeed.
+    Temporary Error (resent d OK). Re-trying the same interaction later is likely to succeed.
 
-       0x2000      Temporary error, not further not specified.                                              
+        0x200x0      Temporary error, not further not specified.                                            
 
-       0x2010      Timeout, the expected message or message-part did not arrive in time.                    
+        0x201x0      Timeout, the expected message or message-part did not arrive in time.                  
 
-       0x2020      Buffer unavailable or destination node busy.                                             
+        0x202x0      Buffer unavailable or destination node busy.                                           
 
-       0x2030      Reserved.                                                                                
+        0x203x0      Reserved.                                                                              
 
-       0x2040      Not expected, Out of order. An inconsistency was found in the message or frame sequence  
-                   received, the arrived message is unexpected or does not match the state of the           
-                   receiving node.                                                                          
+        0x204x0      Not expected, Out of order. An inconsistency was found in the message or frame         
+                     sequence received, the arrived message is unexpected or does not match the state of    
+                     the receiving node.                                                                    
 
-    0x2050-0x2070  Reserved.                                                                                
+    0x205x0-0x207x0  Reserved.                                                                              
 
-       0x2080      Transfer error. The message or received message was ill-formed, failed checksum, or is   
-                   otherwise uninterpretable. On CAN, this is handled by the hardware.                      
+        0x208x0      Transfer error. The message or received message was ill-formed, failed checksum, or    
+                     is otherwise uninterpretable. On CAN, this is handled by the hardware.                 
 
-    0x2090-0x20F0  Reserved.                                                                                
+    0x209x0-0x20Fx0  Reserved.                                                                              
 
-    Reserved       
+    Reserved         
 
-       0x4000      Reserved. Write as zero, ignored on read.                                                
+        0x400x0      Reserved. Write as zero, ignored on read.                                              
 
-    Accept Flag    
+    Accept Flag      
 
-       0x8000      Accept, no error. This value shall not be used in reject messages.                       
+        0x800x0      Accept, no error. This value shall not be used in reject messages.                     
 
    NB: Nodes may return 0x0000 as an error-code.
 
@@ -924,4 +925,4 @@
    “ddd”. See TN.
 
    Copyright 2011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 20 - Feb 15, 2015
+   1 of 19 - Feb 15, 2015
