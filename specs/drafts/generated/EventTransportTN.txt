@@ -14,7 +14,7 @@
    event.  Expressed in more anthropomorphic terms, neither the producers nor consumers of a PCER are aware
    of each other.  This adds flexibility to the system, since more producers or consumers of the PCER can
    be added to implement the associated event, without concern of side effects to the other nodes involved
-   in the event.12
+   in the event.1,2
 
    The Producer/Consumer Event ID included in a PCER message is an 8-byte unique identifier. The method for
    assigning these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical
@@ -42,7 +42,7 @@
                                         2 Annotations to the Standard
 
    This section provides background information on corresponding sections of the Standard document. It is
-   expected that two documents will be read together.
+   expected that these two documents will be read together.
 
 2.1 Introduction
 
@@ -157,7 +157,7 @@
    system.  In general, event transmission via PCER messages conveys state changes. If a node comes in
    during operation, it might want to determine the correct value of the distributed state. Producers can,
    but don't always, know that state.  For example, consider “On” and “Off” events for a light.  There
-   might be two producers attached to toggle switch. In that case, one of them will still see their state
+   might be two producers attached to a toggle switch. In that case, one of them will still see their state
    as current, and will reply with valid. Alternately, the two producers might be set to produce when two
    separate pushbuttons are pressed.  In that case, at some later time neither producer knows whether the
    distributed state corresponds to its event. They both have to report as unknown. Consumers can also know
@@ -313,7 +313,7 @@
    that a particular node is listening for and that it can emit. This can be used as a configuration
    diagnostic.
 
-   To determine which Producer/Consumer Event IDs can be send by a particular node, the inquiring node
+   To determine which Producer/Consumer Event IDs can be sent by a particular node, the inquiring node
    sends an Identify Events message addressed to the target node.
 
    The node must reply with a Producer Identified message for each Producer/Consumer Event ID it can
@@ -350,8 +350,8 @@
 
   2.6.4 Consumer Inquiry
 
-   This message is useful to be able to determine which, if any, nodes are listening for a specific
-   Producer/Consumer Event ID message.
+   This message is useful to determine which, if any, nodes are listening for a specific Producer/Consumer
+   Event ID message.
 
    This can be used as a configuration diagnostic, and as a way of building routing tables.
 
@@ -388,13 +388,16 @@
    select producers and consumers which will learn the common EventID. These are colloquially called
    "Learners".  The Standard does not discuss how a node defines its local user interface for doing that
    selection process4. A single producer or consumer then provides the EventID that is to be learned in a
-   “Teach Event” message. If the taught Event ID is a new unique ID, only the selected producers and
+   “Teach Event” message. If the taught Event ID is a new unique ID, then only the selected producers and
    consumers will share it.  If producers and/or consumers are already using that Event ID, the newly
    configured producers and/or consumers will be tied into the existing network of producers and consumers.
 
     2.6.5.1 Blue/Gold Buttons Implementation Example
 
    General Description
+
+   Nodes can be built with two buttons, called Blue and Gold, which can be used to configure the nodes'
+   hardware, including event IDs from one node to one or more other nodes.  
 
      * On one or more 'learner'-node(s), using the Blue-button, choose a consumer/producer, and then push
        the Gold-button to set it to learn.  This can be repeated on the same node or on others.  
@@ -530,7 +533,7 @@
    resulting from the consumption the event-number, can be implemented by a node without reference to other
    producers or consumers, which makes this model very flexible and extensible.  
 
-   Events are most often used to advertise changes in system state, for example a occupancy detector's
+   Events are most often used to advertise changes in system state, for example an occupancy detector's
    state.  The model maintains the distributed-state model of a layout because Events-messages are
    broadcast8 to all nodes, and this allows individual producers and consumers to use them to change their
    knowledge of the distributed state.  
@@ -772,7 +775,8 @@
 
    4 Having conventions for the user interface would make it easier for users to work with multiple OpenLCB
    products. Some work has gone into a system for doing this with two buttons and two LEDs, called the
-   “Blue/Gold configuration”, but this has not become a consensus solution as of the time of this writing.
+   “Blue/Gold configuration”, see the next section, but this has not become a consensus solution as of the
+   time of this writing.
 
    5 sss — The 12-bit source alias field.
 
