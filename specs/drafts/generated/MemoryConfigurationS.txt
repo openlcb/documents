@@ -452,7 +452,28 @@
 
     
 
-4.21 Update Complete Command
+4.21 Unfreeze Command
+
+   Byte 0 Byte 1 Byte 2        
+   0x20   0xA0   Address Space 
+
+    
+
+   This command is used in conjunction with the Freeze Command if, only if, and as required by a
+   higher-level protocol specification. An example of such protocol specification is the Firmware Upgrade
+   Standard.
+
+   The receiving node may acknowledge this and the Freeze Command either with a Node Initialization
+   Complete or a Datagram Received OK response.
+
+4.22 Freeze Command
+
+   Byte 0 Byte 1 Byte 2        
+   0x20   0xA1   Address Space 
+
+    
+
+4.23 Update Complete Command
 
    Byte 0 Byte 1 
    0x20   0xA8   
@@ -461,10 +482,11 @@
 
    This command notifies the target node that the configuration update operation sequence has completed.
     Nodes do not have to require this operation, but receiving it must be permitted. Configuration tools
-   should send it at the end of operations. Nodes may, but are not required to, reset after sending the
-   reply to this message.
+   should send it at the end of operations. Nodes may, but are not required to, reset as part of the
+   processing of this message. The receiving node may acknowledge this command with a Node Initialization
+   Complete instead of a Datagram Received OK response.
 
-4.22 Reset/Reboot Command
+4.24 Reset/Reboot Command
 
    Byte 0 Byte 1 
    0x20   0xA9   
@@ -474,7 +496,10 @@
    After  successfully processing this command, the receiving node shall reset/reboot into its power on
    reset state, as if it has been put through a power cycle.
 
-4.23 Reinitialize/Factory Reset Command
+   The receiving node may acknowledge this command with a Node Initialization Complete instead of a
+   Datagram Received OK response.
+
+4.25 Reinitialize/Factory Reset Command
 
    Byte 0 Byte 1 Byte 2-7 
    0x20   0xAA   Node ID  
@@ -484,14 +509,8 @@
    “Reinitialize/Factory Reset” restores the node's configuration as if factory reset. Node ID shall carry
    the destination Node ID for redundancy.
 
-4.24 Enter Bootloader Command
-
-   Byte 0 Byte 1 
-   0x20   0xAB   
-
-    
-
-   This command is reserved for the future specification of a firmware upgrade protocol.
+   The receiving node may acknowledge this command with a Node Initialization Complete instead of a
+   Datagram Received OK response.
 
     
 
@@ -545,12 +564,14 @@
 
    4.20 Get Unique ID Reply
 
-   4.21 Update Complete Command
+   4.21 Unfreeze Command
 
-   4.22 Reset/Reboot Command
+   4.22 Freeze Command
 
-   4.23 Reinitialize/Factory Reset Command
+   4.23 Update Complete Command
 
-   4.24 Enter Bootloader Command
+   4.24 Reset/Reboot Command
+
+   4.25 Reinitialize/Factory Reset Command
 
     
