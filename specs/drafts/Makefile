@@ -43,15 +43,23 @@ nmra: \
 pdf: $(OUTPUT)
 
 .SUFFIXES:
-.SUFFIXES: .odt .ods .pdf
+.SUFFIXES: .odt .ods .pdf .txt
 
 # Spreadsheets
 .ods.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
+.ods.txt:
+	$(OFFICE) --headless --convert-to txt:Text $<
+
 # text documents
 .odt.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
+
+.odt.txt:
+	odt2txt $< > $@
+
+#	$(OFFICE) --headless --convert-to txt:Text $<
 
 .PHONY: veryclean
 veryclean: clean
