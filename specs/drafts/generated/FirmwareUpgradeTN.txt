@@ -414,22 +414,31 @@
 
      * The CT node will have alias 0x3CC on the bus.
 
-   > :X1A4AA3CCN20A1EF;         Memory Config datagram: Freeze Firmware Space (0xEF)                        
-   < :X19A284AAN03CC00;         Datagram received OK. This message may be omitted.                          
-   < :X171A24AAN; ...           There may be some alias allocation packets here.                            
-   < :X191004AAN1A2A3A4A5A6A;   Node initialization complete.                                               
-   > :X1B4AA3CCN202000000000EF; Memory Config datagram: Stream write to space EF, offset 0, source stream   
-   > :X1D4AA3CCNFF55;           id 55.                                                                      
-   < :X19A284AAN03CC80;         Datagram received OK. Reply pending.                                        
-   TODO: finish writeup here                                                                                
-   >                            Stream initiate request                                                     
-   <                            Stream initiate reply                                                       
-   >                            Stream data                                                                 
-   <                            Stream continue                                                             
-   >                            Stream close                                                                
-   <                            Memory config write complete                                                
-   >                            Memory config reboot                                                        
-                                                                                                            
+   > :X1A4AA3CCN20A1EF;           Memory Config datagram: Freeze Firmware Space (0xEF)                      
+   < :X19A284AAN03CC00;           Datagram received OK. This message may be omitted.                        
+   < :X171A24AAN; ...             There may be some alias allocation packets here.                          
+   < :X191004AAN1A2A3A4A5A6A;     Node initialization complete.                                             
+   > :X198283CCN04AA;             PIP request to discover node capabilities                                 
+   < :X196684AAN03CC700010000000; PIP reply; indicates streams are supported.                               
+   > :X1B4AA3CCN202000000000EFFF; Memory Config datagram: Stream write to space EF, offset 0, source stream 
+   > :X1D4AA3CCN55;               id 55.                                                                    
+   < :X19A284AAN03CC80;           Datagram received OK. Reply pending.                                      
+   < :X1B3CC4AAN203000000000EF5A; Memory Config datagram: Stream Write Reply OK, space EF, offset 0 dest    
+   < :X1D3CC4AAN55;               stream ID 5A, source stream ID 55.                                        
+   > :X19A283CCN04AA00            Datagram Received OK, no reply.                                           
+   > :X19CC83CCN04AAFFFF000055;   Stream initiate request; maximum buffer 64k-1, stream src id 55           
+   < :X198684AAN03CC01008000555A; Stream initiate reply OK; buffer 256, src id 55, dst id 5A                
+   > :X1F4AA3CCN5AA5456112B50B99;                                                                           
+   > :X1F4AA3CCN5AB077952FF3138E; Stream data for dst stream 5A                                             
+   > ...                          (total of 256 bytes)
+   > :X1F4AA3CCN5A97A0A4CC;       
+   < :X198884AAN03CC555A0000;     Stream continue                                                           
+   ...                            May add more stream data here                                             
+   > :X198A83CCN04AA555A;         Stream close                                                              
+   > :X1A4AA3CCN20A0EF;           Memory Config Datagram: Unfreeze Firmware space (0xEF)                    
+   < :X19A284AAN03CC;             Datagram Received OK. This message may be omitted.                        
+   < :X171A24AAN; ...             There may be some alias allocation packets here.                          
+   < :X191004AAN1A2A3A4A5A6A;     Node initialization complete.                                             
 
     
 
