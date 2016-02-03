@@ -4,7 +4,7 @@
 
                                                                 Firmware Upgrade
 
-                                                   Jan 19, 2016                         Proposal            
+                                                    Feb 3, 2016                         Proposal            
 
                                                 1 Introduction
 
@@ -318,9 +318,10 @@
    kbyte/sec transfer rate with streams.
 
    An undoubted benefit to the datagram-based transfer is that the Datagram Transport is already an adopted
-   standard, whereas Stream Transport is still in draft.The amount of additional code required in the
-   bootloader for the stream implementation is not significant, since it can replace the need for support
-   of segmented datagram packets.
+   standard, whereas Stream Transport is still in draft.
+
+   The amount of additional code required in the bootloader for the stream implementation is not
+   significant, since it can replace the need for support of segmented datagram packets.
 
   3.2.2 Using a directly initiated stream
 
@@ -429,35 +430,52 @@
 
      * The CT node will have alias 0x3CC on the bus.
 
-    > :X1A4AA3CCN20A1EFB;         Memory Config datagram: Enter BootloaderFreeze Firmware Space (0xEF)      
+    > :X1A4AA3CCN20A1EFB;            Memory Config datagram: Enter BootloaderFreeze Firmware Space (0xEF)   
 
-    < :X19A284AAN03CC00;          Datagram received OK. This message may be omitted.                        
+    < :X19A284AAN03CC00;             Datagram received OK. This message may be omitted.                     
 
-    < :X171A24AAN; ...            There may be some alias allocation packets here.                          
+    < :X171A24AAN; ...               There may be some alias allocation packets here.                       
 
-    < :X191004AAN1A2A3A4A5A6A;    Node initialization complete.                                             
+    < :X191004AAN1A2A3A4A5A6A;       Node initialization complete.                                          
 
-    > :X1B4AA3CCN202000000000EF;  Memory Config datagram: Stream write to space EF, offset 0, source        
-    > :X1D4AA3CCNFF55;            stream id 55.                                                             
+    > :X198283CCN04AA;               PIP request to discover node capabilities                              
 
-    < :X19A284AAN03CC80;          Datagram received OK. Reply pending.                                      
+    < :X196684AAN03CC700010000000;   PIP reply; indicates streams are supported.                            
 
-    TODO: finish writeup here     
+    > :X1B4AA3CCN202000000000EFFF;   Memory Config datagram: Stream write to space EF, offset 0, source     
+    > :X1D4AA3CCNFF55;               stream id 55.                                                          
 
-    >                             Stream initiate request                                                   
+    < :X19A284AAN03CC80;             Datagram received OK. Reply pending.                                   
 
-    <                             Stream initiate reply                                                     
+    TODO: finish writeup here<       Memory Config datagram: Stream Write Reply OK, space EF, offset 0      
+    :X1B3CC4AAN203000000000EF5A;     dest stream ID 5A, source stream ID 55.                                
+    < :X1D3CC4AAN55;                 
 
-    >                             Stream data                                                               
+    > :X19A283CCN04AA00              Datagram Received OK, no reply.                                        
 
-    <                             Stream continue                                                           
+    > :X19CC83CCN04AAFFFF000055;     Stream initiate request; maximum buffer 64k-1, stream src id 55        
 
-    >                             Stream close                                                              
+    < :X198684AAN03CC01008000555A;   Stream initiate reply OK; buffer 256, src id 55, dst id 5A             
 
-    <                             Memory config write complete                                              
+    > :X1F4AA3CCN5AA5456112B50B99;   Stream data for dst stream 5A                                          
+    > :X1F4AA3CCN5AB077952FF3138E;   (total of 256 bytes)                                                   
+    > ...                            
+    > :X1F4AA3CCN5A97A0A4CC;         
 
-    >                             Memory config reboot                                                      
+    < :X198884AAN03CC555A0000;       Stream continue                                                        
 
+    ...                              May add more stream data here                                          
+
+    > :X198A83CCN04AA555A;           Stream close                                                           
+
+    > :X1A4AA3CCN20A0EF;             Memory config rebootMemory Config Datagram: Unfreeze Firmware space    
+                                     (0xEF)                                                                 
+
+    < :X19A284AAN03CC;               Datagram Received OK. This message may be omitted.                     
+
+    < :X171A24AAN; ...               There may be some alias allocation packets here.                       
+
+    < :X191004AAN1A2A3A4A5A6A;       Node initialization complete.                                          
 
    Table of Contents
 
@@ -519,4 +537,4 @@
    valid implementation of the standard.
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   8 - Jan 19, 2016
+   9 - Feb 3, 2016
