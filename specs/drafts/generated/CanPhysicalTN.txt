@@ -28,7 +28,7 @@
      * There may never be less than 1 ft / 30cm of cable between nodes, nor between a stub connection and a
        node.
 
-   This implies that there is a limit of about 48 transceiverss on a single segment.
+   This implies that there is a limit of about 48 nodes on a single segment.
 
    These expectations are based on CAN documentation, component-vendor specifications & application notes,
    and industrial experience with CAN.  The intent is to set expectations that can be met essentially all
@@ -153,9 +153,6 @@
 
 2.5 Data Transport
 
-   The data rate was chosen as 125kbps as a compromise between adequate speed and a useful maximum bus
-   length.  
-
    A reduced slew rate is preferred to reduce the effect of stubs on the network (c.f. the calculation in
    section 4.8 of TI SLLA 2702). It's expected that model railroad networks will eventually use stubs to
    e.g. connect to handheld devices, so it's important to build support for a reasonable number of stubs
@@ -217,18 +214,17 @@
     4. Consumers must provide a user accessible connection for the common side of their DC power supplies.
         The intent is provide a low impedance return path for current between power stations when a load is
        transitioning from one power station to another.  This is sometimes referred to as a common ground.
-        The intent is to prevent large asymmetric currents from traveling across the ALT_L/ALT_H conductors
-       carrying the DCC signal, which could lead to exceeding their current carrying capacity and producing
-       unwanted EMI.
+        The intent is to prevent large asymmetric currents from traveling across the CAN Physical
+       Interconnection conductors, which could lead to exceeding their current carrying capacity and
+       producing unwanted hazards.
 
    The DCC signal use case of conductors 4 & 5 is intended to be used such that there is exactly one DCC
    signal source and one or more DCC signal consumers.
 
-   While it is relatively difficult to produce a DCC consumer that is capable of simultaneously meeting the
-   requirements of both signaling methods outlined in NMRA standard S-9.1.2, it is possible, and relatively
-   straight forward, for a DCC source to produce a signal that is voltage level compatible with both
-   signaling methods outlined NMRA standard S-9.1.2.  Manufacturers of DCC signal source and consumer nodes
-   are encouraged, but not required, to consider these points when producing their products.
+   It is possible, and relatively straight forward, for a DCC source to produce a signal that is voltage
+   level compatible with both signaling methods outlined in NMRA standard S-9.1.2.  Manufacturers of DCC
+   signal source and consumer nodes are encouraged, but not required, to consider these points when
+   producing their products.
 
    It is strongly encouraged that manufacturers consider galvanic isolation, especially in DCC signal
    consumer nodes that have a high current potential which exceeds the limits of the CAN Physical
@@ -248,16 +244,27 @@
    ALT_H conductors cannot be used as a power station common.
 
    Because the DCC source node must reference ALT_L / ALT_H to PWR_NEG within a specifically defined range,
-   it is possible to use the PWR_POS / PWR_NEG supply signals to power a high impedance (greater than 50K
+   it is possible to use the PWR_POS / PWR_NEG supply signals to power a high impedance (greater than 10K
    ohm) input circuit.  However, care must be taken in the design of this circuit to account for a common
    mode voltage shift in ALT_L / ALT_H with respect to PWR_NEG largely due to current flow through the
-   resistance of long cable lengths.
+   resistance of long cable lengths.  Below is pictured an example circuit which meets the requirements for
+   the S-9.1.2 Opto-isolated (Current) interface.  By adjusting the resistor values, the circuit could
+   alternatively meet the requirements for the S-9.1.2 Driver/Receiver (Voltage) interface.  The zener
+   diode clamps on the A and B lines may or may not be required depending on a given transceiver's ability
+   to accept faults up to +/-27 volts at the ALT_L / ALT_H pins as required by the standard.
+
+   Image4
+
+   Figure 2: High Impedance DCC Signal Consumer Input Circuit Example
 
    Nodes must be marked with their capability to either source or consume the DCC signal in order to make
    installation for the user both simple and reliable:  The user must insure that DCC signal consumers
    exist on the same segment as exactly one DCC signal source.  Simple icons may be used, such as:
 
    Image2
+
+   Figure 3: Example graphics depicting, from left to right, a DCC Voltage Mode Consumer, DCC Current Mode
+   Consumer, DCC Voltage & Current Mode Source. Other variations are also possible.
 
    While DCC power stations are logical DCC signal consumers, other types of nodes may also consume the DCC
    signal so long as they meet the requirements of NMRA standard S-9.1.2.
@@ -357,8 +364,8 @@
     3.1.1.2 Passive split resistors bypassed to ground
 
    This consists of the CAN-L and CAN-H lines being connected by two 60 ohm resistors in series, with their
-   common  connected via a capacitor to ground.  This provides a bypass to ground for common mode noise.
-   The tolerance on the individual resistor values is significantly tighter than on their total resistance.
+   common connected via a capacitor to ground.  This provides a bypass to ground for common mode noise. The
+   tolerance on the individual resistor values is significantly tighter than on their total resistance.
    Several references recommend 1% tolerance resistors to reduce coupling of the differential CAN signal
    into common mode noise3. Selecting matched pairs of resistors with looser nominal tolerance might be
    another solution.
