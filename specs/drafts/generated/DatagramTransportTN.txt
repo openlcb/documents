@@ -108,38 +108,36 @@
    The standard is written to allow for the case where neither is set if the node doesn't have a clear idea
    how to handle the error, but this is an undesirable case.
 
-   Optionally, the node can mark the reply with one or more of several conditions:
+   The Message Network Standard contains error codes for several conditions that may be useful for the
+   Datagram implementations:
 
-   “Source not permitted” — Datagrams from this source will never be accepted. Generally, this flag is only
-   meaningful in conjunction with the “Permanent Error” flag, as there is no sense in retransmission in
-   this context. This flag might be used to indicate that a receiving node is only willing to establish a
-   connection with an exclusive set of nodes that doesn't include the sender.
+   “Source not permitted” (0x1020) — Datagrams from this source will never be accepted.  This error might
+   be used to indicate that a receiving node is only willing to establish a connection with an exclusive
+   set of nodes that doesn't include the sender.
 
-   “Datagrams not accepted” — This node will not accept datagrams of this type under any circumstance. If
-   the node implements the Datagram Transport protocol, it should use this to reject datagrams that it
-   cannot process because they are of an unknown type. Rejecting the interaction with an Optional
-   Interaction Rejected message (see “OpenLCB Message Network Standard”) should only be used by nodes that
-   don't implement the Datagram Transport protocol because it carries the notion that the Datagram Protocol
-   isn't supported.
+   “Not implemented, datagram type unknown” (0x1042) — This node will not accept datagrams of this type
+   under any circumstance. If the node implements the Datagram Transport protocol, it should use this to
+   reject datagrams that it cannot process because they are of an unknown type. Rejecting the interaction
+   with an Optional Interaction Rejected message (see “OpenLCB Message Network Standard”) should only be
+   used by nodes that don't implement the Datagram Transport protocol (suggested error code 0x1043) because
+   it carries the notion that the Datagram Protocol isn't supported.
 
    “Transport Error” — Something appears to have gone wrong between the sender and the recipient, perhaps
-   because the recipient received datagram fragments out of order, or a sequence of datagrams was received
-   out of order (at the application layer). This error flag does not by itself imply that the sender should
-   retransmit; rather, this flag is be combined with the “Resend OK” flag to explicitly request
-   retransmission.
+   because the recipient received datagram fragments out of order (0x204x), or a sequence of datagrams was
+   received out of order (at the application layer).
 
-   “Buffer shortage” - The node wasn't able to receive the datagram because of a shortage of buffers. This
-   can happen during normal operation due to overlapping traffic to a node. Setting this bit helps diagnose
-   when datagram traffic is overwhelming the node's ability to buffer and process it
+   “Buffer shortage” (0x202x) - The node wasn't able to receive the datagram because of a shortage of
+   buffers. This can happen during normal operation due to overlapping traffic to a node. Setting this
+   error helps diagnose when datagram traffic is overwhelming the node's ability to buffer and process it.
 
-   “Out of Order” - Should not happen, but an internal inconsistency was found in the OpenLCB message
-   sequence and/or in the CAN frames making up a datagram. This is probably a subset of the Transport error
-   cases.
+   “Out of Order” (0x204x) - Should not happen, but an internal inconsistency was found in the OpenLCB
+   message sequence and/or in the CAN frames making up a datagram.
 
    The bits 0-3 can be used for code for the specific condition that lead the receiving node to reject the
-   Datagram Content message.  This is a good idea, because it helps debug persistent problems.  Node
-   manufacturers should make the definition of those codes available in documentation, but that's not
-   required by the Standard.
+   Datagram Content message, as specified by the Message Network Standard.  This is a good idea, because it
+   helps debug persistent problems.  Node manufacturers are encouraged to use the specific error codes,
+   where applicable, or request defining new specific error codes from the OpenLCB group when they have a
+   need not yet covered.
 
 2.5 States
 
@@ -149,6 +147,10 @@
    network being used, it may be possible for overlapping reception of datagrams.  This works even with one
    buffer, because datagrams that arrive while the first is still in process can be rejected temporarily.
    More buffers can make that more efficient.
+
+   Note that even in the presence of multiple buffers, overlapping multiple datagrams from the same source
+   to the same destination is not allowed, because it is not possible to correctly attribute the Datagram
+   Received OK / Datagram Rejected responses.
 
 2.6 Interactions
 
@@ -162,6 +164,11 @@
    with a “Datagram Received OK” message. Note that the node is not required to examine or process the
    datagram before replying; execution errors that happen later are required to be signaled using another
    protocol.
+
+   The standard does not allow sending overlapping datagrams, but it is not specified what a node receiving
+   overlapping datagrams must do. It is up to the implementation: the node may process both datagrams in
+   the order as they arrived and generate multiple replies, or reject both datagrams. In other words,
+   receiving nodes are not required to detect overlapping datagrams having been received.
 
   2.6.2 Rejected Transmission
 
@@ -183,13 +190,13 @@
    an Only frame.  These are described in more detail below.  The CAN header values are chosen to prevent
    CAN priority from reordering frames in a way that would damage the transmission.
 
-     * CAN-Datagram Content Single Frame — Note that zero-length datagrams are valid.
+     * CAN-Datagram Content Single Frame — Note that zero-length datagrams are valid1.
 
-     * CAN-Datagram Content First Frame — Note that there's no requirement that this contain 8 bytes. This
-       is to keep the total number of frames in a Datagram Content message bounded.
+     * CAN-Datagram Content First Frame — Note that there's no requirement that this contain 8 bytes.
 
      * CAN-Datagram Content Middle Frame — Note that there's no requirement that this contain 8 bytes. It
-       cannot be empty, though.
+       cannot be empty, though. This is to keep the total number of frames in a Datagram Content message
+       bounded.
 
      * CAN-Datagram Content Last Frame — Note that this frame can be zero length.
 
@@ -242,7 +249,7 @@
 
    The state machine for assembling datagram frames needs to know when the node Initialized state is reset
    so that it knows to abandon a partially received datagram.  It can also recover upon seeing the next
-   start/only frame.
+   start/only frame or using a timeout mechanism.
 
    An interface or gateway onto a CAN link must do the datagram fragmentation and defragmentation locally.
    Buffer retries may be either done locally by the gateway, or by reflecting the response back to the
@@ -250,15 +257,9 @@
 
     2.7.3.2 Rejected Transmission
 
-   There's no requirement for a specific response to out-of-spec transmissions. If a node receives
-   out-of-spec datagram fragments, what it does is up to the receiving node. This is because it is neither
-   necessary nor practical to specify a unique set of logic for dealing with the semi-infinite number of
-   possible out-of-spec transmissions. Nodes can use the various error replies to indicate whatever they
-   know, but they don't have to.
-
-   For example, a node that receives a Middle datagram without a First datagram can react in various ways.
-   It might send “Resend OK”, with or without “Transport error” and/or “Out of order”, or simply ignore the
-   message entirely.
+   Nodes are required to reject a certain set of out-of-spec transmissions. Nodes can use the specific
+   error replies defined in the Message Network Standard to indicate whatever they know, but they don't
+   have to.
 
    Notice, however, that receiving a second valid datagram sequence from yet another node while receiving
    one (or more) that fills the local buffers is not an out-of-spec condition, and the protocol defines
@@ -282,7 +283,7 @@
        addressed by the datagram transport.
 
      * RFID: RFID tags carry 40-64 bits of payload. Adding in some status and location information,
-       reporting a RFID tag requires a 8-16 byte payload, and that's likely to grow in the future.
+       reporting an RFID tag requires a 8-16 byte payload, and that's likely to grow in the future.
 
 3.2 Discussion
 
@@ -298,11 +299,11 @@
    order. The “Received OK” message is to inform small-capacity sending nodes that it can free its buffer
    holding the transmitted message.  
 
-   On CAN links, the datagram protocol is constrained by the need the limited frame size. Datagrams must be
-   broken into multiple frames for transfer. The protocol must allow for the possibility that datagrams to
-   a particular node can be interleaved if several nodes are transmitting at the same time. Note that a
-   node can control what it sends, so it is possible to ensure that only one datagram is being sent from a
-   node at one time, just not that only one is being received.
+   On CAN links, the datagram protocol is constrained by the limited frame size. Datagrams must be broken
+   into multiple frames for transfer. The protocol must allow for the possibility that datagrams to a
+   particular node can be interleaved if several nodes are transmitting at the same time. Note that a node
+   can control what it sends, so it is possible to ensure that only one datagram is being sent from a node
+   at one time, just not that only one is being received.
 
    The datagram content formats rely on CAN not reordering frames, even in the presence of error recovery.
    That's needed in any case for streams, which are so large that complete internal buffering cannot be
@@ -373,8 +374,8 @@
    Datagram Received OK →
 
    Note that the 2nd command was sent before the reply datagram was sent. This is valid, but nodes with
-   only one buffer may not be able to handle that Read until the transmit buffer has been emptied by an
-   acknowledgement. In that case, the sequence may become, e.g.:
+   only one buffer may not be able to handle that second command until the transmit buffer has been emptied
+   by an acknowledgement. In that case, the sequence may become, e.g.:
 
    Command Datagram →
 
@@ -396,8 +397,8 @@
 
    Datagram Received OK →
 
-   which is significantly less efficient. Better to send the positive acknowledgement to the read reply
-   datagram before sending the next read command.
+   which is significantly less efficient. Better to send the positive acknowledgement to the reply datagram
+   before sending the next command.
 
 3.4 Datagram Content
 
@@ -429,8 +430,8 @@
    buffer size versus utility of the protocol. Memory is scarce in a small node. Although it is possible to
    incrementally process parts of a datagram as they arrive, in general it will be necessary to have a
    buffer of the maximum possible size available when a datagram is arriving. (That same buffer can be used
-   to send datagrams, if needed) At the same time, datagrams that are too small to contain a useful atomic
-   message, requiring  extra coding work.
+   to send datagrams, if needed.) At the same time, datagrams that are too small to contain a useful atomic
+   message require extra coding work.
 
    At the high end, what's the maximum size for a datagram, beyond which it makes sense to move to a
    stream? The stream startup overhead is small, so that streams can be used for even small amounts of
@@ -499,7 +500,7 @@
 
   3.6.2 CAN Extensions
 
-   Although Bosch has proposed a new standard called CAN-FD1, which permits frames as large as 64 bytes, we
+   Although Bosch has proposed a new standard called CAN-FD2, which permits frames as large as 64 bytes, we
    have decided not to reduce maximum size of a datagram to fit easily within this frame size. There are
    good reasons to retain the possibility of larger-than-64-byte datagrams, e.g. so you can have a command
    header of 8 bytes on the front of 64 data bytes. Should CAN-FD come into general use, datagrams will
@@ -608,4 +609,7 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 http://www.bosch-semiconductors.de/media/pdf_1/canliteratur/can_fd.pdf
+   1 However, zero-length datagrams will typically be rejected by most nodes that implement higher-level
+   datagram-based protocols and use the first byte to determine the protocol used.
+
+   2 http://www.bosch-semiconductors.de/media/pdf_1/canliteratur/can_fd.pdf
