@@ -131,13 +131,14 @@
 
 4.6 Read Stream Command
 
-                                                Byte 6        Remaining Bytes                      
-   Byte 0 Byte 1               Bytes 2-5        (optional)                                         
-                                                              (in network order, top to bottom)    
-          0x60 Space in byte 6                                  * Read Count (4 bytes)             
-   0x20   0x61 Space 0xFD      Starting Address Address Space                                      
-          0x62 Space 0xFE                                       * Destination Stream ID (1 byte)   
-          0x63 Space 0xFF      
+                                                Byte 6        Remaining Bytes                               
+   Byte 0 Byte 1               Bytes 2-5        (optional)                                                  
+                                                              (in network order, top to bottom)             
+          0x60 Space in byte 6                                  * send as 0xFF, ignore on receipt (1 byte)  
+          0x61 Space 0xFD                                                                                   
+   0x20   0x62 Space 0xFE      Starting Address Address Space   * Destination Stream ID (1 byte)            
+          0x63 Space 0xFF                                                                                   
+                                                                * Read Count (4 bytes)                      
 
     
 
@@ -153,11 +154,11 @@
                                                 Byte 6        Remaining Bytes                               
    Byte 0 Byte 1               Bytes 2-5        (optional)                                                  
                                                               (in network order, top to bottom)             
-          OK status:                                            * Read Count (4 bytes)                      
+          OK status:                                            * Source Stream ID (1 byte)                 
                                                                                                             
           0x70 Space in byte 6                                  * Destination Stream ID (1 byte)            
           0x71 Space 0xFD                                                                                   
-          0x72 Space 0xFE                                       * Source Stream ID (1 byte)                 
+          0x72 Space 0xFE                                       * Read Count (4 bytes)                      
    0x20   0x73 Space 0xFF      Starting Address Address Space
           Failure status:                                                                                   
                                                                 * Error Code (2 bytes)                      
@@ -248,14 +249,13 @@
 
 4.11 Write Stream Command
 
-                                                Byte 6        Remainder                                     
-   Byte 0 Byte 1               Byte 2-5         (optional)                                                  
-                                                              (in network order, top to bottom)             
-          0x20 Space in byte 6                                                                              
-          0x21 Space 0xFD                                                                                   
-   0x20   0x22 Space 0xFE      Starting Address Address Space   * send as 0xFF, ignore on receipt (1 byte)  
-          0x23 Space 0xFF                                                                                   
-                                                                * Source Stream ID (1 byte)                 
+                                                Byte 6        Remainder                         
+   Byte 0 Byte 1               Byte 2-5         (optional)                                      
+                                                              (in network order, top to bottom) 
+          0x20 Space in byte 6                                                                  
+   0x20   0x21 Space 0xFD      Starting Address Address Space                                   
+          0x22 Space 0xFE                                       * Source Stream ID (1 byte)     
+          0x23 Space 0xFF      
 
     
 
@@ -276,11 +276,11 @@
                                                 Byte 6        Remaining Bytes                               
    Byte 0 Byte 1               Byte 2-5         (optional)                                                  
                                                               (in network order, top to bottom)             
-          OK status:                                                                                        
-                                                                * Destination Stream ID (1 byte)            
-          0x30 Space in byte 6                                                                              
-          0x31 Space 0xFD                                       * Source Stream ID (1 byte)
-          0x32 Space 0xFE      
+          OK status:                                            * Source Stream ID (1 byte)                 
+                                                                                                            
+          0x30 Space in byte 6                                  * Destination Stream ID (1 byte)            
+          0x31 Space 0xFD                                                                                   
+          0x32 Space 0xFE                                       *                                           
    0x20   0x33 Space 0xFF      Starting Address Address Space
           Failure status:                                                                                   
                                                                 * Error Code (two bytes)                    
