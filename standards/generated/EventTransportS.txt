@@ -1,8 +1,8 @@
-                                                                   OpenLCB Standard
+                                                                    OpenLCB Standard
 
                                                                     Event Transport
 
-                                                       Feb 15, 2015                      Adopted            
+                                                        Feb 6, 2016                       Draft             
 
                                          1 Introduction (Informative)
 
@@ -41,19 +41,19 @@
 
                                         4 Message Formats (Normative)
 
-   In the following, the “Common MTI” column specifies the the MTI value to be used when communicating in
+   In the following, the “Common MTI” column specifies the MTI value to be used when communicating in
    OpenLCB common format. The Common MTI is an abstract numeric description intended as a normative guide
    to the construction of concrete message formats over specific physical transport media.
 
    “Event ID Range” in the Data Content field refers to a range of Event ID values specified through a
-   compare-under-mask operation. The low bit of the field defines the sign of the mask: a 1
-   least-significant bit indicates the mask is represented by 1 bits, and similarly for a 0 LSB. The mask
+   compare-under-mask operation. The low bit of the field defines the sign of the mask: a '1'
+   least-significant bit indicates the mask is represented by 1-bits, and similarly for a 0 LSB. The mask
    is made up of the adjacent identical bits: if the lowest bit is a '0', then all low order contiguous '0'
    bits will form a mask, while if the lowest bit is a '1', then the low order contiguous '1' bits will
    form the mask. The remaining upper bits determine the range prefix. To determine whether an Event ID “E”
    lies within the range “R”, compute:
 
-   inRange = ( (E & ~ mask) == (R & ~ mask) )
+   inRange = ( (E AND NOT mask) EQUALS (R AND NOT mask) )
 
 4.1 Producer/Consumer Event Report (PCER)
 
@@ -65,24 +65,24 @@
 
                Name              Simple Node      Dest ID     Event ID     Common MTI       Data Content    
 
-         Identify Consumer             Y             N           Y           0x08F4           Event ID      
+    Identify Consumer                  Y             N           Y           0x08F4           Event ID      
 
 4.3 Consumer Identified
 
                Name             Simple Node     Dest ID   Event ID        Common MTI        Data Content    
 
                                                                      0x04C4 – Valid                         
-       Consumer Identified            N            N          Y      0x04C5 – Invalid         Event ID
+    Consumer Identified               N            N          Y      0x04C5 – Invalid         Event ID
                                                                      0x04C7 – Unknown      
 
    This message has three sub-forms, which carry the status of the identified consumer. They are,
    respectively:
 
-     * Currently valid – the internal state of the consumer & associated devices is known to be same as if
-       it had just consumed this event
+     * Currently valid – the internal state of the consumer & associated devices is known to be the same as
+       if this was the last event consumed
 
      * Currently invalid – the internal state of the consumer & associated devices is known to not be the
-       same as if it had just consumed this event
+       same as if this was the last event consumed
 
      * Currently unknown – the consumer cannot determine whether either of the previous conditions is true
 
@@ -90,7 +90,7 @@
 
                   Name                Simple Node     Dest ID   Event ID    Common MTI      Data Content    
 
-       Consumer Range Identified            N            N          Y         0x04A4       Event ID Range   
+    Consumer Range Identified               N            N          Y         0x04A4       Event ID Range   
 
    Nodes shall not emit Consumer Range Identified messages where more than 50% of the Event IDs included in
    the range are not consumed by the node, except when specified by another OpenLCB Standard.
@@ -99,14 +99,14 @@
 
                Name              Simple Node      Dest ID     Event ID     Common MTI       Data Content    
 
-         Identify Producer             Y             N           Y           0x0914           Event ID      
+    Identify Producer                  Y             N           Y           0x0914           Event ID      
 
 4.6 Producer Identified
 
                Name              Simple Node    Dest ID   Event ID        Common MTI        Data Content    
 
                                                                      0x0544 – Valid                         
-        Producer Identified            N           N          Y      0x0545 – Invalid         Event ID
+    Producer Identified                N           N          Y      0x0545 – Invalid         Event ID
                                                                      0x0547-- Unknown      
 
    This message has three sub-forms, which carry the status of the identified producer. They are,
@@ -126,7 +126,7 @@
                   Name                 Simple Node     Dest ID    Event ID                 Data Content
                                                                                 MTI     
 
-        Producer Identified Range            N            N          Y        0x0524      Event ID Range    
+    Producer Identified Range                N            N          Y        0x0524      Event ID Range    
 
    Nodes shall not emit Producer Range Identified messages where more than 50% of the Event IDs included in
    the range are not produced by the node, except when specified by another OpenLCB Standard.
@@ -138,7 +138,7 @@
                                                                          MTI      
 
                                      Y             N          N         0x0970    
-         Identify Events
+    Identify Events
                                      N             Y          N         0x0968      Destination Node ID     
 
 4.9 Learn Event
@@ -147,7 +147,7 @@
               Name             Simple Node       Dest ID     Event ID                     Data Content
                                                                              MTI      
 
-           Learn Event                Y             N            Y         0x0594           Event ID        
+    Learn Event                       Y             N            Y         0x0594           Event ID        
 
                                              5 States (Normative)
 
@@ -169,9 +169,9 @@
 
    The messages defined by this Standard shall only be sent when the sending node is in Initialized state.
 
-   Producer/Consumer Event Report messages may only be sent when the associated producer is in Advertised
-   state. OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a consumer of a
-   particular Event ID when that consumer is in Unadvertised state.
+   Producer/Consumer Event Report messages may only be sent when the associated producer is in the
+   Advertised state. OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a
+   consumer of a particular Event ID when that consumer is in Unadvertised state.
 
    Consumers and Producers may, but are not required to, have additional state associated with the use of
    the Learn Event message.
@@ -265,7 +265,7 @@
 
    3 References and Context (Normative) 1
 
-   4 Message Formats (Normative) 2
+   4 Message Formats (Normative) 1
 
    4.1 Producer/Consumer Event Report (PCER) 2
 
@@ -279,7 +279,7 @@
 
    4.6 Producer Identified 3
 
-   4.7 Producer Range Identified 4
+   4.7 Producer Range Identified 3
 
    4.8 Identify Events 4
 
@@ -293,7 +293,7 @@
 
    6.2 Event Inquiry 5
 
-   6.3 Producer Inquiry 6
+   6.3 Producer Inquiry 5
 
    6.4 Consumer Inquiry 6
 
@@ -303,5 +303,5 @@
 
    7 CAN Adaptation (Normative) 6
 
-   Copyright 2011-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-                                                                                      1 of 7 - Feb 15, 2015
+   Copyright 2011-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+                                                                                       1 of 7 - Feb 6, 2016
