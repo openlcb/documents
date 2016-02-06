@@ -1,8 +1,8 @@
-                                                                   OpenLCB Standard
+                                                                    OpenLCB Standard
 
                                                                    Event Identifiers
 
-                                                       Feb 15, 2015                      Adopted            
+                                                        Feb 6, 2016                       Draft             
 
                                          1 Introduction (Informative)
 
@@ -26,7 +26,7 @@
      * The Unique Identifiers Standard which defines the format and allocation of unique 48-bit
        identifiers.
 
-                                                   4 Format
+                                             4 Format (Normative)
 
    An OpenLCB event identifier shall be eight bytes of eight bits each. Except as specifically noted within
    this document, the upper 6-bytes are represented by a uniquely assigned Node ID.
@@ -37,25 +37,15 @@
    below, byte 1 is considered the most-significant byte, while byte 8 is considered the least significant
    byte.
 
-                                                 5 Allocation
+                                           5 Allocation (Normative)
 
 5.1 Node ID Based
 
-                        Value                           Suffix                   Description                
+                              Value                                  Suffix              Description        
 
-    Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
+     Byte 1    Byte 2    Byte 3    Byte 4    Byte 5    Byte 6    Byte 7   Byte 8   
 
-           6-byte Uniquely Assigned Node ID           *       *     Assigned Node ID event                  
-
-      01      01      01      00     CBUS Node ID   CBUS Event ID   Subset of the assigned Node ID space    
-                                                                    for CBUS mapped nodes. Node ID is       
-                                                                    00.00 for short events. This range is   
-                                                                    an ON request.                          
-
-      01      01      01      01     CBUS Node ID   CBUS Event ID   Subset of the assigned Node ID space    
-                                                                    for CBUS mapped nodes. Node ID is       
-                                                                    00.00 for short events. This range is   
-                                                                    an OFF request.                         
+                 6-byte Uniquely Assigned Node ID                  *         *     Assigned Node ID event   
 
 5.2 Well-Known Automatically-Routed
 
@@ -65,7 +55,10 @@
 
     Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
 
-      01      00      00      00      00      00      FF      FF    Emergency off (de-energize)             
+      01      00      *       *       *       *       *       *     Well-Known Automatically-Routed Event   
+                                                                    Identifiers                             
+
+                      00      00      00      00      FF      FF    Emergency off (de-energize)             
 
                                                       FF      FE    Clear emergency off (energize)          
 
@@ -90,21 +83,40 @@
 
    The following Event Identifiers are not automatically routed.
 
-                          Value                            Suffix                  Description              
+                        Value                           Suffix                   Description                
 
-    Byte 1   Byte 2   Byte 3   Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
+    Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
 
-      01       01       00       00      00      00      02      01    Duplicate Node ID detected           
+      01      01      *       *       *       *       *       *     Well-Known Event Identifiers            
 
-                                                         03      *     Reserved for train Control Protocol  
+                      00      00      00      00      02      01    Duplicate Node ID Detected              
 
-                                                         03      01    Reserved                             
+                                                      03      *     Reserved for Traction Protocol          
 
-                                                         03      02    Reserved                             
+                                                      03      01    Reserved                                
 
-                                                         03      03    This node is a Train                 
+                                                      03      02    Reserved                                
 
-                                                         03      04    This node is a Traction Proxy        
+                                                      03      03    This node is a Train                    
+
+                                                      03      04    This node is a Traction Proxy           
+
+                                                      06      *     Reserved for Firmware Upgrade Protocol  
+
+                                                      06      01    Firmware Corrupted                      
+
+                                                      06      02    Firmware Upgrade Request by Hardware    
+                                                                    Switch                                  
+
+                      01      00         CBUS            CBUS       Subset of the assigned Node ID space    
+                                       Node ID         Event ID     for CBUS mapped nodes. Node ID is       
+                                                                    00.00 for short events. This range is   
+                                                                    an ON request.                          
+
+                      01      01         CBUS            CBUS       Subset of the assigned Node ID space    
+                                       Node ID         Event ID     for CBUS mapped nodes. Node ID is       
+                                                                    00.00 for short events. This range is   
+                                                                    an OFF request.                         
 
    Table of Contents
 
@@ -114,9 +126,9 @@
 
    3 References and Context (Normative) 1
 
-   4 Format 1
+   4 Format (Normative) 1
 
-   5 Allocation 2
+   5 Allocation (Normative) 2
 
    5.1 Node ID Based 2
 
@@ -124,5 +136,5 @@
 
    5.3 Well-Known 4
 
-   Copyright 2011-215. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 5 - Feb 15, 2015
+   Copyright 2011-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+   1 of 6 - Feb 6, 2016
