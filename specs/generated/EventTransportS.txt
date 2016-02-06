@@ -35,19 +35,19 @@
 
                                         4 Message Formats (Normative)
 
-   In the following, the “Common MTI” column specifies the the MTI value to be used when communicating in
+   In the following, the “Common MTI” column specifies the MTI value to be used when communicating in
    OpenLCB common format. The Common MTI is an abstract numeric description intended as a normative guide
    to the construction of concrete message formats over specific physical transport media.
 
    “Event ID Range” in the Data Content field refers to a range of Event ID values specified through a
-   compare-under-mask operation.  The low bit of the field defines the sign of the mask: a 1
-   least-significant bit indicates the mask is represented by 1 bits, and similarly for a 0 LSB. The mask
+   compare-under-mask operation.  The low bit of the field defines the sign of the mask: a '1'
+   least-significant bit indicates the mask is represented by 1-bits, and similarly for a 0 LSB. The mask
    is made up of the adjacent identical bits: if the lowest bit is a '0', then all low order contiguous '0'
    bits will form a mask, while if the lowest bit is a '1', then the low order contiguous '1' bits will
    form the mask.  The remaining upper bits determine the range prefix. To determine whether an Event ID
    “E” lies within the range “R”, compute:
 
-   inRange = ( (E & ~ mask) == (R & ~ mask) )
+   inRange = ( (E AND NOT mask) EQUALS (R AND NOT mask) )
 
     
 
@@ -75,11 +75,11 @@
    This message has three sub-forms, which carry the status of the identified consumer.  They are,
    respectively:
 
-     * Currently valid – the internal state of the consumer & associated devices is known to be same as if
-       it had just consumed this event
+     * Currently valid – the internal state of the consumer & associated devices is known to be the same as
+       if this was the last event consumed
 
      * Currently invalid – the internal state of the consumer & associated devices is known to not be the
-       same as if it had just consumed this event
+       same as if this was the last event consumed
 
      * Currently unknown – the consumer cannot determine whether either of the previous conditions is true
 
@@ -171,9 +171,9 @@
 
    The messages defined by this Standard shall only be sent when the sending node is in Initialized state.
 
-   Producer/Consumer Event Report messages may only be sent when the associated producer is in Advertised
-   state.  OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a consumer of a
-   particular Event ID when that consumer is in Unadvertised state.
+   Producer/Consumer Event Report messages may only be sent when the associated producer is in the
+    Advertised state.  OpenLCB equipment may, but is not required to, omit forwarding PCER messages to a
+   consumer of a particular Event ID when that consumer is in Unadvertised state.
 
    Consumers and Producers may, but are not required to, have additional state associated with the use of
    the Learn Event message.
