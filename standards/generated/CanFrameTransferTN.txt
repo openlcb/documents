@@ -43,7 +43,7 @@
 
     1. Putting a unique source ID field in each frame ensures that the frames are unique (item 1 above),
        and provides a frame-level indicator of which node sent the frame for the purposes of monitoring,
-       debugging, etc (item 2).
+       debugging, etc. (item 2).
 
     2. Providing a destination address that allows a standard method of addressed communications (item 3).
 
@@ -148,12 +148,12 @@
    example so that a gateway can gain priority access to the CAN segment for various operations that
    require synchronization or atomicity. CAN encodes “do first” priority as 0 and “do later” as 1, so the
    Standard requires that a 1 bit be sent. To preserve the utility of this, nodes must not require either a
-   1 nor 0 on receipt. It is therefore not available as a protocol expansion bit.
+   1 or 0 on receipt. It is therefore not available as a protocol expansion bit.
 
-   The second-most-significant bit (0x0800,0000) when 0 indicates that the frame is for local control on
-   the CAN segment. Those frames should never leave the CAN segment. When 1, it indicates that the frame is
-   carrying OpenLCB message traffic, which can leave the CAN segment to proceed to the rest of the network;
-   see the message-level documentation for more information on that.
+   When zero, the second-most-significant bit (0x0800,0000) indicates that the frame is for local control
+   on the CAN segment. Those frames should never leave the CAN segment. When one, it indicates that the
+   frame is carrying OpenLCB message traffic, which can leave the CAN segment to proceed to the rest of the
+   network; see the message-level documentation for more information on that.
 
    The order of the header fields was chosen to get proper priority and access disambiguation via CAN's
    standard mechanisms.
@@ -179,7 +179,7 @@
 
   2.6.1 Control Frame Format
 
-   RID, CID, etc frames are assigned low numbers to give them higher transmission priority.
+   RID, CID, etc, frames are assigned low numbers to give them higher transmission priority.
 
    The coding is done to allow up to 7 separate CID sequence numbers, for use by protocols with longer node
    IDs.
@@ -204,7 +204,7 @@
    reservation algorithm.
 
    CAN arbitration reliably avoids collisions between frames with unique headers. It does not guarantee
-   non-overlapping transmission from separate nodes of frames with identical headers and no data; if the
+   non-overlapping transmission of frames from separate nodes with identical headers and no data; if the
    timing is right, they may overlay each other such that only one frame appears to have been sent. It is
    very difficult to ensure that two nodes always send initialization packets only at different times,
    particularly given the load-related frame synchronization issue described earlier. In addition, CAN will
@@ -246,14 +246,14 @@
    frames later in the process. This lets some nodes complete as early as possible and remove themselves
    from contention.
 
-   Although it might be a useful debugging tool, putting the full NID in the data portion of the frames can
-   cause errors. Therefore, we decided not to do that.
+   Although it might be a useful debugging tool, putting the full Node ID in the data portion of the frames
+   can cause errors. Therefore, we decided not to do that.
 
    Reserving a node ID alias value is separate from actually using it to take a node from Inhibited to
    Permitted state. A gateway device, for example, might want want to stockpile a few reserved alias values
    so that they can be rapidly associated with a specific node that wants to communicate. The node ID
    that's broken into four parts for the CID values needs to be unique, but it does not have to be the one
-   that's eventually attached to the alias via a Alias Map Definition frame later on.
+   that's eventually attached to the alias via an Alias Map Definition frame later on.
 
    For example, a minimal sequence is four CID frames and a RID:
 
@@ -287,11 +287,11 @@
 
      * AME without Node ID: all active nodes reply with AMD and their Node ID;
 
-     * AME with Node ID and the receiving node has matching Node ID, it replies with AMD and its Node ID;
+     * AME with Node ID: the receiving node which has a matching Node ID replies with AMD and its Node ID;
 
    Node ID alias validation provides a way for a node joining a segment to rapidly learn the Node IDs and
-   Node ID aliases of the reachable nodes. This may be useful for e.g. a gateway that is connecting two
-   segments that are already in operation, or a monitor node who wants to determine that all nodes have
+   Node ID aliases of the reachable nodes. This may be useful e.g. for a gateway that is connecting two
+   segments that are already in operation, or a monitor node that wants to determine that all nodes have
    come up properly.
 
    In general, simple or regular nodes won't need to do node alias validation. Those nodes don't need to
@@ -301,17 +301,17 @@
 
    In order to acquire the map between CAN aliases and node IDs, a gateway needs to be able to send a CAN
    frame requiring "everybody reply with your node ID". Much like Ethernet gateway mapping, this needs to
-   return the node ID of just the specific CAN-attached hardware, not all the node IDs that can be e.g.
-   reached through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN
-   level. It must not be a OpenLCB common message, though higher level protocols may want to provide a
-   similar capability that spans the entire OpenLCB installation.
+   return the node ID of just the specific CAN-attached hardware, not all the node IDs that can be reached
+   through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN level.
+   It must not be a OpenLCB common message, though higher level protocols may want to provide a similar
+   capability that spans the entire OpenLCB installation.
 
     2.6.2.4 Transition to Inhibited State
 
    The Alias Map Reset frame indicates that the alias value in the source address field may no longer be
-   associated with the same NID, and mapping tables should be reset.
+   associated with the same Node ID, and mapping tables should be reset.
 
-   The full node ID in the Alias Map Reset frame allows nodes who only are aware of an alias for their
+   The full node ID in the Alias Map Reset frame allows nodes that only are aware of an alias for their
    conversation partner to convert that alias to a full node ID for later use.
 
    This is a way to release or reuse an alias, while informing everybody that the node is no longer
@@ -356,7 +356,7 @@
    will allow any gateway(s) to update their maps.
 
    The preceding paragraph and the language of the Standard is complicated because it has to cover the case
-   of a gateway or similar node who has reserved a number of node ID aliases, but is not currently using
+   of a gateway or similar node that has reserved a number of node ID aliases, but is not currently using
    them as a node. In other words, the reservation CID/RID process has completed to reserve the alias, but
    no mapping of the alias to a specific node ID has been published.
 
@@ -532,9 +532,9 @@
    using the conventional technique, and then assign them to off-segment nodes as they need to communicate
    on the segment. Many algorithms are possible for that assignment.
 
-   If/when a full NID is needed, it can be obtained by sending an "Alias Mapping Enquiry" frame with an
+   If/when a full Node ID is needed, it can be obtained by sending an "Alias Mapping Enquiry" frame with an
    appropriate Destination Node ID in local alias form. The reply will eventually come back with the Source
-   ID in local alias form and carrying the full NID in the frame body.
+   ID in local alias form and carrying the full Node ID in the frame body.
 
                                    4 Throughput and Temporarily Deaf Nodes
 
@@ -543,7 +543,7 @@
 
    125Kbps with max-length extended header frames is about 900 frames/second. CAN is very good at running
    at 100% utilization, so long as nodes can keep up and a proper set of priorities is in place. The CAN
-   network itself does not require any inter-frame spacing, limitations on bandwidth usage, etc; the
+   network itself does not require any inter-frame spacing, limitations on bandwidth usage, etc.; the
    segment can be allowed to run at 100%.
 
    OpenLCB requires that CAN-attached nodes be able to handle the full frame rate on the CAN bus. There is
@@ -718,7 +718,7 @@
 
    // carry
 
-   lfsr1 = (lfsr1 & 0xFFFFFF) | ((lfsr2&0xFF000000) >> 24);
+   lfsr1 = (lfsr1 & 0xFFFFFF) + ((lfsr2&0xFF000000) >> 24);
 
    lfsr2 = lfsr2 & 0xFFFFFF;
 
@@ -736,7 +736,7 @@
 
    B. Gaujal and N. Navet, “Fault confinement mechanisms on CAN: analysis and improvements”, IEEE
    Transactions on Vehicular Technology, pp.1103-1113, 54(3), May 2005 (An interesting analysis of how CAN
-   nodes react to error rates on the CAN bus by e.g. taking themselves offline, etc)
+   nodes react to error rates on the CAN bus by e.g. taking themselves offline, etc.)
 
    “A 48-Bit Pseudo-Random Number Generator”, Heidi G. Kuehn, Communications of the ACM, Volume 4, Issue 8
    (August 1961), pages 350-352.
@@ -833,7 +833,7 @@
 
    6.1.2 Preferred PRNG to node ID alias mapping 15
 
-   6.1.3 Example C implementation 15
+   6.1.3 Example C implementation7 15
 
    7 Additional References 16
 
@@ -858,5 +858,5 @@
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/ The specific code is available at
    http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
 
-   Copyright 2011--2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms. Page
-   18 of 18 - Feb 15, 2015
+   Copyright 2011--2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms. Page
+   18 of 18 - Feb 6, 2016
