@@ -1,0 +1,237 @@
+                                         1 Introduction (Informative)
+
+   This Standard defines a method for using OpenLCB protocols for upgrading the firmware of an OpenLCB
+   node. This Standard is agnostic to the physical layer.
+
+                                         2 Intended Use (Informative)
+
+   This method is expected to be implemented in common Configuration Tool (CT) software packages. Any
+   hardware device that is able to follow the interactions defined here and thereby receive a firmware
+   upgrade through this method will be able to be updated using commonly available CT software. This
+   reduces the burden of the manufacturers in that they don't need to develop and provide tools and user
+   interface for firmware upgrade capability, as well as increases user satisfaction, because the user does
+   not have to acquire and learn to use a new tool for each hardware manufacturer, but can use a tool they
+   are already familiar with to update all conforming hardware nodes.
+
+   This Standard does not define new protocols, but identifies a specific subset of the OpenLCB protocol
+   stack that is necessary for the firmware upgrade to function, and defines the exact sequence of
+   operations that are expected to happen during a firmware upgrade.
+
+   The intended use of this subset is to allow manufacturers to supply their hardware with dual firmware,
+   consisting of a “firmware upgrade” component with the minimum required support for firmware update, as
+   well as a replaceable “production” firmware for full node operation.
+
+                                     3 References and Context (Normative)
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+   For information on OpenLCB message transport and OpenLCB communications, see:
+
+     * OpenLCB Message Network Standard. That Standard also defines the Uninitialized state and the Node
+       Initialization Complete message, as well as the Protocol Support protocol messages.
+
+   Firmware upgrade relies on commands and messages defined in the following standards:
+
+     * OpenLCB Memory Configuration Standard, which defines, among others, the commands  “Freeze”,
+       “Unfreeze”, “Write” and “Stream Write”.
+
+     * OpenLCB Stream Transport Draft Standard, which defined how streams are opened, data transferred,
+       aborted with error, and completed.
+
+                                        4 Message Formats (Normative)
+
+   This Standard does not define any messages.
+
+                                             5 States (Normative)
+
+   A powered-on hardware node may be in one of the following two states:
+
+     * Firmware Upgrade state. In this state the node supports a writable Memory Space under the number of
+       the Firmware Space to receive the firmware upgrade data, as defined in the firmware upgrade
+       interaction. The hardware is not expected to perform any of its regular operations. The OpenLCB node
+       shall still be standards compliant.
+
+     * Operating state. In this state the node performs its desired function. The node in Operating state
+       must not export a writable Memory Space under the number of the Firmware Space.
+
+                                          6 Interactions (Normative)
+
+6.1 Definitions
+
+   There are two nodes involved in the firmware upgrade process:
+
+   The Configuration Tool (CT) is the node with a user interface that is in possession of the new
+   manufacturer-supplied firmware data file.
+
+   The Target Node is the node whose firmware is being updated.
+
+6.2 State transitions
+
+   A node may not transition between Firmware Upgrade state and Operating state without returning to
+   Uninitialized state, as defined by the OpenLCB Message Network standard.
+
+   At power-up a hardware node shall start up in Operating state by default, unless one of the following
+   conditions hold:
+
+     * Regular operation is impossible due to the lack of a working firmware. In this case the Target Node
+       may, but is not required to, emit a Producer-Consumer Event Report (PCER) message with the
+       Well-Known Event ID “Firmware Corrupted” after reaching Initialized state.
+
+     * The user has requested firmware upgrade mode using a hardware switch, if one is available. In this
+       case, the Target Node may, but is not required to, emit a PCER message with the Well-Known Event ID
+       “Firmware Upgrade Requested by Hardware Switch” after reaching Initialized state.
+
+   To request a Target Node to transition from Firmware Upgrade state to Operating state, the Configuration
+   Tool shall send a Memory Configuration protocol “Unfreeze” command for the memory space designated as
+   Firmware Space. The Target Node shall acknowledge the completion of the state transition by sending a
+   Node Initialization Complete message.
+
+   To request a Target Node to transition to Firmware Upgrade state (from either Firmware Upgrade or
+   Operating state), a Configuration Tool shall send a Memory Configuration protocol “Freeze” command for
+   the memory space designated as Firmware space. The node shall acknowledge the completion of the state
+   transition by sending a Node Initialization Complete message.
+
+6.3 State identification
+
+   A Target Node that supports the Firmware Upgrade Standard shall set the following bit(s) in the Protocol
+   Support Reply message depending on its state:
+
+   State                  Protocol bit (Normative)  Bit value (Informative) 
+   Operating state        Firmware Upgrade Protocol 0x00 00 20              
+   Firmware Upgrade state Firmware Upgrade Active   0x00 00 10              
+
+    
+
+6.4 Data Transfer
+
+  6.4.1 Streaming transfer
+
+   If the Target Node, while in Firmware Upgrade state, sets the “Stream Protocol” bit in the Protocol
+   Support Reply packet, then the Configuration Tool shall transfer the manufacturer-supplied firmware data
+   by performing a Memory Configuration protocol Stream Write to the memory space of Firmware Space, with a
+   starting offset of zero (0). The stream data bytes are the unmodified, uninterpreted, exact sequence of
+   the manufacturer-supplied firmware upgrade file.
+
+   The Target Node being upgraded may, but is not required to, throttle the incoming data on the stream by
+   means allowed by the Stream protocol.
+
+   After transferring all the bytes in the manufacturer-supplied firmware data file, the CT shall wait
+   until it would be allowed to send more data according to the Stream protocol. Then the CT shall close
+   the stream as defined in the Stream protocol. Afterwards the CT shall initiate a transition of the
+   Target Node to Operating state by sending the Unfreeze command.
+
+  6.4.2 Datagram transfer
+
+   If the Target Node, while in Firmware Upgrade state, does not set the “Stream Protocol” bit in the
+   Protocol Support Reply packet, the Configuration Tool shall transfer the manufacturer-supplied firmware
+   data by performing a sequence of Memory Configuration protocol Write commands, starting at offset 0,
+   with exactly 64 bytes of payload in each datagram except the last, and the datagrams' offsets increasing
+   by 64 bytes after each. The concatenated payloads of the Write messages sent shall be are the
+   unmodified, uninterpreted, exact sequence of the manufacturer-supplied firmware upgrade file.
+
+   The Target Node being upgraded may, but is not required to, throttle the incoming data on the stream by
+   means allowed by the Datagram protocol and Memory Configuration Protocol.
+
+   After transferring all the bytes in the manufacturer-supplied firmware data file, the CT shall wait
+   until the last datagram is responded to as the Memory Configuration Protocol requires. Afterwards the CT
+   shall initiate a transition of the Target Node to Operating state.
+
+  6.4.3 Aborting and Re-trying the transfer
+
+   If the node being upgraded encounters an error, it may abort the data transfer by aborting the stream
+   with an error code when using the Stream protocol, or, respectively, returning a Datagram Reject with an
+   error code or a Write Response Failed Memory Configuration datagram. If the transfer is aborted, the
+   node is required to stay in Firmware Upgrade state. If the CT re-tries the transfer, it shall do so from
+   offset zero again. If the Target Node aborted the transfer, it is not required to be able to return to
+   Operating state until the transfer is re-tried and successfully completed; however, it is required to be
+   able to boot after a power cycle and return to Firmware Upgrade state, able to accept a new firmware
+   upgrade attempt.
+
+    
+
+6.5 Full sequence of firmware upgrade
+
+   For a more detailed description of the messages transferred, please see the Firmware Upgrade Technical
+   Note.
+
+    1. The CT sends a Memory Configuration datagram command “Freeze” with an argument of Firmware Space.
+       Note that a Datagram Received OK reply message is not always returned to this request.
+
+    2. The CT waits for a Node Initialization Complete message from the Target Node.
+
+    3. The CT sends a Protocol Support Inquiry to the Target Node to check whether it supports Stream
+       protocol.
+
+    4. The CT performs the Data Transfer.
+
+    5. The CT resets the Target Node using a Memory Configuration datagram command “Unfreeze” with an
+       argument of Firmware Space.
+
+                                          7 Allocations (Normative)
+
+   This section describes the numerical values that were referenced in earlier sections and are not defined
+   in their respective standards.
+
+7.1 Memory Space numbers
+
+   0xEF Firmware Space 
+
+7.2 Error Codes
+
+   The Target Nodes may, but are not required to, use the following error codes to denote specific
+   conditions relating to the firmware upgrade process.
+
+   0x2088 Temporary error, Transfer error.                           
+          The firmware written has failed checksum.                  
+   0x1088 Permanent error, invalid arguments.                        
+          The firmware data is incompatible with this hardware node. 
+   0x1089 Permanent error, invalid arguments.                        
+          The firmware data is invalid or corrupted.                 
+
+7.3 Well-Known Event IDs
+
+   01.01.00.00.00.00.06.01 Firmware Corrupted
+
+   01.01.00.00.00.00.06.02 Firmware Upgrade Requested by Hardware Switch
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 Intended Use (Informative)
+
+   3 References and Context (Normative)
+
+   4 Message Formats (Normative)
+
+   5 States (Normative)
+
+   6 Interactions (Normative)
+
+   6.1 Definitions
+
+   6.2 State transitions
+
+   6.3 State identification
+
+   6.4 Data Transfer
+
+   6.4.1 Streaming transfer
+
+   6.4.2 Datagram transfer
+
+   6.4.3 Aborting and Re-trying the transfer
+
+   6.5 Full sequence of firmware upgrade
+
+   7 Allocations (Normative)
+
+   7.1 Memory Space numbers
+
+   7.2 Error Codes
+
+   7.3 Well-Known Event IDs
+
+    
