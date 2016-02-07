@@ -1,8 +1,8 @@
-                                                                   OpenLCB Standard
+                                                                    OpenLCB Standard
 
-                                                                 Memory Configuration
+                                                                  Memory Configuration
 
-                                                       Feb 17, 2015                      Adopted            
+                                                        Feb 6, 2016                       Draft             
 
                                          1 Introduction (Informative)
 
@@ -135,14 +135,16 @@
 
 4.6 Read Stream Command
 
-    Byte 0   Byte 1                 Bytes 2-5          Byte 6         Remaining Bytes                       
-                                                       (optional)                                           
-                                                                      (in network order, top to bottom)     
+    Byte 0  Byte 1                Bytes 2-5         Byte 6         Remaining Bytes                          
+                                                    (optional)                                              
+                                                                   (in network order, top to bottom)        
 
-    0x20     0x60 Space in byte 6   Starting Address   Address Space    * Read Count (4 bytes)              
-             0x61 Space 0xFD                                                                                
-             0x62 Space 0xFE                                            * Destination Stream ID (1 byte)    
-             0x63 Space 0xFF        
+    0x20    0x60 Space in byte 6  Starting Address  Address Space    * send as 0xFF, ignore on receipt (1   
+            0x61 Space 0xFD                                            byte)                                
+            0x62 Space 0xFE                                                                                 
+            0x63 Space 0xFF                                          * Destination Stream ID (1 byte)       
+                                                                                                            
+                                                                     * Read Count (4 bytes)                 
 
    Very similar to a Read Command, except that a stream is created to carry the read information back to
    the requesting node. The stream must be established before the Read Reply datagram is sent, so that
@@ -157,11 +159,11 @@
                                                     (optional)                                              
                                                                    (in network order, top to bottom)        
 
-    0x20    OK status:            Starting Address  Address Space    * Read Count (4 bytes)                 
+    0x20    OK status:            Starting Address  Address Space    * Source Stream ID (1 byte)            
                                                                                                             
             0x70 Space in byte 6                                     * Destination Stream ID (1 byte)       
             0x71 Space 0xFD                                                                                 
-            0x72 Space 0xFE                                          * Source Stream ID (1 byte)            
+            0x72 Space 0xFE                                          * Read Count (4 bytes)                 
             0x73 Space 0xFF       
 
             Failure status:                                          * Error Code (2 bytes)                 
@@ -173,11 +175,11 @@
 
    The Destination Stream ID must match the Destination Stream ID used in both the Read Stream Command and
    the subsequent stream that was created as a result of the Read Stream Command. The Source Stream ID must
-   match the Source Stream ID used in the the subsequent stream that was a result of the Read Stream
-   Command. The Read Stream Reply shall be sent after the stream has been established, but before any data
-   has been sent using the stream. When the stream successfully closes, after having read 1 or more bytes,
-   the transaction is considered complete. If the stream closes with an error, this transaction is
-   considered to be in error.
+   match the Source Stream ID used in the subsequent stream that was a result of the Read Stream Command.
+   The Read Stream Reply shall be sent after the stream has been established, but before any data has been
+   sent using the stream. When the stream successfully closes, after having read 1 or more bytes, the
+   transaction is considered complete. If the stream closes with an error, this transaction is considered
+   to be in error.
 
    Should an error occur prior to or during the establishment of the stream, the Read Stream Reply shall
    indicate a failure with the error code set appropriately.
@@ -232,7 +234,7 @@
 
 4.10 Write Under Mask Command
 
-    Byte 0      Byte 1                    Byte 2-5           Byte 6             Remainder                   
+    Byte 0      Byte 1                    Byte 2-5           Byte 6             Remaining Bytes             
                                                              (optional)         
 
     0x20        0x08 Space in byte 6      Starting Address     Address Space     Data pairs (2-64 bytes)    
@@ -251,14 +253,14 @@
 
 4.11 Write Stream Command
 
-    Byte 0  Byte 1                Byte 2-5          Byte 6         Remainder                                
-                                                    (optional)                                              
-                                                                   (in network order, top to bottom)        
+    Byte 0    Byte 1                 Byte 2-5           Byte 6          Remaining Bytes                     
+                                                        (optional)                                          
+                                                                        (in network order, top to bottom)   
 
-    0x20    0x20 Space in byte 6  Starting Address  Address Space    * send as 0xFF, ignore on receipt (1   
-            0x21 Space 0xFD                                            byte)                                
-            0x22 Space 0xFE                                                                                 
-            0x23 Space 0xFF                                          * Source Stream ID (1 byte)            
+    0x20      0x20 Space in byte 6   Starting Address   Address Space     * Source Stream ID (1 byte)       
+              0x21 Space 0xFD        
+              0x22 Space 0xFE        
+              0x23 Space 0xFF        
 
    After sending this command, and receiving Datagram OK, an OpenLCB Stream Transport protocol Stream
    Initiate Request will be sent. The destination node is not required to accept the subsequent stream,
@@ -278,11 +280,11 @@
                                                     (optional)                                              
                                                                    (in network order, top to bottom)        
 
-    0x20    OK status:            Starting Address  Address Space    * Destination Stream ID (1 byte)       
+    0x20    OK status:            Starting Address  Address Space    * Source Stream ID (1 byte)            
                                                                                                             
-            0x30 Space in byte 6                                     * Source Stream ID (1 byte)            
-            0x31 Space 0xFD       
-            0x32 Space 0xFE       
+            0x30 Space in byte 6                                     * Destination Stream ID (1 byte)       
+            0x31 Space 0xFD                                                                                 
+            0x32 Space 0xFE                                          *                                      
             0x33 Space 0xFF       
 
             Failure status:                                          * Error Code (two bytes)               
@@ -311,11 +313,11 @@
 
 4.14 Get Configuration Options Reply
 
-    Byte 0  Byte 1  Byte 2-3            Byte 4         Byte 5             Byte 6               Remainder    
-                                                                          (Optional)           (Optional)   
+    Byte 0  Byte 1  Byte 2-3           Byte 4         Byte 5           Byte 6              Remaining Bytes  
+                                                                       (Optional)          (Optional)       
 
-    0x20    0x82    Available Commands  Write Lengths  Highest Address    Lowest Address       Name String  
-                                                       Space              Space                
+    0x20    0x82    Available          Write Lengths  Highest Address  Lowest Address      Name String      
+                    Commands                          Space            Space               
 
      * Available operations mask (2 bytes, bit coded): Indicate which operations are available so the using
        software can know whether convenience operations (which are not possible on some hardware) are
@@ -442,11 +444,30 @@
 
 4.20 Get Unique ID Reply
 
-    Byte 0       Byte 1        Remainder                                                                    
+    Byte 0       Byte 1        Remaining Bytes                                                              
 
     0x20         0x8D          1-8 requested Event IDs, a total of 8-64 bytes                               
 
-4.21 Update Complete Command
+4.21 Unfreeze Command
+
+    Byte 0       Byte 1        Byte 2                                                                       
+
+    0x20         0xA0          Address Space                                                                
+
+   This command is used in conjunction with the Freeze Command if, only if, and as required by a
+   higher-level protocol specification. An example of such protocol specification is the Firmware Upgrade
+   Standard.
+
+   The receiving node may acknowledge this and the Freeze Command either with a Node Initialization
+   Complete or a Datagram Received OK response.
+
+4.22 Freeze Command
+
+    Byte 0       Byte 1        Byte 2                                                                       
+
+    0x20         0xA1          Address Space                                                                
+
+4.23 Update Complete Command
 
     Byte 0       Byte 1                                                                                     
 
@@ -454,19 +475,23 @@
 
    This command notifies the target node that the configuration update operation sequence has completed.
    Nodes do not have to require this operation, but receiving it must be permitted. Configuration tools
-   should send it at the end of operations. Nodes may, but are not required to, reset after sending the
-   reply to this message.
+   should send it at the end of operations. Nodes may, but are not required to, reset as part of the
+   processing of this message. The receiving node may acknowledge this command with a Node Initialization
+   Complete instead of a Datagram Received OK response.
 
-4.22 Reset/Reboot Command
+4.24 Reset/Reboot Command
 
     Byte 0       Byte 1                                                                                     
 
     0x20         0xA9                                                                                       
 
-   After reset successfully processing this command, the receiving node shall reset/reboot into its power
-   on reset state, as if it has been put through a power cycle.
+   After successfully processing this command, the receiving node shall reset/reboot into its power on
+   reset state, as if it has been put through a power cycle.
 
-4.23 Reinitialize/Factory Reset Command
+   The receiving node may acknowledge this command with a Node Initialization Complete instead of a
+   Datagram Received OK response.
+
+4.25 Reinitialize/Factory Reset Command
 
     Byte 0       Byte 1        Byte 2-7                                                                     
 
@@ -475,13 +500,8 @@
    “Reinitialize/Factory Reset” restores the node's configuration as if factory reset. Node ID shall carry
    the destination Node ID for redundancy.
 
-4.24 Enter Bootloader Command
-
-    Byte 0       Byte 1                                                                                     
-
-    0x20         0xAB                                                                                       
-
-   This command is reserved for the future specification of a firmware upgrade protocol.
+   The receiving node may acknowledge this command with a Node Initialization Complete instead of a
+   Datagram Received OK response.
 
    Table of Contents
 
@@ -499,47 +519,49 @@
 
    4.3 Generic Error Handling 2
 
-   4.4 Read Command 3
+   4.4 Read Command 2
 
    4.5 Read Reply 3
 
-   4.6 Read Stream Command 4
+   4.6 Read Stream Command 3
 
    4.7 Read Stream Reply 4
 
-   4.8 Write Command 5
+   4.8 Write Command 4
 
    4.9 Write Reply 5
 
-   4.10 Write Under Mask Command 6
+   4.10 Write Under Mask Command 5
 
    4.11 Write Stream Command 6
 
-   4.12 Write Stream Reply 7
+   4.12 Write Stream Reply 6
 
    4.13 Get Configuration Options Command 7
 
    4.14 Get Configuration Options Reply 7
 
-   4.15 Get Address Space Information Command 9
+   4.15 Get Address Space Information Command 8
 
-   4.16 Get Address Space Information Reply 9
+   4.16 Get Address Space Information Reply 8
 
    4.17 Lock/Reserve Command 9
 
-   4.18 Lock/Reserve Reply 10
+   4.18 Lock/Reserve Reply 9
 
-   4.19 Get Unique ID Command 10
+   4.19 Get Unique ID Command 9
 
-   4.20 Get Unique ID Reply 10
+   4.20 Get Unique ID Reply 9
 
-   4.21 Update Complete Command 10
+   4.21 Unfreeze Command 10
 
-   4.22 Reset/Reboot Command 10
+   4.22 Freeze Command 10
 
-   4.23 Reinitialize/Factory Reset Command 11
+   4.23 Update Complete Command 10
 
-   4.24 Enter Bootloader Command 11
+   4.24 Reset/Reboot Command 10
 
-   Copyright 2012-2015. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 11 - Feb 17, 2015
+   4.25 Reinitialize/Factory Reset Command 10
+
+   Copyright 2012-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+   1 of 12 - Feb 6, 2016
