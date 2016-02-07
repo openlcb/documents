@@ -4,17 +4,16 @@
 
                                                                 Firmware Upgrade
 
-                                              Feb 7, 2016Feb 6, 2016                  ProposalDraft         
+                                                    Feb 6, 2016                           Draft             
 
                                                 1 Introduction
 
    OpenLCB hardware contains a significant amount of complexity, both in terms of the protocol stack
-   involved, as well as the node- carrieds certain descriptors which can be considered a user interface.
-   The necessary code and data is stored in non-volatile memory of the node, and it is highly desirable to
-   have this non-volatile memory field-able.eupdatupdatable. There may be many reasons for a new released
-   version of firmware released: fixing issues discovered after shipping the node, adding new features to
-   the node, keeping up to date with the evolving standards, or simply to change the language of the user
-   interface descriptors.
+   involved, as well as the node-carried descriptors which can be considered a user interface. The
+   necessary code and data is stored in non-volatile memory of the node, and it is highly desirable to have
+   this non-volatile memory field-updatable. There may be many reasons for a new released version of
+   firmware: fixing issues discovered after shipping the node, adding new features to the node, keeping up
+   to date with the evolving standards, or simply to change the language of the user interface descriptors.
 
    There are many desirables for a firmware update mechanism that is expected to be operated by the
    end-user:
@@ -55,18 +54,18 @@
    recover.
 
    The only reasonable way to recover from a corrupted firmware is to employ a double-firmware approach,
-   where the node is shipped with two firmwares, one that is updateableupdatable for regular operation
-   (Primary firmware), and another whose sole purpose is to update the Main firmware (aka Bootloader
-   firmware). Of the two firmwares the node would typically start up with control being held by the
-   Bootloader firmware, which checks that the Main firmware is correct, matches the hardware, and not
-   corrupted before yielding control to it. If any of these checks fail, the Bootloader firmware takes
-   control and starts up the node, participating in the bus activity only as far as necessary to receive
-   the correct firmware data file.
+   where the node is shipped with two firmwares, one that is updatable for regular operation (Primary
+   firmware), and another whose sole purpose is to update the Main firmware (aka Bootloader firmware). Of
+   the two firmwares the node would typically start up with control being held by the Bootloader firmware,
+   which checks that the Main firmware is correct, matches the hardware, and not corrupted before yielding
+   control to it. If any of these checks fail, the Bootloader firmware takes control and starts up the
+   node, participating in the bus activity only as far as necessary to receive the correct firmware data
+   file.
 
    The obvious drawback of the double firmware approach is the size and cost associated with the secondary
    firmware. A minimalistic Bootloader firmware can however be implemented in 5-8 kbytes of program space,
    which will not add a prohibitive cost to the node hardware on top of the regular firmware, which is
-   expected to be 6432-128 kbytes in size.
+   expected to be 32-128 kbytes in size.
 
    Despite the above recommendation, the actual firmware upgrade protocol described in the standard is
    agnostic to the actual implementation, therefore it is the manufacturer's choice whether they implement
@@ -77,7 +76,7 @@
    The user checks the manufacturer's web-site and finds that an updated firmware is available. The user
    downloads a binary file from the manufacturer containing the new version. Then the user launches the
    Configuration Tool (CT), selects the particular node in the network browser that she wants to update,
-   and selects the Firmware Update option in the user interface of the CT. TheyShe points to the recently
+   and selects the Firmware Update option in the user interface of the CT. They point to the recently
    downloaded file. The CT starts the download process and shows a progress bar as the transfer is
    happening. After the download is complete, the CT automatically reboots the node, which starts up with
    the new firmware. The user can now go to the configuration panel of the node and start using the new
@@ -94,17 +93,16 @@
 
    This protocol does not solve the problem of discovering what hardware node requires which firmware, and
    does not help the user to locate and acquire the new firmware data file for any given node. There is no
-   check for validity or correctness of the firmware data file in the protocol or the CT (– thatit is left
-   to the node developer) to perform these checks.
+   check for validity or correctness of the firmware data file in the protocol or the CT – it is left to
+   the node developer to perform these checks.
 
    There is no inherent protocol support for bulk updating many nodes at once. Even though the data
    transfer could be observed by many nodes participating on the bus (especially if a shared physical media
    bus, such as CAN is used), the complexity involved in multicast transfers heavily outweigh the benefits
-   of updating many nodes at once. The firmware update process is definesd dso that it is possible to
-   perform without user interaction, directly through the bus, so it is easily scriptable. If there will be
-   a high demand arises for bulk updating many nodes, then the common CT software packages willmay
-   offerimplement a feature for updating many nodes sequentially (or in parallel) without the user being
-   present at the terminal.
+   of updating many nodes at once. The firmware update process is defined so that it is possible to perform
+   without user interaction, directly through the bus, so it is easily scriptable. If a high demand arises
+   for bulk updating many nodes, then common CT software packages may implement a feature for updating many
+   nodes sequentially (or in parallel) without the user being present at the terminal.
 
    The Firmware Upgrade standard also does not define what happens with the configuration data during and
    after the update. The CT does not have a responsibility to translate or update the configuration memory
@@ -161,58 +159,55 @@
        the latest firmware.
 
      * Such an automatic firmware update mechanism may also be implemented in a smart throttle (or any
-       other node with sufficient storage) provided by athe given manufacturer, if the manufacturer deploys
-       it with the necessary node firmware files.
+       other node with sufficient storage) provided by a given manufacturer, if the manufacturer deploys it
+       with the necessary node firmware files.
 
   2.6.2 State transitions
 
-   The two states of the node (BootloaderFirmware Upgrade and Operational) operate with a dramatically
-   different feature set, and most information that may be acquired or cached from one state (such as a
-   Protocol Support Reply) will not apply to the other state. Therefore the node switching between the two
-   states must signal the other participants of the bus that all such cached information shall be
-   discarded. This can be done by appearing to reboot the node, which is visible on the bus by a Node
-   Initialization Complete message. The requirement of entering Uninitialized state to transition between
-   BootloaderFirmware Upgrade and Operational states forces the node to emit a Node Initialization Complete
-   message.
+   The two states of the node (Firmware Upgrade and Operational) operate with a dramatically different
+   feature set, and most information that may be acquired or cached from one state (such as a Protocol
+   Support Reply) will not apply to the other state. Therefore the node switching between the two states
+   must signal the other participants of the bus that all such cached information shall be discarded. This
+   can be done by appearing to reboot the node, which is visible on the bus by a Node Initialization
+   Complete message. The requirement of entering Uninitialized state to transition between Firmware Upgrade
+   and Operational states forces the node to emit a Node Initialization Complete message.
 
-   A node that is in BootloaderFirmware Upgrade state will appear as in-operational to the customer.
-   Therefore it is important that a node does not accidentally enter this state. In all normal conditions
-   the node shall be in Operating state. Normal conditions include power-cycling the node, and thus the
-   node must reach Operating state upon powering up.
+   A node that is in Firmware Upgrade state will appear as in-operational to the customer. Therefore it is
+   important that a node does not accidentally enter this state. In all normal conditions the node shall be
+   in Operating state. Normal conditions include power-cycling the node, and thus the node must reach
+   Operating state upon powering up.
 
    The exceptions are granted for two purposes:
 
      * If the node has its production firmware missing or corrupted, then reaching an Operating state is
-       likely impossible. The node may detect this upon power up and start in BootloaderFirmware Upgrade
-       state. This allows the user to use a Configuration Tool to download an appropriate firmware and
-       restore the node to full working operation. An important case when firmware corruption may occur is
-       if the firmware download process was interrupted due to power loss or hardware error. Another case
-       when this may happen is if the user downloads an incompatible firmware whose incompatibility was not
-       detected during the download operation. A node may also detect cases of irreparable software errors
-       (for example the production firmware crashing every time upon startup) and power up in
-       BootloaderFirmware Upgrade modestate, expecting the user to contact the manufacturer and supply a
-       working firmware using the firmware update method.
+       likely impossible. The node may detect this upon power up and start in Firmware Upgrade state. This
+       allows the user to use a Configuration Tool to download an appropriate firmware and restore the node
+       to full working operation. An important case when firmware corruption may occur is if the firmware
+       download process was interrupted due to power loss or hardware error. Another case when this may
+       happen is if the user downloads an incompatible firmware whose incompatibility was not detected
+       during the download operation. A node may also detect cases of irreparable software errors (for
+       example the production firmware crashing every time upon startup) and power up in Firmware Upgrade
+       state, expecting the user to contact the manufacturer and supply a working firmware using the
+       firmware update method.
 
-     * The customer should be able to physically force booting the hardware into BootloaderFirmware Upgrade
-       state. In case the production firmware is misbehaving to the extent that entering BootloaderFirmware
-       Upgrade state using a Configuration Tool is impossible (e.g. due to a bug in the operating
-       software), this option gives the user a physical recovery mechanism. While not really convenient, as
-       physical access to the node is required, it still allows the user to recover “bricked” hardware
-       nodes, so long as the firmware needed for BootloaderFirmware Upgrade state is intact. It is not
-       required by this standard for the node to come with a hardware switch, if the manufacturer decides
-       that this option is not necessary for their hardware.
+     * The customer should be able to physically force booting the hardware into Firmware Upgrade state. In
+       case the production firmware is misbehaving to the extent that entering Firmware Upgrade state using
+       a Configuration Tool is impossible (e.g. due to a bug in the operating software), this option gives
+       the user a physical recovery mechanism. While not really convenient, as physical access to the node
+       is required, it still allows the user to recover “bricked” hardware nodes, so long as the firmware
+       needed for Firmware Upgrade state is intact. It is not required by this standard for the node to
+       come with a hardware switch, if the manufacturer decides that this option is not necessary for their
+       hardware.
 
    The remaining state transitions describe how a Configuration Tool may request a node to change to a
    specific state. Note that the user may also perform these transitions without a CT: to transition from
-   BootloaderFirmware Upgrade state to Operating state it is enough to power cycle the node, and to
-   transition into BootloaderFirmware Upgrade state, the user may use the hardware switch while power
-   cycling the node.
+   Firmware Upgrade state to Operating state it is enough to power cycle the node, and to transition into
+   Firmware Upgrade state, the user may use the hardware switch while power cycling the node.
 
-   It is important that tThe CT has no real means tomay detect whether a given node is in
-   BootloaderFirmware Upgrade state or in Operating state by examining the Protocol Support Reply.
-   ThereforeNevertheless, for the simplicity of the CT implementation the state transition is defined in a
-   way that it is legal to request transition to BootloaderFirmware Upgrade state even if the node is
-   already in BootloaderFirmware Upgrade state, and the CT will receive the same reply to it.
+   The CT may detect whether a given node is in Firmware Upgrade state or in Operating state by examining
+   the Protocol Support Reply. Nevertheless, for the simplicity of the CT implementation the state
+   transition is defined in a way that it is legal to request transition to Firmware Upgrade state even if
+   the node is already in Firmware Upgrade state, and the CT will receive the same reply to it.
 
   2.6.3 Data Transfer
 
@@ -225,18 +220,18 @@
    firmware is intended for the given hardware it is being downloaded to. Making offset translation is not
    a significant complexity in the bootloader implementation.
 
-   Such a header may cause the Target Node to reject the payload being transmitted, and both the the Stream
-   and the Datagram / Memory Configuration protocol allows this. The target node has to return a Stream
-   Data Abort message to the CT, supplying an error code for the failure., or in case of the Datagram-based
+   Such a header may cause the Target Node to reject the payload being transmitted, and both the Stream and
+   the Datagram / Memory Configuration protocol allows this. The target node has to return a Stream Data
+   Abort message to the CT, supplying an error code for the failure, or in case of the Datagram-based
    transfer a Datagram Rejected message or Memory Configuration Write Reply datagram with the error code.
-   The Standard lists a few error codes in Section 7 [(Allocations)] that may be used to denote common
+   The Standard lists a few error codes in Section 7 (Allocations) that may be used to denote common
    problems. Of course all other standardized error codes may be used, including the general Permanent
    Error (0x1000) or Temporary Error (0x2000), albeit these may not be very helpful for the end-user.
 
    If the transfer was aborted, it is possible that the Target Node has an incomplete firmware. In such a
    case the node may be in-operational, but it shall not be destroyed permanently, even in case of a power
    loss. Upon power-up the bootloader firmware shall detect that the main firmware is corrupted, and start
-   up in Bootloaderthe Firmware Upgrade state.
+   up in the Firmware Upgrade state.
 
                                                  3 Background
 
@@ -244,8 +239,8 @@
 
    The Firmware Upgrade Standard purposefully does not specify anything about the format and contents of
    the firmware data file. It is fully up to the manufacturer how the data contents are defined. The only
-   requirement from the protocol is that the bytes be transferred unmodified to the node in
-   BootloaderFirmware Upgrade state.
+   requirement from the protocol is that the bytes be transferred unmodified to the node in Firmware
+   Upgrade state.
 
    Simple implementations may just supply a stream of bytes to be written to the non-volatile memory of the
    node. Other implementations may add a header describing the hardware name and version with which the
@@ -276,10 +271,10 @@
        OpenLCB bus, and the node operations commence as expected.
 
      * In the secure option the data bytes are encompassed in a lightweight framing format. Each frame is
-       of the size that can be held in RAM by the node in BootloaderFirmware Upgrade state. The frames are
-       suffixed with a cryptographically secure hash that the node in BootloaderFirmware Upgrade state
-       verifies before writing the specific block of data to non-volatile storage. It is also possible to
-       use encryption on the frames, with the Bootloader firmware containing the necessary decryption keys.
+       of the size that can be held in RAM by the node in Firmware Upgrade state. The frames are suffixed
+       with a cryptographically secure hash that the node in Firmware Upgrade state verifies before writing
+       the specific block of data to non-volatile storage. It is also possible to use encryption on the
+       frames, with the Bootloader firmware containing the necessary decryption keys.
 
        Using this method the manufacturer can ensure that the firmware that gets loaded into their node is
        authentic and is originating from themselves. This might be important if for example different
@@ -321,9 +316,6 @@
    An undoubted benefit to the datagram-based transfer is that the Datagram Transport is already an adopted
    standard, whereas Stream Transport is still in draft.
 
-   The amount of additional code required in the bootloader for the stream implementation is not
-   significant, since it can replace the need for support of segmented datagram packets.
-
   3.2.2 Using a directly initiated stream
 
    It would be possible to eliminate the Memory Configuration protocol from the bootloading process, and
@@ -335,9 +327,8 @@
 
    The benefit of this implementation is that less code would be needed in the bootloader firmware. This is
    questionable though, since the Reboot command would still have to be implemented in the Target Node even
-   in BootloaderFirmware Upgrade state in order to facilitate the state transition back to Operating state.
-   Defining a custom message for reboot request would create unwanted parallelism in the OpenLCB protocol
-   stack.
+   in Firmware Upgrade state in order to facilitate the state transition back to Operating state. Defining
+   a custom message for reboot request would create unwanted parallelism in the OpenLCB protocol stack.
 
   3.2.3 Using custom protocol instead of Memory Configuration
 
@@ -348,10 +339,9 @@
 
    However, this messaging protocol would face the exact same requirements and challenges as the Stream
    protocol, therefore the most likely best solution would be exactly the same. Also, addressed messages on
-   the CAN bus have a payload efficiency of 6 bytes/framemessage, while streams have 7 bytes/framemessage.
-   A custom datagram-based protocol would achieve higher bus efficiency, but at the expense of fully
-   implementing the datagram segmentation in the bootloader, which costs more code space than stream
-   reception.
+   the CAN bus have a payload efficiency of 6 bytes/frame, while streams have 7 bytes/frame. A custom
+   datagram-based protocol would achieve higher bus efficiency, but at the expense of fully implementing
+   the datagram segmentation in the bootloader, which costs more code space than stream reception.
 
    Defining a custom protocol would also increase the mental complexity of the Firmware Upgrade standard,
    the engineering cost of implementation, especially that standard solutions of existing stacks (like that
@@ -362,7 +352,7 @@
    The physical bus can carry other messages than OpenLCB. These messages, however, cannot be routed
    through OpenLCB gateways, thus there is no standard method of ensuring that the Configuration Tool,
    which may be on a different bus segment (including even a different part of the world, in case of some
-   use-cases mentioned earlier) can reach the node that is switched to BootloaderFirmware Upgrade mode.
+   use-cases mentioned earlier) can reach the node that is switched to Firmware Upgrade mode.
 
    For example some MCUs contain embedded ROM firmware that use CAN-bus based protocols for flashing the
    firmware. The exact protocol is however not standardized across MCU vendors, therefore not a helpful
@@ -432,52 +422,50 @@
 
      * The CT node will have alias 0x3CC on the bus.
 
-    > :X1A4AA3CCN20A1EFB;            Memory Config datagram: Enter BootloaderFreeze Firmware Space (0xEF)   
+    > :X1A4AA3CCN20A1EF;            Memory Config datagram: Freeze Firmware Space (0xEF)                    
 
-    < :X19A284AAN03CC00;             Datagram received OK. This message may be omitted.                     
+    < :X19A284AAN03CC00;            Datagram received OK. This message may be omitted.                      
 
-    < :X171A24AAN; ...               There may be some alias allocation packets here.                       
+    < :X171A24AAN; ...              There may be some alias allocation packets here.                        
 
-    < :X191004AAN1A2A3A4A5A6A;       Node initialization complete.                                          
+    < :X191004AAN1A2A3A4A5A6A;      Node initialization complete.                                           
 
-    > :X198283CCN04AA;               PIP request to discover node capabilities                              
+    > :X198283CCN04AA;              PIP request to discover node capabilities                               
 
-    < :X196684AAN03CC700010000000;   PIP reply; indicates streams are supported.                            
+    < :X196684AAN03CC700010000000;  PIP reply; indicates streams are supported.                             
 
-    > :X1B4AA3CCN202000000000EFFF;   Memory Config datagram: Stream write to space EF, offset 0, source     
-    > :X1D4AA3CCNFF55;               stream id 55.                                                          
+    > :X1B4AA3CCN202000000000EFFF;  Memory Config datagram: Stream write to space EF, offset 0, source      
+    > :X1D4AA3CCN55;                stream id 55.                                                           
 
-    < :X19A284AAN03CC80;             Datagram received OK. Reply pending.                                   
+    < :X19A284AAN03CC80;            Datagram received OK. Reply pending.                                    
 
-    TODO: finish writeup here<       Memory Config datagram: Stream Write Reply OK, space EF, offset 0      
-    :X1B3CC4AAN203000000000EF5A;     dest stream ID 5A, source stream ID 55.                                
-    < :X1D3CC4AAN55;                 
+    < :X1B3CC4AAN203000000000EF5A;  Memory Config datagram: Stream Write Reply OK, space EF, offset 0 dest  
+    < :X1D3CC4AAN55;                stream ID 5A, source stream ID 55.                                      
 
-    > :X19A283CCN04AA00              Datagram Received OK, no reply.                                        
+    > :X19A283CCN04AA00             Datagram Received OK, no reply.                                         
 
-    > :X19CC83CCN04AAFFFF000055;     Stream initiate request; maximum buffer 64k-1, stream src id 55        
+    > :X19CC83CCN04AAFFFF000055;    Stream initiate request; maximum buffer 64k-1, stream src id 55         
 
-    < :X198684AAN03CC01008000555A;   Stream initiate reply OK; buffer 256, src id 55, dst id 5A             
+    < :X198684AAN03CC01008000555A;  Stream initiate reply OK; buffer 256, src id 55, dst id 5A              
 
-    > :X1F4AA3CCN5AA5456112B50B99;   Stream data for dst stream 5A                                          
-    > :X1F4AA3CCN5AB077952FF3138E;   (total of 256 bytes)                                                   
-    > ...                            
-    > :X1F4AA3CCN5A97A0A4CC;         
+    > :X1F4AA3CCN5AA5456112B50B99;  Stream data for dst stream 5A                                           
+    > :X1F4AA3CCN5AB077952FF3138E;  (total of 256 bytes)                                                    
+    > ...                           
+    > :X1F4AA3CCN5A97A0A4CC;        
 
-    < :X198884AAN03CC555A0000;       Stream continue                                                        
+    < :X198884AAN03CC555A0000;      Stream continue                                                         
 
-    ...                              May add more stream data here                                          
+    ...                             May add more stream data here                                           
 
-    > :X198A83CCN04AA555A;           Stream close                                                           
+    > :X198A83CCN04AA555A;          Stream close                                                            
 
-    > :X1A4AA3CCN20A0EF;             Memory config rebootMemory Config Datagram: Unfreeze Firmware space    
-                                     (0xEF)                                                                 
+    > :X1A4AA3CCN20A0EF;            Memory Config Datagram: Unfreeze Firmware space (0xEF)                  
 
-    < :X19A284AAN03CC;               Datagram Received OK. This message may be omitted.                     
+    < :X19A284AAN03CC;              Datagram Received OK. This message may be omitted.                      
 
-    < :X171A24AAN; ...               There may be some alias allocation packets here.                       
+    < :X171A24AAN; ...              There may be some alias allocation packets here.                        
 
-    < :X191004AAN1A2A3A4A5A6A;       Node initialization complete.                                          
+    < :X191004AAN1A2A3A4A5A6A;      Node initialization complete.                                           
 
    Table of Contents
 
@@ -532,5 +520,5 @@
    particularly efficient use of bus bandwidth (since we are transferring 4 bits per byte), but certainly a
    valid implementation of the standard.
 
-   Copyright 20135-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 7 - Feb 7, 2016Feb 6, 2016
+   Copyright 2015-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+   1 of 11 - Feb 6, 2016
