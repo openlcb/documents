@@ -64,7 +64,7 @@ all: $(4)
 endef
 
 
-DATE=2015-02-17
+DATE=2016-02-06
 
 # Helper function for emitting targets.
 #
@@ -90,10 +90,9 @@ $(eval $(call DOCU_stn,9.7.3.2,DatagramTransport))
 #$(eval $(call DOCU_stn,9.7.3.3,StreamTransport)) does not exist yet
 $(eval $(call DOCU_stn,9.7.3,MessageNetwork))
 
-# todo: shouldn't this be in the 9.7.4 range?
-$(eval $(call DOCU_stn,9.7.3.4,SimpleNodeInformation))
-
 $(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation))
 $(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration))
+$(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation))
+#$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade))
 
 
