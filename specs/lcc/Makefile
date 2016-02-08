@@ -15,6 +15,9 @@ obj:
 
 clean:
 	rm -rf obj
+	rm S-9.7.*
+	rm TN-9.7.*
+	
 
 template.pdf: template.tex
 	pdflatex $<
@@ -72,10 +75,10 @@ DATE=2016-02-06
 #  $(1) is the basename of the file which is like 9.7.0.1
 #  $(2) is the designation S or TN (also part of the filename)
 #  $(3) is the basename of the source pdf (example MemoryConfiguration)
+
 DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(2)-$(1)-$(3)-$(DATE).pdf,$(1))
 
 DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,S-$(1)-$(2)-$(DATE).pdf,$(1)) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,TN-$(1)-$(2)-$(DATE).pdf,$(1))
-
 
 $(eval $(call DOCU_call,9.7.0.1,TN,Glossary))
 $(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation))
