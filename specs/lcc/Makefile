@@ -67,7 +67,7 @@ all: $(4)
 endef
 
 
-DATE=2016-02-06
+DATE=2016-02-08
 
 # Helper function for emitting targets.
 #
@@ -96,6 +96,6 @@ $(eval $(call DOCU_stn,9.7.3,MessageNetwork))
 $(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation))
 $(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration))
 $(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation))
-#$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade))
+$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade))
 
 
