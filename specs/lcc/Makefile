@@ -15,9 +15,8 @@ obj:
 
 clean:
 	rm -rf obj
-	rm S-9.7.*
-	rm TN-9.7.*
-	
+	rm -f S-9.7.*
+	rm -f TN-9.7.*
 
 template.pdf: template.tex
 	pdflatex $<
@@ -38,16 +37,17 @@ SRCFILE:=$$(3)$$(2).pdf
 # specific documentation target.
 #
 # arguments:
-#  $(1) is the composite name of the file like 9.7.0.1-S
+#  $(1) is the composite name of the file like 9.7.0.1-S, used for the temporary filenaming
 #  $(2) is the designation S or TN
 #  $(3) is the full name of the source pdf (example MemoryConfigurationS.pdf)
-#  $(4) is the output filename
+#  $(4) is the output filename (like S-9.7.0.1-MemoryConfigurationS-2015-02-17.pdf)
 #  $(5) is the document number
+#  $(6) is "Adopted" or "Draft"
 define DOCU_template
 
 obj/$(1)-header.tex: header_template.tex
 	cat $$< > $$@
-	echo Adopted as NMRA $(if $(filter $(2),TN),Technical Note,Standard) $(2)-$(5) >> $$@
+	echo $(if $(filter $(6),Draft),Submitted for public comment,Adopted) as NMRA $(if $(filter $(2),TN),Technical Note,Standard) $(2)-$(5) >> $$@
 	echo '\end{document}' >> $$@
 
 
@@ -75,27 +75,38 @@ DATE=2016-02-08
 #  $(1) is the basename of the file which is like 9.7.0.1
 #  $(2) is the designation S or TN (also part of the filename)
 #  $(3) is the basename of the source pdf (example MemoryConfiguration)
+#  $(4) is the output date (example 2016-02-08)
+#  $(5) is "Adopted" or "Draft"
 
-DOCU_call=$(call DOCU_template,$(1)-$(2),$(2),$(3)$(2).pdf,$(2)-$(1)-$(3)-$(DATE).pdf,$(1))
+DOCU_call=$(call DOCU_template,$(1)-$(2)$(if $(filter $(5),Draft),-Draft,),$(2),$(3)$(2)-$(4).pdf,$(2)-$(1)-$(3)-$(4)$(if $(filter $(5),Draft),-Draft,).pdf,$(1),$(5))
 
-DOCU_stn=$(call DOCU_template,$(1)-S,S,$(2)S.pdf,S-$(1)-$(2)-$(DATE).pdf,$(1)) $(call DOCU_template,$(1)-TN,TN,$(2)TN.pdf,TN-$(1)-$(2)-$(DATE).pdf,$(1))
+# Helper function for emitting two targets, an S and a TN.
+#
+# arguments:
+#  $(1) is the basename of the file which is like 9.7.0.1
+#  $(2) is the basename of the source pdf (example MemoryConfiguration)
+#  $(3) is the output date (example 2016-02-08)
+#  $(4) is "Adopted" (default if empty), or "Draft"
 
-$(eval $(call DOCU_call,9.7.0.1,TN,Glossary))
-$(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation))
-$(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers))
-$(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers))
-$(eval $(call DOCU_stn,9.7.1.1,CanPhysical))
+DOCU_stn=$(call DOCU_template,$(1)-S$(if $(filter $(4),Draft),-Draft,),S,$(2)S-$(3).pdf,S-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1)) $(call DOCU_template,$(1)-TN$(if $(filter $(4),Draft),-Draft,),TN,$(2)TN-$(3).pdf,TN-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1),$(4))
+
+$(eval $(call DOCU_call,9.7.0.1,TN,Glossary,2016-02-06))
+$(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation,2015-02-17))
+$(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers,2016-02-06))
+$(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers,2016-02-06))
+$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2015-02-17))
+$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2016-02-06,Draft))
 #$(eval $(call DOCU_stn,9.7.1.2,TcpPhysical)) does not exist yet
-$(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer))
+$(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer,2016-02-06))
 #$(eval $(call DOCU_stn,9.7.2.2,TcpTransfer)) does not exist yet
-$(eval $(call DOCU_stn,9.7.3.1,EventTransport))
-$(eval $(call DOCU_stn,9.7.3.2,DatagramTransport))
+$(eval $(call DOCU_stn,9.7.3.1,EventTransport,2016-02-06))
+$(eval $(call DOCU_stn,9.7.3.2,DatagramTransport,2016-02-06))
 #$(eval $(call DOCU_stn,9.7.3.3,StreamTransport)) does not exist yet
-$(eval $(call DOCU_stn,9.7.3,MessageNetwork))
+$(eval $(call DOCU_stn,9.7.3,MessageNetwork,2016-02-06))
 
-$(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation))
-$(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration))
-$(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation))
-$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade))
+$(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation,2016-02-06))
+$(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration,2016-02-06))
+$(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation,2016-02-06))
+$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade,2016-02-06,Draft))
 
 
