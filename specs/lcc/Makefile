@@ -107,6 +107,6 @@ $(eval $(call DOCU_stn,9.7.3,MessageNetwork,2016-02-06))
 $(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation,2016-02-06))
 $(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration,2016-02-06))
 $(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation,2016-02-06))
-$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade,2016-02-06,Draft))
+$(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade,2016-02-08,Draft))
 
 
