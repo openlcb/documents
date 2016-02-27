@@ -88,14 +88,14 @@ DOCU_call=$(call DOCU_template,$(1)-$(2)$(if $(filter $(5),Draft),-Draft,),$(2),
 #  $(3) is the output date (example 2016-02-08)
 #  $(4) is "Adopted" (default if empty), or "Draft"
 
-DOCU_stn=$(call DOCU_template,$(1)-S$(if $(filter $(4),Draft),-Draft,),S,$(2)S-$(3).pdf,S-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1)) $(call DOCU_template,$(1)-TN$(if $(filter $(4),Draft),-Draft,),TN,$(2)TN-$(3).pdf,TN-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1),$(4))
+DOCU_stn=$(call DOCU_template,$(1)-S$(if $(filter $(4),Draft),-Draft,),S,$(2)S-$(3).pdf,S-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1),$(4)) $(call DOCU_template,$(1)-TN$(if $(filter $(4),Draft),-Draft,),TN,$(2)TN-$(3).pdf,TN-$(1)-$(2)-$(3)$(if $(filter $(4),Draft),-Draft,).pdf,$(1),$(4))
 
 $(eval $(call DOCU_call,9.7.0.1,TN,Glossary,2016-02-06))
 $(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation,2015-02-17))
 $(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers,2016-02-06))
 $(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers,2016-02-06))
 $(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2015-02-17))
-$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2016-02-06,Draft))
+$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2016-02-08,Draft))
 #$(eval $(call DOCU_stn,9.7.1.2,TcpPhysical)) does not exist yet
 $(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer,2016-02-06))
 #$(eval $(call DOCU_stn,9.7.2.2,TcpTransfer)) does not exist yet
