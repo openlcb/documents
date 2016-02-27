@@ -66,9 +66,6 @@ all: $(4)
 
 endef
 
-
-DATE=2016-02-08
-
 # Helper function for emitting targets.
 #
 # arguments:
