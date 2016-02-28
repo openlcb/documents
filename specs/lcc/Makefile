@@ -1,4 +1,4 @@
-BRUNNING := $(shell ps ax | grep -v grep | grep soffice)
+RUNNING := $(shell ps ax | grep -v grep | grep soffice)
 
 OFFICE := $(shell sh -c \
             "if [ -d /Applications/LibreOffice.app/Contents/MacOS ]; then echo /Applications/LibreOffice.app/Contents/MacOS/soffice; \
