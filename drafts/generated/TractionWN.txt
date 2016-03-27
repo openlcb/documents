@@ -4,7 +4,7 @@
 
                                                                Traction Protocol
 
-                                                    Feb 8, 2015                        Preliminary          
+                                                   Mar 27, 2016                        Preliminary          
 
                                                 1 Introduction
 
@@ -72,6 +72,14 @@
    NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and with
    various names.
 
+   “Listener”: A node may be interested in receiving a copy of all state changing messages from a given
+   train node. Since throttle-to-train configuration is addressed, there is no network-level mechanism to
+   guarantee that messages destined to the train node can be intercepted by the interested third party. The
+   train node therefore may have a feature that allows other nodes to be registered, and the train shall
+   forward the speed (and optionally function) setting messages to the registered nodes. A way to achieve
+   consisting is to specify the consist members as listeners on the lead engine's train node, or to
+   allocate a virtual node and specify all engines as listeners to that virtual node.
+
    “Configuration”, “Functions”: Traditional DCC decoders provide “functions” for controlling accessories
    such as lights and sounds during operation, and provide a separate mechanism for doing long-term
    configuration via Configuration Variables (Cvs). OpenLCB makes the same distinction, providing access to
@@ -103,15 +111,13 @@
    some configuration needs tweaking (e.g. volume too low), so he enters a configuration dialog on the
    throttle, finds the right item by reading through them, changes the value to be a few larger, and stores
    that back into the train. That makes it work. When he gets back home that value is still present so he
-   changes it back using the same procedure.
+   changes it back using the same procedure.As an alternative, Jim takes his DCC-equipped locomotive to the
+   layout, puts it on the track, enters the DCC address into a throttle, and starts to run it.
 
   Legacy Train on New Layout
 
    Jim takes his DCC-equipped train to Bill's OpenLCB- and DCC-equipped layout and puts it on the track. He
    picks up a throttle, hits a few keys, sees his train, selects it and starts to run it.
-
-   As an alternative, Jim takes his DCC-equipped locomotive to the layout, puts it on the track, enters the
-   DCC address into a throttle, and starts to run it.
 
 1.3 Unserved Use Cases
 
@@ -171,13 +177,13 @@
 
   2.4.1 Defined Event IDs
 
-   IsTrain: 01.01.00.00.00.00.033
+   IsTrain: 01.01.00.00.00.00.03.0IsProxiedDccAddress: 06.01.00.CC.AA.AA.03.03
 
    IsIdleProxy: 01.01.00.00.00.00.03.04
 
-   IsInUseProxy: 01.01.00.00.00.00.03.05
+   IsInUseProxy: 01.01.00.00.00.00.03.053
 
-   IsProxiedDccAddress: 06.01.00.CC.AA.AA.03.03.0.03
+   .03
 
    EmergencyStopAll: 01.01.00.00.00.00.FF.FF
 
@@ -228,17 +234,26 @@
                               Changing    0x01=Alias                                      {Optional}
                              Notify 0x04   ID valid   
 
-        Consist       0x30   Attach Node    Flags              Consist Node ID              Alias
-     Configuration              0x01      0x01=Alias                                      {Optional}
-                                           ID valid   
+       Listener       0x30   Attach Node    Flags              Listener Node ID             Alias
+     Configuration               or       0x01=Alias                                      {Optional}
+                               update      ID valid   
+                                flags                 
+                                0x01       0x02=Rev   
+                                          direction   
+                                                      
+                                          0x04=Link   
+                                              F0      
+                                                      
+                                          0x08=Link   
+                                              Fn      
 
-                             Detach Node    Flags              Consist Node ID              Alias
+                             Detach Node    Flags              Listener Node ID             Alias
                                 0x02      0x01=Alias                                      {Optional}
                                            ID valid   
 
-                             Query Nodes    Flags              Consist Node ID              Alias
-                                0x03      0x01=Alias                                      {Optional}
-                                           ID valid   
+                             Query Nodes   Listener   
+                                0x03        index     
+                                          {optional}  
 
        Traction       0x40     Reserve    
       Management                0x01      
@@ -259,55 +274,55 @@
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
 
-     Instruction    Byte 0    Byte 1        Byte 2     Byte 3   Byte   Byte  Byte  Byte  Byte   Byte  Byte  
-                                                                  4     5     6     7      8     9     10   
+     Instruction    Byte 0    Byte 1        Byte 2      Byte 3  Byte 4  Byte  Byte  Byte  Byte  Byte  Byte  
+                                                                         5     6     7     8     9     10   
 
-     Query Speeds   0x110           Set Speed          Status    Commanded     Actual
-        Reply                                                      Speed       Speed
+     Query Speeds   0x110           Set Speed           Status   Commanded      Actual
+        Reply                                                      Speed        Speed
 
     Query Function  0x111                Address                   Value
         Reply       
 
-      Controller     0x20     Assign       Result:     
-    Configuration           Controller     0 == OK     
-        Reply               Reply 0x01   Non-zero ==   
-                                            Failed     
-                                                       
-                                          Fail Code:   
-                                             Bit       
-                                          0=Assigned   
-                                          Controller   
-                                           Refused     
-                                          Connection   
-                                                       
-                                           Bit 1 =     
-                                            Train      
-                                           Refused     
-                                          Connection   
+      Controller     0x20     Assign        Result:     
+    Configuration           Controller      0 == OK     
+        Reply               Reply 0x01    Non-zero ==   
+                                            Failed      
+                                                        
+                                          Fail Code:    
+                                              Bit       
+                                          0=Assigned    
+                                          Controller    
+                                            Refused     
+                                          Connection    
+                                                        
+                                         Bit 1 = Train  
+                                            Refused     
+                                          Connection    
 
-                               Query        Flags       Active Controller (0.0.0.0.0.0 if no     Alias ID
-                            Controller    0x01=Alias             controller active)             {Optional}
-                            Reply 0x03     ID valid    
+                               Query         Flags       Active Controller (0.0.0.0.0.0 if no    Alias ID
+                            Controller   0x01=Alias ID            controller active)            {Optional}
+                            Reply 0x03       valid      
 
-                            Controller   Result: 0 ==  
-                              Changed         OK       
-                              Notify                   
-                            Reply 0x04   Non-zero ==   
-                                            Reject     
+                            Controller   Result: 0 ==   
+                              Changed         OK        
+                              Notify                    
+                            Reply 0x04    Non-zero ==   
+                                            Reject      
 
-       Consist       0x30   Attach Node  Node ID (TBD Should this be a Datagram to send  Reply  
-    Configuration           Reply 0x01              multiple nodes at once?)             Code   
+       Listener      0x30   Attach Node                      Node ID                      Reply Code
+    Configuration           Reply 0x01   
         Reply       
-                            Detach Node  Node ID (TBD Should this be a Datagram to send  Reply  
-                            Reply 0x02              multiple nodes at once?)             Code   
+                            Detach Node                      Node ID                      Reply Code
+                            Reply 0x02   
 
-                            Query Node      TBD What to do here... Should this be a
-                            Reply 0x03                     datagram??
+                            Query Node    Node count     Node   Flags                Node ID
+                            Reply 0x03                  index   {opt}               {optional}
+                                                        {opt}   
 
-       Traction      0x40     Reserve      Result:     
-      Management            Reply 0x01     0 == OK     
-        Reply                            Non-zero ==   
-                                            Failed     
+       Traction      0x40     Reserve       Result:     
+      Management            Reply 0x01      0 == OK     
+        Reply                             Non-zero ==   
+                                            Failed      
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -388,14 +403,13 @@
    large message, but everybody in the communication path still needs a maximum message size to ensure
    buffering. So a multiple message (or multiple datagram) response with an “last one” bit is the way to
    go. Using datagrams is more protocol work, but leverages existing protocol support and moves the
-   response to a lower priority.A node my Query the active node from a train node. If no controller is
+   response to a lower priority.A node may Query the active node from a train node. If no controller is
    assigned the train nodes returns a Node ID of 0.0.0.0.0.0. It would be better to return an error code
    but that would require a multi-frame message which is possible but undesirable.
 
-   Consist Configuration allows a train node to become the operator of multiple trains. The simplest way is
-   to Add/Delete/Query one node at a time. I think this should be done as a datagram for all operations. It
-   is not a time critical operation and the number of nodes should not be artificially limited to force it
-   into a multi-frame message.
+   Listener Configuration allows adding listeners to a train node, where the train node shall forward the
+   state-changing requests to. Listeners always get speed change commands forwarded (direct or with
+   reversed direction), and optionally Function 0 or all function commands as well.
 
    Traction Management locks/releases the train node such that interactions that require multiple messages
    between 2 or more nodes are guaranteed to be completed before another node can set (modify) the
@@ -622,6 +636,56 @@
 
   2.7.7 Throttle to Throttle Successful Hand-over (steal)
 
+  2.7.8
+  Listeners
+
+   When listeners are configured, the incoming state changing traction messages are forwarded by the train
+   node to all the listener nodes. The forwarded message shall be a Traction Control Request message.
+
+   If the source node of the message is on the listener list, the message is not forwarded to avoid message
+   loops.
+
+   The listener flags define what messages shall be forwarded:
+
+     * Set speed message is always forwarded. If the flag “Rev direction” is set for the listener, the
+       direction of the forwarded speed is flipped.
+
+     * Set function message with function number = 0 is forwarded iff the “Link F0” flag is set on the
+       listener configuration.
+
+     * Set function messages for all other function numbers shall be forwarded iff the “Link Fn” flag is
+       set on the listener configuration.
+
+   A train node may provide additional configuration, for example as part of the CDI to customize the
+   forwarding of messages. This may be interesting for virtual train nodes specifically designed to be
+   consist proxies.
+
+   To add or remove a listener, the Attach Node or Detach Node message shall be sent to the target train
+   node. The response shall contain the same node ID and a 2-byte OpenLCB Error Code. The following error
+   codes may be helpful:
+
+     * 0x1030: Permanent error, Not found. Useful if the caller tried to remove a node that is not attached
+       as a listener.
+
+     * 0x1032: Permanent error, Already Exists. Useful if the caller tried to add a node as a listener to
+       itself.
+
+   If a caller wants to update the flags of a specific listener, the Attach Node message shall be sent with
+   the same node ID and the new flags.
+
+   To query the listeners from a train node, a Listener configuration Query Nodes message shall be sent to
+   the train node. The response message contains the number of listeners currently configured. Listeners
+   are indexed from 0 to count-1. Sending the Query Nodes message with the index specified, the train node
+   will return the information for that specific listener, including Node ID and the flags specifying the
+   forwarding options. If the requested index is out of bounds, or no index is requested, then the response
+   will be short (no node information).
+
+   To discover and retrieve all listeners from a train node, multiple query messages are required. This
+   presents a race condition when a third node changes the listener configuration during the process. It is
+   not specified how the listener indexes change by attaching or detaching a listener. The querying node
+   can recognize that their information is out of date by observing a change in the count of listeners
+   compared to the expected number of listeners and restart the enumeration process.
+
                                            3 Background Information
 
 3.1 Speed Control
@@ -794,6 +858,33 @@
 
   3.3.1
 
+   One approach to standards in this area would be extend ACDI/SNIP. Those currently have a block for
+   manufacturer identification, and a block for user identification. Those are both versioned. We could
+   take (one of) several approaches:
+
+   Extend them with a third block, only present when the node implements the train protocol (as seen in
+   PIP). To allow later introduction of more types, this block would have some versioning/type information,
+   but that's straightforward.
+
+   Create a version 2 of the user block, which holds additional data. (This would be using 2 as a format
+   identifier, rather than a version number; that might make versioning complicated)
+
+   Suitable content for a (first version of) this might be (from [
+   http://jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html JMRI roster], see also similar concepts
+   in [rocrail.net RocRail]):
+
+     * Road Name
+
+     * Road Number
+
+     * (Manufacturer, model, owner description, comments, etc are already present in ACDI/SNI)
+
+     * For DCC locomotives, more terms might be desired:
+
+     * DCC Address
+
+   Decoder Type (Manufacturer, model)
+
   Legacy DCC Configuration
 
    For DCC trains, there are two parts:
@@ -847,34 +938,7 @@
 
    In the end, these legacy pains can't really be avoided. We have to croft the OpenLCB protocols to do a
    reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
-
-   One approach to standards in this area would be extend ACDI/SNIP. Those currently have a block for
-   manufacturer identification, and a block for user identification. Those are both versioned. We could
-   take (one of) several approaches:
-
-   Extend them with a third block, only present when the node implements the train protocol (as seen in
-   PIP). To allow later introduction of more types, this block would have some versioning/type information,
-   but that's straightforward.
-
-   Create a version 2 of the user block, which holds additional data. (This would be using 2 as a format
-   identifier, rather than a version number; that might make versioning complicated)
-
-   Suitable content for a (first version of) this might be (from [
-   http://jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html JMRI roster], see also similar concepts
-   in [rocrail.net RocRail]):
-
-     * Road Name
-
-     * Road Number
-
-     * (Manufacturer, model, owner description, comments, etc are already present in ACDI/SNI)
-
-     * For DCC locomotives, more terms might be desired:
-
-     * DCC Address
-
-   Decoder Type (Manufacturer, model)Legacy DCC Configuration and Cvs
+   e.g. DecoderPro does.Legacy DCC Configuration and Cvs
 
    [Moved here from the old Wiki Page]
 
@@ -976,7 +1040,7 @@
    versions < 21, node name < 63 bytes, node description < 64 bytes (including terminating null), much more
    of than Balazs' example.
 
-3.5 Consisting
+3.5 Consisting and Listeners
 
    Consisting is a process familiar to model railroaders, who use it for many purposes:
 
@@ -989,13 +1053,74 @@
 
      * Connect sound decoders with motion-control decoders so they work well together
 
-   OpenLCB handles consisting and similar “one acts for many” situations by having a node act as the
-   front-man for the consisted group. This node may be a real physical object, but it's more likely to be a
-   software construct somewhere within the hardware that's used to connect the main OpenLCB network to the
-   actual trains.
+   OpenLCB handles consisting by introducing the “Listener” concept to all train nodes. A listener is
+   attached to a given train node in order to receive a copy of all state changing requests that arrive at
+   the given train node. This serves multiple purposes:
 
-   Once the consisting proxy node has been initialized, it will handle the individual parts of the Traction
-   Protocol series:
+     * Consist follower engines can be attached directly to the consist lead train node and receive all
+       speed set commands, which will cause the consist to move together.
+
+     * Throttles that lose the control of a locomotive (through stealing or hand-over) can register
+       themselves as listener on the locomotive, and update the UI as the other engineer is driving the
+       train.
+
+     * It becomes possible to add a display to the train node that displays a train's status and keeps it
+       up to date without polling for updates and unnecessarily consuming bus bandwidth.
+
+   Consisting can be applied by two methods:
+
+    1. If the lead engine supports listeners, then the consist followers can be added directly to the lead
+       as a listener. Note that the forwarded message is defined in a way that the consist follower sees it
+       as if it came from a regular throttle, therefore the consist follower engine is allowed to not be
+       aware of the consisting.
+
+    2. If no engine in the consist can be chosen as lead engine, then a virtual node can be instantiated
+       that supports listeners and has the ability to attach all consist members. Such virtual nodes may be
+       provided by throttles or command stations.
+
+   The listener configuration allows selecting some common use-cases for the consist:
+
+     * Forward speed only.
+
+     * Forward speed but invert direction (when the following locomotive is backwards-facing in the
+       consist).
+
+     * Forward function zero (usually light). Turning this on for the lead and the tail engine in the
+       consist, but off for all middle members of the consist will cause the consist to behave
+       prototypically with headlights.
+
+     * Forward all functions. Useful for the throttle listener use-case or in case the two locomotives are
+       equipped with identical decoders and features.
+
+     * More advanced configuration (e.g. function remapping, arbitrary function filter) may be applied by
+       using the regular configuration user interface of the consist lead node (e.g. CDI). Such advanced
+       configuration may be however cumbersome for the user to access, since dumb throttles may not have
+       the ability to render arbitrary CDIs, while specialized user interface could be developed according
+       to the above listed common options. Also creating and deleting consists may be considered as an
+       everyday operation to users, therefore advanced consist settings may be accidentally destroyed. An
+       appropriate save/restore feature may be necessary.
+
+   The consist's listener relation may be established in a symmetric manner, where the lead engine is also
+   attached as a listener to each individual follower engine. Symmetric listener relations are allowed and
+   cause no problem for the network, because a train node is required to never echo back a packet to where
+   it came from.
+
+   The benefit of a symmetric listener relation is that now the consist can be driven by calling up any
+   train number in it, and the control packets will be propagated to all members of the consist. This may
+   be helpful if the user wants to drive a consist by the tail engine (for example after a runaround move)
+   and use e.g. the horn feature on the tail engine. Of course this feature will only work if the tail
+   locomotive supports listeners, otherwise it is impossible to establish a symmetric listener relation.
+
+   It is important that the symmetric listener relations create a spanning tree in the consist nodes. If
+   there is any directed circle (longer than 2 nodes), any message injected will be forwarded between those
+   nodes forever.
+
+   and similar “one acts for many” situations by having a node act as the front-man for the consisted
+   group. This node may be a real physical object, but it's more likely to be a software construct
+   somewhere within the hardware that's used to connect the main OpenLCB network to the actual trains.
+
+   Once the consisting relationship has been initialized, it will handle the individual parts of the
+   Traction Protocol series:
 
      * Speed Control - this is perhaps the simplest, just passing the speed values through to the
        individual members of the consist. Because OpenLCB speeds are in scale meters/second, there's by
@@ -1007,12 +1132,16 @@
 
      * Train Configuration - except for very limited configuration of the consist itself, the consist does
        not take part in any configuration operations. Those are done by talking directly to the nodes that
-       control the individual pieces of the consist. (CDI for the consist node is going to require careful
-       definition)
+       control the individual pieces of the consist. (CDI for a specialized consist node is going to
+       require careful definition)
 
-     * Train Acquisition Protocol - the consist is a separately locatable thing, as throttles will want to
-       be able to find it. As such, it will take part in producing the well-known events, providing human
-       readable (and writable) information via SNII/ACDI, etc, and being the target of search operations.
+     * Train Acquisition Protocol - the consist, if controlled by a special node, is a separately locatable
+       thing, as throttles will want to be able to find it. As such, it will take part in producing the
+       well-known events, providing human readable (and writable) information via SNII/ACDI, etc, and being
+       the target of search operations. Consists driven by their lead engine can be operated by calling up
+       the lead engine in a throttle. Consists with symmetric listener relationships can be driven by
+       calling up any single node in the consist. Defining the assigned controllers may be tricky in such a
+       situation.
 
    Because there's no protocol difference between full-OpenLCB-node Trains and legacy equipment that uses
    OpenLCB proxy nodes, consisting works the same for all of those. It can even mix-and-match full nodes
@@ -1020,12 +1149,88 @@
    IDs (and/or DCC addresses), which allows implementation of consisting. Speed/direction just passes
    through; speed matching is automatic due to the use of scale meters/second for units.
 
+                                                    To Do
+
+   More clarity on proxy access to DCC CVs. Discuss selection of programming modes. Addressing.
+
+   Need to devise a solution for two additional use cases: “Two throttles attempt to access a single Train;
+   this is an error and isn't allowed.” and “Two throttles share access to a single Train, with speed &
+   function commands accepted from both and reflected back to each other”
+
+   Multiple DCC proxies can be attached to the same DCC address, for example to represent two different
+   locomotives with address 1234, holding the options and configuration for each one separately. (Only one
+   can run at a time, of course) What's needed to do this right? The user interaction might be “I want to
+   run 1234” “This one, with name Foo, is defined, is that the right one?” “No, define a new one” “OK, a
+   new proxy exists as node 12.34.56.78.9A”, “OK, run that one”. What else is needed? Error detection?
+
+  Collisions During Allocation
+
+   You have to check the reply code and try again. That might mean inquiring for a new proxy idle proxy.
+
+                                 Handling a collision during proxy allocation
+
+  3.5.1 Legacy Protocol Proxies
+
+   The upper nibble of the Configure Proxy attach/detach instruction is intended to identify the specific
+   protocol.
+
+   Query: Is 16 technologies sufficient? Here is a partial list of technologies we may have to support:
+
+    1. OpenLCB
+
+    2. DC
+
+         1. With or without extensions for high-frequency constant lighting
+
+         2. With or without extensions for three-rail control (eliminates need for reversing loops)
+
+    3. DCC
+
+    4. Märklin Digital (old and new)
+
+    5. Märklin DELTA (is this a subset of Märklin Digital, or something different?)
+
+    6. Märklin Digital (2004 w/ESU)
+
+    7. Selectrix
+
+   MTH DCS
+
+    8. Lionel LCS/TMCC
+
+    9. Gobs of legacy systems like Hornby Zero 1
+
+   There are two safety values for expansion beyond 16: It's possible to use almost all of the byte for
+   this, not just the top nibble. Only the bottom bit is actually carrying any information. And some of
+   these might be the same; the instruction is really only moving an address, which for DCC can be thought
+   of as a 16-bit number. If command stations only deal with one protocol (but see the Digitrax command
+   station line), then they don't really need to know about different protocols here, they just need to
+   know the format of the address.
+
+Legacy Throttles and Throttle Busses
+
+   The most straight-forward way to allow use of existing legacy DCC throttles and systems is to connect
+   the DCC output of their command station to an OpenLCB node. That node then extracts the speed, function,
+   configuration, etc information from the DCC stream and transmits it either (1) directly to an OpenLCB
+   DCC command station or (2) as Traction Protocol Messages after conversion.
+
+   Method (1) works for attaching the input (throttle) and output (DCC train driving) parts of a legacy
+   control system to a new OpenLCB core, which in turn allows OpenLCB control of the layout.
+
+   Method (2) works more generally, and will be more valuable once full OpenLCB trains become available.
+
+   For certain legacy system throttle busses, e.g. perhaps LocoNet or XPressNet, it may also be possible to
+   attach the throttle bus to an OpenLCB node for translation. That node then acts as an intermediary
+   between Legacy Throttles and the OpenLCB, and can operate in either of the modes described above.
+
+                         Finding a proxy to allocateAllocate, use and release a proxy
+
 Proxies
 
    Proxies are used to have a single proxy node run multiple OpenLCB trains together and/or to run legacy
    trains as OpenLCB-aware trains.
 
-  3.5.1 Lifecycle & Location
+  3.5.2 Lifecycle & Location
 
    Each proxy has a lifecycle:
 
@@ -1081,84 +1286,6 @@ Proxies
    would not be acceptable to have the Event be sent if it is associated with the underlying protocol and
    not sent if the node was not. How long does the caller wait before it decides the Event will not be
    sent?
-
-                                      Allocate, use and release a proxy
-
-                                         Finding a proxy to allocate
-
-  Collisions During Allocation
-
-   You have to check the reply code and try again. That might mean inquiring for a new proxy idle proxy.
-
-                                 Handling a collision during proxy allocation
-
-  3.5.2 Legacy Protocol Proxies
-
-   The upper nibble of the Configure Proxy attach/detach instruction is intended to identify the specific
-   protocol.
-
-   Query: Is 16 technologies sufficient? Here is a partial list of technologies we may have to support:
-
-    1. OpenLCB
-
-    2. DC
-
-         1. With or without extensions for high-frequency constant lighting
-
-         2. With or without extensions for three-rail control (eliminates need for reversing loops)
-
-    3. DCC
-
-    4. Märklin Digital (old and new)
-
-    5. Märklin DELTA (is this a subset of Märklin Digital, or something different?)
-
-    6. Märklin Digital (2004 w/ESU)
-
-    7. Selectrix
-
-   MTH DCS
-
-    8. Lionel LCS/TMCC
-
-    9. Gobs of legacy systems like Hornby Zero 1
-
-   There are two safety values for expansion beyond 16: It's possible to use almost all of the byte for
-   this, not just the top nibble. Only the bottom bit is actually carrying any information. And some of
-   these might be the same; the instruction is really only moving an address, which for DCC can be thought
-   of as a 16-bit number. If command stations only deal with one protocol (but see the Digitrax command
-   station line), then they don't really need to know about different protocols here, they just need to
-   know the format of the address.
-
-Legacy Throttles and Throttle Busses
-
-   The most straight-forward way to allow use of existing legacy DCC throttles and systems is to connect
-   the DCC output of their command station to an OpenLCB node. That node then extracts the speed, function,
-   configuration, etc information from the DCC stream and transmits it either (1) directly to an OpenLCB
-   DCC command station or (2) as Traction Protocol Messages after conversion.
-
-   Method (1) works for attaching the input (throttle) and output (DCC train driving) parts of a legacy
-   control system to a new OpenLCB core, which in turn allows OpenLCB control of the layout.
-
-   Method (2) works more generally, and will be more valuable once full OpenLCB trains become available.
-
-   For certain legacy system throttle busses, e.g. perhaps LocoNet or XPressNet, it may also be possible to
-   attach the throttle bus to an OpenLCB node for translation. That node then acts as an intermediary
-   between Legacy Throttles and the OpenLCB, and can operate in either of the modes described above.
-
-                                                    To Do
-
-   More clarity on proxy access to DCC CVs. Discuss selection of programming modes. Addressing.
-
-   Need to devise a solution for two additional use cases: “Two throttles attempt to access a single Train;
-   this is an error and isn't allowed.” and “Two throttles share access to a single Train, with speed &
-   function commands accepted from both and reflected back to each other”
-
-   Multiple DCC proxies can be attached to the same DCC address, for example to represent two different
-   locomotives with address 1234, holding the options and configuration for each one separately. (Only one
-   can run at a time, of course) What's needed to do this right? The user interaction might be “I want to
-   run 1234” “This one, with name Foo, is defined, is that the right one?” “No, define a new one” “OK, a
-   new proxy exists as node 12.34.56.78.9A”, “OK, run that one”. What else is needed? Error detection?
 
    Table of Contents
 
@@ -1239,4 +1366,4 @@ Legacy Throttles and Throttle Busses
    3.5 Consisting 20
 
    Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of
-   14 - Feb 8, 2015
+   16 - Mar 27, 2016
