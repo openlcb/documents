@@ -1,9 +1,8 @@
-file deleted with last contents:
                                                                 OpenLCB Technical Note
 
                                                                   Event Identifiers
 
-                                                       Feb 6, 2016                        Draft             
+                                                     Feb 6, 2016                     DraftAdopted           
 
                                                 1 Introduction
 
@@ -202,7 +201,69 @@ file deleted with last contents:
    Producer messages will have to be sent, one for the ON state range and another for an OFF state range,
    the response of which will need to be translated back for CBUS.
 
-    2.5.3.3 Other Well-Known
+    2.5.3.3 Basic DCC Accessory Decoder
+
+   The Well-Known Event ID space for basic DCC accessory decoders is provided as a suggestion to
+   manufactures on how to translate OpenLCB events to classic DCC accessories. It is possible that there
+   could be future mapping schemes required to implement a use case not covered by this scheme. This scheme
+   is not designed to be mutually exclusive of other possible schemes, and its use is not required when
+   mapping between OpenLCB events and classic DCC accessories.
+
+   The format of the DCC packet for a basic DCC Accessory Decoder is as follows (most significant bit
+   first):
+
+    Byte 1                                  Byte 2                                     Byte 3 (Error Byte)  
+
+    0b10aaaaaa                              0b1AAACDDD                                 0bEEEEEEEE           
+
+    Bits 5 down to 0 are the middle 6 bits  Bits 6 down to 4 are the 3 most            
+    of the address.                         significant bits of the address in 1's     
+                                            complement form. Bits 2 down to 0 are the  
+                                            3 least significant bits of the address.   
+                                            Bit 3 is set for active, clear for         
+                                            inactive.                                  
+
+   The Accessory Decoder address format in most significant bit first format is: 0bAAAaaaaaaDDD, and it is
+   expected that this is how the bits map to Bytes 7 and 8 of the Event Identifier. Though the AAA address
+   bits are in 1's complement form under the DCC standards, they are in standard non 1's complement form in
+   OpenLCB format.
+
+   By convention, most DCC Accessory Decoders couple two outputs together to form an output pair, and use
+   the least significant address bit to select the direction of travel for the output pair as a whole. In
+   this mode, the active/inactive bit 'C' is always sent as set or ignored altogether by the DCC decoder.
+   The effective address space is cut in half, and this is where the available 1-2044 accessory decoder
+   addresses that most DCC users are familiar with comes from.
+
+   There is some ambiguity in how the 1-2044 addresses that most DCC users are familiar with translate to
+   the bit level addresses between existing DCC systems in the market place. There are generally two
+   schemes that are deployed, as follows in bold/underline with a repeating pattern throughout the address
+   space. It is not prescribed how the OpenLCB user interfaces map to the bit level events.
+
+    User Facing Address        DCC Vendor A Binary Address               DCC Vendor B Binary Address
+
+                             DCC Format         OpenLCB Format         DCC Format         OpenLCB Format    
+
+    Reference            0bAAAaaaaaaDDD       0bAAAaaaaaaDDD       0bAAAaaaaaaDDD       0bAAAaaaaaaDDD      
+
+    1 (normal)           0b111000001001       0b000000001001       0b111000001001       0b000000001001      
+
+    1 (reverse)          0b111000001000       0b000000001000       0b111000001000       0b000000001000      
+
+    252                  0x11111111111x       0b00000000100x       0b11111111111x       0b00000000100x      
+
+    253                  0b11100000000x       0b00000000000x       0b11000000000x       0b00100000000x      
+
+    257                  0b11000000100x       0b00100000100x       0b11000000100x       0b00100000100x      
+
+    2040                 0b00011111011x       0b11111111011x       0b00011111011x       0b11111111011x      
+
+    2.5.3.4 Advanced DCC Accessory Decoder
+
+   There are no known advanced DCC Accessory Decoders currently for sale in the market. The DCC standards
+   are somewhat ambiguous about the address bit order. The address space is reserved for the future should
+   the use of advanced DCC Accessory Decoders become better defined and more prevalent.
+
+    2.5.3.5 Other Well-Known
 
    Other Well-Known Event Identifiers not discussed here have their uses prescribed and/or discussed
    elsewhere. No assumptions should be made about the use of these Well-Known Event Identifiers as
@@ -243,4 +304,4 @@ file deleted with last contents:
    2.5.3.3 Other Well-Known 5
 
    Copyright 2011-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
-   1 of 6 - Feb 6, 2016
+   1 of 7 - Feb 6, 2016
