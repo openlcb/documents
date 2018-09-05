@@ -10,25 +10,25 @@
        times.
 
    Generally, existing fast clock systems have one unit that produces time information, here called a clock
-   generator, and one or more units that consume it. Existing fast clock systems typically only report
-   minutes, not seconds or finer time divisions. Some existing fast clock systems track a day/date, in
-   addition to time.
+   generator, and one or more units that consume it. It is typically sufficitne to report minutes, not
+   seconds or finer time divisions. Some existing fast clock systems track a day/date in addition to time.
 
    Fast clocks run at various rates, and can be controlled by the user either at the clock generator or
    from other locations. Some fast clock systems broadcast run/stop and rate information, which can also be
-   useful when interpolating within a fast-minute or between time sync Events.
+   useful when interpolating within a fast-minute or between time broadcasting messages.
 
-   OpenLCB broadcasts time information by producing Event IDs.  Specific Event IDs correspond to specific
-   times with the day, for example “08:10”, so that consumers can be taught to react to time-of-day. The
-   year and date are handled separately for those installations that choose to use it.
+   The OpenLCB protocol presented in this doucment broadcasts time information by producing events with a
+   specific structure of IDs, corresponding to specific times with the day, for example “08:10”. This
+   allows consumers to be taught to react to time-of-day. The year and date are handled separately for
+   those installations that choose to use it.
 
                                          2 Intended Use (Informative)
 
    The primary use of this information is to display time on clock faces around the layout.
 
    Since remote control of the fast clock is desired, a protocol for setting up the time producer using
-   produced and consumed events is defined. This makes it possible for throttles and other user-interface
-   nodes to have a general fast-clock-control capability built in.
+   produced and consumed events is defined. This makes it possible for throttles and other nodes with user
+   interface to have a general fast-clock-control capability built in.
 
    In addition, simple nodes can use specific EventIDs to trigger their actions at specific times. For
    example, lights in buildings in a model town can be sequenced to come on at various times by configuring
@@ -46,7 +46,7 @@
        the class of Well-Known Event IDs and Automatically-Routed Event IDs.
 
      * OpenLCB Unique Identifiers Standard, which defines the allocation of OpenLCB 48-bit unique
-       identifiers
+       identifiers.
 
    For more information on format and presentation, see:
 
@@ -70,7 +70,7 @@
 
      * a valid unique ID under the control of the manufacturer of the clock generator node
 
-     * a valid Unique ID under the control of the person or organization configuring the clock generator
+     * a valid unique ID under the control of the person or organization configuring the clock generator
        node
 
    The upper six bytes are referred to as the “Specific Upper Part” in the subsections below. In portions
@@ -197,9 +197,9 @@
 
    When a clock generator starts to operate, it shall send a Producer Range Identified message covering the
    whole 16-bit range of the clock’s 6-byte “Specific Upper Part”. Additionally, the clock generator shall
-   send a Producer Identified as Currently Valid message for either the Stop Event ID or the Start Event ID
-   corresponding with its current start/stop state. Cock consumers shall send either a Consumer Range
-   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part” or
+   send a Producer Identified as Currently Valid message for exactly one the Stop Event ID or the Start
+   Event ID corresponding with its current start/stop state. Clock consumers shall send either a Consumer
+   Range Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part” or
    individual Consumer Identified messages for each individual time event consumed.
 
   6.1.1 Clock Generator
@@ -221,7 +221,7 @@
 
          2. Report Time, if the seconds count is equal to zero
 
-    5. Report Time (continuously as described in section 6.2 below, only if clock is running)
+    5. Report Time (continuously as described in section 6.2 below, only if clock is running)
 
   6.1.2 Clock Consumer
 
@@ -239,7 +239,7 @@
    world minute with the following exceptions:
 
     1. When the time rolls over to hour 0 and minute 0, the entire in order sequence described in section
-       6.1.1 above.  This ensures that the year and date are correctly reflected as a result of the
+       6.1.1 above.  This ensures that the year and date are correctly reflected as a result of the
        rollover.
 
     2. The clock generator has previously received a Consumer Identified message for a specific Report
@@ -250,18 +250,18 @@
    clock consumer wants to get the current time in minute resolution, it shall do so by sending an Identify
    Producer message using the Event ID  XX.XX.XX.XX.XX.XX.50.00.
 
-6.3 Cock Set
+6.3 Clock Set
 
    Any node may configure a clock generator. It is not a requirement that a clock generator support the
    capability to change its configuration using events. If Set Rate, Set Year, Set Date, and/or Set Time
    Event(s) are received, the clock generator does not make the change effective until a Latch Settings
    Event is received.  Upon receiving a Latch Settings Event, the entire in order sequence described in
-   section 6.1.1 above shall be sent by the clock generator.
+   section 6.1.1 above shall be sent by the clock generator.
 
    If a Set Rate Event is received by the clock generator, the clock generator's rate may be, but is not
    required to be, set to the rate embedded in the event. If the clock producer does not support the
    requested rate, it shall move to the closest non-zero supported rate.  The clock-generator shall
-   subsequently, send the entire in order sequence described in section 6.1.1 above. The rate may be set
+   subsequently, send the entire in order sequence described in section 6.1.1 above. The rate may be set
    while the clock is running or stopped.
 
     
@@ -312,6 +312,6 @@
 
    6.2 Clock Report
 
-   6.3 Cock Set
+   6.3 Clock Set
 
     
