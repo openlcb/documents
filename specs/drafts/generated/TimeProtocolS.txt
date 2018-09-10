@@ -1,7 +1,9 @@
                                          1 Introduction (Informative)
 
-   Fast-time is defined as time that progresses at a different rate (typically faster) than real world
-   time. A layout control bus can do a number of useful things with fast-time information:
+   “Fast clock” is a model railroading concept, where the layout is modeling a particular time, which can
+   then be used for various purposes, such as running trains according to a timetable, or displaying
+   lighting effects based on time of day. A layout control bus can do a number of useful things with the
+   modeled time information:
 
      * Connect a number of clock displays to keep them synchronized.
 
@@ -111,7 +113,7 @@
 
    The upper nibble of byte 6 is 4, which can be used to distinguish this format.
 
-   Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -511.75, -511.00, …, -1.00, …, -0.25, 0.0, 0.25,
+   Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -512.00, -511.75, …, -1.00, …, -0.25, 0.0, 0.25,
    0.50, ..., 511.75
 
 4.5 Set Time Event ID
@@ -171,7 +173,7 @@
 
     
 
-4.12 Undefined/Reserved Event ID’s
+4.12 Undefined/Reserved Event IDs
 
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6                  Byte 7                 
    Specific Upper Part                       All byte 6 and byte 7 values not defined above
@@ -183,73 +185,74 @@
 
    Each clock has an independent current time, independent running/stopped state and an independent rate.
 
-   When the clock is in stopped state, its time is not changing.
+   When the clock is in stopped state, it’s time is not changing.
 
-   When the clock is in running state, its internal time is advancing (rate X) as fast as normal time.
+   When the clock is in running state, it’s internal time is advancing <rate> times as fast as normal time.
 
                                           6 Interactions (Normative)
 
 6.1 Startup
 
-   When a clock generator starts to operate, it shall send a Producer Range Identified message covering the
-   whole 16-bit range of the clock’s 6-byte “Specific Upper Part”. Clock consumers shall send either a
-   Consumer Range Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper
-   Part” or individual Consumer Identified messages for each individual time event consumed.
+   When a clock generator starts to operate, it shall send a Producer Range Identified and a Consumer Range
+   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part”. Clock
+   consumers shall send either a Consumer Range Identified message covering the whole 16-bit range of the
+   clock’s 6-byte “Specific Upper Part” or individual Consumer Identified messages for each individual time
+   event consumed.
 
-   When a clock generator starts to operate, it shall also send the sequence specified in section 6.3 below
-   as if an Identify Producer message using the Event ID XX.XX.XX.XX.XX.XX.F0.00 had been received.
+   When a clock generator starts to operate, it shall also send the sequence specified in section
+   6.3 below as if an Identify Producer message using the Event ID XX.XX.XX.XX.XX.XX.F0.00 had been
+   received.
 
 6.2 Clock Report
 
    While running, a clock generator shall send a Report Time Event no more frequently than once per real
    world minute and no less frequently than once per real world hour with the following exceptions:
 
-    1. The interaction described in section 6.3 below requires it.
+    1. The interaction described in section 6.3 below requires it.
 
-    2. The clock generator has previously received a Consumer Identified message for a specific Report
-       Year, Date, or Time Event, in which case it will always generate this event when appropriate.
+    2. The clock generator has previously received a Consumer Identified message for a specific Report Time
+       Event, in which case it will always generate this event when appropriate.
 
    It is the responsibility of clock consumers to keep track of intermediate time between Report Time
    Events. The standard purposely does not define how a clock consumer internally implements time.
 
    While running, a clock generator shall send a Date Rollover Event immediately prior to a rollover in the
-   progression of time to hour 0 and minute 0 and three real seconds later send Report Year and Report Date
-   Events.
+   progression of time in either direction through hour 0 and minute 0 and three real seconds later send
+   Report Year and Report Date Events.
 
 6.3 Clock Query
 
    If a clock generator receives an Identify Producer message using the Event ID XX.XX.XX.XX.XX.XX.F0.00,
-   it shall respond with Producer Identified Valid messages corresponding to each of the last valid clock
-   Stop or Start, Report Rate, Report Year, Report Date, and Report Time Events. The clock generator shall
-   also schedule the next time event to be produced regardless as to whether a consumer of it has been
-   identified.
+   it shall respond with the following sequence of messages with the last valid events of the given group,
+   in this specific order:
 
-    1. Event Producer Identified Unknown XX.XX.XX.XX.XX.XX.F0.00
+    1. Producer Identified Unknown XX.XX.XX.XX.XX.XX.F0.00,
 
-    2. Event Producer Identified Valid Start or Stop
+    2. Producer Identified Valid for Start or Stop Event ID,
 
-    3. Event Producer Identified Valid Report Rate
+    3. Producer Identified Valid for Report Rate event,
 
-    4. Event Producer Identified Valid Report Year
+    4. Producer Identified Valid for Report Year event,
 
-    5. Event Producer Identified Valid Report Date
+    5. Producer Identified Valid for Report Date event,
 
-    6. Event Producer Identified Valid Report Time
+    6. Producer Identified Valid for Report Time event,
 
-    7. Producer/Consumer Event Report Time for next minute (when it becomes valid)
+    7. Producer/Consumer Event Report for Report Time event for next minute, when it becomes valid.
 
 6.4 Clock Set
+
+   Any node may configure a clock generator.
 
    If a Set Rate Event is received by the clock generator, the clock generator's rate may be, but is not
    required to be, set to the rate embedded in the event. If the clock producer does not support the
    requested rate, it shall move to the closest non-zero supported rate. The rate may be set while the
    clock is running or stopped.
 
-   Any node may configure a clock generator. If a Start or Stop, Set Rate, Set Year, Set Date, or Set Time
-   Event is received, the clock generator makes the change effective immediately, sending the effective
-   Report Rate, Report Year, Report Date, or Report Time Event. Three seconds after the last Start or Stop,
-   Set Rate, Set Year, Set Date, and/or Set Time has been received, the sequence of messages defined in
-   section 6.3 above shall be sent.
+   If a Start or Stop, Set Rate, Set Year, Set Date, or Set Time Event is received, the clock generator
+   shall make the change effective immediately, and produce the effective Report Rate, Report Year, Report
+   Date, or Report Time Event. Three seconds after the last Start or Stop, Set Rate, Set Year, Set Date,
+   and/or Set Time has been received, the sequence of messages defined in section 6.3 above shall be sent.
 
     
 
@@ -285,7 +288,7 @@
 
    4.11 Date Rollover Event ID
 
-   4.12 Undefined/Reserved Event ID’s
+   4.12 Undefined/Reserved Event IDs
 
    5 States (Normative)
 
