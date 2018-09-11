@@ -70,8 +70,8 @@
 
    This Standard defines a number of Event IDs.
 
-   In addition to the following Event IDs, the well-known event ID “Delivers Clock Protocol” is definedT.
-   as 0x01.01.00.00.00.00.05.01.
+   as 0x01.01.00.00.00.00.05.01..he well-known event ID “Delivers Clock Protocol” is definedTIn addition to
+   the following Event IDs, t
 
    The upper six bytes of the event IDs defined in the following subsections shall be one of the following:
 
@@ -83,14 +83,14 @@
 
      * 01.01.00.00.01.
 
+     * The upper six bytes of the following messages must be the valid Node ID of the clock producing node.
+
    Note that there are no well-defined values of the clock event IDs. You locate the clock generators and
    their event spaces via the usual IdentifyEvent/IdentifyProducer mechanisms starting with the “Delivers
    Clock Protocol” event ID.
 
-     * The details of the following formats are still being worked out. The upper six bytes of the
-       following messages must be the valid Node ID of the clock producing node.
-
-     * 03 – referred to as “Alternate Clock 2”
+     * The details of the following formats are still being worked out. 03 – referred to as “Alternate
+       Clock 2”
 
      * a valid unique ID under the control of the manufacturer of the clock generator node
 
@@ -110,6 +110,9 @@
                                                                               0x00-0x1723      0-59         
 
    The upper nibble of byte 6 is only 0 or 1, which can be used to distinguish this format.
+
+   These event IDs represent time in 24-hour format, i.e. byte 6 values of 0–11 represent a.m. time, and
+   values of 12–23 represent p.m. time.
 
 4.2 Set/Report Date Event ID
 
@@ -142,26 +145,29 @@
    The upper nibble of byte 6 is 45, which can be used to distinguish this format.
 
    Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -512.00, -511.75, -511.00, …, -1.00, …, -0.025, .00,
-   0.0, 0.25, 0.50, ..., 511.75
-
-   The upper nibble of byte 6 is only 5 or 6, which can be used to distinguish this format.
+   0.0, 0.25, 0.50, ..., 511.75  (Is that the right range? Enough granularity? Would something simpler be
+   easier?)
 
    A rate of zero is valid. The stop/start clock event should be used to stop and start the clock, because
    that doesn't require resetting, or even knowing, the current rate.
 
    (should one bit be reserved, perhaps in the high nibble, to carry the run/stop state when reporting the
    rate? That was in an earlier proposal, makes it easier to look for the entire state in a single event,
-   but it's got messy semantics)  (Is that the right range? Enough granularity? Would something simpler be
-   easier?)
+   but it's got messy semantics)
+
+   The upper nibble of byte 6 is only 5 or 6, which can be used to distinguish this format.
 
 4.5 Set Time Event ID
 
-    Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
+    Byte 0       Byte 1       Byte 2       Byte 3      Byte 4      Byte 5      Byte 6          Byte 7       
 
-    Specific Upper Part                                                              Hours       Minutes    
-                                                                                    0x80+97       0-59      
+    Specific Upper Part                                                            Hours         Minutes    
+                                                                                 0x80-0x+97       0-59      
 
    The upper nibble of byte 6 is only 8 or 9, which can be used to distinguish this format.
+
+   These event IDs represent time in 24-hour format, i.e. byte 6 values of 0x80+(0 to 11) represent a.m.
+   time, and values of 0x80+(12 to 23) represent p.m. time.
 
 4.6 Set Date Event ID
 
@@ -198,7 +204,9 @@
 
     Specific Upper Part                                                           0xF000       
 
-4.10 Stop/Start Event IDClock
+4.10 Stop/Start Event ID
+
+4.11 Clock
 
     Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
 
@@ -206,25 +214,26 @@
                                                                                                
                                                                                   Start 0xF6002
 
-   The upper nibble of byte 6 is 56, which can be used to distinguish this format.
+   , which can be used to distinguish this format.65The upper nibble of byte 6 is
 
-4.11 Date Rollover Event ID
+4.12 Date Rollover Event ID
 
     Byte 0       Byte 1       Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       
 
     Specific Upper Part                                                           0xF003       
 
-4.12 Undefined/Reserved Event ID’s
+4.13 Undefined/Reserved Event ID’s
 
     Byte 0   Byte 1   Byte 2   Byte 3   Byte 4   Byte 5   Byte 6                   Byte 7                   
 
     Specific Upper Part                                   All byte 6 and byte 7 values not defined above
 
+   (Could have also put into higher part of e.g. month message, to save this code space)
+
    Having a separate start/stop mechanism, instead of just setting rate to zero, makes distributed
    start/stop control easier. There's no need for everybody to remember the current rate while the clock is
-   stopped. (Could have also put into higher part of e.g. month message, to save this code space)All
-   undefined byte 6 and byte 7 values are reserved for future use. They shall not be sent. If received,
-   they shall be ignored.
+   stopped.All undefined byte 6 and byte 7 values are reserved for future use. They shall not be sent. If
+   received, they shall be ignored.
 
                                              5 States (Normative)
 
@@ -240,10 +249,10 @@
 6.1 Startup
 
    When a clock generator starts to operate, it shall send a Producer Range Identified and a Consumer Range
-   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part”. exactly
-   oneeitherClock consumers shall send either a Consumer Range Identified message covering the whole 16-bit
-   range of the clock’s 6-byte “Specific Upper Part” or individual Consumer Identified messages for each
-   individual time event consumed.
+   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part”.
+   eitherexactly oneClock consumers shall send either a Consumer Range Identified message covering the
+   whole 16-bit range of the clock’s 6-byte “Specific Upper Part” or individual Consumer Identified
+   messages for each individual time event consumed.
 
    Clock Generator
 
@@ -317,84 +326,7 @@
    Event is received, the clock generator shall makes the change effective immediately, and  sending
    produce the effective Report Rate, Report Year, Report Date, or Report Time Event. Three seconds after
    the last Start or Stop, Set Rate, Set Year, Set Date, and/or Set Time has been received, the sequence of
-   messages defined in section 6.3 above shall be sent.enquiry about “Delivers Clock Protocol” is a
-   IdentifyProducers The well-known event ID “Delivers Clock Protocol” shall be produced by every node when
-   it first starts to operate as a clock generator. When enquired about, the node receivedhas to “valid” if
-   the clock is operating, and “invalid” if it is not. a ProducerIdentified message with returnshall (Note
-   that this is operating, not running; if it's serving as a clock generator and will produce and consume
-   the appropriate event IDs)
-
-   A Set/Report Rate event for which there are one or more consumers are produced every real 60shall be(?)
-   seconds while the clock is running(Should the current one also be produced when the clock is not
-   running? Sometimes nice to be able to stop all traffic on the network, which you can do if it doesn't
-   send while the clock is stopped) to update the layout.
-
-   .The Set/Report Date event Ais produced when the date changes. The Set/Report shall beDate event Year is
-   produced when the year changes.shall be (Should these also be produced periodically? How often?)
-
-   Clock producer nodes When cshall producethey may, but are not required to, update their internal state
-   to the date in the event. a Set/Report Date event receivef they receive one but do not update their
-   internal dateIf they .
-
-   to the received one, they shall produce a Set/Report Date event with their current date. Clock producer
-   nodes shall produce a Set/Report Year event if they receive one but do not update their internal date.
-
-   A Set/Report Time event When clock producer nodes receive a Set/Report Year event they may, but are not
-   required to, update their internal state to the year in the event. If they do not update their internal
-   year to the received one, they shall produce a Set/Report Year event with their current year.is produced
-   every time the current time changes, e.g. every fast minute. shall be(Should it be periodically
-   produced, e.g. every real minute, when the clock is stopped? That updates recent joiners, but it's nice
-   to be able to stop all network traffic).
-
-   When a Set/Report Time event is received at a clock-producer node, it may, but is not required to, set
-   the time in the clock producer node. If the time is not set, the current time event is produced
-   immediately after.
-
-   If a Set/Report Rate event is received, the clock-producer's rate shall beis set to the rate embedded in
-   the event. may be, but is not required to be,The run/stop bits are ignored. Idoes not support the
-   requested rate, it producer f the clock Imoves to the closest non-zero supported rate, and produces a
-   Set/Report Rate event containing the current rate. ll moveshaRate can be set while the clock is running
-   or stopped. The rate mayThe clock producer node may, but is not required to, produce a Set/Report Time
-   immediately after the rate event is produced to ensure that all agree on the exact time.
-
-   The use of the same event to broadcast the rate and to set the rate should perhaps be revisited. Is that
-   consistent with event semantics? Or should a “rate set event” do the set and cause the clock source to
-   emit a “current rate” event? There's no security issue here, because we receive the Node ID of the
-   set-sending node either way. And a clock receiving a set command, no matter what the format, can still
-   decide not to do it (if the protocol allows rejecting that, see above)
-
-6.5 Event Identification and Reporting
-
-   When a clock producer node receives an Identify Events message, it replies with an IdentifyProducedRange
-   and an IdentifyConsumedRange that covers the entire set of time event IDs.
-
-   In addition, the node When a clock producer node receives an Identify Events message, willAn
-   IdentifyProducedEvent message for the current rateAn IdentifyProducedEvent message for the current start
-   or stop state, showing valid & active
-
-     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
-
-     * A ProducerRangeIdentified that covers the entire set of time event IDs
-
-     * A ConsumedRangeIdentified that covers the entire set of time event IDs
-
-   :
-
-   , in order reply withshall (and start/stop state?), showing valid & active (if start/stop not in the
-   event, also a stop/start event for the valid case)
-
-     * An IdentifyProducedEvent message for the current year showing valid & active
-
-     * An IdentifyProducedEvent message for the current date, showing valid & active
-
-   An IdentifyProducedEvent message for the current time, showing valid & active
-
-     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
-
-     * All of the preceding may be in any order, but the given order is recommended.
-
-   (There's actually an standards issue here – with the current coding, the Date events don't occupy more
-   than half of the reported range)
+   messages defined in section 6.3 above shall be sent.
 
    When a clock producer node receives an IdentifyProducers message that covers any of the events it
    handles (Set/Report Time, Set/Report Date, Set/Report Year, Set/Report Rate, Stop/Start Clock) it will
@@ -407,6 +339,83 @@
    reply with a ConsumerIdentified message showing valid. If the queried event is the current state (same
    time, same date, same year, same rate & start/stop status, or same start/stop status respectively), the
    reply will be marked active. Otherwise, it will be marked inactive.
+
+     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
+
+     * All of the preceding may be in any order, but the given order is recommended.
+
+   (There's actually an standards issue here – with the current coding, the Date events don't occupy more
+   than half of the reported range)
+
+     * An IdentifyProducedEvent message for the current year showing valid & active
+
+     * An IdentifyProducedEvent message for the current date, showing valid & active
+
+   An IdentifyProducedEvent message for the current time, showing valid & active (if start/stop not in the
+   event, also a stop/start event for the valid case), showing valid & active (and start/stop state?)An
+   IdentifyProducedEvent message for the current rateAn IdentifyProducedEvent message for the current start
+   or stop state, showing valid & active
+
+     * An IdentifyProducedEvent message for the well-known event ID “Delivers Clock Protocol”
+
+     * A ProducerRangeIdentified that covers the entire set of time event IDs
+
+     * A ConsumedRangeIdentified that covers the entire set of time event IDs
+
+   :
+
+   , in order reply withshallwillthe node When a clock producer node receives an Identify Events message,
+   When a clock producer node receives an Identify Events message, it replies with an IdentifyProducedRange
+   and an IdentifyConsumedRange that covers the entire set of time event IDs.
+
+   In addition,
+
+6.5 Event Identification and Reporting
+
+   The use of the same event to broadcast the rate and to set the rate should perhaps be revisited. Is that
+   consistent with event semantics? Or should a “rate set event” do the set and cause the clock source to
+   emit a “current rate” event? There's no security issue here, because we receive the Node ID of the
+   set-sending node either way. And a clock receiving a set command, no matter what the format, can still
+   decide not to do it (if the protocol allows rejecting that, see above) The clock producer node may, but
+   is not required to, produce a Set/Report Time immediately after the rate event is produced to ensure
+   that all agree on the exact time. be set while the clock is running or stopped. The rate mayRate can to
+   the closest non-zero supported rate, and produces a Set/Report Rate event containing the current rate.
+   ll moveshamovesdoes not support the requested rate, it producer f the clock IThe run/stop bits are
+   ignored. I set to the rate embedded in the event. may be, but is not required to be,is produced
+   immediately after.
+
+   If a Set/Report Rate event is received, the clock-producer's rate shall beisa Set/Report Time event is
+   received at a clock-producer node, it may, but is not required to, set the time in the clock producer
+   node. If the time is not set, the current time event
+
+   When (Should it be periodically produced, e.g. every real minute, when the clock is stopped? That
+   updates recent joiners, but it's nice to be able to stop all network traffic). produced every time the
+   current time changes, e.g. every fast minute. shall beis
+
+   A Set/Report Time event When clock producer nodes receive a Set/Report Year event they may, but are not
+   required to, update their internal state to the year in the event. If they do not update their internal
+   year to the received one, they shall produce a Set/Report Year event with their current year. Clock
+   producer nodes shall produce a Set/Report Year event if they receive one but do not update their
+   internal date.
+
+   to the received one, they shall produce a Set/Report Date event with their current date..do not update
+   their internal dateIf they f they receive one but they may, but are not required to, update their
+   internal state to the date in the event. a Set/Report Date event receiveshall producelock producer nodes
+   When cC
+
+   (Should these also be produced periodically? How often?) produced when the year changes.shall beisevent
+   Year Date produced when the date changes. The Set/Report shall beis Set/Report Date event AThe
+
+   . to update the layout. (Should the current one also be produced when the clock is not running?
+   Sometimes nice to be able to stop all traffic on the network, which you can do if it doesn't send while
+   the clock is stopped) seconds while the clock is running(?) produced every real 60shall be are
+
+   A Set/Report Rate event for which there are one or more consumers (Note that this is operating, not
+   running; if it's serving as a clock generator and will produce and consume the appropriate event IDs)
+   “valid” if the clock is operating, and “invalid” if it is not. a ProducerIdentified message with
+   returnshallhas to, the node receivedenquired aboutenquiry about “Delivers Clock Protocol” is a
+   IdentifyProducers The well-known event ID “Delivers Clock Protocol” shall be produced by every node when
+   it first starts to operate as a clock generator. When
 
    Table of Contents
 
@@ -455,4 +464,4 @@
    6.4 Clock Set 6
 
    Copyright 20133 - 2018. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
-   Page 1 of 8 - Sep 11, 2018
+   Page 1 of 7 - Sep 11, 2018
