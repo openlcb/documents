@@ -56,7 +56,7 @@
    off on a detailed cycle.
 
    Simple nodes should be able to respond to timed events without any additional cost. A simple input node
-   can be configured to control a fast clock with a few common configuration-defined setting, such as
+   can be configured to control a fast clock with a few common configuration-defined settings, such as
    buttons or a toggle switch to stop and start the clock, a few buttons to select a rate, and a button to
    set time to 8:00am. The clock running/stopped state can be displayed with a LED on a simple node.
 
@@ -235,7 +235,7 @@
 
   2.6.1 Startup
 
-   As stated in section 1.1 above, there are use cases, such as a clock face display, where a node will be
+   As stated in section 1.1 above, there are use cases, such as a clock face display, where a node will be
    consuming either all or the vast majority of clock events. In this case, it is preferable to use the
    Consumer Range Identified message in order to announce consumption of clock events.
 
@@ -262,8 +262,8 @@
    The process for a clock generator to identify all the clock event consumers is not explicitly specified.
    Two possible options include:
 
-    1. Send an Identify Events Addressed message to each node in the network as described in section
-       3.6 below.
+    1. Send an Identify Events Addressed message to each node in the network as described in section 3.6
+       below.
 
     2. Send an Identify Events Global message.
 
@@ -303,7 +303,7 @@
 
   2.6.4 Clock Set
 
-   The Start or Stop state, Rate, Year, Date, or Time may be each be set independently. If the desire is to
+   The Start or Stop state, Rate, Year, Date, or Time may each be set independently. If the desire is to
    change more than one of these settings at one time, it is recommended, though not required, to first
    stop the clock, then request the Rate, Year, Date, and/or Time settings, and finally (if desired) start
    the clock.
@@ -314,11 +314,7 @@
    after setting; these echoed messages, even if multiple of them are sent in a short period of time, will
    always be received in the same order by all nodes on the bus. Any possible remaining ordering problem
    (e.g. on Start/Stop events) will be fixed to convergence three seconds later when the current state is
-   announced. The standard makes no prescribed attempt to mitigate this race condition. In order to
-   minimize the window size of this race condition, it is recommended that user interfaces which allow the
-   user to setup Rate, Year, Date, and/or Time locally cache the requested settings as their entered. Once
-   the user has committed to the new settings on the whole, the user interface node would send all of the
-   settings in one back to back burst of messages.
+   announced.
 
                                            3 Background Information
 
@@ -341,13 +337,13 @@
 
    Through configuration, it is possible that a clock generator would make a large jump, forward or
    backward, in time from its previous set time. The only requirement about this jump is that the sequence
-   described in section matching 2.6.4 above follows the jump.
+   described in section matching 2.6.4 above follows the jump.
 
    It is allowable, though not required, for a a clock generator to produce intermediate Report Time
    Events, as well as Report Year and Date events, at a highly accelerated rate. One possible use case for
    this is to “reset” time for nodes that consume clock events but otherwise have no knowledge of the
    concept of time. If either of these, or similar, techniques are deployed, the sequenced described in
-   section 2.6.4 above is still required once the application of the technique is complete and the new set
+   section 2.6.4 above is still required once the application of the technique is complete and the new set
    time is reached.
 
    It is not prescribed how this might occur, but one can imagine a number of different scenarios:
@@ -362,7 +358,7 @@
        new time, intermediate clock events are sent at an accelerated rate until the new set time is
        reached.
 
-    3. Generic event consumers are taught to consume one additional event, the “start of operting session”
+    3. Generic event consumers are taught to consume one additional event, the “start of operating session”
        event, re-setting their state to the desired state at that point. This does not allow arbitrary
        jumps however.
 
@@ -402,7 +398,7 @@
    A not-well-served case of the Standard is the operation of simple consumer nodes for turning on their
    outputs for desired periods of time, e.g. a street light to turn on during night time. Learning the
    direct event ID of the time when night should start and stop works in simple progression, but requires
-   workarounds presented in section 1.2 and 3.2 to support jumps in time.
+   workarounds presented in section 1.2 and 3.2 to support jumps in time.
 
    A way to correctly support jumps in time is by an advanced clock cue node. This cue node keeps track of
    the time internally by being a clock consumer. By configuration (e.g. via the CDI) it knows which time
@@ -499,8 +495,8 @@
                                                 4 Future Work
 
    The existence of this Simple Time Protocol does not preclude the existence of other protocols for the
-   conveyance of time. It is possible that future time related protocols could be developed in the in order
-   to realize the unserved use cases identified in section 1.2 above.
+   conveyance of time. It is possible that future time related protocols could be developed in order to
+   realize the unserved use cases identified in section 1.2 above.
 
     
 
