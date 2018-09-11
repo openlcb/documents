@@ -10,7 +10,7 @@
 
    Model railroad layouts sometime have their own time displayed via visible clocks that people refer to
    when operating the layout. These might display a different time of day from the current real clockworld
-   time, so that an evening train can be run during the day. TheyModel railroad clocks might run at a
+   time, so that an evening train can be run during the day. They Model railroad clocks might run at a
    different rate than real time (e.g., faster), so that the shorter distances of the model are covered by
    a train in the right number of “fast minutes”.
 
@@ -64,7 +64,7 @@
    off on a detailed cycle.
 
    Simple nodes should be able to respond to timed events without any additional cost. A simple input node
-   can be configured to control a fast clock with a few common configuration-defined setting, such as
+   can be configured to control a fast clock with a few common configuration-defined settings, such as
    buttons or a toggle switch to stop and start the clock, a few buttons to select a rate, and a button to
    set time to 8:00am. The clock running/stopped state can be displayed with a LED on a simple node.
 
@@ -140,7 +140,7 @@
    The “Default Fast Clock”, “Default Real-Time Clock”, “Alternate Clock 1”, and “Alternate Clock 2” terms
    are not further defined in the Standard. They have no operational effect. They're provided to make it
    easier for a clock face manufacturer to set up the clock face node to automatically find the default
-   fast clock generator, without user involvement, when attached to an OpenLCB installation. OneA single
+   fast clock generator, without user involvement, when attached to an OpenLCB installation. One A single
    fast clock system is expected to be the most common installation, and this makes it very convenient for
    the user.
 
@@ -162,10 +162,12 @@
    These two event types are structured in bytes for ease of programming. It is not a goal for a
    hexadecimal dump of the packet be human-readable (hence not using BCD encoding).
 
-  2.4.3 Set/Report Year Event ID  (It's been proposed that the year instead be in some BCD format, which
-  represents 999 years around some epoch)
+  2.4.3 Set/Report Year Event ID
 
-  2.4.4 Set/Report Rate Event ID
+  2.4.4  (It's been proposed that the year instead be in some BCD format, which represents 999 years around
+  some epoch)
+
+  2.4.5 Set/Report Rate Event ID
 
    A rate of zero is valid. The stop/start clock event should be used to stop and start the clock, because
    that doesn't require resetting, or even knowing, the current rate. A rate of zero is means the clock is
@@ -175,34 +177,34 @@
    signed integer formats (i.e., 2’s complement notation), for example 0x4800 is -512.00, 0x4801 is
    -511.75, … 0x4FFE is -0.5, and 0x4FFF is -0.25.
 
-  2.4.5 Set Time Event ID
+  2.4.6 Set Time Event ID
 
-  2.4.6 Set Date Event ID
+  2.4.7 Set Date Event ID
 
-  2.4.7 Set Year Event ID
+  2.4.8 Set Year Event ID
 
    These event IDs are exactly 0x8000 shifted from the matching Report event IDs for ease of programming.
 
-  2.4.8 Set Rate Event ID
+  2.4.9 Set Rate Event ID
 
    A rate of zero is means the clock is stopped, though it is preferred to the Stop/Start Events for
    starting and stopping the clock.
 
-  2.4.9 Query Event ID
+  2.4.10 Query Event ID
 
    This event ID will cause the clock generator to report it’s entire internal state.
 
-  2.4.10 Stop/Start ClockEvent ID
+  2.4.11 Stop/Start ClockEvent ID
 
    Having a separate start/stop mechanism, instead of just setting rate to zero, makes distributed
    start/stop control easier. There'’s no need for everybody to remember the current rate while the clock
    is stopped.
 
-  2.4.11 Date Rollover Event ID
+  2.4.12 Date Rollover Event ID
 
    This event ID works around race conditions involving changes in date and time due to midnight rollover.
 
-  2.4.12 Undefined/Reserved Event ID’s
+  2.4.13 Undefined/Reserved Event ID’s
 
    Any Event ID’s not explicitly defined by the standard are reserved for future use.
 
@@ -214,8 +216,10 @@
    It's up to the node implementor to decide how to implement the internal clock time. It could be an
    internal time generator of some kind, or linked to some external time reference.
 
-2.6 Interactions Nodes that receive an event ID that would set the rate, date or year, but do not actually set
-to the specific value, send an event ID with the value they do set. There may be other consumers listening and
+2.6 Interactions
+
+2.7 Nodes that receive an event ID that would set the rate, date or year, but do not actually set to the
+specific value, send an event ID with the value they do set. There may be other consumers listening and
 tracking the state of the clock, and producing these event IDs keeps all those in synch.
 
    Nodes that want the date, e.g. to initialize a display, can ask for the Set/ReportDate event status from
@@ -229,8 +233,6 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    Status events are not produced while the clock is not running so that it's possible to stop all traffic
    on the network.
-
-2.7
 
    Note that nodes should not assume that they will receive any time event only once. As time is set, it'’s
    possible for a node to receive the current time more than once.
@@ -248,24 +250,24 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    is equal to zero and when an Event Producer Identified Valid message for the Report Time Event is sent,
    the seconds count is not assumed to be equal to zero.
 
-   The complete time, year-date-time, is sent in several events. The Standard does not specify what order
-   these are sent in at midnight or the start of January 1^st, only that the updates be sent. Nodes that
-   are using year and date information to do computations should use their own internal state(s) to track
-   the transition from one day to the next.results in the time changing, that's a time change that has to
-   result in a Time Report event being produced. Some methods of computing fast time can produce
-   discontinuous changes in time when the rate changes, while others do not. If a rate change
-
-   In general, fast clocks don't always have 60 seconds to the minute in any case, and the next routine
-   time announcement will be at a zero-seconds count, so neither of these is a critical issue and both are
-   allowed. It's recommended that clocks set when they receive a Set Time event, and that nodes not send
-   one unless the network has been configured to allow it.
-
      * Not resetting it allows time to move continuously. Nodes have to understand that the time they
        receive is just to the nearest minute, and not infer that the seconds value associated with a Report
        Time event will always be zero.
 
    Resetting it allows other nodes to assume that the seconds value associated with a Report Time event is
    always zero, at the cost of preventing time from being exactly 60 seconds to a minute always.
+
+   In general, fast clocks don't always have 60 seconds to the minute in any case, and the next routine
+   time announcement will be at a zero-seconds count, so neither of these is a critical issue and both are
+   allowed. It's recommended that clocks set when they receive a Set Time event, and that nodes not send
+   one unless the network has been configured to allow it.
+
+   The complete time, year-date-time, is sent in several events. The Standard does not specify what order
+   these are sent in at midnight or the start of January 1^st, only that the updates be sent. Nodes that
+   are using year and date information to do computations should use their own internal state(s) to track
+   the transition from one day to the next.results in the time changing, that's a time change that has to
+   result in a Time Report event being produced. Some methods of computing fast time can produce
+   discontinuous changes in time when the rate changes, while others do not. If a rate change
 
    OpenLCB doesn'’t have latency guarantees, so different nodes may have slightly different ideas of the
    time. In practice, the differences should be much less than a second for operating OpenLCB
@@ -307,8 +309,8 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    CAN bus segment being used up., if we consider a more practically realistic clock rate of 12:1, the
    resulting bandwidth used becomes less than 3% . Rather, the motivation behind limiting the Report Time
    Event generation is to prevent adding too much clutter in bus capture logs. The desirable property is
-   that a layout bus should have no messages passing by in quiescent state.One Report Time Event sent once
-   per real minute results in a total CAN bus bandwidth utilization of less than 0.5%.
+   that a layout bus should have no messages passing by in quiescent state.%.5One Report Time Event sent
+   once per real minute results in a total CAN bus bandwidth utilization of less than 0.
 
    It is important to note that, unless following one of the noted exceptions, a clock generator is not
    required to produce any clocktime events for which a specific clock event consumer has not been
@@ -358,7 +360,7 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
   2.7.4 Clock Set
 
-   The Start or Stop state, Rate, Year, Date, or Time may be each be set independently. If the desire is to
+   The Start or Stop state, Rate, Year, Date, or Time may each be set independently. If the desire is to
    change more than one of these settings at one time, it is recommended, though not required, to first
    stop the clock, then request the Rate, Year, Date, and/or Time settings, and finally (if desired) start
    the clock.
@@ -369,12 +371,9 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    after setting; these echoed messages, even if multiple of them are sent in a short period of time, will
    always be received in the same order by all nodes on the bus. Any possible remaining ordering problem
    (e.g. on Start/Stop events) will be fixed to convergence three seconds later when the current state is
-   announced. The standard makes no prescribed attempt to mitigate this race condition.Clock events from
-   clock generators with other Specific Upper Part values must be identified by another means, see “Further
-   Work” section below.s, along with IdentifyProducedEvent messages for all other producers on the node.
+   announced.Event Identification and Reporting
 
-   Clock events from the four well-known clocks can be identified by the well-known six-byte Specific Upper
-   Part of the event ID. s.To find the current clock:
+   This letevent transfer protocol combines with these event definition toThe sTo find the current clock:
 
      * Send a global IdentifyProducers for well-known event ID “Delivers Clock Protocol”
 
@@ -384,23 +383,23 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    The reply will contain IdentifyProducedEvent messages that show the current clock producer state via
    their active/valid statu
 
-   devices rapidly establish information about a clock, even if they don't know it exists. s letevent
-   transfer protocol combines with these event definition toThe ThisEvent Identification and Reporting
+   devices rapidly establish information about a clock, even if they don't know it exists. s.Clock events
+   from clock generators with other Specific Upper Part values must be identified by another means, see
+   “Further Work” section below.s, along with IdentifyProducedEvent messages for all other producers on the
+   node.
 
-   In order to minimize the window size of this race condition, it is recommended that user interfaces
-   which allow the user to setup Rate, Year, Date, and/or Time locally cache the requested settings as
-   their entered. Once the user has committed to the new settings on the whole, the user interface node
-   would send all of the settings in one back to back burst of messages.
+   Clock events from the four well-known clocks can be identified by the well-known six-byte Specific Upper
+   Part of the event ID.
 
                                            3 Background Information
 
-   Perhaps it should be added to the PIP mechanism to make it unambiguous that the node manufacturer
-   intends this to be supported, trigger automated tests, etc., because it's totally self-identifying.
-   There's no formal, functional need to check for it. IdentifyProducers can find the clock producer
-   node(s) on the layout. otocol Identification messagethe PrPIPThis protocol doesn't appear in This
-   section will go directly into the Technical Note.
+   This section will go directly into the Technical Note.
 
-   This section is general information of interest to the reader, implementers, etc...
+   This protocol doesn't appear in PIP, because it's totally self-identifying. There's no formal,
+   functional need to check for it. IdentifyProducers can find the clock producer node(s) on the layout.
+   otocol Identification messagethe PrPerhaps it should be added to the PIP mechanism to make it
+   unambiguous that the node manufacturer intends this to be supported, trigger automated tests, etc.This
+   section is general information of interest to the reader, implementers, etc...
 
 3.1 Multiple Clocks
 
@@ -440,7 +439,7 @@ tracking the state of the clock, and producing these event IDs keeps all those i
        new time, intermediate clock events are sent at an accelerated rate until the new set time is
        reached.
 
-    3. Generic event consumers are taught to consume one additional event, the “start of operting session”
+    3. Generic event consumers are taught to consume one additional event, the “start of operating session”
        event, re-setting their state to the desired state at that point. This does not allow arbitrary
        jumps however.
 
@@ -451,11 +450,15 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    a programming button on the master time producer that sends the learn message for the current clock
    time.
 
-   For Example:Better (more powerful) UIs can then use the same underlying teach/learn implementation.
+   For Example:
+
+   Better (more powerful) UIs can then use the same underlying teach/learn implementation.
 
    To Teach: gold; blue to select: hour, +minute,; rate; up/down to change; gold
 
-   To nominate: blue, blue; gold to select: h,+m,r; up/down; blueFrom the Arduino docs:
+   To nominate: blue, blue; gold to select: h,+m,r; up/down; blue
+
+   From the Arduino docs:
 
    The User Interface (UI) uses the Blue / Gold buttons:
 
@@ -480,7 +483,7 @@ tracking the state of the clock, and producing these event IDs keeps all those i
    don'tes not have to be part of this protocol. An alarm-producer isn't specifically part of the clock
    producer. It could be anywherealso shipped with a clock consumer or a generic consumer configured to a
    specific time event. And no protocol needs to be defined for alarm events, as they're just regular
-   produced events: When event A is producedconsumed, produce B and C. That's a generally-useful thing to
+   produced events: When event A is produced consumed, produce B and C. That's a generally-useful thing to
    have, even for non-time events.
 
 3.5 Time-range cues
@@ -577,9 +580,11 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    Commands to change the run/stop state and clock rate are broadcast as separate events. That's better
    than coding them in the time events themselves, because if e.g. rate was separate bits in the event,
-   simple nodes could not be configured to recognize specific times. of the day.We're not sending
-   events-with-only-minutes, or -only-seconds. Those make it easy to do something once a minute or once a
-   second via consumer, but those are not to the only interesting intervals: Just do the calculation.
+   simple nodes could not be configured to recognize specific times. of the day.
+
+   We're not sending events-with-only-minutes, or -only-seconds. Those make it easy to do something once a
+   minute or once a second via consumer, but those are not to the only interesting intervals: Just do the
+   calculation.
 
    Regardless of whether the clock sends seconds or minutes, small times can be maintained via a local
    timebase synchronized to the time broadcast and the rate messages. There's a limit to how precise this
@@ -587,26 +592,26 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    Using received time is much simpler, and the smallest time commonly used by fast clocks is the second.
    Since OpenLCB networks can handle 3-4 messages/second for a fast clock with second resolution, it seems
-   simplest to just broadcast the seconds. The choice of filtering as a requirement to the clock producer
+   simplest to just broadcast the seconds.The choice of filtering as a requirement to the clock producer
    came from the wish to keep the bus quiescent for monitoring/logging/debugging purposes when there is no
    human interaction with the layout.
 
                                                 4 Future Work
 
-   iguration, or a configuration tool is passing an event ID from the clock generator to the clock. This
-   doesn't interfere with operating and configuring clock producers and clock faces manually. In that case,
-   the events are known by the person doing the conf to an IdentifyEvents message to the node. But it may
-   not be possible to disentangle the clock events from other events produced by the node, particularly if
-   the node produces multiple ranges of events. A better solution for this would be useful.ing for
-   producers of the “Delivers Clock Protocol” event. The clock events will then appear in the set of
-   ProducerIdentified and ProducerRangeIdentified repliesiable solution to finding time event IDs with a
-   non-common upper part. A node that produces its own time events can be found by askThere is no
-   fully-relPerhaps this should be added to the Protocol Identification mechanism to make it unambiguous
+   Event identificationiguration, or a configuration tool is passing an event ID from the clock generator
+   to the clock. This doesn't interfere with operating and configuring clock producers and clock faces
+   manually. In that case, the events are known by the person doing the conf to an IdentifyEvents message
+   to the node. But it may not be possible to disentangle the clock events from other events produced by
+   the node, particularly if the node produces multiple ranges of events. A better solution for this would
+   be useful.ing for producers of the “Delivers Clock Protocol” event. The clock events will then appear in
+   the set of ProducerIdentified and ProducerRangeIdentified repliesiable solution to finding time event
+   IDs with a non-common upper part. A node that produces its own time events can be found by askThere is
+   no fully-relPerhaps this should be added to the Protocol Identification mechanism to make it unambiguous
    that the node manufacturer intends this to be supported, trigger automated tests, etc.
 
-   Event identificationThe existence of this Simple Time Protocol does not preclude the existence of other
-   protocols for the conveyance of time. It is possible that that future time related protocols could be
-   developed in the in order to realize the unserved use cases identified in section 1.2 above.
+   The existence of this Simple Time Protocol does not preclude the existence of other protocols for the
+   conveyance of time. It is possible that that future time related protocols could be developed in order
+   to realize the unserved use cases identified in section 1.2 above.
 
    Table of Contents
 
@@ -616,9 +621,9 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    1.2 Unserved use cases 2
 
-   2 Annotations to the Standard 2
+   2 Annotations to the Standard 3
 
-   2.1 Introduction 2
+   2.1 Introduction 3
 
    2.2 Intended Use 3
 
@@ -628,11 +633,11 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    2.4.1 Report Time Event ID 3
 
-   2.4.2 Report Date Event ID 3
+   2.4.2 Report Date Event ID 4
 
-   2.4.3 Report Year Event ID 3
+   2.4.3 Report Year Event ID 4
 
-   2.4.4 Report Rate Event ID 3
+   2.4.4 Report Rate Event ID 4
 
    2.4.5 Set Time Event ID 4
 
@@ -658,27 +663,29 @@ tracking the state of the clock, and producing these event IDs keeps all those i
 
    2.6.2 Clock Report 5
 
-   2.6.3 Clock Query 5
+   2.6.3 Clock Query 6
 
-   2.6.4 Clock Set 5
+   2.6.4 Clock Set 6
 
-   3 Background Information 6
+   3 Background Information 7
 
-   3.1 Multiple Clocks 6
+   3.1 Multiple Clocks 7
 
-   3.2 Jumps in Time 6
+   3.2 Jumps in Time 7
 
-   3.3 Configuration via a Simple Teach-Learn User Interface 6
+   3.3 Configuration via a Simple Teach-Learn User Interface 8
 
-   3.4 Alarms 7
+   3.4 Alarms 8
 
-   3.5 Low-Bandwidth Clock Producers 7
+   3.5 Time-range cues 8
 
-   3.6 Slaving Clock Generators 8
+   3.6 Low-Bandwidth Clock Producers 9
 
-   3.7 History and Numerology 8
+   3.7 Slaving Clock Generators 9
 
-   4 Future Work 9
+   3.8 History and Numerology 10
+
+   4 Future Work 10
 
    Copyright 2013 - 2018. All rights reserved. See http://openlcb.org/Licensing.html for license terms. 
    Page 1 of 10 - Feb 6, 2013
