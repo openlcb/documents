@@ -197,13 +197,16 @@
 6.1 Startup
 
    When a clock generator starts to operate, it shall send a Producer Range Identified and a Consumer Range
-   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part”. Clock
-   consumers shall send either a Consumer Range Identified message covering the whole 16-bit range of the
-   clock’s 6-byte “Specific Upper Part” or individual Consumer Identified messages for each individual time
-   event consumed.
+   Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific Upper Part”.
 
-   When a clock generator starts to operate, it shall also send the sequence specified in section 6.3 below
-   as if a Query Event had been received.
+   Clock consumers that wish to track the progression of time by consuming all produced time events shall
+   send a Consumer Range Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific
+   Upper Part”. Clock consumers who that wish to consume specific individual events shall send the
+   corresponding Consumer Identified messages for each individual time event consumed. A single clock
+   consumer may combine the use of these two consumer identify methods as needed.
+
+   When a clock generator starts to operate, it shall also send the sequence specified in section 6.3
+   below.
 
 6.2 Clock Report
 
@@ -212,8 +215,8 @@
 
     1. The interaction described in section 6.3 below requires it.
 
-    2. The clock generator has previously received a Consumer Identified message for a specific Report Time
-       Event, in which case it will always generate this event when appropriate.
+    2. The clock generator has previously received a Consumer Identified message for a specific (not a
+       range) Report Time Event, in which case it will always generate this event when appropriate.
 
    It is the responsibility of clock consumers to keep track of intermediate time between Report Time
    Events. The standard purposely does not define how a clock consumer internally implements time.
@@ -222,10 +225,11 @@
    progression of time in either direction through hour 0 and minute 0 and three real seconds later send
    Report Year and Report Date Events.
 
-6.3 Clock Query
+6.3 Clock Synchronization
 
-   If a clock generator receives a Query Event, it shall respond with the following sequence of messages
-   with the last valid events of the given group, in this specific order:
+   In order to provide all the necessary state for the synchronization of a clock consumer the following
+   sequence of messages shall be produced with the last valid events of the given group, in this specific
+   order:
 
     1. Producer Identified Valid for Start or Stop Event ID,
 
@@ -239,9 +243,14 @@
 
     6. Producer/Consumer Event Report for Report Time event for next minute, when it becomes valid.
 
-6.4 Clock Set
+6.4 Clock Query
 
-   Any node may configure a clock generator.
+   If a clock generator receives a Query Event, it shall respond with the sequence provided in section 6.3
+   above.
+
+6.5 Clock Set
+
+   Any node may set a clock generator.
 
    If a Set Rate Event is received by the clock generator, the clock generator's rate may be, but is not
    required to be, set to the rate embedded in the event. If the clock producer does not support the
@@ -297,8 +306,10 @@
 
    6.2 Clock Report
 
-   6.3 Clock Query
+   6.3 Clock Synchronization
 
-   6.4 Clock Set
+   6.4 Clock Query
+
+   6.5 Clock Set
 
     

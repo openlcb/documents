@@ -136,17 +136,24 @@
    user.
 
    The values are packed into two bytes to make it easier to allocate the unique “Specific Upper Part” by
-   using an OpenLCB unique ID.
+   using an OpenLCB Unique Identifier.
+
+   While the terms “Fast Clock” and “Real-Time Clock” are not intentionally undefined, one valid, and
+   likely common, interpretation of these terms may be as follows.
+
+     * Fast Clock – A clock that runs at some ratio, typically faster, to real world time.
+
+     * Real-Time Clock – A clock that runs at a 1:1 ratio to real world time.
 
   2.4.1 Report Time Event ID
 
-   While time is always represented in 24-hour form in the transmitted messages and clock state, this is
-   independent to how time is displayed to the user. For products that have a clock display, it is up to
-   the manufacturer to decide whether to use 12-hour or 24-hour time display, or provide a
-   user-controllable setting for this. There is no provision in this Standard for centrally establishing
-   formatting settings; manufacturer could provide configuration via physical buttons or the established
-   configuration standards like the Memory Configuration Protocol and Configuration Description Information
-   standards.
+   While time is always represented in 24-hour form (00:00 is midnight) in the transmitted messages and
+   clock state, this is independent to how time is displayed to the user. For products that have a clock
+   display, it is up to the manufacturer to decide whether to use 12-hour or 24-hour time display, or
+   provide a user-controllable setting for this. There is no provision in this Standard for centrally
+   establishing formatting settings; manufacturer could provide configuration via physical buttons or the
+   established configuration standards like the Memory Configuration Protocol and Configuration Description
+   Information standards.
 
   2.4.2 Report Date Event ID
 
@@ -157,14 +164,19 @@
 
   2.4.4 Report Rate Event ID
 
-   A rate of zero is means the clock is stopped, though it is preferred to use the Stop/Start Events for
+   A rate of zero means the clock is stopped, though it is preferred to use the Stop/Start Events for
    starting and stopping the clock. Negative rates mean the modeled time is moving backwards. Negative
    rates are represented using standard signed integer formats (i.e., 2’s complement notation), for example
-   0x4800 is -512.00, 0x4801 is -511.75, … 0x4FFE is -0.5, and 0x4FFF is -0.25.
+   0x4800 is -512.00, 0x4801 is -511.75, … 0x4FFE is -0.5, and 0x4FFF is -0.25. The rate is intended to be
+   a ration measured against real world time.
 
   2.4.5 Set Time Event ID
 
+   These event IDs are exactly 0x8000 shifted from the matching Report event IDs for ease of programming.
+
   2.4.6 Set Date Event ID
+
+   These event IDs are exactly 0x8000 shifted from the matching Report event IDs for ease of programming.
 
   2.4.7 Set Year Event ID
 
@@ -172,8 +184,7 @@
 
   2.4.8 Set Rate Event ID
 
-   A rate of zero is means the clock is stopped, though it is preferred to the Stop/Start Events for
-   starting and stopping the clock.
+   These event IDs are exactly 0x8000 shifted from the matching Report event IDs for ease of programming.
 
   2.4.9 Query Event ID
 
@@ -262,7 +273,7 @@
    The process for a clock generator to identify all the clock event consumers is not explicitly specified.
    Two possible options include:
 
-    1. Send an Identify Events Addressed message to each node in the network as described in section 3.6
+    1. Send an Identify Events Addressed message to each node in the network as described in section 3.10
        below.
 
     2. Send an Identify Events Global message.
@@ -280,14 +291,16 @@
    clock consumers becoming confused about what the actual year and date is when their internal
    implementation of time rolls over asynchronous to clock Report Time Events.
 
-  2.6.3 Clock Query
+  2.6.3 Clock Synchronization
+
+   The requirement to always produce the next minute event is added so that clock consumers can learn the
+   second counter of the clock producer and synchronize to each other.
+
+  2.6.4 Clock Query
 
    When a clock consumer wants to know the current time, it may also want to know the Start or Stop state,
    Rate, Year, Date, and Time. The sequence prescribed allows all of this information to be provided in a
    short burst sequence.
-
-   The requirement to always produce the next minute event is added so that clock consumers can learn the
-   second counter of the clock producer and synchronize to each other.
 
    This interaction can be used by a clock consumer to inquire time at it’s startup in case it has missed
    the announcements of the clock producer, or during running when it is uncertain about its internal
@@ -301,7 +314,7 @@
     2. clock producers may delay the reply to the clock query by a few hundred milliseconds in order to
        catch any duplicate clock query commands and respond with a single announcement to all of them.
 
-  2.6.4 Clock Set
+  2.6.5 Clock Set
 
    The Start or Stop state, Rate, Year, Date, or Time may each be set independently. If the desire is to
    change more than one of these settings at one time, it is recommended, though not required, to first
@@ -315,6 +328,10 @@
    always be received in the same order by all nodes on the bus. Any possible remaining ordering problem
    (e.g. on Start/Stop events) will be fixed to convergence three seconds later when the current state is
    announced.
+
+   It is not required that a clock generator support the setting of its time through this method. A clock
+   generator may, for example, only accept the setting of its time through a local push button interface,
+   or by using the memory configuration protocol.
 
                                            3 Background Information
 
@@ -333,17 +350,55 @@
    in the Producer-Consumer Event Report messages produced by the multiple clocks can help diagnose and
    correct this.
 
-3.2 Jumps in Time
+3.2 Time Zones
+
+   The standard is purposely silent on the topic of time zones. It is up to the user to determine if and
+   how time zones are represented. There are two options that are proposed here, and other solutions may
+   also be possible.
+
+    1. The clock generator sends out time representing one coordinated universal time (UTC). Each time
+       consumer is then programmed to add or subtract an offset of the universal time appropriate to their
+       specific location. This is similar to how modern computer systems get and display their local time.
+
+    2. Create a separate clock generator for each local time to be represented. One of the clock generators
+       is designated the “master” to which all the other clock generators synchronize to, adding or
+       subtracting their “local” offset appropriately. Section 3.11 below has more information about how
+       this can be achieved.
+
+3.3 Daylight Savings Time
+
+   The standard is purposely silent on topic of daylight savings time. This is in part because of the hyper
+   locality specific nature of Daylight Savings Time. This is not something that is easily predictable by
+   simple machines and can even change based on local legislation. It is possible for a time consumer
+   implementation to provide a means for the user to enable/disable Daylight Savings Time and adjust what
+   is displayed accordingly.
+
+3.4 Day of the Week
+
+   There are a number of use cases where a day of the week may be relevant.
+
+    1. Church bells that have a special ring schedule for Sundays.
+
+    2. Commercial buildings that may not turn on as many lights on a weekend.
+
+    3. Display the day of the week on a clock face in order to indicate the time table being used in a
+       given operating session.
+
+   There are no events defined to represent the day of the week. A time consumer can use standard language
+   library API’s in order to convert a date to day of the week.  These libraries exist for most modern
+   programming languages (C/C++, C#, Objective-C, Java, Python, etc…).
+
+3.5 Jumps in Time
 
    Through configuration, it is possible that a clock generator would make a large jump, forward or
    backward, in time from its previous set time. The only requirement about this jump is that the sequence
-   described in section matching 2.6.4 above follows the jump.
+   described in section matching 2.6.5 above follows the jump.
 
    It is allowable, though not required, for a a clock generator to produce intermediate Report Time
    Events, as well as Report Year and Date events, at a highly accelerated rate. One possible use case for
    this is to “reset” time for nodes that consume clock events but otherwise have no knowledge of the
    concept of time. If either of these, or similar, techniques are deployed, the sequenced described in
-   section 2.6.4 above is still required once the application of the technique is complete and the new set
+   section 2.6.5 above is still required once the application of the technique is complete and the new set
    time is reached.
 
    It is not prescribed how this might occur, but one can imagine a number of different scenarios:
@@ -362,7 +417,14 @@
        event, re-setting their state to the desired state at that point. This does not allow arbitrary
        jumps however.
 
-3.3 Configuration via a Simple Teach-Learn User Interface
+3.6 Date Rollover
+
+   In some cases it may not be desirable to have a clock generator rollover at the end of a day into the
+   next day, but rather start all over at the beginning of the current day. This would prevent the
+   progression of the date, but allow the continuous 24 hour cycle of time. The standard is quite on this
+   use case, but it is certainly a possible implementation option in a clock generator.
+
+3.7 Configuration via a Simple Teach-Learn User Interface
 
    Blue and Gold configuration does not have to be implemented, perhaps many devices won’t, but important
    to show it can be done. Configuring consumers to react to a particular time event can be done by putting
@@ -377,7 +439,7 @@
 
    Better (more powerful) user interfaces can then use the same underlying teach/learn implementation.
 
-3.4 Alarms
+3.8 Alarms
 
    Early OpenLCB clock prototypes contained support for “Alarms”, special events that could be configured
    to be produced at a specific time. By configuring consumers to listen for the alarm event, instead of a
@@ -393,12 +455,12 @@
    And no protocol needs to be defined for alarm events, as they're just regular produced events: When
    event A is consumed, produce B and C. That's a generally-useful thing to have, even for non-time events.
 
-3.5 Time-range cues
+3.9 Time-range cues
 
    A not-well-served case of the Standard is the operation of simple consumer nodes for turning on their
    outputs for desired periods of time, e.g. a street light to turn on during night time. Learning the
    direct event ID of the time when night should start and stop works in simple progression, but requires
-   workarounds presented in section 1.2 and 3.2 to support jumps in time.
+   workarounds presented in section 1.2 and 3.5 to support jumps in time.
 
    A way to correctly support jumps in time is by an advanced clock cue node. This cue node keeps track of
    the time internally by being a clock consumer. By configuration (e.g. via the CDI) it knows which time
@@ -407,7 +469,7 @@
 
    Such a clock cue node could also be shipped optionally as an added feature of a clock generator.
 
-3.6 Low-Bandwidth Clock Producers
+3.10 Low-Bandwidth Clock Producers
 
    The Standard specifies that only time events with consumers need to be produced. Clock-producing nodes
    can use this to reduce the bandwidth used by the clock events, particularly at high rate. The producing
@@ -430,7 +492,7 @@
    There is currently no support to do a network-parallel query such as “Identify All Consumers of Event
    IDs in the following Range” due to buffer-management and network-load-scaling issues with it.
 
-3.7 Slaving Clock Generators
+3.11 Slaving Clock Generators
 
    For some modular layout use cases (still being identified), it's useful to have the time events be
    created synchronous with a local modular clock generator. For example, a modular segment has a clock
@@ -467,7 +529,7 @@
        to the slave so that it knows that's the range to listen to. This can be done even if there are
        multiple clocks operating on the layout.
 
-3.8 History and Numerology
+3.12 History and Numerology
 
    There are slightly more than 216 seconds in a day, and just less than 211 minutes. A 17-bit “seconds
    since midnight” format could be used, but it would still take three bytes, and is somewhat harder to
@@ -550,27 +612,37 @@
 
    2.6.2 Clock Report
 
-   2.6.3 Clock Query
+   2.6.3 Clock Synchronization
 
-   2.6.4 Clock Set
+   2.6.4 Clock Query
+
+   2.6.5 Clock Set
 
    3 Background Information
 
    3.1 Multiple Clocks
 
-   3.2 Jumps in Time
+   3.2 Time Zones
 
-   3.3 Configuration via a Simple Teach-Learn User Interface
+   3.3 Daylight Savings Time
 
-   3.4 Alarms
+   3.4 Day of the Week
 
-   3.5 Time-range cues
+   3.5 Jumps in Time
 
-   3.6 Low-Bandwidth Clock Producers
+   3.6 Date Rollover
 
-   3.7 Slaving Clock Generators
+   3.7 Configuration via a Simple Teach-Learn User Interface
 
-   3.8 History and Numerology
+   3.8 Alarms
+
+   3.9 Time-range cues
+
+   3.10 Low-Bandwidth Clock Producers
+
+   3.11 Slaving Clock Generators
+
+   3.12 History and Numerology
 
    4 Future Work
 
