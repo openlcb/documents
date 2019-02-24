@@ -83,6 +83,9 @@
 
    This Standard is in the context of the following OpenLCB Standards:
 
+     * The CAN Physical Layer Standard, which specifies the physical layer for transporting OpenLCB-CAN
+       frames.
+
      * The Message Network Standard, which defines the basic messages and how they interact. Higher-level
        protocols are based on this message network, but are defined elsewhere.
 
@@ -164,7 +167,40 @@
    defined prior to the node joining the network until the next Emergency Stop or Clear Emergency Stop
    event is produced.
 
-    2.5.2.3 Other Well-Known Automatically Routed
+    2.5.2.3 Brownout Detected
+
+   The Imprecise Brownout Detected Event Identifier (01.00.00.00.00.00.FF.F1) may optionally be sent by a
+   node in the case where the node detects a low voltage condition that it considers abnormal. This event
+   is agnostic to the physical layer, and is a generic indication that it does not have enough voltage to
+   function properly, regardless as to where that voltage originates. The node is not required to know the
+   exact voltage at which the condition was detected in order to send this event.
+
+   The Precise Brownout Detected Event Identifier (01.00.00.00.00.00.FF.F0) may optionally be sent by a
+   node in the case where the node detects a low voltage condition that crosses the precise threshold of
+   7.5V that the CAN Physical Layer Standard allows as the minimum voltage which a node must accept for
+   normal operation. It is implied that the node producing this event provides a CAN Physical Layer
+   connection.
+
+   The exact time at which these events are sent is not specified and left up to the node designer. A
+   number of possible options might be considered, which are not necessarily mutually exclusive. For
+   example:
+
+     * The event may be sent immediately. Because the node is in a brownout state, it is reasonable not to
+       assume that the event actually gets sent successfully and observed by other nodes in the network.
+
+     * The condition which would have resulted in the event may be logged such that it can be sent at a
+       later time when the voltage has recovered to a point where successful transmission and observation
+       by other nodes in the network is likely.
+
+     * The condition which would have resulted in the event may be logged such that it can be sent on the
+       next node initialization when the voltage has recovered to a point where successful transmission and
+       observation by other nodes in the network is likely.
+
+   It is not specified how other nodes in the network are to act upon these two events or that these two
+   events are distinguished in any way when interpreted and presented to a user. The intent is that these
+   two events, when observed, are useful for diagnosing network problems.
+
+    2.5.2.4 Other Well-Known Automatically Routed
 
    Other Well-Known Automatically Routed Event Identifiers not discussed here have their uses prescribed
    and/or discussed elsewhere.  No assumptions should be made about the use of these Well-Known
@@ -300,7 +336,9 @@
 
    2.5.2.2 Emergency Stop
 
-   2.5.2.3 Other Well-Known Automatically Routed
+   2.5.2.3 Brownout Detected
+
+   2.5.2.4 Other Well-Known Automatically Routed
 
    2.5.3 Well-Known
 
