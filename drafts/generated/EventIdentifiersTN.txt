@@ -168,19 +168,20 @@
    defined prior to the node joining the network until the next Emergency Stop or Clear Emergency Stop
    event is produced.
 
-    2.5.2.3 Brownout Detected
+    2.5.2.3 Power Supply Brownout Detected
 
-   The Imprecise Brownout Detected Event Identifier (01.00.00.00.00.00.FF.F1) may optionally be sent by a
-   node in the case where the node detects a low voltage condition that it considers abnormal. This event
-   is agnostic to the physical layer, and is a generic indication that it does not have enough voltage to
-   function properly, regardless as to where that voltage originates. The node is not required to know the
-   exact voltage at which the condition was detected in order to send this event.
+   The Power Supply Brownout Detected (node) Event Identifier (01.00.00.00.00.00.FF.F1) may optionally be
+   sent by a node in the case where the node detects a low voltage condition that it considers abnormal, or
+   out of its normal operating range. This event is agnostic to any other OpenLCB standard, and is a
+   generic indication that it does not have enough voltage to function properly, regardless as to where
+   that voltage originates. The node is not required to know the exact voltage at which the condition was
+   detected in order to send this event.
 
-   The Precise Brownout Detected Event Identifier (01.00.00.00.00.00.FF.F0) may optionally be sent by a
-   node in the case where the node detects a low voltage condition that crosses the precise threshold of
-   7.5V that the CAN Physical Layer Standard allows as the minimum voltage which a node must accept for
-   normal operation. It is implied that the node producing this event provides a CAN Physical Layer
-   connection.
+   The Power Supply Brownout Detected (standard) Event Identifier (01.00.00.00.00.00.FF.F0) may optionally
+   be sent by a node in the case where the node detects a low voltage condition that crosses the threshold
+   required by any relevant OpenLCB Standard. It is implied that the node producing this event is subject
+   to, and subsequently detecting a violation of, one or more OpenLCB Standards. The CAN Physical Layer
+   Standard requirement of nodes operating down to CAN bus voltages of 7.5V is one example.
 
    The exact time at which these events are sent is not specified and left up to the node designer. A
    number of possible options might be considered, which are not necessarily mutually exclusive. For
@@ -200,6 +201,11 @@
    It is not specified how other nodes in the network are to act upon these two events or that these two
    events are distinguished in any way when interpreted and presented to a user. The intent is that these
    two events, when observed, are useful for diagnosing network problems.
+
+   It is not specified how any given node will produce or inhibit production of these events when reacting
+   to otherwise normal inrush conditions which may temporarily result in a low voltage condition which the
+   node is designed to tolerate and recover from. The trade-off between false positive and false negative
+   detection of brownout conditions is left up to an individual node’s designer(s).
 
     2.5.2.4 Other Well-Known Automatically Routed
 
@@ -312,7 +318,7 @@
 
     1793                0b00000000100x    0b11100000100x          0b00000000100x    0b11100000100x          
 
-    204039              0b0001111101100x  0b1111111101100x        0b0001111101100x  0b1111111101100x        
+    200439              0b0001111101100x  0b1111111101100x        0b0001111101100x  0b1111111101100x        
 
     2040                0b00011111011x    0b11111111011x          0b00011111011x    0b11111111011x          
 
@@ -354,7 +360,7 @@
 
    2.5.2.2 Emergency Stop 4
 
-   2.5.2.3 Brownout Detected 4
+   2.5.2.3 Power Supply Brownout Detected 4
 
    2.5.2.4 Other Well-Known Automatically Routed 5
 
