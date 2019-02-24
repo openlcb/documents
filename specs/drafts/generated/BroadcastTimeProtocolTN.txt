@@ -162,6 +162,9 @@
 
   2.4.3 Report Year Event ID
 
+   The range chosen, 0 AD to 4095 AD, is chosen to be sufficiently inclusive of the whole relevant span of
+   railroad history typically represented in model form both in the past and for the foreseeable future.
+
   2.4.4 Report Rate Event ID
 
    A rate of zero means the clock is stopped, though it is preferred to use the Stop/Start Events for
@@ -224,7 +227,7 @@
    It is not expected that it will be routine for clock generators to refuse to set their time, nor that
    other nodes will attempt to set it when not allowed to. The Standard is silent as to whether the seconds
    counter inside the clock should be reset to zero at this point. However, it can be implied that a Report
-   Time Event is sent when the seconds count is equal to zero and when an Event Producer Identified Valid
+   Time Event is sent when the seconds count is equal to zero, and when an Event Producer Identified Valid
    message for the Report Time Event is sent, the seconds count is not assumed to be equal to zero.
 
    OpenLCB doesn’t have latency guarantees, so different nodes may have slightly different ideas of the
@@ -246,7 +249,7 @@
 
   2.6.1 Startup
 
-   As stated in section 1.1 above, there are use cases, such as a clock face display, where a node will be
+   As stated in section 1.1 above, there are use cases, such as a clock face display, where a node will be
    consuming either all or the vast majority of clock events. In this case, it is preferable to use the
    Consumer Range Identified message in order to announce consumption of clock events.
 
@@ -273,8 +276,8 @@
    The process for a clock generator to identify all the clock event consumers is not explicitly specified.
    Two possible options include:
 
-    1. Send an Identify Events Addressed message to each node in the network as described in section
-       3.10 below.
+    1. Send an Identify Events Addressed message to each node in the network as described in section 3.10
+       below.
 
     2. Send an Identify Events Global message.
 
@@ -329,9 +332,10 @@
    (e.g. on Start/Stop events) will be fixed to convergence three seconds later when the current state is
    announced.
 
-   It is not required that a clock generator support the setting of its time through this method. A clock
+   It is not required that a clock generator support the setting of its time through events. A clock
    generator may, for example, only accept the setting of its time through a local push button interface,
-   or by using the memory configuration protocol.
+   or by using the memory configuration protocol. This would fall under the category of an “out of band”
+   mechanism.
 
                                            3 Background Information
 
@@ -362,7 +366,7 @@
 
     2. Create a separate clock generator for each local time to be represented. One of the clock generators
        is designated the “master” to which all the other clock generators synchronize to, adding or
-       subtracting their “local” offset appropriately. Section 3.11 below has more information about how
+       subtracting their “local” offset appropriately. Section 3.11 below has more information about how
        this can be achieved. A special case of this option is when only one time zone is in effect for the
        entire railroad: the clock generator may be set to railroad local time and no time offset needs to
        be configured on the clock listeners / displays. This will be the majority use-case.
@@ -387,7 +391,7 @@
        given operating session.
 
    There are no events defined to represent the day of the week. A time consumer can use standard language
-   library API’s in order to convert a date to day of the week.  These libraries exist for most modern
+   library API’s in order to convert a date to day of the week. These libraries exist for most modern
    programming languages (C/C++, C#, Objective-C, Java, Python, etc…).
 
    Simple nodes will need to use facilities from a time cue-node to schedule events being produced at
@@ -396,7 +400,7 @@
    keeping track of a 7-way state machine and intersecting its state to the time events. A 7-way state
    machine exceeds the capabilities of currently available simple nodes. A much more robust solution is to
    use a pair of events output from a time cue-node (see Section 3.9) for covering precisely the desired
-   time interval, which could be “Sunday 10am” vs “everything else” for case 1;  “Friday 10pm – Saturday
+   time interval, which could be “Sunday 10am” vs “everything else” for case 1; “Friday 10pm – Saturday
    5am” and “Saturday 10pm – Sunday 5am” for case 2; and “Wednesday” vs “not Wednesday” for one light
    output of case 3. This solution can easily be made compatible with time jumps.
 
@@ -404,13 +408,13 @@
 
    Through configuration, it is possible that a clock generator would make a large jump, forward or
    backward, in time from its previous set time. The only requirement about this jump is that the sequence
-   described in section matching 2.6.5 above follows the jump.
+   described in section 2.6.5 above follows the jump.
 
    It is allowable, though not required, for a a clock generator to produce intermediate Report Time
    Events, as well as Report Year and Date events, at a highly accelerated rate. One possible use case for
    this is to “reset” time for nodes that consume clock events but otherwise have no knowledge of the
    concept of time. If either of these, or similar, techniques are deployed, the sequenced described in
-   section 2.6.5 above is still required once the application of the technique is complete and the new set
+   section 2.6.5 above is still required once the application of the technique is complete and the new set
    time is reached.
 
    It is not prescribed how this might occur, but one can imagine a number of different scenarios:
@@ -472,7 +476,7 @@
    A not-well-served case of the Standard is the operation of simple consumer nodes for turning on their
    outputs for desired periods of time, e.g. a street light to turn on during night time. Learning the
    direct event ID of the time when night should start and stop works in simple progression, but requires
-   workarounds presented in section 1.2 and 3.5 to support jumps in time.
+   workarounds presented in section 1.2 and 3.5 to support jumps in time.
 
    A way to correctly support jumps in time is by an advanced clock cue node. This cue node keeps track of
    the time internally by being a clock consumer. By configuration (e.g. via the CDI) it knows which time
@@ -570,7 +574,7 @@
 
    The existence of this Simple Time Protocol does not preclude the existence of other protocols for the
    conveyance of time. It is possible that future time related protocols could be developed in order to
-   realize the unserved use cases identified in section 1.2 above.
+   realize the unserved use cases identified in section 1.2 above.
 
     
 
