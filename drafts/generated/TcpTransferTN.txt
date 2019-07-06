@@ -4,7 +4,7 @@
 
                                                               OpenLCB-TCP Transfer
 
-                                                   May 29, 2015                        Preliminary          
+                                                    Jul 6, 2019                        Preliminary          
 
                                                 1 Introduction
 
@@ -57,20 +57,23 @@
 
    Flags field:
 
-   The LSB 0x0001 is an expansion flag used to (eventually) add link control messages. These might be
-   needed for e.g. turning gateway-filtering on and off, loading/resetting remote diagnostic information,
-   etc.
+   The LSB 0x0001MSB 0x8000 is an expansion flag used to (eventually) add link control messages. These
+   might be needed for e.g. turning gateway-filtering on and off, loading/resetting remote diagnostic
+   information, etc.
 
-   The 0x0002 bit indicates “chaining”: Another prefix is next, before the body of the message.
+   The 0x00020x4000 bit indicates “chaining”: Another prefix is next, before the body of the message.
 
-   The 0x00820 and 0x00410 bits provide a way of extending a single OpenLCB message across multiple TCP
-   transfers. (Note that the terminology here is confusing, and should probably be clarified). This might
-   be used to e.g. simplify buffering and framing in CAN-Ethernet gateways. A single OpenLCB message that
-   extends across multiple CAN frames is best accumulated into a single TCP transmission. If that's not
-   possible due to buffering or other issues, it can be sent as multiple TCP transmissions using the
-   0x00820 and 0x00410 bits. The 0x00820 bit when 0 means “start or only part”; the 0x00410 bit when 0
-   means “end or only part”. The 0-based coding was selected to improve human-readability of messages, as
-   most messages are expected to be “only”.
+   The 0280x000x0800 and 0140x000x0400 bits provide a way of extending a single OpenLCB message across
+   multiple TCP transfers. (Note that the terminology here is confusing, and should probably be clarified).
+   This might be used to e.g. simplify buffering and framing in CAN-Ethernet gateways. A single OpenLCB
+   message that extends across multiple CAN frames is best accumulated into a single TCP transmission. If
+   that's not possible due to buffering or other issues, it can be sent as multiple TCP transmissions using
+   the 0140 and 0x00280x000x0800 and 0x0400 bits. The 0-based coding was selected to improve
+   human-readability of messages, as most messages are expected to be “only”.0 bit when 0 means “end or
+   only part”.140 bit when 0 means “start or only part”; the 0x0028The 0x00These two bits encode 4 types of
+   messages: if both 0, then this is a single-part message, if 0x0800 is clear and 0x0400 is set it is the
+   first of a multiple part message, if both bits are set, then it is a middle part of a multiple part
+   message, and if 0x0800 is set and 0x0400 is clear it is the last part of a multiple part message.
 
    The length code is put early to make it easier to parse messages of future, unknown format. But this
    doesn't make it easier to skip new prefixes of unknown length. Should there be an additional prefix
