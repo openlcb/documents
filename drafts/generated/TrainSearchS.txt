@@ -1,0 +1,332 @@
+   PowerPlusWaterMarkObject1
+
+                                                                OpenLCB Standard
+
+                                                          (title)Train Search Protocol
+
+                                                   Oct 22, 2019                        Preliminary          
+
+                                         1 Introduction (Informative)
+
+   Minimal introductory material, only the stuff that's absolutely needed to understand the Standard.This
+   standard defines a method for Throttle Nodes to find Train Nodes on the network, and for legacy
+   use-cases, instruct an OpenLCB Command Station to create a virtual Train Node given a legacy address and
+   track protocol. This standard is not specific to any wire protocol.
+
+                                         2 Intended Use (Informative)
+
+   The OpenLCB Traction Protocol describes how a Node acting as throttle can and should control a Node
+   acting as a train. An important component of an ecosystem is how the throttle can find the remote train
+   node that corresponds to the user’s desired locomotive to control. This standard defines one possible
+   method on how to find train nodes from a throttle. As a basic transport this method uses the Event
+   Transport protocol.
+
+   In addition to finding already existing Train Nodes, this standard describes an interaction that can be
+   followed by a Command Station to instantiate virtual Nodes in order to act as a gateway between the
+   OpenLCB traction protocol and a legacy track protocol such as DCC.
+
+   In that scheme, both the Throttle is a fully standards-complian OpenLCB Node on the network, and the
+   Train is representedIn a separate standard, there is an OpenLCB protocol describing how a Throttle can
+   control a Train with addressed OpenLCB messages of the appropriate MTI and given format.Any limitations
+   to the area of use of the Standard.Note that this standard does not exclude other methods and standards,
+   including some not yet developed, for the same or similar purposes. See the Train Search Protocol
+   Technical Note for some alternatives that were considered or can be employed based on more general
+   enumeration protocols.
+
+   TODO: move this discussion to the TN as “Alternatives Considered”:
+
+     * A more generic protocol could be developed for searching for Nodes on the network; this may be
+       peer-to-peer or based on a centralized database built and maintained by a single Node that stores
+       details about all Nodes available on the network (including all Train Nodes).
+
+     * All Nodes can be enumerated by the unaddressed Verify Node ID Global message. There is no throttling
+       mechanism provisioned to maintain the list of replies with a limited amount of memory. The Node list
+       can then be further processed using Protocol Support Inquiry (PIP) messages to restrict to Train
+       Nodes and Simple Node Information Request (SNIP) messages for querying identifying properties such
+       as train name.
+
+     * All Train Nodes can be identified using the Well-Known Event ID IsTrain. There is no throttling
+       mechanism provisioned to maintain the list of replies with a limited amount of memory.
+
+     * A legacy track protocol Command Station could expose a command interface either via dedicated
+       OpenLCB messages or via a Datagram-based protocol to maintain it’s list of virtual Train Nodes. This
+       protocol could also be out-of-band, for example through a user interface (physical or HTTP-based),
+       or could be coupled to a persistent database using the Memory Configuration Protocol and the
+       Configuration Descriptor (CDI) XML to expose the user interface via a Configuration Tool.
+
+                                     3 References and Context (Normative)
+
+   Citations to other docs, as needed.
+
+   This specification is in the context of the following OpenLCB-CAN Standards:
+
+     * The Event Transport Standard, which defines the protocol for transporting events, including the
+       messages and interactions for inquiry and discovery of event Producers.
+
+     * The Event Identifiers Standard which describes the allocation scheme of Event Identifiers.
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+                                        4 Message Formats (Normative)
+
+   Quisque sollicitudin tempor bibendum.^1 Donec consectetur condimentum sollicitudin. Sed dignissim velit
+   id felis lacinia at eleifend nisi laoreet. This standard does not define any OpenLCB messages.
+
+                                        5 StatesAllocation (Normative)
+
+5.1 Identifier Range allocation and License terms
+
+   Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. For the purpose of the
+   Train Search Protocol the following block of consecutive Event Identifiers is allocated:
+
+   09.00.99.FF.00.00.00.00 – 09.00.99.FF.FF.FF.FF.FF
+
+   All Event Identifiers in this range are reserved for exclusive use according to the interactions defined
+   by this standard and shall not be used for any other purpose.
+
+   The legal entity to whom this Event Identifier range is allocated by the Event Identifiers Standard,
+   Train Control Systems, Inc, hereby grants an irrevocable, non-transferable license to anyone for using
+   the quoted Event Identifiers on the condition, and only so long as, that their use is compliant to this
+   Standard or any later version of it, published by Train Control Systems, Inc.
+
+5.2 Identifier Format
+
+   The Event Identifiers in the given range are defined as follows:
+
+      Byte 1        Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       Byte 8    
+
+        09            00           99           FF           qq           qq           qq           ss      
+
+                       Fixed prefix                                  Search query                 Flags     
+                                                                      
+                                                                      (6 nibbles)
+
+   The search query ‘qq qq qq’ shall be a sequence of 6 nibbles in MSB-first order stored in Bytes 5, 6 and
+   7 of the Event Identifier. Each individual nibble is one position of the search string:
+
+    Search Query Nibble value                                  Description                                  
+
+              0 - 9            The given position of the search term is the given number                    
+
+            0xA - 0xE          Reserved. Do not send, check upon receipt.                                   
+
+               0xF             Empty / unused character position. Short queries shall be padded with this   
+                               nibble value to 6 characters long. Multiple search terms may be              
+                               concatenated to a search query with this nibble as a separator between them  
+                               which means the individual terms shall be evaluated with AND relation        
+                               between them.                                                                
+
+   The flag byte ‘ss’ is defined as follows:
+
+      Bit 7    Bit 6     Bit 5        Bit 4       Bit 3    Bit 2-0                Description               
+
+    Allo-cate                                                        0x80: Force allocate legacy node       
+                                                                     0: Search only existing nodes          
+
+               Exact                                                 0x40: Exact match only                 
+                                                                                                            
+                                                                     0: All matches (including partial      
+                                                                     match)                                 
+
+                      Address only                                   0x20: Match only in address            
+                                                                                                            
+                                                                     0: Match everywhere (address and       
+                                                                     name)                                  
+
+                                    Force long                       0x10: Force long address if DCC mode   
+                                     address                                                                
+                                                                     0: Use default address type based on   
+                                                                     the numeric value of the address.      
+
+                                                Reser-ved            Reserved, send as 0, check on          
+                                                                     receipt.                               
+
+                                                            Track    0: Any / default track protocol        
+                                                           protocol                                         
+                                                                     1: Märklin-Motorola protocol           
+                                                                                                            
+                                                                     2: Märklin-Motorola 2 protocol         
+                                                                                                            
+                                                                     3: MFX/M4 protocol                     
+                                                                                                            
+                                                                     4: DCC 14-speed-step                   
+                                                                                                            
+                                                                     5: DCC 28-speed-step                   
+                                                                                                            
+                                                                     6: DCC 128-speed-step                  
+                                                                                                            
+                                                                     7: Native OpenLCB protocol             
+
+
+
+                                          6 Interactions (Normative)
+
+   The following hardware and software nodes are taking part in the interactions presented here:
+
+     * The Train Node is an OpenLCB Node that implements the Traction Protocol, controlling a single
+       (physical) train with one or more coupled engines. The hardware implementing the Train Node may be
+       physically built into a model, or it may be built into a centralized gateway hardware that converts
+       to a non-OpenLCB protocol in order to remotely control an engine, for example via Bluetooth or a
+       legacy track protocol such as DCC or Märklin-Motorola. In this case a single piece of hardware may
+       be responsible for representing multiple OpenLCB Nodes on the network.
+
+     * The Throttle Node is an OpenLCB Node that intends to send Traction Protocol commands to a desired
+       Train Node. The Throttle Node may be a physical hardware device with a user interface to be used by
+       an operator, a computer software with a user interface for operators to control trains, or a fully
+       automated software.
+
+     * The Command Station is a gateway for proxying to some non-OpenLCB protocol, implementing Train
+       Node(s), and having an OpenLCB network connection. There may or may not be a separate OpenLCB Node
+       that represents the Command Station itself on the OpenLCB network.
+
+6.1 Search for existing train nodes
+
+   The goal of this use-case is for a Throttle Node to enumerate Train Nodes that exist on the network and
+   match certain criteria. The Throttle Node shall represent the given criteria as an Event Identifier E
+   according to Section 5.2, and set the flag byte Bit 7 (Allocate) to zero (0).
+
+     * The Throttle Node shall send an “Identify Producer” message with setting the Event Identifier to E
+       to the network.
+
+     * A Train Node upon receipt of an Identify Producer message with an Event Identifier E falling into
+       the Event Identifier Range of Section 5.1, it shall
+
+          * compare its identifying properties to the search criteria represented by the Event Identier E
+            according to Section 6.3;
+
+          * in case of a match, the Train Node shall emit a “Producer Identified” message with the Event
+            Identifier E to the network, setting the Producer validity bits according to Section 6.3;
+
+          * in absence of a match, the Train Node shall not emit a “Producer Identified” message with the
+            Event Identifier E.
+
+6.2 Allocating a new train node
+
+   The goal of this use-case is for a Throttle Node to instruct a Command Station to create a new Train
+   Node in the case that no existing Train Node(s) match the search criteria requested by the Throttle
+   Node.
+
+   The Throttle Node shall represent the requested address, as an Event Identifier E according to Section
+   5.2, with setting the flag byte Bit 7 (Allocate) to one (0x80). The Throttle Node may, but is not
+   required to, specify the desired track protocol in the flag byte. It is recommended that the Throttle
+   Node also sets the Bit 6 (Exact) to one (0x40) in the flag byte.
+
+     * The Throttle Node shall send an “Identify Producer” message with setting the Event Identifier to E
+       to the network.
+
+     * A Command Station upon receipt of an Identify Producer message with an Event Identifier E falling
+       into the Event Identifier Range of Section 5.1 with the flag byte Bit 7 (Allocate) set to one, shall
+
+          * validate that it has the ability to create a Train Node matching its identifying properties to
+            the search criteria represented by the Event Identier E according to Section 6.3;
+
+          * wait at least 200 msec for existing Train Nodes to reply with a “Producer Identified” message;
+
+          * in the absence of such reply, the Command Station shall allocate a new Train Node according to
+            the properties defined by the Event Identifier E, and instruct the new Train Node to emit a
+            “Producer Identified Valid” message with the Event Identifier E.
+
+6.3 Event Identifier matching algorithm
+
+   This section defines when an Event Identifier E in the range defined by Section 5.1 matches a Train Node
+   with the identifying properties of <Name, Address, Protocol>.
+
+   The Train Node matches the Event Identifier E iff the search query represented by the qq qq qq nibbles
+   of E matches and the requirement by the ss flag byte matches the Protocol and the Flag byte or the query
+   nibbles specify no reserved values marked as “check upon receipt”.
+
+   The flag byte ss matches Protocol iff the Legacy Track Protocol field of ss is set to “Any” or Protocol
+   matches the value of the Track Protocol field.
+
+   The search query represented by the qq qq qq nibbles of E matches iff
+
+     * qq qq qq matches the Address of the Train Node, or
+
+     * the Address only bit is not set in the Flag byte ss and qq qq qq matches the Name.
+
+   Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. The qq qq qq nibbles of
+   E matches the Address iff qq qq qq contains exactly one contiguous sequence of digit nibbles ‘0’-’9’,
+   and
+
+     * the Protocol is non-DCC, or
+
+     * the Force long address bit is clear in the Flag byte ss, or
+
+     * Address is >= 128, or
+
+     * Address is a long address
+
+   and
+
+     * the Exact bit of the Flag byte ss is set and the decimal value represented by these nibbles is the
+       value of the Address, or
+
+     * the Exact bit if the Flag byte ss is clear and the decimal nibbles form a prefix of the decimal
+       representation of  Address.
+
+                                               7 Section Title
+
+7.1 Subsection Title
+
+  7.1.1 Sub-subsection Title
+
+   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
+   odio.
+
+     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+
+     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
+       sed massa.
+
+                                               8 Section Title
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+   Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
+   felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
+   aliquet luctus.
+
+   Table of Contents
+
+   1 Introduction (Informative) 1
+
+   2 Intended Use (Informative) 1
+
+   3 References and Context (Normative) 1
+
+   4 Message Formats 1
+
+   5 States 1
+
+   6 Interactions 1
+
+   7 Section Title 1
+
+   7.1 Subsection Title 1
+
+   7.1.1 Sub-subsection Title 1
+
+   8 Section Title 2
+
+   1See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte numbering.
+   Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
+   that other technologies may use other conventions.
+
+   Copyright 2013-XX. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
+   of 6 - Oct 22, 2019
