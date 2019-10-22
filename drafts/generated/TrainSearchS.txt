@@ -23,7 +23,10 @@
 
    In addition to finding already existing Train Nodes, this standard describes an interaction that can be
    followed by a Command Station to instantiate virtual Nodes in order to act as a gateway between the
-   OpenLCB traction protocol and a legacy track protocol such as DCC.
+   OpenLCB traction protocol and a legacy track protocol such as DCC. As part of this interaction, certain
+   options are specifically enumerated in this standard that are specific to current commonly used legacy
+   track protocols (such as DCC), while leaving expansion space for including additional such protocols in
+   future revisions.
 
    In that scheme, both the Throttle is a fully standards-complian OpenLCB Node on the network, and the
    Train is representedIn a separate standard, there is an OpenLCB protocol describing how a Throttle can
@@ -97,7 +100,7 @@
 
       Byte 1        Byte 2       Byte 3       Byte 4       Byte 5       Byte 6       Byte 7       Byte 8    
 
-        09            00           99           FF           qq           qq           qq           ss      
+        09            00           99           FF           qq           qq           qq           rr      
 
                        Fixed prefix                                  Search query                 Flags     
                                                                       
@@ -118,48 +121,62 @@
                                which means the individual terms shall be evaluated with AND relation        
                                between them.                                                                
 
-   The flag byte ‘ss’ is defined as follows:
+   The flag byte ‘rr’ is defined as follows:
 
-      Bit 7    Bit 6     Bit 5        Bit 4       Bit 3    Bit 2-0                Description               
+       Bit 7      Bit 6         Bit 5           Bits 4-0                       Description                  
 
-    Allo-cate                                                        0x80: Force allocate legacy node       
-                                                                     0: Search only existing nodes          
+     Allocate                                                  0x80: Force allocate legacy node             
+                                                               0: Search only existing nodes                
 
-               Exact                                                 0x40: Exact match only                 
+                  Exact                                        0x40: Exact match only                       
                                                                                                             
-                                                                     0: All matches (including partial      
-                                                                     match)                                 
+                                                               0: All matches (including partial match)     
 
-                      Address only                                   0x20: Match only in address            
+                            Address only                       0x20: Match only in address                  
                                                                                                             
-                                                                     0: Match everywhere (address and       
-                                                                     name)                                  
+                                                               0: Match everywhere (address and name)       
 
-                                    Force long                       0x10: Force long address if DCC mode   
-                                     address                                                                
-                                                                     0: Use default address type based on   
-                                                                     the numeric value of the address.      
+                                             Track Protocol    See separate table for assignment            
 
-                                                Reser-ved            Reserved, send as 0, check on          
-                                                                     receipt.                               
+   The Track Protocol values are defined as follows:
 
-                                                            Track    0: Any / default track protocol        
-                                                           protocol                                         
-                                                                     1: Märklin-Motorola protocol           
-                                                                                                            
-                                                                     2: Märklin-Motorola 2 protocol         
-                                                                                                            
-                                                                     3: MFX/M4 protocol                     
-                                                                                                            
-                                                                     4: DCC 14-speed-step                   
-                                                                                                            
-                                                                     5: DCC 28-speed-step                   
-                                                                                                            
-                                                                     6: DCC 128-speed-step                  
-                                                                                                            
-                                                                     7: Native OpenLCB protocol             
+     Bit 4-3     Bit 2     Bits 1-0                               Description                               
 
+       0b00        0         0b00     Any / Default track protocol                                          
 
+       0b00        0         0b01     Native OpenLCB Train Node                                             
+
+       0b00        0         0b10     MFX^® / M4^® track protocol                                           
+
+       0b00        0         0b11     Reserved (do not send, check on receipt).                             
+
+       0b00        1          *       Marklin-Motorola track protocol                                       
+
+        "          "         0b00     MM – Any / Default version                                            
+
+        "          "         0b01     MM – Protocol version I (14 speed steps + F0)                         
+
+        "          "         0b10     MM – Protocol version II (Directional + F0-F4)                        
+
+        "          "         0b11     MM – Protocol version II with following address for F5-F8 support.    
+
+       0b01        *          *       DCC track protocol                                                    
+
+        "          0          *       DCC – Default address space                                           
+
+        "          1          *       DCC – Force 14-bit (long) address                                     
+
+        "          *         0b00     DCC – Any / Default speed steps                                       
+
+        "          *         0b01     DCC – 14 speed steps                                                  
+
+        "          *         0b10     DCC – 28 speed steps                                                  
+
+        "          *         0b11     DCC – 128 speed steps                                                 
+
+       0b10        *          *       Reserved (do not send, check upon receipt)                            
+
+       0b11        *          *       Reserved (do not send, check upon receipt)                            
 
                                           6 Interactions (Normative)
 
@@ -185,16 +202,16 @@
 
    The goal of this use-case is for a Throttle Node to enumerate Train Nodes that exist on the network and
    match certain criteria. The Throttle Node shall represent the given criteria as an Event Identifier E
-   according to Section 5.2, and set the flag byte Bit 7 (Allocate) to zero (0).
+   according to Section 5.2, and shall set the flag byte ‘rr’ Bit 7 (Allocate) to zero (0).
 
      * The Throttle Node shall send an “Identify Producer” message with setting the Event Identifier to E
        to the network.
 
-     * A Train Node upon receipt of an Identify Producer message with an Event Identifier E falling into
-       the Event Identifier Range of Section 5.1, it shall
+     * A Train Node, upon receipt of an Identify Producer message with an Event Identifier E falling into
+       the Event Identifier Range of Section 5.1, shall
 
-          * compare its identifying properties to the search criteria represented by the Event Identier E
-            according to Section 6.3;
+          * compare the Train Node’s identifying properties to the search criteria represented by the Event
+            Identier E according to Section 6.3;
 
           * in case of a match, the Train Node shall emit a “Producer Identified” message with the Event
             Identifier E to the network, setting the Producer validity bits according to Section 6.3;
@@ -202,14 +219,14 @@
           * in absence of a match, the Train Node shall not emit a “Producer Identified” message with the
             Event Identifier E.
 
-6.2 Allocating a new train node
+6.2 Allocate a new Train Node
 
    The goal of this use-case is for a Throttle Node to instruct a Command Station to create a new Train
    Node in the case that no existing Train Node(s) match the search criteria requested by the Throttle
-   Node.
+   Node. This interaction can also be used to change the Protocol Version of an existing Train Node.
 
-   The Throttle Node shall represent the requested address, as an Event Identifier E according to Section
-   5.2, with setting the flag byte Bit 7 (Allocate) to one (0x80). The Throttle Node may, but is not
+   The Throttle Node shall represent the requested address as an Event Identifier E according to Section
+   5.2, with setting the flag byte ‘rr’ Bit 7 (Allocate) to one (0x80). The Throttle Node may, but is not
    required to, specify the desired track protocol in the flag byte. It is recommended that the Throttle
    Node also sets the Bit 6 (Exact) to one (0x40) in the flag byte.
 
@@ -217,53 +234,68 @@
        to the network.
 
      * A Command Station upon receipt of an Identify Producer message with an Event Identifier E falling
-       into the Event Identifier Range of Section 5.1 with the flag byte Bit 7 (Allocate) set to one, shall
+       into the Event Identifier Range of Section 5.1 with the flag byte ‘rr’ Bit 7 (Allocate) set to one,
+       shall
 
           * validate that it has the ability to create a Train Node matching its identifying properties to
-            the search criteria represented by the Event Identier E according to Section 6.3;
+            the search criteria represented by the Event Identifier E according to Section 6.3; for
+            properties marked as ‘Any / Default’ by the Event Identifier E the Command Station may pick any
+            implementation-specific default value;
 
           * wait at least 200 msec for existing Train Nodes to reply with a “Producer Identified” message;
 
-          * in the absence of such reply, the Command Station shall allocate a new Train Node according to
-            the properties defined by the Event Identifier E, and instruct the new Train Node to emit a
-            “Producer Identified Valid” message with the Event Identifier E.
+          * in the absence of such reply, the Command Station shall
+
+               * allocate a new Train Node according to the properties defined by the Event Identifier E,
+                 or
+
+               * adjust the Protocol Version of an existing Train Node conflicting with the requested
+                 address to match the value defined by the Event Identifier E,
+
+   then instruct the Train Node to emit a “Producer Identified Valid” message with the Event Identifier E.
 
 6.3 Event Identifier matching algorithm
 
    This section defines when an Event Identifier E in the range defined by Section 5.1 matches a Train Node
-   with the identifying properties of <Name, Address, Protocol>.
+   with the identifying properties of <Name, Address, Protocol, Protocol Version>.
 
    The Train Node matches the Event Identifier E iff the search query represented by the qq qq qq nibbles
-   of E matches and the requirement by the ss flag byte matches the Protocol and the Flag byte or the query
-   nibbles specify no reserved values marked as “check upon receipt”.
+   of E matches and the requirement by the rr flag byte matches the Protocol and Protocol Version and the
+   Flag byte or the query nibbles specify no reserved values marked as “check upon receipt”.
 
-   The flag byte ss matches Protocol iff the Legacy Track Protocol field of ss is set to “Any” or Protocol
+   The flag byte rr matches Protocol iff the Track Protocol field of rr is set to “Default/Any” or Protocol
    matches the value of the Track Protocol field.
+
+   The flag byte rr matches Protocol Version iff the Track Protocol field of rr is set to the specific
+   value or range matching Protocol and the version bits of rr are set to “Default/Any” or to a value that
+   matches Protocol Version.
 
    The search query represented by the qq qq qq nibbles of E matches iff
 
      * qq qq qq matches the Address of the Train Node, or
 
-     * the Address only bit is not set in the Flag byte ss and qq qq qq matches the Name.
+     * the Address only bit is not set in the Flag byte rr and qq qq qq matches the Name.
 
    Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus aliquet luctus. The qq qq qq nibbles of
    E matches the Address iff qq qq qq contains exactly one contiguous sequence of digit nibbles ‘0’-’9’,
    and
 
-     * the Protocol is non-DCC, or
+     * Protocol is non-DCC, or
 
-     * the Force long address bit is clear in the Flag byte ss, or
+     * the Flag byte rr specifies “Default/Any” protocol, or
+
+     * Bit 2 (DCC - Force long address bit) is clear in the Flag byte rr, or
 
      * Address is >= 128, or
 
-     * Address is a long address
+     * Address is a DCC 14-bit (long) address
 
    and
 
-     * the Exact bit of the Flag byte ss is set and the decimal value represented by these nibbles is the
+     * the Exact bit of the Flag byte rr is set and the decimal value represented by these nibbles is the
        value of the Address, or
 
-     * the Exact bit if the Flag byte ss is clear and the decimal nibbles form a prefix of the decimal
+     * the Exact bit if the Flag byte rr is clear and the decimal nibbles form a prefix of the decimal
        representation of  Address.
 
                                                7 Section Title
@@ -300,7 +332,35 @@
 
    Quisque sollicitudin tempor bibendum. Donec consectetur condimentum sollicitudin. Sed dignissim velit id
    felis lacinia at eleifend nisi laoreet. Vivamus tristique porta ornare. Vivamus feugiat dolor id lectus
-   aliquet luctus.
+   aliquet luctus. The qq qq qq nibbles of E matches the Name iff qq qq qq contains one or more contiguous
+   sequence of digit nibbles ‘0’-’9’ separated with one or more nibble ‘F’ and each of those match the
+   Name.
+
+   A maximal^2 consecutive sequence^3 of digit nibbles nn...n match the Name iff there is a maximal
+   consecutive sequence of decimal digits vv...v in Name where
+
+     * vv...v has a prefix of nn...n if the, or
+
+     * vv...v equals nn...n.
+
+   A contiguous sequence of digit nibbles nn...n match the Name iff there is a substring of decimal digits
+   vv...v in Name not immediately preceded by any further digits where nn...n = vv...v and
+
+     * Flag byte rr has Bit 6 (Exact) not set, or
+
+     * vv...v in Name is not immediately followed by any further digits.
+
+8.1 Search Result Differentiation
+
+   A Train Node replying with Producer Identified message may, but is not required to pick the response
+   message from the set of Producer Identified Valid, Producer Identified Invalid and Producer Identified
+   Unknown to differentiate on how well the search query matches the Train Node’s properties, using the
+   ratings of ‘Valid’ > ‘Invalid’ > ‘Unknown’ in quality. A Node may use any implementation-specific
+   algorithm, which may also take into account properties not represented in this standard for making the
+   determination.
+
+   If a Train Node does not make differentiation, it shall use Producer Identified Unknown as response
+   message for Search responses.
 
    Table of Contents
 
@@ -308,25 +368,31 @@
 
    2 Intended Use (Informative) 1
 
-   3 References and Context (Normative) 1
+   3 References and Context (Normative) 2
 
-   4 Message Formats 1
+   4 Message Formats (Normative) 2
 
-   5 States 1
+   5 Allocation (Normative) 2
 
-   6 Interactions 1
+   5.1 Identifier Range allocation and License terms 2
 
-   7 Section Title 1
+   5.2 Identifier Format 2
 
-   7.1 Subsection Title 1
+   6 Interactions (Normative) 4
 
-   7.1.1 Sub-subsection Title 1
+   6.1 Search for existing train nodes 5
 
-   8 Section Title 2
+   6.2 Allocate a new Train Node 5
+
+   6.3 Event Identifier matching algorithm 6
 
    1See the “Common Information” OpenLCB Technical Note for detailed conventions on bit and byte numbering.
    Briefly, the least significant bit of a field is numbered with zero in OpenLCB descriptions, but note
    that other technologies may use other conventions.
 
+   2No ‘0’-’9’ characters immediately before or after this substring.
+
+   3Contiguous subsequence is commonly referred to as substring.
+
    Copyright 2013-XX. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1
-   of 6 - Oct 22, 2019
+   of 7 - Oct 22, 2019
