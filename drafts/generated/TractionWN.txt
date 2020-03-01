@@ -195,14 +195,16 @@
                                               0x01=Alias                                          
                                               ID valid   
                                                          
-                        Attach Node           0x02=Rev   
-                        or                    direction  Listener Node ID                  Alias        
-                        update flags                                                       {Optional}
-                        0x01                  0x04=Link  
-   Listener        0x30                       F0         
-   Configuration                                         
-                                              0x08=Link  
+                                              0x02=Rev   
+                        Attach Node           direction  
+                        or                               Listener Node ID                  Alias        
+                        update flags          0x04=Link                                    {Optional}
+                        0x01                  F0         
+   Listener        0x30                                  
+   Configuration                              0x08=Link  
                                               Fn         
+                                                         
+                                              0x80=Hide  
                                               Flags                                        Alias            
                         Detach Node    0x02   0x01=Alias Listener Node ID                  {Optional}   
                                               ID valid   
@@ -575,6 +577,9 @@
    will return the information for that specific listener, including Node ID and the flags specifying the
    forwarding options. If the requested index is out of bounds, or no index is requested, then the response
    will be short (no node information).
+
+   User interfaces that show the listeners shall not show listener nodes that are marked with the flag
+   “Hide”. This flag is intended to be set for controlling throttles and train automation systems.
 
    To discover and retrieve all listeners from a train node, multiple query messages are required. This
    presents a race condition when a third node changes the listener configuration during the process. It is
