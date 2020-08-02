@@ -7,7 +7,8 @@ OFFICE := $(shell sh -c \
            )
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
-OUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+PDFOUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+TXTOUTPUT = $(SINPUT:.ods=.txt) $(TINPUT:.odt=.txt)
 
 ifneq ($(RUNNING),)
 .PHONY: all
@@ -43,15 +44,24 @@ nmra: \
 pdf: $(OUTPUT)
 
 .SUFFIXES:
-.SUFFIXES: .odt .ods .pdf .txt
+.SUFFIXES: .odt .ods .pdf .txt .html
 
 # Spreadsheets
 .ods.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
+.ods.html:
+	$(OFFICE) --headless --convert-to html $<
+
 # text documents
 .odt.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
+
+.odt.html:
+	$(OFFICE) --headless --convert-to html $<
+
+.html.txt:
+	links -dump -width 120 $< > $@
 
 .odt.txt:
 	odt2txt $< > $@
