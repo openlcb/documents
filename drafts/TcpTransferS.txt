@@ -1,0 +1,167 @@
+   PowerPlusWaterMarkObject1
+
+                                                                OpenLCB Standard
+
+                                                              OpenLCB-TCP Transfer
+
+                                                          Aug 2, 2020        Preliminary    
+
+                                              1 Introduction (Informative)
+
+   The OpenLCB suite of protocols can be used on multiple physical transports; this document describes the specifics
+   that relate to using a TCP/IP link as a link layer. This specification defines unique headers to provide message
+   traceability, node addressing and priority management.
+
+                                              2 Intended Use (Informative)
+
+   This Standard is intended for use whenever OpenLCB nodes are communicating over a reliable byte-stream link, e.g.
+   a TCP/IP connection. It is not intended to cover OpenLCB communications over other types of communications links.
+
+                                          3 References and Context (Normative)
+
+   In this document, the term "OpenLCB-TCP" refers to details of OpenLCB nodes that are specific to using a TCP
+   transport, as opposed to generic OpenLCB protocol or OpenLCB using other transports.
+
+   This specification should be interpreted in the the context of the following OpenLCB Standards:
+
+     * The OpenLCB Unique Identifiers Standard, which specifies the mechanism(s) for providing a unique identifier
+       for each node
+
+   Each OpenLCB node (independent of transport layer in use) shall have a unique identifier. When using a CAN bus
+   transport, that identifier shall be used as its node identifier (NodeID).
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+                                              4 Message Format (Normative)
+
+   Individual messages are preceded by a preamble that contains:
+
+     * Flags - 16 bit quantity.
+
+          * The most significant bit indicates whether the remaining message is a common OpenLCB message (1) or a
+            link control message (0).
+
+               * The 2nd most significant bit is a chaining bit, indicating that another header is contained within
+                 this one.
+
+               * The next 2 bits, the rest of the upper nibble of the flags, are reserved. They should be sent as
+                 zero and checked as zero on receipt.
+
+               * The 0x0C0030 bits are used to indicate multiple-part messages
+
+                    * 0b00 indicates a single-part message.
+
+                    * 0b01 indicates the first part of a multiple-part message
+
+                    * 0b11 indicates the center part of a multiple part message
+
+                    * 0b10 indicates the last part of a multiple-part message
+
+               * The lower 1012 bits are reserved. They are to be sent as zero on and ignored upon receipt.
+
+     * Number of bytes in rest of message, a 24-bit quantity. This includes both the rest of the prefix and the
+       actual message content.
+
+     * Originating node/gateway Node ID – the Node ID of the node or gateway that sent/forwarded this message onto
+       the link. May or may not be the original source of the message.
+
+     * Message capture time at originating gateway - a 48-bit number of monotonic milliseconds since the connection
+       was created or some arbitrary time before; no time synchronization with other nodes implied; no precision
+       required, only monotonicity; could have been a sequence number
+
+   The message itself is sent in the order:
+
+     * MTI – 16 bits total.
+
+     * Source Node ID – the full node ID of the node originating the message
+
+     * Destination Node ID (if indicated by the MTI) – the full node ID of the destination node
+
+     * Event ID (if indicated by the MTI) – an Event ID
+
+     * Other content – in byte order
+
+4.1 Link Control Messages
+
+  4.1.1 Status Request
+
+  4.1.2 Status Reply
+
+  4.1.3 Drop Link Request
+
+  4.1.4 Drop Link Reply
+
+                                                        5 States
+
+5.1 Multiple-part Messages
+
+   Multiple messages with a non-zero value of the multipart-message field in the prefix may, but need not be,
+   combined into a single message. This process shall:
+
+     * Preserve the order of the message contents
+
+     * Only combine message parts with equal values of MTI, source node ID and (if the presence of one is indicated
+       by the MTI) destination node ID.
+
+     * Only combine message parts when all contained prefix(es) contain the same value(s) in the matching originating
+       node/gateway Node ID field.
+
+     * Only combine parts if the first part combined has a 1 in the 0x0010 bit, the last part combined has a 1 in the
+       0x0020 bit, and parts that are neither first nor last have a 0x11 in the 0x0030 field of the prefix.
+
+   The value of the 0x0020 bit in the resulting prefix shall come from the 1^st part combined. The value of the
+   0x0010 bit in the resulting prefix shall come from the last part combined.The contained prefixes shall be updated
+   to include the full data count, and the lowest seen value of the message capture time at the originating gateway.
+
+                                                     6 Interactions
+
+   A node transmits a message to another node across a TCP link by first sending a prefix, then the message.
+
+   If the node is forwarding a message that was received across another TCP link, it includes all prefixes received
+   with the message and sets the chaining bit. The transmission is then the newest prefix, all prefix prefixes in
+   reverse time order, and then the OpenLCB message.
+
+6.1 Link Control Interactions
+
+  6.1.1 Status Request
+
+   One node sends Status Request with proper header(s). The other replies Status Report.
+
+  6.1.2 Drop Link
+
+   To close a link: Send Drop Link Request, wait for Drop Link Reply
+
+                         7 TCP-specific Link Control Transmissions and Interactions (Normative)
+
+7.1 Format
+
+7.2 States
+
+7.3 Interactions
+
+   Table of Contents
+
+   1 Introduction (Informative) 1
+
+   2 Intended Use (Informative) 1
+
+   3 References and Context (Normative) 1
+
+   4 Message Format (Normative) 1
+
+   5 States 2
+
+   6 Interactions 2
+
+   7 TCP-specific Link Control Transmissions and Interactions (Normative) 3
+
+   7.1 Format 3
+
+   7.2 States 3
+
+   7.3 Interactions 3
+
+   Copyright 2013. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 4 - Aug
+   2, 2020

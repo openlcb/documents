@@ -1,0 +1,83 @@
+   PowerPlusWaterMarkObject1
+
+                                                           OpenLCB Standard
+
+                                             ConfigurationFunction Description Information
+
+                                                  Aug 2, 2020             Preliminary       
+
+                                              1 Introduction (Informative)
+
+   Minimal introductory material, only the stuff that's absolutely needed to understand the StandardThis document
+   defines a standard for the storage of static information that described the function configuration options
+   available on an OpenLCB node, called “ConfigurationFunction Description Information (CFDI)” found in the
+   configuration memory at address 0xFA..
+
+                                              2 Intended Use (Informative)
+
+   Any limitations to the area of use of the StandardIntended to be used to by configurable, self-contained OpenLCB
+   nodes..
+
+                        3 References and Context (Normative)Citations to other docs, as needed.
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+                                                   * 4 Format (normative)
+
+4.1 Use of XML
+
+4.2 CFDI is constant
+
+4.3 Other stuff
+
+   The CFDI information shall be constant. A node may not change it after any part of it has been retrieved and
+   before the next transition of the node away from the Initialized state. (The transition back to Initialized state
+   tells other nodes to flush their caches and pick up any changed content)
+
+                                    5 Stuff to be merged into the above (or the TN)
+
+   The first byte is used to distinguish the coding.
+
+   “<” (which is part of the XML “<?xml version='1.0'?>” definition): Uncoded characters
+
+   UTF BOM: Various UniCode forms
+
+   0x01 – tag for compressed. One format defined for total start string of 0x0101. (If you want to use another
+   format, decompress on board)
+
+   (can't use 0x00 as lead, since that's the end-of-string indication) (Xinclude, schema default values, …) shall not
+   be assumed to be present.
+
+   Because the using node may not have external connections, XML features requiring those
+
+   Nodes that use the 'mask' attribute in their CDI must properly implement the write-under-mask operation in their
+   memory configuration protocol support.with legacy equipment only. New OpenLCB implementations should not use it.
+   Instead, they should lay out their configuration variables are processed as if they each had their own addressable
+   location. (How they are actually stored in memory is not specified.)
+
+   OpenLCB nodes. Providing optional coding, such as hexadecimal numbers, makes those nodes more complex.
+
+   The 'mask' attribute is for use . Although it may have made the CDI easier for people to read, the XML is
+   primarily intended for consumption by Numbers for segments, offsets, etc must be specified as decimal numbers.
+   Hexadecimal notation (0x1234) is not permitted
+
+   The schema at prototypes/xml/schema (better location?) is really the normative thing, because that's what we
+   check.
+
+   But we add the <acdi> element to it, so the document isn't really complete; “Other protocols may add, but not
+   remove, elements and attributes”? Remove constraints? How does extensibility work here?
+
+   Table of Contents
+
+   1 Introduction (Informative) 1
+
+   2 Intended Use (Informative) 1
+
+   3 References and Context (Normative) 1
+
+   4 Stuff to be merged into the above (or the TN) 1
+
+   Copyright 2012. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page 1 of 2 - Aug
+   2, 2020

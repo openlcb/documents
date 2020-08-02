@@ -7,7 +7,9 @@ OFFICE := $(shell sh -c \
            )
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
-OUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+PDFOUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+TXTOUTPUT = $(SINPUT:.ods=.txt) $(TINPUT:.odt=.txt)
+
 
 ifneq ($(RUNNING),)
 .PHONY: all
@@ -19,7 +21,7 @@ all:
 	@echo "************************************************************"
 else
 .PHONY: all
-all: pdf
+all: pdf txt
 
 #all:
 #	@echo $(SSRC)
@@ -39,8 +41,10 @@ nmra: \
 
 
 
-.PHONY: pdf
-pdf: $(OUTPUT)
+.PHONY: pdf txt
+pdf: $(PDFOUTPUT)
+
+txt: $(TXTOUTPUT)
 
 .SUFFIXES:
 .SUFFIXES: .odt .ods .pdf .txt .html
