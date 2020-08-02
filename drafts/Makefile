@@ -43,21 +43,28 @@ nmra: \
 pdf: $(OUTPUT)
 
 .SUFFIXES:
-.SUFFIXES: .odt .ods .pdf .txt
+.SUFFIXES: .odt .ods .pdf .txt .html
 
 # Spreadsheets
 .ods.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
-.ods.txt:
-	$(OFFICE) --headless --convert-to txt:Text $<
+#.ods.txt:
+#	$(OFFICE) --headless --convert-to txt:Text $<
+
+.ods.html:
+	$(OFFICE) --headless --convert-to html $<
+
 
 # text documents
 .odt.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
-.odt.txt:
-	odt2txt $< > $@
+.odt.html:
+	$(OFFICE) --headless --convert-to html $<
+
+.html.txt:
+	links -dump -width 120 $< > $@
 
 #	$(OFFICE) --headless --convert-to txt:Text $<
 
