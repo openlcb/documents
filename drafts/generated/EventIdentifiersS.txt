@@ -1,0 +1,157 @@
+                                                                    OpenLCB Standard
+
+                                                                   Event Identifiers
+
+                                                        Feb 23, 2019                       Draft            
+
+                                         1 Introduction (Informative)
+
+   This standard describes the format and allocation of OpenLCB Event Identifiers (Event IDs). It is not
+   specific to any wire protocol.
+
+                                         2 Intended use (Informative)
+
+   This standard defines the format and allocation of Event Identifiers. Event Identifiers are typically
+   used with the Event Transport protocol and are globally unique.
+
+                                     3 References and Context (Normative)
+
+   This Standard is in the context of the following OpenLCB Standards:
+
+     * The CAN Physical Layer Standard, which specifies the physical layer for transporting OpenLCB-CAN
+       frames
+
+     * The Message Network Standard, which defines the basic messages and how they interact. Higher-level
+       protocols are based on this message network, but are defined elsewhere.
+
+     * The Event Transport Standard, which defines the protocol for transporting events.
+
+     * The Unique Identifiers Standard which defines the format and allocation of unique 48-bit
+       identifiers.
+
+                                             4 Format (Normative)
+
+   An OpenLCB event identifier shall be eight bytes of eight bits each. Except as specifically noted within
+   this document, the upper 6-bytes are represented by a uniquely assigned Node ID.
+
+   The order of bytes in an OpenLCB Event Identifier shall be considered significant. The most-significant
+   byte shall be transmitted first during communication operations. The most-significant byte shall be
+   written first (left-most in Western format) in any human-readable representation. Within the tables
+   below, byte 1 is considered the most-significant byte, while byte 8 is considered the least significant
+   byte.
+
+                                           5 Allocation (Normative)
+
+5.1 Node ID Based
+
+                              Value                                  Suffix              Description        
+
+     Byte 1    Byte 2    Byte 3    Byte 4    Byte 5    Byte 6    Byte 7   Byte 8   
+
+                 6-byte Uniquely Assigned Node ID                  *         *     Assigned Node ID event   
+
+5.2 Well-Known Automatically-Routed
+
+   The following Event Identifiers are automatically routed between OpenLCB segments through gateways.
+
+                        Value                           Suffix                   Description                
+
+    Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
+
+      01      00      *       *       *       *       *       *     Well-Known Automatically-Routed Event   
+                                                                    Identifiers                             
+
+                      00      00      00      00      FF      FF    Emergency off (de-energize)             
+
+                                                      FF      FE    Clear emergency off (energize)          
+
+                                                      FF      FD    Emergency stop of all operations        
+
+                                                      FF      FC    Clear emergency stop of all operations  
+
+                                                      FF      F8    Node recorded a new log entry           
+
+                                                      FF      F1    Power supply brownout detected below    
+                                                                    minimum required by node                
+
+                                                      FF      F0    Power supply brownout detected below    
+                                                                    minimum required by standard            
+
+                                                      FE      00    Ident button combination pressed        
+
+                                                      FD      01    Link error code 1 – the specific        
+                                                                    meaning is link wire protocol specific  
+
+                                                      FD      02    Link error code 2                       
+
+                                                      FD      03    Link error code 3                       
+
+                                                      FD      04    Link error code 4                       
+
+5.3 Well-Known
+
+   The following Event Identifiers are not automatically routed.
+
+                        Value                           Suffix                   Description                
+
+    Byte 1  Byte 2  Byte 3  Byte 4  Byte 5  Byte 6  Byte 7  Byte 8  
+
+      01      01      *       *       *       *       *       *     Well-Known Event Identifiers            
+
+                      00      00      00      00      02      01    Duplicate Node ID Detected              
+
+                                                      03      *     Reserved for Traction Protocol          
+
+                                                      03      01    Reserved                                
+
+                                                      03      02    Reserved                                
+
+                                                      03      03    This node is a Train                    
+
+                                                      03      04    This node is a Traction Proxy           
+
+                                                      06      *     Reserved for Firmware Upgrade Protocol  
+
+                                                      06      01    Firmware Corrupted                      
+
+                                                      06      02    Firmware Upgrade Request by Hardware    
+                                                                    Switch                                  
+
+                                      01      00          *         Default Fast Clock                      
+
+                      00      00      01      01          *         Default Real-Time Clock                 
+
+                                              02          *         Alternate Clock 1                       
+
+                                              03          *         Alternate Clock 2                       
+
+                      01      00         CBUS            CBUS       Subset of the assigned Node ID space    
+                                       Node ID         Event ID     for CBUS mapped nodes. Node ID is       
+                                                                    00.00 for short events. This range is   
+                                                                    an ON request.                          
+
+                      01      01         CBUS            CBUS       Subset of the assigned Node ID space    
+                                       Node ID         Event ID     for CBUS mapped nodes. Node ID is       
+                                                                    00.00 for short events. This range is   
+                                                                    an OFF request.                         
+
+   Table of Contents
+
+   1 Introduction (Informative) 1
+
+   2 Intended use (Informative) 1
+
+   3 References and Context (Normative) 1
+
+   4 Format (Normative) 1
+
+   5 Allocation (Normative) 2
+
+   5.1 Node ID Based 2
+
+   5.2 Well-Known Automatically-Routed 3
+
+   5.3 Well-Known 5
+
+   Copyright 2011-2019. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+   1 of 7 - Feb 23, 2019

@@ -1,0 +1,184 @@
+                                                                    OpenLCB Standard
+
+                                                                   CAN Physical Layer
+
+                                                        Feb 6, 2016                       Draft             
+
+                                         1 Introduction (Informative)
+
+   This document defines the physical layer for carrying OpenLCB-CAN over a single Controller Area Network
+   (CAN) bus. It it not otherwise normative.
+
+                                         2 Intended Use (Informative)
+
+   Conforming OpenLCB CAN nodes can be connected by cables to form a linear CAN bus with optional short
+   stubs. OpenLCB CAN nodes generally have two RJ45 modular connectors and can be daisy-chained together
+   with suitable computer-network (“Ethernet”) cables. A CAN terminator is installed by the user at each
+   end of the main bus.
+
+   A limited amount of power can be distributed via the cable, allowing a few nodes to draw their power
+   from a nearby (less than 20 ft / 6m) source attached to the common bus.
+
+                                     3 References and Context (Normative)
+
+   In this document
+
+     * “RJ45” refers to the miniature 8 position unkeyed plug and jack defined in sections Section 6.1.1.3
+       and Section 6.1.1.4, respectively, of the TIA-968-A specification.
+
+     * “UTP” refers to CAT-3 or better cable as defined in TIA/EIA-568-B or the successor TIA/EIA- 568-C.
+       This specifically includes CAT-5e cable.
+
+     * “CAN” refers to the electrical and protocol specifications as defined in ISO 11898-1:2003 and ISO
+       11898-2:2003 and their successors.
+
+   External certification of parts shall be accepted for conformance to these standards. Conformance with a
+   later version of a standard shall be accepted as conformance with the referenced versions.
+
+                                    4 Physical Interconnection (Normative)
+
+   CAN connections between nodes shall be made using UTP cable. There shall be a RJ45 plug on the cable and
+   RJ45 jack on the node unless the cable is permanently attached to the node.
+
+   The signal, conductor and pair assignments shall be:
+
+ Conductor            Signal Name                  TIA/EIA-568-A                 TIA/EIA-568-B                 
+                                                   (Informative)                 (Informative)                 
+
+ 1                    CAN_H                        white/green                   white/orange                  
+
+ 2                    CAN_L                        green                         orange                        
+
+ 3                    CAN_GND                      white/orange                  white/green                   
+
+ 4                    ALT_L                        blue                          blue                          
+
+ 5                    ALT_H                        white/blue                    white/blue                    
+
+ 6                    CAN_SHIELD                   orange                        green                         
+
+ 7                    PWR_NEG                      white/brown                   white/brown                   
+
+ 8                    PWR_POS                      brown                         brown                         
+
+                                     Figure 1: Jack viewed from plug side
+
+   Cables, including cables attached to nodes, shall carry conductors 1 & 2 as a pair, and conductors 3 & 6
+   as a pair.
+
+   Cables may, but are not required to, carry conductors 4 and 5. Conductors 4 and 5, if present, shall be
+   carried as a pair.
+
+   Cables may, but are not required to, carry conductors 7 and 8. Conductors 7 and 8, if present, shall be
+   carried as a pair.
+
+   If a node provides two or more connections, conductors 1 through 8 shall be provided on all connections.
+   Conductors 1 through 7 shall be connected in parallel on all connections. If the node does not provide
+   power on pin 8 on all connectors, pin 8 on all connectors shall be connected in parallel. All wiring
+   discussed in this paragraph shall be rated to carry at least 1A.
+
+   Nodes shall connect conductors 3 and 6 . This connection shall be rated to carry at least 1A.
+
+   A node may, but is not required to, connect conductor 7 with conductors 3 and 6. Nodes that require
+   conductor 7 to be connected to conductors 3 and 6 for proper operation shall connect conductor 7 to
+   conductors 3 and 6.
+
+   Voltages of up to 27volts AC or either polarity DC on the ALT_L / ALT_H conductors 4 and 5 shall not
+   damage the node nor prevent normal operation of the node.
+
+   Voltages of up to 27 volts AC or either polarity DC on the PWR_NEG / PWR_POS conductors shall not
+   permanently damage the node.
+
+                                         5 Data Transport (Normative)
+
+   Data shall be transferred using a CAN signal at 125kbps and CAN frame protocol.
+
+   Any devices providing bus termination shall conform to CAN requirements for that termination.
+
+   A node may, but is not required to, provide a method for bus termination as part of the node. If so,
+   there shall be a user-accessible method for enabling and disabling the termination, and the node shall
+   be shipped from the original manufacturer with the termination disabled.
+
+                                               6 ALT_L / ALT_H
+
+   The ALT_L / ALT_H pins 4 and 5 are available for alternate uses. This section describes the currently
+   approved uses for the ALT_L / ALT_H conductors. Additional uses may be approved and added to this
+   document in the future. All uses of ALT_L/ALT_H shall be visibly labeled on the node, and documented in
+   the accompanying product literature.
+
+6.1 DCC Signal
+
+   NMRA standard S-9.1.2 defines the “Power Station Interface” for DCC power stations, more commonly known
+   as DCC boosters. ALT_L / ALT_H may, but are not required to, be used to carry the “Power Station
+   Interface” signals as described in NMRA standard S-9.1.2.
+
+   An OpenLCB node that is a source or consumer of the DCC signal shall conform to the requirements in NMRA
+   standard S-9.1.2 in order to be considered in compliance with this standard. The requirements in NMRA
+   standard S-9.1.2 are not applicable to OpenLCB nodes that do not source or consume a DCC signal.
+
+   Though the NMRA standard S-9.1.2 allows for a unipolar signal, an OpenLCB source node shall only be
+   permitted to use a bipolar signal, ALT_L shall be the “negative” voltage and ALT_H shall be the
+   “positive” voltage during the first half of a DCC bit as described in the NMRA standard S-9.1.2. The
+   polarity shall be reversed during the second half of the DCC bit.
+
+   ALT_L and ALT_H shall not have a connection to CAN_GND, CAN_SHEILD, PWR_NEG, or any other signal in the
+   physical interconnection described in section 4 that is less than 20K ohms impedance at frequencies up
+   to 1 MHz in any DCC signal consumer node.
+
+   DCC signal source nodes shall reference ALT_L / ALT_H to PWR_NEG. DCC signal source nodes shall not
+   drive ALT_L / ALT_H to exceed +/-22 volts as referenced to each other or to PWR_NEG measured at the DCC
+   signal source node into a 1K load.
+
+   A node that either sources or consumes the DCC signal shall be permanently labeled as such in a location
+   visible to the user. Nodes that do not supply or consume the DCC signal do not require labeling, even
+   though all nodes are required to pass through the ALT_L / ALT_H signals, regardless as to whether they
+   consume or source these signals.
+
+                                        7 Supply of Power (Normative)
+
+   A node may, but is not required to, provide power to the cable PWR_POS / PWR_NEG conductors.
+
+   If a node provides power, it shall provide at least 9VDC and no more than 15VDC from zero current draw
+   up to its specified maximum current. Its specified maximum current shall not exceed 500 mA. The
+   specified maximum current shall be permanently written on the node in a location visible to the user.
+   This label is required whether or not the node provides power to the cable.
+
+                                      8 Consumption of Power (Normative)
+
+   Nodes may, but are not required to, draw power from the PWR_POS / PWR_NEG conductors in the cable. Nodes
+   shall not draw more than 500 mA at any PWR_POS / PWR_NEG voltage from 7.5VDC to 15VDC. Nodes that draw
+   power shall operate properly with a supply voltage of 7.5VDC to 15VDC on the PWR_POS / PWR_NEG
+   conductors. The maximum current drawn by each node shall be permanently written on that node in a
+   location visible to the user. This label is required whether or not the node draws power from the cable.
+
+                                       9 Injection Current (Normative)
+
+   In addition to the current and voltage requirements placed on the individual conductors of the Physical
+   Interconnection signals elsewhere in this document, the current on all eight conductors going into and
+   out of a node shall sum to zero. In order to account for measurement tolerances, for testing purposes,
+   zero current shall be defined as “zero +/-1mA”.
+
+   Table of Contents
+
+   1 Introduction (Informative) 1
+
+   2 Intended Use (Informative) 1
+
+   3 References and Context (Normative) 1
+
+   4 Physical Interconnection (Normative) 1
+
+   5 Data Transport (Normative) 3
+
+   6 ALT_L / ALT_H 3
+
+   6.1 DCC Signal 3
+
+   7 Supply of Power (Normative) 4
+
+   8 Consumption of Power (Normative) 4
+
+   9 Injection Current (Normative) 4
+
+   Copyright 2010-2016. All rights reserved. See http://openlcb.org/Licensing.html for license terms.  Page
+   1 of 5 - Feb 6, 2016
