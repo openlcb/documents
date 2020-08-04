@@ -1,4 +1,4 @@
-RUNNING := $(shell ps ax | grep -v grep | grep soffice)
+RUNNING := $(shell ps ax | grep -v grep | grep soffice | grep -v quickstart )
 
 OFFICE := $(shell sh -c \
             "if [ -d /Applications/LibreOffice.app/Contents/MacOS ]; then echo /Applications/LibreOffice.app/Contents/MacOS/soffice; \
@@ -7,7 +7,9 @@ OFFICE := $(shell sh -c \
            )
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
-OUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+PDFOUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
+TXTOUTPUT = $(TINPUT:%.odt=generated/%.txt)
+
 
 ifneq ($(RUNNING),)
 .PHONY: all
@@ -19,7 +21,7 @@ all:
 	@echo "************************************************************"
 else
 .PHONY: all
-all: pdf
+all: pdf txt
 
 #all:
 #	@echo $(SSRC)
@@ -39,8 +41,10 @@ nmra: \
 
 
 
-.PHONY: pdf
-pdf: $(OUTPUT)
+.PHONY: pdf txt
+pdf: $(PDFOUTPUT)
+
+txt: $(TXTOUTPUT)
 
 .SUFFIXES:
 .SUFFIXES: .odt .ods .pdf .txt
@@ -53,8 +57,8 @@ pdf: $(OUTPUT)
 .odt.pdf:
 	$(OFFICE) --headless --convert-to pdf $<
 
-.odt.txt:
-	odt2txt $< > $@
+$(TXTOUTPUT): generated/%.txt : %.odt
+	TMPDIR=`mktemp -d` && soffice --headless --convert-to html --outdir $$TMPDIR  $< && links -dump -width 110 $$TMPDIR/$*.html > $@ && rm -rf $$TMPDIR
 
 .PHONY: veryclean
 veryclean: clean
