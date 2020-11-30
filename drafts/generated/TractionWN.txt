@@ -250,6 +250,8 @@
       Management                0x01      
                                Release    
                                 0x02      
+                                No-op     
+                                0x03      
 
    Want to add “Query attached Node IDs” and “Query attached DCC addresses” as instructions, see discussion
    later on.
@@ -264,46 +266,52 @@
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
 
-     Instruction    Byte 0    Byte 1        Byte 2      Byte 3  Byte 4  Byte  Byte  Byte  Byte  Byte  Byte  
-                                                                         5     6     7     8     9     10   
-     Query Speeds   0x110           Set Speed           Status   Commanded      Actual
-        Reply                                                      Speed        Speed
-    Query Function  0x111                Address                   Value
+     Instruction    Byte 0    Byte 1       Byte 2      Byte 3    Byte   Byte  Byte  Byte  Byte  Byte  Byte  
+                                                                   4     5     6     7     8     9     10   
+     Query Speeds   0x110          Set Speed           Status     Commanded     Actual
+        Reply                                                       Speed       Speed
+                                                       Bit 0:    
+                                                      1=E-Stop.  
+    Query Function  0x111                 Address                   Value
         Reply       
-      Controller     0x20     Assign        Result:     
-    Configuration           Controller      0 == OK     
-        Reply               Reply 0x01    Non-zero ==   
-                                            Failed      
-                                                        
-                                          Fail Code:    
-                                              Bit       
-                                          0=Assigned    
-                                          Controller    
-                                            Refused     
-                                          Connection    
-                                                        
-                                         Bit 1 = Train  
-                                            Refused     
-                                          Connection    
-                               Query         Flags       Active Controller (0.0.0.0.0.0 if no    Alias ID
-                            Controller   0x01=Alias ID            controller active)            {Optional}
-                            Reply 0x03       valid      
-                            Controller   Result: 0 ==   
-                              Changed         OK        
-                              Notify                    
-                            Reply 0x04    Non-zero ==   
-                                            Reject      
+      Controller     0x20     Assign       Result:    
+    Configuration           Controller     0 == OK    
+        Reply               Reply 0x01   Non-zero ==  
+                                           Failed     
+                                                      
+                                         Fail Code:   
+                                             Bit      
+                                         0=Assigned   
+                                         Controller   
+                                           Refused    
+                                         Connection   
+                                                      
+                                           Bit 1 =    
+                                            Train     
+                                           Refused    
+                                         Connection   
+                               Query        Flags       Active Controller (0.0.0.0.0.0 if no     Alias ID
+                            Controller   0x01=Alias              controller active)             {Optional}
+                            Reply 0x03    ID valid    
+                            Controller    Result: 0   
+                              Changed       == OK     
+                              Notify                  
+                            Reply 0x04   Non-zero ==  
+                                           Reject     
        Listener      0x30   Attach Node                      Node ID                      Reply Code
     Configuration           Reply 0x01   
         Reply               Detach Node                      Node ID                      Reply Code
                             Reply 0x02   
-                            Query Node    Node count     Node   Flags                Node ID
-                            Reply 0x03                  index   {opt}               {optional}
-                                                        {opt}   
-       Traction      0x40     Reserve       Result:     
-      Management            Reply 0x01      0 == OK     
-        Reply                             Non-zero ==   
-                                            Failed      
+                            Query Node   Node count     Node     Flags               Node ID
+                            Reply 0x03                  index    {opt}              {optional}
+                                                        {opt}    
+       Traction      0x40     Reserve      Result:    
+      Management            Reply 0x01     0 == OK    
+        Reply                            Non-zero ==  
+                                           Failed     
+                             Heartbeat   Timeout in   
+                              Request      seconds    
+                               0x03      
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -315,16 +323,18 @@
    The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
    two additional speeds. If a node cannot provide any of those three speeds, it should use float16 NaN
    (not a number) 0xFFFF. “Set Speed” is the most recent speed received in a Set Speed/Direction
-   instruction. “Commanded Speed” is the speed that the traction control is currently attempting to move,
-   taking into account momentum and any other control modifiers. “Actual Speed” is the current measured
-   speed of the locomotive. There is no accuracy guarantee for Actual Speed.
+   instruction, or ±0 if an E-Stop command was received after the last Set Speed/Direction command.
+   “Commanded Speed” is the speed that the traction control is currently attempting to move, taking into
+   account momentum and any other control modifiers. “Actual Speed” is the current measured speed of the
+   locomotive. There is no accuracy guarantee for Actual Speed.
 
    On CAN, the Query Speed/Direction reply does not fit in a single frame, so it's sent as two frames with
    start and end marked in the 1^st data nibble (high part of destination address). The status byte was
    included so that the actual speed value would not be split across boundaries (though that's not
-   necessarily guaranteed for other wire protocols that come along later) The status byte is reserved. Send
-   0x00, don't check on receipt. For example, from node with alias 123 to node with alias 456, all speeds
-   equal to 0x4420 would be sent as the two frames:
+   necessarily guaranteed for other wire protocols that come along later). The status byte is is a bit set.
+   Bit zero shall be set if and only if an Emergency Stop command was received after the last Set
+   Speed/Direction command. For example, from node with alias 123 to node with alias 456, all speeds equal
+   to 0x4420 would be sent as the two frames:
 
    195E8123 14 56 10 44 20 00 44 20
 
@@ -397,6 +407,11 @@
    configuration on the train node. These messages are not needed for normal traction operations such as
    speed and function set/query. If the node attempting to set attributes of the train is not the active
    node the train node will ignore the request and as such locking/releasing is not required.
+
+   The Heartbeat Request may be sent by a train node to the currently active Controller node at the
+   discretion of the train node. The argument is a deadline in seconds for the Controller node to reply.
+   The Controller node may reply with any control or query command, or a No-op command. If there is no
+   command received within the deadline, the train node may elect to stop the train.
 
 2.5 States
 
@@ -600,7 +615,7 @@
 
     Proxy-Specific Details
 
-  2.7.5 For locating all proxies and just idle or in use proxies, two well-known Event IDs are used:
+   For locating all proxies and just idle or in use proxies, two well-known Event IDs are used:
 
    Proxy must produce the reserved event
 
@@ -614,11 +629,11 @@
    the state changes, the node will transmit a Producer/ConsumerEventReport message with the event ID
    corresponding to the new state.Basic Throttle and Train Connection
 
-  2.7.6 Conflicting Throttles
+  2.7.5 Conflicting Throttles
 
-  2.7.7 Throttle to Throttle Successful Hand-over (steal)
+  2.7.6 Throttle to Throttle Successful Hand-over (steal)
 
-  2.7.8
+  2.7.7
   Listeners
 
    When listeners are configured, the incoming state changing traction messages are forwarded by the train
@@ -670,6 +685,49 @@
    not specified how the listener indexes change by attaching or detaching a listener. The querying node
    can recognize that their information is out of date by observing a change in the count of listeners
    compared to the expected number of listeners and restart the enumeration process.
+
+  2.7.8 Heartbeat
+
+   Train nodes may employ a heartbeat mechanism to ensure that the assigned Controller (typically a
+   throttle) is alive and in control of the train. This is a safety feature that protects valuable
+   equipment from technical failures causing a runaway train rolling uncontrollably.
+
+   The Heartbeat Request shall be initiated by the train node. This choice was made in order to allow
+   centralizing the timeout based logic in one participant. It is recommended to make heartbeats a
+   selectable option for a train or proxy (command station). The train shall not initiate a heartbeat
+   request if it has received a command or query from the Controller node within the time period of the
+   heartbeats.
+
+   Trains shall not initiate a heartbeat request if the last Set  Speed is zero (including E-stop).
+
+   Trains shall accept any command or query sent from the controller node to the train node to clear the
+   heartbeat request. If the controller node does not have anything to command or query, the Traction
+   Management No-op request may be used to clear the heartbeat.
+
+   If a train does not receive any command or query from the Controller node within the deadline presented
+   in the heartbeat request, the train shall interpret that as a Set Speed 0 command. This command shall be
+   forwarded to any registered listeners at the same time.
+
+   In case there is no assigned Controller node, there is no connection to check with heartbeats, and the
+   train shall continue operating as last commanded. Controllers can choose to release themselves from the
+   train if they wish to not receive heartbeats; this is recommended during any orderly shutdown of a
+   controller or else the train will stop after the heartbeat period.
+
+   There are two timing parameters in the Heartbeat interaction, which may be specified separately by the
+   manufacturer of the train node or the configuration of the user.
+
+     * The time period of heartbeats: the maximum idle period after which a heartbeat is sent.
+
+     * The deadline: after a heartbeat is sent, how much time does the Controller have to reply.
+
+   The suggested default values are 10 seconds for period and 3 seconds for deadline. It is recommended for
+   manufacturers to make the period configurable by the user.
+
+   Alerter mode. The Standard purposefully does not specify that a Controller shall automatically clear the
+   heartbeat request. It is a valid implementation to require the operator of the train to clear the
+   heartbeat and provide an appropriate user interface to do so (e.g. audible or visual alert and
+   acknowledgment button). This is prototypical behavior for real locomotives, also called “dead-man
+   switch”.
 
                                            3 Background Information
 
@@ -840,8 +898,6 @@
    about the particular model's construction, etc. The Simple Train Node Information Protocol (STNIP) As
    yet, OpenLCB has no standards nor conventions on this informationhas been defined to implement this
    concept.
-
-  3.3.1
 
   Legacy DCC Configuration
 
