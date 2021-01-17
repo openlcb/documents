@@ -143,6 +143,22 @@
        Node(s), and having an OpenLCB network connection. There may or may not be a separate OpenLCB Node
        that represents the Command Station itself on the OpenLCB network.
 
+   A Train Node has a set of properties, the following of which are relevant for the interactions defined
+   in this Standard:
+
+     * Name is a user-assigned textual description for the train.
+
+     * Protocol defines the native command set that is used to address this train. The options are listed
+       in the Track Protocol table.
+
+     * Address is a user-assigned numerical value that uniquely identifies a train within a Protocol. There
+       cannot be two trains with the same Protocol and same Address on the track at the same time. Not all
+       Protocols have a user-assigned Address.
+
+     * Protocol Version selects the exact command set to use for a Track Protocol. Users sometimes have to
+       select a specific Protocol Version to correctly operate a train or to access all possible features
+       of it.
+
 6.1 Search for existing train nodes
 
    The goal of this use-case is for a Throttle Node to enumerate Train Nodes that exist on the network and
@@ -156,7 +172,7 @@
        the Event Identifier Range of Section 5.1, shall
 
           * compare the Train Node’s identifying properties to the search criteria represented by the Event
-            Identier E according to Section 6.3;
+            Identifier E according to Section 6.3;
 
           * in case of a match, the Train Node shall emit a “Producer Identified” message with the Event
             Identifier E to the network, setting the Producer validity bits according to Section 6.4;
@@ -173,7 +189,7 @@
    The Throttle Node shall represent the requested address as an Event Identifier E according to Section
    5.2, with setting the flag byte ‘rr’ Bit 7 (Allocate) to one (0x80). The Throttle Node may, but is not
    required to, specify the desired track protocol in the flag byte. It is recommended that the Throttle
-   Node also sets the Bit 6 (Exact) to one (0x40) in the flag byte.
+   Node also sets Bit 6 (Exact) to one (0x40) in the flag byte.
 
      * The Throttle Node shall send an “Identify Producer” message with setting the Event Identifier to E
        to the network.
@@ -204,42 +220,46 @@
    This section defines when an Event Identifier E in the range defined by Section 5.1 matches a Train Node
    with the identifying properties of <Name, Address, Protocol, Protocol Version>.
 
-   The Train Node matches the Event Identifier E iff the search query represented by the qq qq qq nibbles
-   of E matches and the requirement by the rr flag byte matches the Protocol and Protocol Version and the
-   Flag byte or the query nibbles specify no reserved values marked as “check upon receipt”.
+   The Train Node matches the Event Identifier E if and only if
 
-   The flag byte rr matches Protocol iff the Track Protocol field of rr is set to “Default/Any” or Protocol
-   matches the value of the Track Protocol field.
+     * the search query represented by the qq qq qq nibbles of E matches, AND
 
-   The flag byte rr matches Protocol Version iff the Track Protocol field of rr is set to the specific
-   value or range matching Protocol and the version bits of rr are set to “Default/Any” or to a value that
-   matches Protocol Version.
+     * the requirement by the rr flag byte matches the Protocol and Protocol Version, AND
 
-   The search query represented by the qq qq qq nibbles of E matches iff
+     * the Flag byte or the query nibbles specify no reserved values marked as “check upon receipt”.
+
+   The flag byte rr matches Protocol if and only if the Track Protocol field of rr is set to “Default/Any”
+   or Protocol matches the value of the Track Protocol field.
+
+   The flag byte rr matches Protocol Version if and only if the Track Protocol field of rr is set to the
+   specific value or range matching Protocol and the version bits of rr are set to “Default/Any” or to a
+   value that matches Protocol Version.
+
+   The search query represented by the qq qq qq nibbles of E matches if and only if
 
      * qq qq qq matches the Address of the Train Node, or
 
-     * the Address only bit is not set in the Flag byte rr and qq qq qq matches the Name.
+     * the Address only bit is not set in the Flag byte rr  AND  qq qq qq matches the Name.
 
-   The qq qq qq nibbles of E matches the Address iff qq qq qq contains exactly one contiguous sequence of
-   digit nibbles ‘0’-’9’, and
+   The qq qq qq nibbles of E matches the Address if and only if qq qq qq contains exactly one contiguous
+   sequence of digit nibbles ‘0’-’9’, AND
 
-     * Protocol is non-DCC, or
+     * Protocol is non-DCC, OR
 
-     * the Flag byte rr specifies “Default/Any” protocol, or
+     * the Flag byte rr specifies “Default/Any” protocol, OR
 
-     * Bit 2 (DCC - Force long address bit) is clear in the Flag byte rr, or
+     * Bit 2 (DCC - Force long address bit) is clear in the Flag byte rr, OR
 
-     * Address is >= 128, or
+     * Address is >= 128, OR
 
      * Address is a DCC 14-bit (long) address
 
-   and
+   AND
 
-     * the Exact bit of the Flag byte rr is set and the decimal value represented by these nibbles is the
-       value of the Address, or
+     * the Exact bit of the Flag byte rr is set AND the decimal value represented by these nibbles is the
+       value of the Address, OR
 
-     * the Exact bit if the Flag byte rr is clear and the decimal nibbles form a prefix of the decimal
+     * the Exact bit if the Flag byte rr is clear AND the decimal nibbles form a prefix of the decimal
        representation of Address.
 
     

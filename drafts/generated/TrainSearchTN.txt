@@ -91,6 +91,20 @@
        has a very old decoder. The user enters the address on the Throttle, selects the DCC-14-speed-step
        protocol using option keys, and presses Enter. The user is in control of the locomotive.
 
+     * A Gateway device connects a proprietary layout control bus to OpenLCB. Throttles connected to the
+       proprietary bus select locomotives by a DCC address. The Gateway device intercepts these messages
+       and sends out Train Search Protocol messages to the OpenLCB bus. A DCC Command Station connected to
+       the OpenLCB bus creates Virtual Train Nodes for the intended locomotives. A radio-equipped OpenLCB
+       locomotive that has an up to 4 digit number on the cab can also be selected using this method.
+
+     * A large software system designed to control model railroads has a system-specific implementation
+       module for a variety of different command systems. The API of this module gives a 4-digit DCC
+       address to select a locomotive. The OpenLCB implementation of this API translates this number to a
+       Train Search Protocol message in order to trigger an OpenLCB-connected Command Station to create a
+       Virtual Node. The Command Station uses its settings to decide whether it should be a DCC protocol
+       train or some other protocol (e.g. Marklin-Motorola). A radio-equipped OpenLCB locomotive that has
+       an up to 4 digit number on the cab can also be selected using this method.
+
 1.3 Unserved Use Cases
 
      * The Train Search protocol is not a generic search protocol. It is not possible to search for any
@@ -108,6 +122,36 @@
      * A Command Station can only receive a signal using the Train Search Protocol when the user wants a
        new Virtual Train Node to be created. The Train Search Protocol does not support giving a signal to
        the Command Station on when to delete a Virtual Train Node.
+
+1.4 Overview of the Protocol
+
+   The Train Search Protocol is fundamentally a broadcast search protocol in a peer-to-peer network. The
+   Throttle broadcasts the search query, which reaches all other Nodes; the matching Nodes reply with a
+   broadcast message which reaches the Throttle, allowing the Throttle to compile a list of results.
+
+   The input from the Throttle side is a number with up to 6 digits. This number is encoded using BCD into
+   3 bytes. An additional flag byte is appended that describes options related to protocol to be used (e.g.
+   DCC with 128-speed-step) and specifies certain behavioral parameters for what Train Nodes should report
+   a match. A fixed 4-byte prefix is prepended, which yields an Event ID.
+
+   The Throttle sends out an Identify Producer (broadcast) message to the bus. This broadcast message will
+   reach all segments where there is a Command Station or a native OpenLCB Train Node4.
+
+   Train Nodes (both OpenLCB-connected and Command Station managed), upon receipt of such Identify Producer
+   command, will evaluate the request against their identifying properties (e.g. address, cab number, Node
+   name). If they find that the request matches their identifying properties, the Node responds with a
+   Producer Identified message on the same Event ID. If the request does not match that node, no Producer
+   Identified message is emitted.
+
+   If no response arrives for 200 msec, and the request specifies so, then a Command Station will create a
+   new Virtual Train Node matching the parameters in the request. The new Node will then emit a Producer
+   Identified message to the bus.
+
+   The Throttle is waiting for Producer Identified messages on their requested Event ID. These messages
+   contain a Source Node ID (or equivalent representation). These are the search results. The Throttle may
+   pick the first search result’s Node ID and operate that train using the Traction Protocol, or if
+   multiple responses arrive, then the Throttle may interrogate those Nodes using the SNIP and PIP protocol
+   to present a list of possible trains to select to the user, if there is a display.
 
                                         2 Annotations to the Standard
 
@@ -130,7 +174,7 @@
 
    There is no reference to the Traction Protocol, which the Throttle would use to drive actual trains.
    This is on purpose, because the scope of the Train Search Protocol ends after the Throttle discovers the
-   Node ID.
+   Node ID. The scope of the Traction Protocol begins once a Node ID is known.
 
 2.4 Message Formats
 
@@ -152,8 +196,16 @@
   2.5.2  Identifier Format
 
    This section only defines what the individual bits and bytes of the given identifiers are allocated to.
-   It is in the Section ‘Interactions’ how the different parties should be using those fields and
+   It is described in the Section ‘Interactions’ how the different parties should be using those fields and
    identifiers.
+
+   Notes about the symbols used in the Track Protocol table:
+
+     * 0b10 is a binary number of size 2 bits. The MSB is 0, the LSB is 1.
+
+     * " signals a repeat of the previous row’s value in this column.
+
+     * * signals that the row applies to all possible values in this field.
 
 2.6 Interactions
 
@@ -221,19 +273,9 @@
        payload bytes that can be transported. This is because there is no generic protocol for transporting
        broadcast messages on CAN-bus with more than 8 bytes of payload.
 
-                                               4 Section Title
+                                                4 Test Vectors
 
-4.1 Subsection Title
-
-  4.1.1 Sub-subsection Title
-
-   Praesent gravida pulvinar vehicula. Vivamus eu nisl eget sem rutrum suscipit id a magna. Integer id ante
-   odio.
-
-     * Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-
-     * Sed consectetur, ipsum et egestas accumsan, felis erat ornare mauris, sit amet suscipit ante orci
-       sed massa.
+4.1
 
                                                5 Section Title
 
@@ -275,6 +317,8 @@
 
    1.3 Unserved Use Cases
 
+   1.4 Overview of the Protocol
+
    2 Annotations to the Standard
 
    2.1 Introduction
@@ -303,11 +347,9 @@
 
    3 Alternatives considered
 
-   4 Section Title
+   4 Test Vectors
 
-   4.1 Subsection Title
-
-   4.1.1 Sub-subsection Title
+   4.1
 
    5 Section Title
 
@@ -322,3 +364,6 @@
    available at which memory offsets.
 
    3 For example it is not possible to search for an Event.
+
+   4 Command Stations and Train Nodes shall declare themselves by sending a Producer Range Identified
+   message upon startup that covers the entire range of the Train Search Protocol Event IDs.
