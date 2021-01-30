@@ -22,8 +22,8 @@
 
    The OpenLCB protocol presented in this document broadcasts time information by producing events with a
    specific structure of IDs, corresponding to specific times within the day, for example “08:10”. This
-   allows consumers to be taught to react to time-of-day. The year and date are handled separately for
-   those installations that choose to use it.
+   allows consumers to react to time-of-day. The year and date are handled separately for those
+   installations that choose to use it.
 
                                          2 Intended Use (Informative)
 
@@ -78,11 +78,11 @@
 
 4.1 Report Time Event ID
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6    Byte 7  
-   Specific Upper Part                       Hours     Minutes 
-                                             0x00-0x17 0-59    
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6               Byte 7  
+   Specific Upper Part                       0x00+Hours 0x00-0x17 Minutes 
+                                                                  0-59    
 
-   The upper nibble of byte 6 is only 0 or 1, which can be used to distinguish this format.
+   The upper nibble of byte 6 is only 0 or 1, which is used to distinguish this format.
 
    These event IDs represent time in 24-hour format, i.e. byte 6 values of 0–11 represent a.m. time, and
    values of 12–23 represent p.m. time.
@@ -93,7 +93,7 @@
    Specific Upper Part                       0x20+Month Day    
                                              0x21-0x2C  1-31   
 
-   The upper nibble of byte 6 is 2, which can be used to distinguish this format.
+   The upper nibble of byte 6 is 2, which is used to distinguish this format.
 
 4.3 Report Year Event ID
 
@@ -102,7 +102,7 @@
    Specific Upper Part                              
                                              0x3000-0x3FFF
 
-   The upper nibble of byte 6 is 3, which can be used to distinguish this format.
+   The upper nibble of byte 6 is 3, which is used to distinguish this format.
 
    The lower twelve bits are the year, 0AD to 4095AD.
 
@@ -111,18 +111,18 @@
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    Specific Upper Part                       0x4000+Rate
 
-   The upper nibble of byte 6 is 4, which can be used to distinguish this format.
+   The upper nibble of byte 6 is 4, which is used to distinguish this format.
 
    Rate is a 12 bit signed fixed point rrrrrrrrrr.rr, -512.00, -511.75, …, -1.00, …, -0.25, 0.0, 0.25,
    0.50, ..., 511.75
 
 4.5 Set Time Event ID
 
-   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6    Byte 7  
-   Specific Upper Part                       Hours     Minutes 
-                                             0x80-0x97 0-59    
+   Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6               Byte 7  
+   Specific Upper Part                       0x80+Hours 0x80-0x97 Minutes 
+                                                                  0-59    
 
-   The upper nibble of byte 6 is only 8 or 9, which can be used to distinguish this format.
+   The upper nibble of byte 6 is only 8 or 9, which is used to distinguish this format.
 
    These event IDs represent time in 24-hour format, i.e. byte 6 values of 0x80+(0 to 11) represent a.m.
    time, and values of 0x80+(12 to 23) represent p.m. time.
@@ -133,7 +133,7 @@
    Specific Upper Part                       0xA0+Month Day    
                                              0xA1-0xAC  1-31   
 
-   The upper nibble of byte 6 is A, which can be used to distinguish this format.
+   The upper nibble of byte 6 is A, which is used to distinguish this format.
 
 4.7 Set Year Event ID
 
@@ -142,7 +142,7 @@
    Specific Upper Part                              
                                              0xB000-0xBFFF
 
-   The upper nibble of byte 6 is B, which can be used to distinguish this format.
+   The upper nibble of byte 6 is B, which is used to distinguish this format.
 
    The lower twelve bits are the year, 0AD to 4095AD.
 
@@ -151,7 +151,7 @@
    Byte 0 Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 
    Specific Upper Part                       0xC000+Rate
 
-   The upper nibble of byte 6 is C, which can be used to distinguish this format.
+   The upper nibble of byte 6 is C, which is used to distinguish this format.
 
 4.9 Query Event ID
 
@@ -201,7 +201,7 @@
 
    Clock consumers that wish to track the progression of time by consuming all produced time events shall
    send a Consumer Range Identified message covering the whole 16-bit range of the clock’s 6-byte “Specific
-   Upper Part”. Clock consumers who that wish to consume specific individual events shall send the
+   Upper Part”. Clock consumers that wish to consume specific individual events shall send the
    corresponding Consumer Identified messages for each individual time event consumed. A single clock
    consumer may combine the use of these two consumer identify methods as needed.
 
