@@ -1,0 +1,55 @@
+# MSC for Train Search Protocol Find flow
+msc {
+
+  sp [label="User A"],
+  sp2 [label="User B"],
+  t1 [label="Train"], t2 [label="Train"], t3 [label="Train"];
+
+  sp rbox sp [label="Throttle"],
+  sp2 rbox sp2 [label="Throttle"],
+  t1 rbox t2 [label="Command Station"],
+  t3 rbox t3 [label="OpenLCB\nRe 474 014"];
+
+  t1 rbox t1 [label="DCC 8300"],
+  t2 rbox t2 [label="DCC 47"];
+
+  sp box sp [label="User A types '47'"],
+  sp2 box sp2 [label="User B types '83'"];
+
+  sp box sp [label="Compute E1=\n<prefix>FFFF4700"],
+  sp2 box sp2 [label="Compute E2=\n<prefix>83FFFF00"];
+  
+  sp->* [label="Identify Producer FFFF4700"];
+
+  t1 box t1 [label="Evaluate\nNo Match"],
+  t2 box t2 [label="Evaluate\nMatch"],
+  t3 box t3 [label="Evaluate\nMatch"];
+
+  sp2->* [label="Identify Producer 83FFFF00"];
+
+  t1 box t1 [label="Evaluate\nMatch"],
+  t2 box t2 [label="Evaluate\nNo Match"],
+  t3 box t3 [label="Evaluate\nNo Match"];
+
+  sp2 x- t1 [label="No Reply for\n FFFF4700"];
+  *<-t2 [label="Producer Identified Valid FFFF4700"];
+  sp box sp [label="Accept reply"],
+  sp2 box sp2 [label="Discard reply"]
+  ;  
+  *<-t3 [label="Producer Identified Invalid FFFF4700"];
+  sp box sp [label="Accept reply"],
+  sp2 box sp2 [label="Discard reply"]
+  ;  
+
+  *<- t1 [label="Producer Identified Invalid 83FFFF00"];
+  sp2 box sp2 [label="Accept reply"],
+  sp box sp [label="Discard reply"]
+  ;  
+  t1 x- t2 [label="No Reply for\n 83FFFF00"];
+  t2 x- t3 [label="No Reply for\n 83FFFF00"];
+
+  --- [label="Throttles are driving Trains"];
+  sp -> t2 [label="Traction Protocol Assign Controller"];
+  
+  sp2 -> t1 [label="Traction Protocol Assign Controller"];
+}

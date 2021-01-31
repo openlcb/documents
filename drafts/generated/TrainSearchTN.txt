@@ -1,7 +1,11 @@
                                                 1 Introduction
 
    This Technical Note provides background information and commentary to the OpenLCB Train Search Protocol
-   Standard. This document is not intended to be read standalone, but in parallel to the matching Standard.
+   Standard (in short ‘the Standard’). This document is not intended to be read standalone, but in parallel
+   to the Standard.
+
+   When we use capitalized terms Train, Throttle, and Command Station, we refer to the definitions
+   according to the Section ‘Interactions’ in the Standard.
 
 1.1 Background
 
@@ -201,19 +205,96 @@
 
    Notes about the symbols used in the Track Protocol table:
 
-     * 0b10 is a binary number of size 2 bits. The MSB is 0, the LSB is 1.
+     * 0b10 is a binary number of size 2 bits. The MSB is 1, the LSB is 0.
 
-     * " signals a repeat of the previous row’s value in this column.
+     * The symbol " signals a repeat of the previous row’s value in this column.
 
-     * * signals that the row applies to all possible values in this field.
+     * The symbol * signals that the row applies to all possible values in this field.
 
 2.6 Interactions
 
-   Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus.
+   This section contains a glossary of terms used in the description of the interactions. These terms are
+   used throughout the entire Standard and Technical Note according to these definitions.
+
+   Examples:
+
+     * A Train Node could be a WiFi-connected decoder built into a model locomotive, which establishes a
+       connection to and participates in the OpenLCB Network. Alternatively, it could be a Virtual Train
+       Node represented by a DCC Command Station for the purpose of the OpenLCB bus.
+
+     * The Command Station might be a DCC Command Station, creating the track signal. It could also be a
+       Gateway from OpenLCB to a proprietary bus, remote controlling a Command Station connected to that
+       proprietary bus.
+
+   Examples for Train Node properties:
+
+     * The Name might be
+
+          * “Re 474 014-5” for a Swiss electric locomotive of the series 474;
+
+          * “BR18 313” for a German steam engine of the series 18;
+
+          * “C&NW F7A 415” for an F7 unit of the Chicago&Northwestern Railroad.
+
+          * “Thomas the Tank Engine”.
+
+     * Protocol: DCC 7-bit address; DCC 14-bit address; Marklin-Motorola; MFX/M4; OpenLCB.
+
+     * Protocol Version: DCC has three different speed step modes (14, 28, 128 speed step mode).
+       Marklin-Motorola has multiple versions.
+
+     * Address: 1 to 127 for DCC 7-bit, 0 to 10239 for DCC 14-bit, 1 to 80 (or 255) for Marklin-Motorola.
+       There is no address for OpenLCB and for MFX/M4, because for these protocols the user is not required
+       to configure a unique numeric value for each decoder. The manufacturer-assigned unique addresses are
+       not relevant for the user and we should not expect the user to be aware of or ever input those
+       addresses by the number. It might be beneficial for an OpenLCB-connected mobile decoder to allow the
+       user to configure a purely numeric cab number, which the Train Node may apply as if it was a DCC
+       address. This can enable a DCC-only throttle to select that OpenLCB locomotive instead of a DCC
+       locomotive of that address. The user has to be aware that such an option makes that specific DCC
+       address unavailable, as the Command Station will never instantiate a Virtual Train Node for that
+       address so long as the OpenLCB locomotive is on the network.
 
   2.6.1 Search for existing train nodes
 
+   Image1
+
+   On this diagram we see two interactions with the Train Search Protocol.
+
+   In the first interaction the user enters some digits, and the Throttle sends this out as a prefix search
+   for trains starting with “47”. There are multiple replies coming back.
+
+   In the second interaction the user presses ENTER, and the Throttle sets the “Exact” bit in the flags
+   byte of the request. Only one reply is generated.
+
+   It is of critical importance that the Train Nodes use the exact same Event ID in the replies as what
+   came in the request from the Throttle. This is necessary for the Throttle to identify which of the
+   broadcast responses are requested from the particular throttle. If multiple Throttles are operating the
+   Train Search Protocol simultaneously, the Event ID ensures that there is no race condition between the
+   interactions.
+
+   This is depicted in the following diagram:
+
+   Image3
+
+   Depending on the packet queuing behavior of the individual Nodes in this interaction the exact sequence
+   might be slightly different. On CAN-bus, the Producer Identified replies have a higher priority than any
+   potential additional request that might be coming in; as such, the replies for the first request will
+   typically precede the second incoming request on the bus. This ensures that Train Nodes and Command
+   Stations do not need an unbounded amount of buffer to handle Train Search Protocol.
+
   2.6.2 Allocate a new Train Node
+
+   Image2
+
+   On this diagram we see the same two interactions, where the DCC 47 node does not exist at the beginning
+   of the interaction. The Throttle is configured to send the request with the “Allocate” bit set when the
+   user pressed ENTER. The Command Station waits for 200 msec for any responses to come in to the exact
+   match request, after which it assigns an empty Train Node to proxy for DCC Address 47. The newly started
+   node then responds to the Throttle.
+
+   If the low five bits of the flag byte contain a protocol selection information, then the Command Station
+   would create the new Virtual Train Node according to that protocol. Here the CS used the default
+   settings.
 
   2.6.3 Event Identifier matching algorithm
 
@@ -270,8 +351,8 @@
        duplicate features would then have to be specifically implemented by all gateways and routers.
 
        Even with a protocol defining custom messages, there would be a fairly strict limit on the amount of
-       payload bytes that can be transported. This is because there is no generic protocol for transporting
-       broadcast messages on CAN-bus with more than 8 bytes of payload.
+       payload bytes that can be transported. This is because there is no generic protocol layer for
+       transporting broadcast messages on CAN-bus with more than 8 bytes of payload.
 
                                                 4 Test Vectors
 
