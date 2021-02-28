@@ -153,7 +153,8 @@
 
      * Address is a user-assigned numerical value that uniquely identifies a train within a Protocol. There
        cannot be two trains with the same Protocol and same Address on the track at the same time. Not all
-       Protocols have a user-assigned Address.
+       Protocols have a user-assigned Address. The Address for the DCC Protocol also carries a
+       disambiguator on whether it is a short (7-bit) or long (14-bit) DCC address.
 
      * Protocol Version selects the exact command set to use for a Track Protocol. Users sometimes have to
        select a specific Protocol Version to correctly operate a train or to access all possible features
@@ -229,30 +230,34 @@
      * the Flag byte or the query nibbles specify no reserved values marked as “check upon receipt”.
 
    The flag byte rr matches Protocol if and only if the Track Protocol field of rr is set to “Default/Any”
-   or Protocol matches the value of the Track Protocol field.
+   OR Protocol matches the value of the Track Protocol field.
 
    The flag byte rr matches Protocol Version if and only if the Track Protocol field of rr is set to the
    specific value or range matching Protocol and the version bits of rr are set to “Default/Any” or to a
    value that matches Protocol Version.
 
+   We say that the Flag byte rr requests a DCC long address if and only if rr specifies the DCC protocol
+    AND Bit 2 (DCC - Force long address bit) is set.
+
    The search query represented by the qq qq qq nibbles of E matches if and only if
 
-     * qq qq qq matches the Address of the Train Node, or
+     * qq qq qq matches the Address of the Train Node, OR
 
-     * the Address only bit is not set in the Flag byte rr  AND  qq qq qq matches the Name.
+     * Bit 5 (Address only) is clear in the Flag byte rr  AND  qq qq qq matches the Name.
 
    The qq qq qq nibbles of E matches the Address if and only if qq qq qq contains exactly one contiguous
    sequence of digit nibbles ‘0’-’9’, AND
 
-     * Protocol is non-DCC, OR
+     * Protocol is not DCC, OR
 
-     * the Flag byte rr specifies “Default/Any” protocol, OR
+     * the decimal value represented by these nibbles is >= 128, OR
 
-     * Bit 2 (DCC - Force long address bit) is clear in the Flag byte rr, OR
+     * the Flag byte rr requests a DCC long address AND Address is a DCC 14-bit (long) address, OR
 
-     * Address is >= 128, OR
+     * the Flag byte rr does not request a DCC long address AND Address is a DCC 7-bit (short) address, OR
 
-     * Address is a DCC 14-bit (long) address
+     * the Flag byte rr does not request a DCC long address AND Bit 7 (Allocate) is clear in the Flag byte
+       rr
 
    AND
 
@@ -264,33 +269,30 @@
 
     
 
-   The qq qq qq nibbles of E matches the Name iff qq qq qq contains one or more contiguous sequence of
-   digit nibbles ‘0’-’9’ separated with one or more nibble ‘F’ and each of those match the Name.
+   The qq qq qq nibbles of E matches the Name if and only if qq qq qq contains one or more contiguous
+   sequence of digit nibbles ‘0’-’9’ separated with one or more nibble ‘F’ and each of those match the
+   Name.
 
-   A maximal1 consecutive sequence2 of digit nibbles nn...n match the Name iff there is a maximal
-   consecutive sequence of decimal digits vv...v in Name where
+    
 
-     * vv...v has a prefix of nn...n if the, or
+   A maximal1 contiguous sequence of digit nibbles nn...n in E match the Name if and only if there is a
+   substring of consecutive characters vv...v  in Name, each a decimal digit, not immediately preceded by
+   any further decimal digit characters, where nn...n = vv...v AND
 
-     * vv...v equals nn...n.
-
-   A contiguous sequence of digit nibbles nn...n match the Name iff there is a substring of decimal digits
-   vv...v in Name not immediately preceded by any further digits where nn...n = vv...v and
-
-     * Flag byte rr has Bit 6 (Exact) not set, or
+     * Flag byte rr has Bit 6 (Exact) not set, OR
 
      * vv...v in Name is not immediately followed by any further digits.
 
 6.4 Search Result Differentiation
 
-   A Train Node replying with Producer Identified message may, but is not required to pick the response
-   message from the set of Producer Identified Valid, Producer Identified Invalid and Producer Identified
-   Unknown to differentiate on how well the search query matches the Train Node’s properties, using the
-   ratings of ‘Valid’ > ‘Invalid’ > ‘Unknown’ in quality. A Node may use any implementation-specific
-   algorithm, which may also take into account properties not represented in this standard for making the
-   determination.
+   A Train Node replying with Producer Identified message may, but is not required to to differentiate on
+   how accurately the search query matches the Train Node’s properties by picking the response message from
+   the set of Producer Identified Valid, Producer Identified Invalid and Producer Identified Unknown
+   messages. The responses represent the quality of match with ‘Valid’ > ‘Invalid’ > ‘Unknown’. A Node may
+   use any implementation-specific algorithm, which may also take into account properties not represented
+   in this standard for making the determination.
 
-   If a Train Node does not make differentiation, it shall use Producer Identified Unknown as response
+   If a Train Node does not make a differentiation, it shall use Producer Identified Unknown as response
    message for Search responses.
 
     
@@ -325,6 +327,4 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 No ‘0’-’9’ characters immediately before or after this substring.
-
-   2 Contiguous subsequence is commonly referred to as substring.
+   1 No ‘0’-’9’ nibbles immediately before or after this substring within qq qq qq..
