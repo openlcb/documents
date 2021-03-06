@@ -361,12 +361,15 @@
 
      * To match a number against the Name of the Train, we look for digits in the Name. When we have a
        substring of digits in the Name, we start matching the throttle’s digits at the beginning of this
-       substring to get a prefix match. If Exact-Only match is requested, then the substring in the Name
-       has to be exhausted by the throttle’s digits. For example the Name of “C&NW F7A 415” is
-       exact-matched by the query 415, prefix-matched by the query 41 or 4. The query 15 or 5 does not
-       match this name. The query 7 is also exact-matched, because “7” inside “F7A” fulfills the
-       requirement that there are no further digits before and no further digits after. This Name also
-       matches the query nibbles 7F415F, because both terms in the query (“7” and “415”) match the Name.
+       substring to get a prefix match. We keep using up digits from the Name, jumping over any other
+       characters until we have exhausted the nibbles in the number received from the throttle. If
+       Exact-Only match is requested, then at this point the next character in the Name has to be not a
+       digit. For example the Name of “C&NW F7A 415” is exact-matched by the query 415, prefix-matched by
+       the query 41 or 4. The query 15 or 5 does not match this name. The query 7 is also exact-matched,
+       because “7” inside “F7A” fulfills the requirement that there are no further digits before and no
+       further digits after. This Name also matches the query nibbles 7F415F, because both terms in the
+       query (“7” and “415”) match the Name. Also the query 7415 exact-matches (we jumped over ‘A’ and the
+       space character to match this), but 741 is only a prefix-match.
 
   2.6.4 Search Result Differentiation
 
@@ -451,19 +454,59 @@
 
    no match7 090099FFFFFF1300 4513 "FooBar" DCC
 
+    
+
       match8 090099FFFFFF1300 45 "FooBar13" DCC
 
-      match9 090099FFFFFF1300 45 "FooBar135" DCC
+      match9 090099FFFFFF1300 45 "Foo135" DCC
 
-   no match10 090099FFFFFF1340 45 "FooBar135" DCC
+   no match10 090099FFFFFF1340 45 "Foo135" DCC
 
-      match 090099FFFFFF1340 45 "FooBar13 5" DCC
+      match 090099FFFFFF1340 45 "Foo13 5" DCC
 
-      match11 090099FFFFFF1300 13 "FooBar777" DCC 128-speed
+      match11 090099FFFFF13540 45 "Foo13 5" DCC
+
+   no match12 090099FFFFF13540 45 "Foo13 51" DCC
+
+      match 090099FFFFF11340 45 "1 11 3" DCC
+
+   no match 090099FFFFFF1300 45 "1 11 3" DCC
+
+    
+
+      match13 090099FFFFFF1300 13 "FooBar777" DCC
+
+      match14 090099FFFFFF1300 135 "FooBar777" DCC
+
+   no match15 090099FFFFFF1340 135 "FooBar777" DCC
+
+      match 090099FFFFF13540 135 "FooBar777" DCC
+
+   no match16 090099FFFFFF3500 135 "FooBar777" DCC
+
+      match17 090099FFFFFF1360 13 "FooBar777" DCC
+
+   no match18 090099FFFFFF3520 135 "FooBar35" DCC
+
+    
+
+      match 090099FFFFFF5300 53 "Foo777" DCC 28-speed long address
+
+      match 090099FFFFFF5300 53 "Foo777" DCC 28-speed
+
+   no match 090099FFFFF0530C 53 "53S" DCC 28-speed
+
+      match 090099FFFFF0530C 53 "Foo777" DCC 28-speed long address
+
+   no match 090099FFFFFF53E0 53 "053L" DCC 28-speed long address
+
+      match 090099FFFFF053EC 53 "Foo777" DCC 28-speed long address
+
+    
 
       match 090099FFFFF0130C 13 "FooBar777" DCC long address
 
-   no match12 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
+   no match19 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
 
    no match 090099FFFFF013EC 13 "FooBar777" DCC
 
@@ -473,7 +516,7 @@
 
     
 
-   no match13 090099FFFFF13FE6 13 "FooBar777" DCC
+   no match20 090099FFFFF13FE6 13 "FooBar777" DCC
 
       match 090099FFFFF13FE6 13 "FooBar777" Marklin-Motorola II
 
@@ -641,8 +684,22 @@
 
    10 Exact match fails in the name.
 
-   11 Address matches here.
+   11 Name match jumps over spaces between the digits here.
 
-   12 This match fails because the request specifies DCC long address, but the train has DCC short address.
+   12 Not an exact match, because there is an extra digit after the match.
 
-   13 The request specifies a Marklin-Motorola address, but the train is DCC.
+   13 Address matches here.
+
+   14 Prefix match in the address.
+
+   15 Exact match requested, but only prefix match found.
+
+   16 Not a prefix match.
+
+   17 Address-only request and match in the address.
+
+   18 Match is only in the Name, but was requested in the address.
+
+   19 This match fails because the request specifies DCC long address, but the train has DCC short address.
+
+   20 The request specifies a Marklin-Motorola address, but the train is DCC.
