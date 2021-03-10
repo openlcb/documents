@@ -1,12 +1,11 @@
 REPOROOT=$(abspath ..)
 
-include $(REPOROOT)/bin/rules.make
-
 SINPUT = $(wildcard *.ods)
 TINPUT = $(wildcard *.odt)
 PDFOUTPUT = $(SINPUT:.ods=.pdf) $(TINPUT:.odt=.pdf)
 TXTOUTPUT = $(TINPUT:%.odt=generated/%.txt)
 
+include $(REPOROOT)/bin/rules.make
 
 nmra: \
 	UniqueIdentifiersS.pdf UniqueIdentifiersTN.pdf \
