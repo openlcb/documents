@@ -1,0 +1,39 @@
+#!/bin/bash
+#
+# Turns an Openoffice document into a text file.
+#
+# Usage: odt2txt path/to/document.odt other/path/to/output.txt
+# or alternatively call with
+# odt2txt path/to/document.odt
+# which will write path/to/generated/document.txt
+#
+# Requirements:
+# sudo apt-get install writer2latex links
+#
+# Maintains a cache of all documents converted. The md5sum of the input
+# document is turned into a filename /tmp/mdcache/<checksum>.txt
+
+set -e
+
+INFILE="$1"
+OUTFILE="$2"
+
+if [ "x$OUTFILE" == "x" ] ; then
+   OUTFILE=$(dirname "$INFILE")/generated/$(basename "${INFILE%%.odt}").txt
+   mkdir -p $(dirname "$INFILE")/generated
+fi
+
+XSUM=$(cat "$INFILE" | md5sum | cut -d " " -f 1)
+mkdir -p /tmp/mdcache /tmp/odtmp
+CACHEFILE=/tmp/mdcache/${XSUM}.txt
+HFILE=/tmp/odtmp/${XSUM}.xhtml
+
+if [ ! -f $CACHEFILE ] ; then
+   echo translating infile $INFILE outfile $OUTFILE xsum $XSUM cachefile $CACHEFILE
+   w2l -xhtml11 -table_size relative -table_formatting ignore_all "$INFILE" $HFILE
+   links -dump -width 110 $HFILE > $CACHEFILE
+else
+   echo cache hit infile $INFILE outfile $OUTFILE xsum $XSUM
+fi
+
+cp -f $CACHEFILE "$OUTFILE"
