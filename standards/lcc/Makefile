@@ -92,6 +92,7 @@ $(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation,2021-04-25))
 $(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers,2021-04-25))
 $(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers,2021-04-25))
 $(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2021-04-25))
+$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2021-05-01,Draft))
 #$(eval $(call DOCU_stn,9.7.1.2,TcpPhysical)) does not exist yet
 $(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer,2021-04-25))
 #$(eval $(call DOCU_stn,9.7.2.2,TcpTransfer)) does not exist yet
