@@ -48,7 +48,7 @@ define DOCU_template
 obj/$(1)-header.tex: header_template.tex
 	cat $$< > $$@
 	echo $(if $(filter $(6),Draft),Submitted for public comment,Adopted) as NMRA $(if $(filter $(2),TN),Technical Note,Standard) $(2)-$(5) >> $$@
-	echo '\end{document}' >> $$@
+	echo '\\end{document}' >> $$@
 
 
 obj/$(1)-header.pdf: obj/$(1)-header.tex
