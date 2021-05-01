@@ -8,4 +8,4 @@
 # Usage:
 # FILTER_BRANCH_SQUELCH_WARNING=1 git filter-branch --tree-filter gen-all-odt2txt.sh
 
-find . -name *.odt -print0 | xargs -0 -n 1 -P 16 odt2txt
+find . -name "*.odt" -print0 | xargs -0 -n 1 -P 16 odt2txt
