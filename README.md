@@ -70,6 +70,22 @@ The technical process for adopting a document is described in
 
 ### Forking an adopted document to drafts
 
+1. Perform a git copy with history for all three of these files *on the master branch*:
+
+```
+git checkout master
+git cp standards/FooStandardS.odt drafts/FooStandardS.odt
+git cp standards/FooStandardS.pdf drafts/FooStandardS.pdf
+git cp standards/generated/FooStandardS.txt drafts/generated/FooStandardS.txt
+git push
+```
+  
+  The git-cp script is available in the bin directory to do this. The script
+  will only work if your repository is clean.
+  
+  This step can only be done by a maintainer -- ask someone on the
+  openlcb@groups.io list.
+
 1. Create a new brach:
 
 ```
@@ -78,17 +94,6 @@ git pull
 git checkout -b bracz-fork-foo-standard-to-draft
 ```
 
-1. Perform a git copy with history for all three of these files:
-
-  - standards/FooStandardS.odt
-  - standards/FooStandardS.pdf
-  - standards/generated/FooStandardS.txt
-  
-  into the respective files under generated/
-  
-  If you are unsure how to do this, ask for a maintainer on the
-  openlcb@groups.io list to do this for you.
-  
 2. Add the DRAFT watermark:
 
   - open drafts/StandardS.odt with openoffice
