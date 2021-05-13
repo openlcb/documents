@@ -169,3 +169,17 @@ git mv {drafts,standards}/generated/FooStandardS.txt
 
 9. IMPORTANT: The PR must be merged with a "Create a merge commit" option.
 
+## Docker
+A Docker image file has been added to provide a consistent file conversion processing environment in a Docker Container.
+
+To build your own Docker execute the following command in a bash shell:
+
+```
+docker build -t openlcb-doc-build-env --build-arg USER_ID=$(id -u) --build-arg GROUP_ID=$(id -g) . 
+```
+
+To run your own Docker execute the following command in a bash shell:
+
+```
+docker run -it --rm -v $PWD:/home/openlcb -u $(id -u):$(id -g) openlcb-doc-build-env
+```
