@@ -67,3 +67,105 @@ sudo apt-get install writer2latex links
 
 The technical process for adopting a document is described in
 [standards/Conventions.html](standards/Conventions.html).
+
+### Forking an adopted document to drafts
+
+1. Perform a git copy with history for all three of these files *on the master branch*:
+
+```
+git checkout master
+git cp standards/FooStandardS.odt drafts/FooStandardS.odt
+git cp standards/FooStandardS.pdf drafts/FooStandardS.pdf
+git cp standards/generated/FooStandardS.txt drafts/generated/FooStandardS.txt
+git push
+```
+  
+  The git-cp script is available in the bin directory to do this. The script
+  will only work if your repository is clean.
+  
+  This step can only be done by a maintainer -- ask someone on the
+  openlcb@groups.io list.
+
+1. Create a new brach:
+
+```
+git checkout master
+git pull
+git checkout -b bracz-fork-foo-standard-to-draft
+```
+
+2. Add the DRAFT watermark:
+
+  - open drafts/StandardS.odt with openoffice
+  - menu > format > watermark...
+  - set watermark to DRAFT, font to Times New Roman, 45 degree, 50% gray.
+
+3. Update state
+
+  - menu > File > Properties
+  - select Custom Properties
+  - update OlcbStatus to Draft, and OlcbDate to the current date
+
+4. Save the odt file, quit openoffice. Run `make` in the drafts folder.
+
+5. Commit all your changes (to the bracz-fork-foo-standard-to-draft branch)
+
+  - Note that there should be no changes to the generated/FooStandardS.txt at
+    this point.
+
+6. Push the branch to github. Create a PR. Ask for review.
+
+7. Ask a maintainer to merge the PR. IMPORTANT: the PR MUST be merged using the
+   "Create a Merge Commit" method.
+
+
+### Adopting a document from Drafts into Standards
+
+1. Create a new branch for the adoption process.
+
+```
+git checkout master
+git pull
+git checkout -b bracz-adopt-foo-standard
+```
+
+1. Update the ODT file for adopted.
+
+  - Review all changes in menu > Edit > Track Changes > Manage...
+  - Accept all changes. There should be no changes left in the Manage changes
+    dialog.
+  - In menu > File > Properties > Custom Properties, set OlcbStatus to Adopted,
+    the date, and the year as a range up till now, e.g. 2013-2021.
+  - menu > Format > Watermark..., replace the DRAFT text with a single space.
+    
+2. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
+   output.
+   
+3. Commit the odt, pdf, txt files to your branch.
+
+4. Delete the files from the standards directory. This step should be skipped
+   if we are adopting a standard the first time, and there are no previous
+   adopted files.
+
+```
+git rm standards/FooStandardS.odt
+git rm standards/FooStandardS.pdf
+git rm standards/generated/FooStandardS.txt
+```
+
+5. Commit these to your branch.
+
+6. Move the files from draft to standards.
+
+```
+git mv {drafts,standards}/FooStandardS.odt
+git mv {drafts,standards}/FooStandardS.pdf
+git mv {drafts,standards}/generated/FooStandardS.txt
+```
+
+7. Commit these to your branch.
+
+8. Create a PR with your changes on GitHub. Ask a maintainer to review the PR.
+
+9. IMPORTANT: The PR must be merged with a "Create a merge commit" option.
+
