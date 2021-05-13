@@ -105,5 +105,6 @@ $(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation,2021-04-25))
 $(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration,2021-04-25))
 $(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation,2021-04-25))
 $(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade,2021-04-25))
+$(eval $(call DOCU_stn,9.7.4.5,BroadcastTime,2021-04-25))
 
 
