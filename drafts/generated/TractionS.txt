@@ -5,33 +5,43 @@
 
                                          2 Intended Use (Informative)
 
-   This protocol is for the long-term operation of really cool trains, not just “better control over DCC”.
-    Still, DCC is an important test case, both with new control hardware (OpenLCB native throttles
-   connected to an OpenLCB-native command station that's generating the DCC signal) and when connected to
-   legacy throttles and/or command stations.  Using legacy hardware within the OpenLCB environment is
-   accomplished through a proxy and is implemented using this Traction Protocol and the Traction Proxy
-   Protocol.
+   The Traction Protocol covers the interaction between one (or more) Throttles and one or more Trains, as
+   this interaction is represented on the OpenLCB bus. There can be more than one Throttles controlling a
+   single Train, and more than one Trains being controlled by a single Throttle (also called consisting).
+   The Throttle, as a Node on the OpenLCB bus, may be either a physical throttle, or a Gateway converting
+   messages of a different throttle protocol to OpenLCB. The Train is also represented as a Node on the
+   OpenLCB bus; this may be a physical decoder present in a locomotive and capable of participating in the
+   OpenLCB network (presumably via wireless communication), or it may be a Gateway device translating the
+   OpenLCB Traction Protocol to some other method of controlling trains. The most important example of such
+   other method is the DCC track protocol, in which case the Gateway device is commonly referred to as a
+   DCC Command Station.
 
                                      3 References and Context (Normative)
 
-   Node implementing the Train Protocol must implement:
-
-     * Message Transfer Protocol
-
-     * Event Transfer Protocol
-
-     * Memory Configuration Protocol (optional?) and Datagram Protocol it depends on
-
-     * CDI
-
-     * SNII and/or ACDI?
-
-   Float-16 is the half-precision numeric format defined by IEEE 754-2008. This is the format that the GNU
-   tool chain's -mfp16-format=ieee flag and __fp16 type makes available on some CPU types.
-
    For more information on format and presentation, see:
 
-     * OpenLCB Common Information Technical Note
+     * OpenLCB Common Information Technical Note.
+
+   For information on OpenLCB message transport and OpenLCB communications, see:
+
+     * OpenLCB Message Network Standard.
+
+   A Node implementing the Traction Protocol must implement:
+
+     * OpenLCB Event Transport Standard;
+
+     * OpenLCB Simple Node Information Protocol Standard.
+
+   The following protocols are strongly recommended to be implemented by any Train node:
+
+     * OpenLCB Memory Configuration Standard and Datagram Protocol it depends on;
+
+     * OpenLCB Configuration Description Information Standard
+
+     * OpenLCB Train Search Protocol
+
+   Float-16 is the half-precision numeric format defined by IEEE 754-2008. This is the format that the GNU
+   toolchain's -mfp16-format=ieee flag and __fp16 type makes available on some CPU types.
 
 3.1 Terminology
 
