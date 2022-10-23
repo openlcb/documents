@@ -50,7 +50,76 @@
 
   2.3.1 Terminology
 
-    
+   Additional commentary:
+
+     * Train Node:
+
+          * The Node ID of the Train Node is the fully-unique identifier for that Train on the OpenLCB bus.
+
+          * The simplest form of a Train Node is when a model has a decoder built into it which directly
+            connects to the OpenLCB bus, presumably using wireless communication.
+
+          * An important class of Train Nodes is when the Train Node is not built into the model, but
+            instead remotely actuates the model using electrical signals or a legacy communication
+            protocol. In this case typically one physical hardware connected to the OpenLCB bus represents
+            many different Trains, each with its own unique Virtual Train Node. This is a form of a
+            Gateway, bridging OpenLCB to a legacy protocol. From the perspective of the legacy protocol,
+            this piece of hardware is often referred to as Command Station.
+
+     * Throttle Node:
+
+          * For the purposes of discussion, we draw a distinction between three kinds of throttles that a
+            user might encounter:
+
+               * “Legacy Throttles” refers to throttles designed for use with extant DCC systems, e.g. a
+                 Digitrax DT402 or Lenz LH100.
+
+               * “Full-Featured Throttles” refers to full-featured native OpenLCB throttles with multi-line
+                 color screens and effectively unlimited processing power, e.g. a software throttle
+                 implemented on an iPad.
+
+               * “Simple Throttles” refers to throttles which are native OpenLCB nodes like Full-Featured
+                 Throttles, but which have more limited capabilities, e.g. no text display, a limited array
+                 of physical buttons, and constrained processing resources.
+
+          * A single Throttle may control multiple trains simultaneously and independently, for example
+            when it has appropriate operator interface (e.g. multiple knobs, or multiple windows open on a
+            computer screen).
+
+          * A single Throttle Node may also be a Gateway from a legacy Throttle bus, translating commands
+            originating from multiple physical Throttles to OpenLCB, each of which may be in control of
+            different Trains on the OpenLCB bus.
+
+   Additional glossary and explanations:
+
+     * “DCC” refers to NMRA DCC; “Legacy” refers to all pre-existing protocols including DCC, TMCC,
+       Marklin, DCS, etc.
+
+     * “Trains”: For our purposes, Train is anything which can be independently controlled, typically using
+       speed, direction and function commands. In addition to a model of a prototype train from locomotive
+       to caboose, it might be just single locomotive, a caboose, a set of lit & controlled passenger cars,
+       a diesel MU lash up, an operating crane or even a stationary object on the layout under control of
+       the operator where the desired operator experience resembles how trains are controlled.
+
+     * “Command Stations”: Existing DCC and other control systems use “command stations” to create a track
+       signal for controlling the trains. Usually the command station is controlled from the user side by
+       some other network, to which throttles and other interface devices are connected. OpenLCB, it it's
+       native form, has no such concept. Devices, like throttles, that want to talk to a train do so
+       directly. Only when working with legacy systems does the concept of a command station enter, and
+       usually through the form of a proxy node that is acting for the Train.
+
+     * “Consisting”: The running of multiple Trains together, e.g. three coupled engines, each with their
+       own NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and
+       with various names.
+
+     * “Configuration”, “Functions”: Traditional DCC decoders provide “functions” for controlling
+       accessories such as lights and sounds during operation, and provide a separate mechanism for doing
+       long-term configuration via Configuration Variables (Cvs). OpenLCB makes the same distinction,
+       providing access to “functions” via the traction protocol, while leaving “configuration” to the
+       configuration protocol(s).  The line between these is admittedly vague, and different node
+       developers may implement some capability one way or the other.  The general intent is that things
+       that are changed in normal operation are considered functions, while things that are set once and
+       forgotten are configuration.
 
 2.4 Message Formats
 
@@ -102,7 +171,37 @@
 
 2.5 States
 
-    
+   Speed states:
+
+     * It is recommended that Train Nodes exactly represent the 16-bit Set Speed in their internal state.
+       There is no separate Direction state; the intended direction is determined by the sign bit of the
+       Set Speed. Float16 can separately represent positive and negative zero. Implementations must take
+       care that this distinction is correctly passed through all codepaths.
+
+     * Commanded Speed:  This may lag behind the set speed intentionally due to momentum settings, etc. The
+       Commanded Speed can not be directly set via OpenLCB; only indirectly influenced using the Set Speed
+       and Emergency Stop commands.
+
+   The three state machines related to emergency stop need to be tracked separately by the Train Node. They
+   act independently of each other. The Query Speed Reply flag related to E-Stop reports only the
+   “Emergency Stop” state.
+
+   Function states: The non-specification means that different Train Nodes may have different number of
+   functions, or no Functions at all. If they have only on/off functions, it is sufficient to remember one
+   bit for the state, which is commonly represented as value == 0 and value == 1.
+
+   Listener states:
+
+     * Maintaining the order means that Listeners which were added earlier will be read out later as a
+       smaller index in the Listener Query replies. Maintaining this order is necessary as some UIs may use
+       this order to assemble a train (such as consisted locomotives) in the order stored here. To change
+       the order, a Listener has to be detached and reattached, which brings it to the end.
+
+     * The recommendation about persistent state means that Listener configuration shall be retained across
+       power cycles. This is a desirable product feature, where users are to assembling actual trains from
+       multiple Train Nodes and then physically store these trains between operating sessions. The
+       expectation is that next time they power up their layout, the trains are still in the assembled
+       state that they were left.
 
 2.6 Interactions
 
