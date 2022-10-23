@@ -128,7 +128,11 @@
 
   2.4.1 Defined Event IDs
 
-  2.4.2 Traction Control Command Message
+  2.4.2 Defined Error Codes
+
+   For the use of this error code, see Section “Train Assignment”.
+
+  2.4.3 Traction Control Command Message
 
    The MTI modifiers are chosen to have the reply a higher priority than the request, ensuring replies to
    repeated instructions are always possible.  The same priority and index are used for command and reply
@@ -143,7 +147,7 @@
    reliable-transport network, so these replies are not required for reliability.  Train nodes must be able
    to receive and process them at full rate, as they can arrive adjacent to each other on the link.
 
-  2.4.3 Traction Control Reply Message
+  2.4.4 Traction Control Reply Message
 
    Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
    structure similar.
@@ -205,20 +209,73 @@
 
 2.6 Interactions
 
-    
+  2.6.1 Controller
 
-  2.6.1 Train Assignment
+   The purpose for maintaining the Controller in the Train Nodes is to support an operating model with
+   control policies. The interactions are defined in a way to support different policies; the manufacturer
+   of the Train Node can decide which one to implement or whether to make this configurable. Examples:
 
-   A node may Query the active node from a train node. It would be better to return an error code but that
-   would require a multi-frame message which is possible but undesirable.
+     * Unique Controller. A train can be controlled from only a single throttle. In order for another
+       throttle to select the same train, the train has to be “stolen” from the first throttle. The new
+       throttle and/or the old throttle may pop up messages to their respective user about the steal
+       procedure; the message may be a notification only, or may even be a yes/no question to ask for
+       permission to go ahead with the transfer of control.
 
-   Traction Management locks/releases the train node such that interactions that require multiple messages
-   between 2 or more nodes are guaranteed to be completed before another node can set (modify) the
-   configuration on the train node.  These messages are not needed for normal traction operations such as
-   speed and function set/query.  If the node attempting to set attributes of the train is not the active
-   node the train node will ignore the request and as such locking/releasing is not required.
+     * Shared Controls with Listeners. Multiple throttles can control the same train, and the Train Node
+       will forward state changing requests between them. This allows all throttles to keep their display
+       up-to-date with the current state of the Train Node. The last assigned throttle will receive
+       heartbeats. The Train Node may still reject control messages if those come from a Node that is not a
+       Listener.
+
+     * Unlimited. Any Node is allowed to send a Train Control Operation to the Train Node. This is helpful
+       for example when automation software is controlling trains.
+
+   As the Controller is represented by the Node ID of the respective Throttle Node, another throttle can
+   query the active Controller from the Train Node, and then reach out to the specific Throttle Node to
+   determine metadata such as Simple Node Information to populate user interface elements. For example, a
+   dialog may be presented saying “The Loco ‘C&NW 415’ is controller by ‘Joe’s Throttle 123’, would you
+   like to steal it?”.
+
+   The Controller is also used for Heartbeats, with the intention to prevent a runaway train. The
+   requirement to detach the controller upon intentional shutdown is necessary to enable heartbeats. One
+   place this may not be done is if the controller is being unplugged to be moved to a new location on the
+   layout. The operator will have to plug in again before the heartbeat interval expires.
+
+   A Throttle Node is recommended, but not required, to release the Controller position of a Train Node
+   that is de-selected on the user interface. The benefit of releasing the train is to allow the next
+   controller to be connected to the train without the handshaking required to take a train from an
+   existing active Controller.  This is explained in the messaging diagram later in this document.  
+
+   A Controller node may be sent an unsolicited message if it is currently assigned to a train node and
+   another Throttle Node attempts to assign itself to the train as Controller.  When the new Controller
+   node requests to be Assigned to the Train Node, one of several actions may occur.
+
+    1. The train may block the request and return false to the Assign request
+
+    2. The train forwards a Controller Changed Notify message to the currently assigned controller node and
+       that controller node returns false in which the train node returns false with a fail code of
+       Controller Refused to the Assign request.  The active controller may, but is not required to,
+       indicate to the user it has been asked to release the train node.
+
+    3. The train forwards a Controller Changed Notify message to the currently assigned controller node and
+       that controller node return true.  The active controller may, but is not required to, indicate to
+       the user it is loosing its position as the active controller of the train node.  In turn the train
+       node returns true to the Assign request and the train node sets the new controller as the active
+       controller.
+
+   The Release Controller Request does not have a reply defined. This request always succeeds.
 
   2.6.2 Emergency Stop
+
+   When the train goes into and out of Global Emergency Stop or Global Emergency Off, it will resume the
+   previously set speed unless overridden during the Global Emergency Stop/Off state with a different Set
+   Speed command. This is necessary, because we want to stop all movement on the layout with these
+   instructions, but we don’t want to have to go through each train individually and set them to a new
+   speed to resume operation of the layout.
+
+   However, when the train goes into and out of Emergency Stop state, the new speed will be determined by
+   the Set Speed instruction that cleared the Emergency Stop state. For this reason there is no Clear
+   Emergency Stop instruction.
 
   2.6.3 Function Operation
 
@@ -254,13 +311,7 @@
      * A search protocol is (being) defined to make it possible to locate individual Train nodes without
        having to read information from all of them
 
-  2.6.6 Basic Throttle and Train Connection
-
-  2.6.7 Conflicting Throttles
-
-  2.6.8 Throttle to Throttle Successful Hand-over (steal)
-
-  2.6.9 Listeners
+  2.6.6 Listeners
 
    Listener Configuration allows adding listeners to a train node, where the train node shall forward the
    state-changing requests to. Listeners always get speed change commands forwarded (direct or with
@@ -270,7 +321,7 @@
    forwarding of messages. This may be interesting for virtual train nodes specifically designed to be
    consist proxies.
 
-  2.6.10 Heartbeat
+  2.6.7 Heartbeat
 
    Train nodes may employ a heartbeat mechanism to ensure that the assigned Controller (typically a
    throttle) is alive and in control of the train. This is a safety feature that protects valuable
@@ -337,9 +388,23 @@
    function. These are thought to be too brittle, and there are just too many possibilities to be useful
    (see the unscientific and incomplete Survey of existing function names).
 
-                                           3 Background Information
+                                                  3 Examples
 
-3.1 Speed Control
+3.1 Basic Throttle and Train Connection
+
+   graphics2
+
+3.2 Throttle to Throttle handover not supported
+
+   Image2
+
+3.3 Throttle to Throttle Successful Hand-over (steal)
+
+   Image1
+
+                                           4 Background Information
+
+4.1 Speed Control
 
    For OpenLCB, the speed and direction to set is encoded as a half-precision floating point number (aka
    'float16'), with positive numbers indicating forward direction, negative indicating reverse, and
@@ -387,7 +452,7 @@
    layout, or on a per-model basis—an additional configuration step that is easily avoided by the mechanism
    for scale units described above.
 
-3.2 Function Control
+4.2 Function Control
 
    "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
    they're also configuration-like, in that they effect the operation of the device.
@@ -433,7 +498,7 @@
    function. These are thought to be too brittle, and there are just too many possibilities to be useful
    (see the unscientific and incomplete Survey of existing function names).
 
-  3.2.1 Outputs vs Functions
+  4.2.1 Outputs vs Functions
 
    Tools like DecoderPro and its decoder-definition files make a distinction between "functions", which are
    the control commands sent via e.g. DCC, and "outputs", which are the things that a decoder can do:
@@ -446,7 +511,7 @@
    configuration & physical information, which lives in the memory configuration and CDI. If there's to be
    a mapping, it's defined through the CDI.
 
-  3.2.2 Legacy DCC Function Control
+  4.2.2 Legacy DCC Function Control
 
    Although currently most DCC throttles only permit access to 12 or 29 functions, DCC technically permits
    as many as 32796 different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two
@@ -494,7 +559,7 @@
    available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
    Controls.
 
-3.3 Configuration
+4.3 Configuration
 
    Trains are OpenLCB nodes just like any other. As such, the Memory Configuration protocol can be used to
    configure them, the Configuration Description Information system can be used to make that process user
@@ -540,7 +605,7 @@
    about the particular model's construction, etc.  The Simple Train Node Information Protocol (STNIP) has
    been defined to implement this concept.
 
-  3.3.1 Legacy DCC Configuration and CVs
+  4.3.1 Legacy DCC Configuration and CVs
 
     
 
@@ -587,7 +652,7 @@
    reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
    e.g. DecoderPro does.
 
-3.4 How to find human-readable loco information
+4.4 How to find human-readable loco information
 
    A search protocol may eventually be defined to allow efficient location of specific train nodes on large
    OpenLCB installations. It provides a general or field-specific search over the SNIP information,
@@ -648,7 +713,7 @@
    versions < 21, node name < 63 bytes, node description < 64 bytes (including terminating null), much more
    of than Balazs' example.
 
-3.5 Consisting and Listeners
+4.5 Consisting and Listeners
 
    Consisting is a process familiar to model railroaders, who use it for many purposes:
 
@@ -791,9 +856,11 @@
 
    2.4.1 Defined Event IDs
 
-   2.4.2 Traction Control Command Message
+   2.4.2 Defined Error Codes
 
-   2.4.3 Traction Control Reply Message
+   2.4.3 Traction Control Command Message
+
+   2.4.4 Traction Control Reply Message
 
     
 
@@ -801,7 +868,7 @@
 
    2.6 Interactions
 
-   2.6.1 Train Assignment
+   2.6.1 Controller
 
    2.6.2 Emergency Stop
 
@@ -811,15 +878,9 @@
 
    2.6.5 Train Identification
 
-   2.6.6 Basic Throttle and Train Connection
+   2.6.6 Listeners
 
-   2.6.7 Conflicting Throttles
-
-   2.6.8 Throttle to Throttle Successful Hand-over (steal)
-
-   2.6.9 Listeners
-
-   2.6.10 Heartbeat
+   2.6.7 Heartbeat
 
    2.7  Memory Spaces
 
@@ -831,22 +892,30 @@
 
    2.7.4 Function Definition Information FDI 0xFA
 
-   3 Background Information
+   3 Examples
 
-   3.1 Speed Control
+   3.1 Basic Throttle and Train Connection
 
-   3.2 Function Control
+   3.2 Throttle to Throttle handover not supported
 
-   3.2.1 Outputs vs Functions
+   3.3 Throttle to Throttle Successful Hand-over (steal)
 
-   3.2.2 Legacy DCC Function Control
+   4 Background Information
 
-   3.3 Configuration
+   4.1 Speed Control
 
-   3.3.1 Legacy DCC Configuration and CVs
+   4.2 Function Control
 
-   3.4 How to find human-readable loco information
+   4.2.1 Outputs vs Functions
 
-   3.5 Consisting and Listeners
+   4.2.2 Legacy DCC Function Control
+
+   4.3 Configuration
+
+   4.3.1 Legacy DCC Configuration and CVs
+
+   4.4 How to find human-readable loco information
+
+   4.5 Consisting and Listeners
 
     

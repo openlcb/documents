@@ -58,10 +58,12 @@
 
    The following additional concepts are used:
 
-     * Controller: A Train Node may have a single Throttle Node assigned as the Controller. There is no
-       requirement that the Train Node should only accept control commands from the Controller. A Throttle
-       Node set as the Controller has to stay alive and connected to the OpenLCB bus, and the Train Node
-       may periodically verify this as a safety check.
+     * Train Control Operation: The set of commands Set Speed, Emergency Stop and Set Function.
+
+     * Controller: A Train Node has zero or one Throttle Node assigned as the Controller. There is no
+       requirement that the Train Node should accept Train Control Operations from the Controller only. A
+       Throttle Node set as the Controller has to stay alive and connected to the OpenLCB bus, and the
+       Train Node may periodically verify this as a safety check.
 
      * Listener: A Throttle Node may be interested in receiving a copy of all state changing messages from
        a given Train Node. Since Throttle-to-Train configuration is addressed, there is no network-level
@@ -88,7 +90,11 @@
 
    Clear Emergency Off All: 01.00.00.00.00.00.FF.FE
 
-4.2 Traction Control Command Message
+4.2 Defined Error Codes
+
+   Error – source not permitted – not a controller: 0x1021.
+
+4.3 Traction Control Command Message
 
    MTI: Priority 1, index 15, modifier 3, addressed => MTI 0x05EB, CAN frame [195EBsss] fd dd
 
@@ -142,7 +148,7 @@
    The P bit shall be set to 0 when a Throttle Node sends a command to a Train Node, and set to 1 when a
    Train Node is sending a forwarded command to a Listener Node.
 
-4.3 Traction Control Reply Message
+4.4 Traction Control Reply Message
 
    MTI: Priority 0, index 15, modifier 1, addressed => MTI 0x01E9, CAN frame [191E9sss] fd dd
 
@@ -245,49 +251,54 @@
 
                                           6 Interactions (Normative)
 
-6.1 Train Assignment
+6.1 Controller
 
-   Controller configuration maintains the node that is controlling the train node. In order to operate a
-   train the controller must be first assigned.  A train node shall not respond to a traction message if it
-   not defined as the current active Controller.  Once a controller is finished operating a train it
-   should, but is not required, to Release the active Controller.  One place this may not be done is if the
-   controller is being unplugged to be moved to a new location on the layout.  The benefit of releasing the
-   train is to allow the next controller to be connected to the train without the handshaking required to
-   take a train from an existing active Controller.  This is explained in the messaging diagram later in
-   this document.  A Controller node may be send an unsolicited message if it is currently assigned to a
-   train node and another Controller node attempts to assign itself to the train.  The new the Controller
-   node requests to be Assigned to the train one of several actions may occur.
+   A Train Node maintains a single Node ID in its state as the Controller. A Throttle Node, before
+   attempting any Train Control Operation, shall assign its own Node ID as the Train Node’s Controller. A
+   Throttle Node which is the current Controller, before intentionally powering down, shall attempt to
+   release itself from the Train Node.
 
-    1. The train may block the request and return false to the Assign request
+   A Train Node may, but is not required to, reject all Train Control Operations from an OpenLCB Node that
+   is not the current Controller. In such a case the Terminate Due To Error message shall be used with the
+   error code “source not permitted – not a controller”. Messages arriving from an attached Listener with
+   the P bit set to 1 shall never be rejected.
 
-    2. The train forwards a Controller Changed Notify message to the currently assigned controller node and
-       that controller node returns false in which the train node returns false with a fail code of
-       Controller Refused to the Assign request.  The active controller may, but is not required to,
-       indicate to the user it has been asked to release the train node.
+   A Train Node may, but is not required to, use heartbeats (see Section Heartbeat) to ensure that the
+   Controller is continuously present on the network and is intending to keep the control of the
+   locomotive.
 
-    3. The train forwards a Controller Changed Notify message to the currently assigned controller node and
-       that controller node return true.  The active controller may, but is not required to, indicate to
-       the user it is loosing its position as the active controller of the train node.  In turn the train
-       node returns true to the Assign request and the train node sets the new controller as the active
-       controller.
+   A Throttle Node, to assign itself as the Controller of a Train Node, sends a Traction Control Command
+   message to the Train Node, with the Controller Configuration – Assign Controller command and its own
+   Node ID. To accept the request, the Train Node shall set the Controller to the provided Node ID and
+   reply with a Traction Control Reply with a Controller Configuration – Assign Controller Reply with a
+   Result of 0. A result of non-zero rejects the request. If there was a previous Controller, the Train
+   Node sends a Controller Changing Notify Request to the previous Controller. The Train Node may, but is
+   not required to wait for the reply of the previous Controller and factor in its reply to the decision.
+   The Train Node shall reply to the Assign Controller message within 3 seconds.
 
-   A node may Query the active node from a train node.  If no controller is assigned the train nodes
+   A Node may query the active Controller from a Train Node.  If no Controller is assigned the Train Node
    returns a Node ID of 0.0.0.0.0.0.
 
-   Traction Management locks/releases the train node such that interactions that require multiple messages
-   between 2 or more nodes are guaranteed to be completed before another node can set (modify) the
-   configuration on the train node.  These messages are not needed for normal traction operations such as
-   speed and function set/query.  If the node attempting to set attributes of the train is not the active
-   node the train node will ignore the request and as such locking/releasing is not required.
+   A Throttle Node assigned as a Controller of a Train Node, to release itself as the active Controller,
+   sends a Controller Configuration – Release Controller request with its own Node ID to the Train Node.
+   The Train Node shall verify that the Node ID matches the current Controller before setting the
+   Controller to empty.
 
 6.2 Emergency Stop
 
-   Receipt of the Emergency Stop instruction stops the locomotive as fast as possible.  This sets the set
-   speed to zero (preserving existing direction) and the commanded speed to zero (preserving existing
+   Receipt of the Emergency Stop instruction stops the locomotive as fast as possible.  This sets the Set
+   Speed to zero (preserving existing direction) and the Commanded Speed to zero (preserving existing
    direction) regardless of any momentum, BEMF or other operations with the train node.
 
-   Emergency stop is not a specific state.  The next Set Speed/Direction instruction will act immediately
-   to change the set speed, and start the commanded speed and actual speed moving toward that set speed.
+   Entering the Global Emergency Stop or Global Emergency Off state also stops the locomotive as fast as
+   possible, but does not change the Set Speed. The train shall remain stopped while it is in any of the
+   Emergency Stop, Global Emergency Stop or Global Emergency Off states. Upon exiting all Emergency Stop
+   states, the locomotive shall accelerate to the currently valid Set Speed, if that is not zero, according
+   to its settings.
+
+   In addition to stopping movement, the Global Emergency Off state shall de-energize all other outputs of
+   the Train Node if possible. Upon exiting Global Emergency Off, these shall then be restored to their
+   commanded state, which may have changed during the period of the Global Emergency Off state.
 
 6.3 Function Operation
 
@@ -343,24 +354,10 @@
    train node. In particular, the user (Node) Name and (Node) Description fields are to be used to hold
    train identification information that can be retrieved and presented by throttles for selection.
 
-6.6 Basic Throttle and Train Connection
+6.6 Listeners
 
-    
-
-   graphics2
-
-6.7 Conflicting Throttles
-
-   graphics4
-
-6.8 Throttle to Throttle Successful Hand-over (steal)
-
-6.9 Listeners
-
-   graphics5
-
-   When listeners are configured, the incoming state changing traction messages are forwarded by the train
-   node to all the listener nodes. The forwarded message shall be a Traction Control Request message.
+   When listeners are configured, the incoming Train Control Operations are forwarded by the Train Node to
+   all the Listeners nodes. The forwarded message shall be a Traction Control Request message.
 
    If the source node of the message is on the listener list, the message is not forwarded to avoid message
    loops.
@@ -405,7 +402,7 @@
    can recognize that their information is out of date by observing a change in the count of listeners
    compared to the expected number of listeners and restart the enumeration process.
 
-6.10 Heartbeat
+6.7 Heartbeat
 
    The Heartbeat Request may be sent by a train node to the currently active Controller node at the
    discretion of the train node.  The argument is a deadline in seconds for the Controller node to reply.
@@ -494,15 +491,17 @@
 
    4.1 Defined Event IDs
 
-   4.2 Traction Control Command Message
+   4.2 Defined Error Codes
 
-   4.3 Traction Control Reply Message
+   4.3 Traction Control Command Message
+
+   4.4 Traction Control Reply Message
 
    5 States (Normative)
 
    6 Interactions (Normative)
 
-   6.1 Train Assignment
+   6.1 Controller
 
    6.2 Emergency Stop
 
@@ -512,15 +511,9 @@
 
    6.5 Train Identification
 
-   6.6 Basic Throttle and Train Connection
+   6.6 Listeners
 
-   6.7 Conflicting Throttles
-
-   6.8 Throttle to Throttle Successful Hand-over (steal)
-
-   6.9 Listeners
-
-   6.10 Heartbeat
+   6.7 Heartbeat
 
    7 Memory Spaces
 
