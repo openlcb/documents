@@ -400,40 +400,84 @@
 
 2.7  Memory Spaces
 
-  2.7.1 Configuration Information
+   In addition to the memory spaces defined in this section, there are several other Memory Spaces defined
+   by other standards that Train Nodes are recommended to implement:
 
-  2.7.2 CDI
+     * Configuration memory space.
+       The configuration memory space holds the configuration of the train, such as how functions will
+       work, how speed in scale meters/second will control motor operation, etc.
 
-  2.7.3 Function Information 0xF9
+     * Configuration Description Information (CDI) memory space.
+       The CDI space holds an XML description of the Configuration memory space. See the Configuration
+       Description Information Standard.
+
+  2.7.1 Function Information 0xF9
 
    Functions, such as lights and sounds, can be operated by the Traction Control Set Function instruction,
    and their current value can be retrieved via the Traction Control Query Function instruction. The values
    are also available for reading and writing in the Function Information memory space.  This allows
    multi-byte reads and writes using Configuration Memory Protocol access. That's a more efficient way of
-   setting and reading large numbers of functions, for backup, initial setup, etc.
+   setting and reading large numbers of functions, for backup, initial setup, etc. The Traction Control
+   instructions have two bytes per function value (support 0-65535), whereas the memory space only has one
+   byte per function (supports 0-255). It is not specified how function values greater than 255 are
+   represented in the Function Information memory space.
 
-   The NMRA 9.2.1 Recommended Practice describes DCC as having three separate sets of "functions". The most
-   common one is the traditional F0-F28. In addition, the "Binary State Control Instruction long form"
-   accesses 32767 addresses (confusingly called "states" in the NMRA doc) and the "Binary State Control
-   Instruction short form" accessed 127 addresses (the NMRA document implies that these are overlapping
-   address spaces, but at least one manufacturer has not implemented them that way). Finally, NMRA DCC WG
-   Topic 9910241 never made it to the Recommended Practices due to internal Working Group politics, but has
-   been widely implemented by decoder and command station manufacturers. It provides an "Analog Output
-   Instruction" or "Analog Function Group" with 8 bits of address space and 8 bits of value for each
-   address, for a total of 256 functions and a value in the range [0..255] for each function.
+   The NMRA S-9.2.1 describes DCC as having four separate sets of “functions”. The most common one is the
+   traditional F0-F65. In addition, the “Binary State Control Instruction long form” accesses 32767
+   addresses (confusingly called "states" in the NMRA doc) and the "Binary State Control Instruction short
+   form" accesses 127 addresses (the NMRA document implies that these are overlapping address spaces, but
+   at least one manufacturer has not implemented them that way). Finally, it provides an “Analog Function
+   Group” with 8 bits of address space and 8 bits of value for each address, for a total of 256 functions
+   and a value in the range [0..255] for each function.
 
    There's nothing in the standard that says that the first three types of information need to be stored in
-   29+32768+128 bytes.  Packing them into bits is certainly acceptable, given that the underlying DCC
-   protocol can only send one bit for each. An individual node may not implement all of them, either.
+   66+32768+128 bytes.  Packing them into bits is certainly acceptable, given that the underlying DCC
+   protocol can only send one bit for each. An individual node may not implement all of them, either. It is
+   also acceptable to not store all of this information, as there is no requirement that a read shall
+   return the last written value. For a DCC locomotive, it is recommended that the Command Station stores
+   at least F0 to F28 and return their last written state upon a read.
 
-  2.7.4 Function Definition Information FDI 0xFA
+  2.7.2 Function Definition Information (FDI) 0xFA
 
-   What else needs to be conveyed? "Make this prominent on the throttle"? "Have this there, just a little
-   less prominent"? "Seriously, nobody cares about this option, bury it"?
+   So far we’ve defined ways to control a large potential set of numbered functions on a locomotive, but no
+   information about whether these actually exist, what they do, or how should the user interact with them.
+   The Function Definition Information is an XML file that the Train Node provides such that the Throttle
+   Node can render a user interface that allows intuitive use of these functions.
 
-   At present, there are no default values that e.g. associate "Bell" with a particular location or
-   function. These are thought to be too brittle, and there are just too many possibilities to be useful
-   (see the unscientific and incomplete Survey of existing function names).
+   The FDI is similar in intent and format to the Configuration Definition Information (CDI). It includes:
+
+     * Memory layout of the function values, defining what addresses control actually existing functions.
+
+     * Defining the data types and interaction modes, such as binary (on/off for lights), momentary (on
+       while a button is held down, like horn), or integer values (e.g. volume).
+
+     * Function naming, so that a throttle can display useful names to the user such as "Bell", "Coupler
+       Clank" and "Master Volume".
+
+   It is not specified in the Standard, where the information in the FDI should come from. It is up to the
+   implementer of the Train Node. There are several different plausible sources:
+
+     * A locomotive model with an OEM-installed OpenLCB decoder would have the functions determined and
+       wired byt the manufacturer. The manufacturer can then write the FDI as part of the product
+       development and store it in the Train Node as read-only data, similarly to the CDI for any other
+       OpenLCB Node.
+
+     * A generic or aftermarket OpenLCB locomotive decoder would have function mapping editable in the CDI,
+       which it then uses to generate the FDI XML. This may also be generated and uploaded by an external
+       tool, such as a sound project editor provided by the decoder manufacturer.
+
+     * A simple DCC Command Station may use a fixed FDI for all trains, which have just a generic
+       description of F0-F28, or maybe encode conventions such as headlight, bell and horn.
+
+     * An advanced DCC Command Station may have a user-editable database about all DCC addresses, where the
+       user can fill in information about the function mapping of each locomotive. This database can then
+       be used to dynamically generate the FDI XML representation when a throttle is querying a given
+       virtual Train Node belonging to a given DCC address.
+
+     * A Command Station with bidirectional communication to the locomotive decoders may use established
+       methods for downloading the function information from the locomotive decoder and reformat this
+       information into the FDI presentation. Example such protocols are RailCom Plus, RCN-218, NMRA
+       S-9.2.1.1, mfx and M4.
 
                                                   3 Examples
 
@@ -929,13 +973,9 @@
 
    2.7  Memory Spaces
 
-   2.7.1 Configuration Information
+   2.7.1 Function Information 0xF9
 
-   2.7.2 CDI
-
-   2.7.3 Function Information 0xF9
-
-   2.7.4 Function Definition Information FDI 0xFA
+   2.7.2 Function Definition Information (FDI) 0xFA
 
    3 Examples
 

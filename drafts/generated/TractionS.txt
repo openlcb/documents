@@ -36,9 +36,11 @@
 
      * OpenLCB Memory Configuration Standard and Datagram Protocol it depends on;
 
-     * OpenLCB Configuration Description Information Standard
+     * OpenLCB Configuration Description Information Standard;
 
-     * OpenLCB Train Search Protocol
+     * OpenLCB Function Description Information Standard;
+
+     * OpenLCB Train Search Protocol.
 
    Float-16 is the half-precision numeric format defined by IEEE 754-2008. This is the format that the GNU
    toolchain's -mfp16-format=ieee flag and __fp16 type makes available on some CPU types.
@@ -380,26 +382,21 @@
 
    In case there is no assigned Controller node, the Train Node shall continue operating as last commanded.
 
-                                               7 Memory Spaces
+                                         7 Memory Spaces (Normative)
 
-7.1 Configuration Information
-
-   The configuration memory space holds the configuration of the train, such as how functions will work,
-   how speed in scale meters/second will control motor operation, etc.
-
-7.2 CDI
-
-7.3 Function Information 0xF9
+7.1 Function Information 0xF9
 
    Functions, such as lights and sounds, can be operated by the Traction Control Set Function instruction,
-   and their current value can be retrieved via the Traction Control Query Function instruction.
+   and their current value can be retrieved via the Traction Control Query Function instruction. The values
+   are also available for reading and writing in the Function Information memory space, so long as the
+   value of a given function does not exceed 255.
 
-   The NMRA 9.2.1 Recommended Practice describes DCC as having three separate sets of "functions". The
+   The NMRA S-9.2.1 Standard describes four separate DCC packets controlling sets of “functions”. The
    OpenLCB 0xF9 space is allocated to cover all these by using the third byte of the address as a selector.
 
    Type                       Low Address High Address Values                           
                                                        A non-zero value indicates "ON", 
-   F0-F28                     0x0 00 00   0x0 00 1C                                     
+   F0-F65                     0x0 00 00   0x0 00 41                                     
                                                        a zero value is "OFF".           
    Binary State Controls                                                                
                               0x1 00 00   0x1 7F FF    "
@@ -409,27 +406,16 @@
    (short space, if separate) 
    Analog Outputs             0x3 00 00   0x3 00 FF                                     
 
-   The default Function Definition Information, when nothing is known about a particular decoder's
-   capabilities, will just describe these as above. If the node serving the DCC decoder information knows
-   more about the particular decoder's capabilities and/or preferred labeling, it can provide more
-   information via the Function Definition Information.
+   A Train Node representing a DCC locomotive may, but is not required to provide support for all of the
+   above features, and it may, but is not required to provide the last written data upon a read command.
 
-    
+7.2 Function Definition Information (FDI) 0xFA
 
-7.4 Function Definition Information FDI 0xFA
+   0xFA is a read-only memory space which provides information for Throttle Nodes on how to present a user
+   interface to control the specific functions that are available on this particular Train Node.
 
-   “Function Definition Information”, similar in intent to Configuration Definition Information (CDI) is
-   stored in XML format in address space 0xFA to provide user-oriented context. That includes:
-
-     * Memory layout of the function values, allowing for multiple data types from binary (one and off for
-       lights) through integer values (for e.g. sound intensities) and strings (sign displays?).
-
-     * Function naming, so that a throttle can display useful names to the user such as "Bell", "Coupler
-       Clank" and "Master Volume".
-
-    
-
-    
+   The format and semantics of this data is specified by the OpenLCB Function Definition Information
+   Standard.
 
     
 
@@ -469,14 +455,10 @@
 
    6.6 Heartbeat
 
-   7 Memory Spaces
+   7 Memory Spaces (Normative)
 
-   7.1 Configuration Information
+   7.1 Function Information 0xF9
 
-   7.2 CDI
-
-   7.3 Function Information 0xF9
-
-   7.4 Function Definition Information FDI 0xFA
+   7.2 Function Definition Information (FDI) 0xFA
 
     
