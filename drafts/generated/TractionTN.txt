@@ -1,7 +1,8 @@
                                                 1 Introduction
 
-   This working note covers the Traction Protocol, the way that OpenLCB handles moving objects such as
-   locomotives, engines, and other rolling stock.
+   This Technical Note covers the Traction Protocol, the way that OpenLCB handles moving objects such as
+   locomotives, engines, and other rolling stock. This document is intended to be read in parallel to the
+   matching Standard, as commentary and background information.
 
 1.1 Served Use Cases
 
@@ -28,13 +29,35 @@
    that back into the train. That makes it work. When he gets back home that value is still present so he
    changes it back using the same procedure.
 
+  1.1.4 DCC Layout
+
+   Elena is running her DCC layout with an OpenLCB Command Station. Elena picks up an OpenLCB throttle,
+   presses the locomotive button and sees the list of DCC locomotives currently running on the layout, with
+   the addresses augmented by the respective locomotive name from the Command Station memory. Elena selects
+   “C&NW 415” form the list and starts running her train. Elena forgot which function number turns on the
+   Compressor, so she presses the Help button on the throttle. The throttle displays all functions of the
+   locomotive with their description, so she knows she has to press 9.
+
+  1.1.5 Supervised running
+
+   David has his little nephew Noah visiting, who wants to run a train. David gives an OpenLCB throttle to
+   him, which already has the locomotive dialed up. David takes a second throttle, and selects the same
+   locomotive. David can see on his throttle real-time as Noah controls the train, and gently reduces the
+   speed as needed. When they are about to derail on a switch set against them, David presses the emergency
+   stop button on his throttle to prevent the accident.
+
 1.2 Unserved Use Cases
 
-  1.2.1 Third-Party Communications
+  1.2.1 DCC locomotive allocation and deletion
 
-   Node A is a throttle that is controlling train node B.  Node C passively listens to the traffic and
-   reacts to throttle commands and train status by taking various actions, such as providing appropriate
-   sounds or preventing the speed from getting too high.
+   A DCC Command Station represents the current set of active locomotives on the OpenLCB bus using Virtual
+   Train Nodes. These can be selected by an OpenLCB throttle.
+
+   There is no provision in this standard on how to make the Command Station create a new Virtual Train
+   Node from a new locomotive address. This is covered in the Train Search Protocol.
+
+   There is also no command in this standard to instruct a DCC Command Station to delete a Virtual Train
+   Node.
 
                                         2 Annotations to the Standard
 
@@ -75,20 +98,20 @@
                  Digitrax DT402 or Lenz LH100.
 
                * “Full-Featured Throttles” refers to full-featured native OpenLCB throttles with multi-line
-                 color screens and effectively unlimited processing power, e.g. a software throttle
-                 implemented on an iPad.
+                 screens and effectively unlimited processing power, e.g. a software throttle implemented
+                 on an iPad.
 
                * “Simple Throttles” refers to throttles which are native OpenLCB nodes like Full-Featured
                  Throttles, but which have more limited capabilities, e.g. no text display, a limited array
                  of physical buttons, and constrained processing resources.
 
-          * A single Throttle may control multiple trains simultaneously and independently, for example
-            when it has appropriate operator interface (e.g. multiple knobs, or multiple windows open on a
-            computer screen).
+          * A single Throttle Node may control multiple trains simultaneously and independently, for
+            example when it has appropriate operator interface (e.g. multiple knobs, or multiple windows
+            open on a computer screen).
 
-          * A single Throttle Node may also be a Gateway from a legacy Throttle bus, translating commands
-            originating from multiple physical Throttles to OpenLCB, each of which may be in control of
-            different Trains on the OpenLCB bus.
+          * A single Throttle Node may also be a Gateway from a legacy throttle bus, translating commands
+            originating from multiple physical throttles to OpenLCB, each of which may be in control of
+            different trains on the OpenLCB bus.
 
    Additional glossary and explanations:
 
@@ -106,7 +129,8 @@
        some other network, to which throttles and other interface devices are connected. OpenLCB, it it's
        native form, has no such concept. Devices, like throttles, that want to talk to a train do so
        directly. Only when working with legacy systems does the concept of a command station enter, and
-       usually through the form of a proxy node that is acting for the Train.
+       usually through the form of a proxy node that is acting for the Train. In this setup, OpenLCB acts
+       as the throttle bus for the DCC Command Station.
 
      * “Consisting”: The running of multiple Trains together, e.g. three coupled engines, each with their
        own NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and
@@ -114,8 +138,8 @@
 
      * “Configuration”, “Functions”: Traditional DCC decoders provide “functions” for controlling
        accessories such as lights and sounds during operation, and provide a separate mechanism for doing
-       long-term configuration via Configuration Variables (Cvs). OpenLCB makes the same distinction,
-       providing access to “functions” via the traction protocol, while leaving “configuration” to the
+       long-term configuration via Configuration Variables (CVs). OpenLCB makes the same distinction,
+       providing access to “functions” via the Traction Protocol, while leaving “configuration” to the
        configuration protocol(s).  The line between these is admittedly vague, and different node
        developers may implement some capability one way or the other.  The general intent is that things
        that are changed in normal operation are considered functions, while things that are set once and
@@ -123,34 +147,33 @@
 
 2.4 Message Formats
 
-   AA.AA refers to an NMRA short or long address in the format defined by the NMRA. (Say a few words about
-   short addresses in two bytes, maybe give examples)
-
   2.4.1 Defined Event IDs
 
   2.4.2 Defined Error Codes
 
-   For the use of this error code, see Section “Train Assignment”.
+   Not a controller: For the use of this error code, see Section “Controller”.
+
+   Not found, already exists: For the use of this error code, see Section “Listeners”.
 
   2.4.3 Traction Control Command Message
 
-   The MTI modifiers are chosen to have the reply a higher priority than the request, ensuring replies to
-   repeated instructions are always possible.  The same priority and index are used for command and reply
-   messages, changing only the modifier, to use less of the high-priority MTI space which is a scarce
-   resource.
+   The MTI parameters are chosen to have the reply a higher priority than the request, ensuring replies to
+   repeated instructions are always possible.  The Type field expresses that these messages belong
+   together. The Modifier field was chosen during the prototyping phase with a CAN-bus specific
+   argumentation.
 
    Dedicated OpenLCB messages are defined for traction control, instead of using datagrams, so that they
-   have higher priority. Given the small size of these messages, they also use less bandwidth than
-   datagrams.
+   have higher priority, and less complicated state machines. Given the small size of these messages, they
+   also use less bandwidth than datagrams.
 
-   There's no reply defined to Set Speed and Set Function to reduce bandwidth use.  OpenLCB is a
+   There's no reply defined to Set Speed and Set Function to reduce bandwidth use. OpenLCB is a
    reliable-transport network, so these replies are not required for reliability.  Train nodes must be able
    to receive and process them at full rate, as they can arrive adjacent to each other on the link.
 
   2.4.4 Traction Control Reply Message
 
-   Higher priority to ensure can be sent immediately over Traction Control Command messages. Coding and
-   structure similar.
+   This message is higher priority than the Traction Control Command message to ensure that it can be sent
+   immediately over Traction Control Command messages. Coding and structure is intentionally similar.
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -158,18 +181,20 @@
    On CAN, the Query Speed/Direction reply does not fit in a single frame, so it's sent as two frames with
    start and end marked in the 1st data nibble (high part of destination address). The status byte was
    included so that the actual speed value would not be split across boundaries (though that's not
-   necessarily guaranteed for other wire protocols that come along later). The status byte is is a bit set.
-   Bit zero shall be set if and only if an Emergency Stop command was received after the last Set
-   Speed/Direction command. For example, from node with alias 123 to node with alias 456, all speeds equal
-   to 0x4420 would be sent as the two frames:
+   necessarily guaranteed for other wire protocols that come along later). The status byte is a bitset. Bit
+   zero shall be set if and only if an Emergency Stop command was received after the last Set
+   Speed/Direction command.
 
-   195E8123 14 56 10 44 20 00 44 20
+   For example, from node with alias 123 to node with alias 456, all speeds equal to 0x4420 would be sent
+   as the two frames:
 
-   195E8123 24 56 44 20
+   191E9123 14 56 10 44 20 00 44 20
+
+   191E9123 24 56 44 20
 
    which together are the single message
 
-   MTI=05E8 10 44 20 00 44 20 44 20
+   MTI=01E9 10 44 20 00 44 20 44 20
 
    
 
@@ -246,22 +271,22 @@
    controller to be connected to the train without the handshaking required to take a train from an
    existing active Controller.  This is explained in the messaging diagram later in this document.  
 
-   A Controller node may be sent an unsolicited message if it is currently assigned to a train node and
+   A Controller node may be sent an unsolicited message if it is currently assigned to a Train Node and
    another Throttle Node attempts to assign itself to the train as Controller.  When the new Controller
-   node requests to be Assigned to the Train Node, one of several actions may occur.
+   node requests to be assigned to the Train Node, one of several actions may occur.
 
-    1. The train may block the request and return false to the Assign request
+    1. The train may block the request and return false to the Assign Controller request
 
-    2. The train forwards a Controller Changed Notify message to the currently assigned controller node and
-       that controller node returns false in which the train node returns false with a fail code of
-       Controller Refused to the Assign request.  The active controller may, but is not required to,
-       indicate to the user it has been asked to release the train node.
+    2. The train forwards a Controller Changed Notify message to the currently assigned Controller node and
+       that Controller node returns false. The Train Node returns false with a fail code of Controller
+       Refused to the Assign Controller request.  The active Controller may, but is not required to,
+       indicate to the user it has been asked to release the Train Node.
 
-    3. The train forwards a Controller Changed Notify message to the currently assigned controller node and
-       that controller node return true.  The active controller may, but is not required to, indicate to
-       the user it is loosing its position as the active controller of the train node.  In turn the train
-       node returns true to the Assign request and the train node sets the new controller as the active
-       controller.
+    3. The train forwards a Controller Changed Notify message to the currently assigned Controller node and
+       that Controller node returns true. The active Controller may, but is not required to, indicate to
+       the user it is loosing its position as the active Controller of the Train Node.  In turn the Train
+       Node returns true to the Assign Controller request and the train node sets the new Controller as the
+       active Controller.
 
    The Release Controller Request does not have a reply defined. This request always succeeds.
 
@@ -273,9 +298,9 @@
    instructions, but we don’t want to have to go through each train individually and set them to a new
    speed to resume operation of the layout.
 
-   If the Train Node is in Global Emergency Off/Stop state, any Set Speed commands will be ignored and the
-   train will remain stopped. However, the new Set Speed will be committed to the state, and when the
-   Global Emergency Stop/Off is cleared, the train will accelerate to the Set Speed.
+   If the Train Node is in Global Emergency Off/Stop state, any Set Speed commands will have no immediate
+   effect and the train will remain stopped. However, the new Set Speed will be committed to the state, and
+   when the Global Emergency Stop/Off is cleared, the train will accelerate to the new Set Speed.
 
    However, when the train goes into and out of Emergency Stop state, the new speed will be determined by
    the Set Speed instruction that cleared the Emergency Stop state. For this reason there is no Clear
@@ -294,20 +319,6 @@
    Trains are OpenLCB nodes just like any other. As such, they can take part in protocols such as Node
    Verification and Simple Node Information which allows other nodes to learn about them.
 
-   Throttle Nodes use:
-
-     * The Event Transport protocol to locate Train Nodes
-
-     * PIP for enquiry about the support
-
-     * SNIP will be used to carry both manufacturer-provided and user-provided information about the
-       particular train node. In particular, the user (Node) Name and (Node) Description fields are to be
-       used to hold train identification information that can be retrieved and presented by throttles for
-       selection.
-
-     * SNII and/or Memory configuration, CDI & ACDI  for getting specific information (including
-       user-visible identification) of a specific train node.
-
    Being a producer of the ‘Is Train’ Event (01.01.00.00.00.00.03.03) means that Train Nodes
 
      * send a Producer Identified / Is Train message when they power up, and
@@ -316,6 +327,19 @@
 
    An Identify Producers / Is Train request will therefore find all the Train Nodes on the OpenLCB bus, and
    further protocols can be used to get additional information on the individual Train Nodes it locates.
+
+   Throttle Nodes use:
+
+     * The Event Transport protocol to locate Train Nodes;
+
+     * PIP for enquiry about the support of Traction Protocol;
+
+     * SNIP will be used to carry both manufacturer-provided and user-provided information about the
+       particular Train Node. In particular, the user (Node) Name and (Node) Description fields are to be
+       used to hold train identification information that can be retrieved and presented by throttles for
+       selection.
+
+     * Memory configuration, FDI, CDI & ACDI  for getting specific information of a specific Train Node.
 
    This protocol is only able to find Train Nodes that exist on the OpenLCB bus, and it can only find all
    of them in one go. Both of these are significant limitations: when a DCC Command Station represents DCC
@@ -353,15 +377,33 @@
    For use-case 1 it is recommended to set the “Hide” flag in the Listener flag byte; for use-case 2 leave
    it clear. This allows consist manager software to be implemented and separate the two use-cases.
 
-   To discover and retrieve all listeners from a train node, multiple query messages are required. This
+   To discover and retrieve all listeners from a Train Node, multiple query messages are required. This
    presents a race condition when a third node changes the listener configuration during the process. It is
    not specified how the listener indexes change by attaching or detaching a listener. The querying node
    can recognize that their information is out of date by observing a change in the count of listeners
    compared to the expected number of listeners and restart the enumeration process.
 
    A Train Node may provide additional configuration, for example as part of the CDI to customize the
-   forwarding of messages. This may be interesting for virtual train nodes specifically designed to be
+   forwarding of messages. This may be interesting for Virtual Train Nodes specifically designed to be
    consist proxies.
+
+   A Train Node can distinguish on the received Traction Control Request message whether it came from a
+   throttle directly (P=0) or was forwarded from another Train Node (P=1). This is how the Train Node may
+   and may not use this information:
+
+     * This distinction does not influence whether the message will be forwarded to any further listeners.
+       Incoming Train Control Operations with P=1 are also forwarded; during forwarding they skip the link
+       on this they came from.
+
+     * Set Speed and Emergency Stop message needs to be acted upon (and forwarded) by the train,
+       independently of whether P=0 or P=1.
+
+     * Set Function message may or may not be acted upon for the local state if P=1, and the forwarding or
+       not forwarding is defined by the Listener flags, independently of whether P=0 or P=1. The purpose of
+       not acting upon forwarded function messages is that for Consisting, certain functions (such as
+       horn/whistle) should only appear on the cab that the engineer is sitting in. Trailing consist
+       members do not sound their horn. This is at the discretion of the Train Node, which typically means
+       that this behavior may be configured in the Train Node’s configuration settings.
 
   2.6.6 Heartbeat
 
@@ -395,8 +437,6 @@
 
    The suggested default values are 10 seconds for period and 3 seconds for deadline. It is recommended for
    manufacturers to make the period configurable by the user.
-
-    
 
 2.7  Memory Spaces
 
@@ -439,10 +479,10 @@
 
   2.7.2 Function Definition Information (FDI) 0xFA
 
-   So far we’ve defined ways to control a large potential set of numbered functions on a locomotive, but no
-   information about whether these actually exist, what they do, or how should the user interact with them.
-   The Function Definition Information is an XML file that the Train Node provides such that the Throttle
-   Node can render a user interface that allows intuitive use of these functions.
+   So far there are defined ways to control a large potential set of numbered functions on a locomotive,
+   but no information about whether these actually exist, what they do, or how should the user interact
+   with them. The Function Definition Information is an XML file that the Train Node provides such that the
+   Throttle Node can render a user interface that allows intuitive use of these functions.
 
    The FDI is similar in intent and format to the Configuration Definition Information (CDI). It includes:
 
@@ -458,7 +498,7 @@
    implementer of the Train Node. There are several different plausible sources:
 
      * A locomotive model with an OEM-installed OpenLCB decoder would have the functions determined and
-       wired byt the manufacturer. The manufacturer can then write the FDI as part of the product
+       wired by the manufacturer. The manufacturer can then write the FDI as part of the product
        development and store it in the Train Node as read-only data, similarly to the CDI for any other
        OpenLCB Node.
 
@@ -466,13 +506,13 @@
        which it then uses to generate the FDI XML. This may also be generated and uploaded by an external
        tool, such as a sound project editor provided by the decoder manufacturer.
 
-     * A simple DCC Command Station may use a fixed FDI for all trains, which have just a generic
+     * A simple DCC Command Station may use a fixed FDI for all trains, which has just a generic
        description of F0-F28, or maybe encode conventions such as headlight, bell and horn.
 
-     * An advanced DCC Command Station may have a user-editable database about all DCC addresses, where the
-       user can fill in information about the function mapping of each locomotive. This database can then
-       be used to dynamically generate the FDI XML representation when a throttle is querying a given
-       virtual Train Node belonging to a given DCC address.
+     * An advanced DCC Command Station may have a user-editable database (locomotive roster) about all DCC
+       addresses, where the user can fill in information about the function mapping of each locomotive.
+       This database can then be used to dynamically generate the FDI XML representation when a throttle is
+       querying a given virtual Train Node belonging to a given DCC address.
 
      * A Command Station with bidirectional communication to the locomotive decoders may use established
        methods for downloading the function information from the locomotive decoder and reformat this
@@ -929,9 +969,13 @@
 
    1.1.3 Train on New Layout
 
+   1.1.4 DCC Layout
+
+   1.1.5 Supervised running
+
    1.2 Unserved Use Cases
 
-   1.2.1 Third-Party Communications
+   1.2.1 DCC locomotive allocation and deletion
 
    2 Annotations to the Standard
 

@@ -1,6 +1,6 @@
                                          1 Introduction (Informative)
 
-   This working note covers the Traction Protocol, the way that OpenLCB handles moving objects such as
+   This Standard covers the Traction Protocol, the way that OpenLCB handles moving objects such as
    locomotives, engines, and other rolling stock.
 
                                          2 Intended Use (Informative)
@@ -94,7 +94,11 @@
 
 4.2 Defined Error Codes
 
-   Error – source not permitted – not a controller: 0x1021.
+   Permanent error – source not permitted – not a controller: 0x1021.
+
+   Permanent error – not found: 0x1030.
+
+   Permanent error – already exists: 0x1032.
 
 4.3 Traction Control Command Message
 
@@ -341,11 +345,10 @@
 
      * 0x0000: Success.
 
-     * 0x1030: Permanent error, Not found. Useful if the caller tried to remove a node that is not attached
-       as a Listener.
+     * Permanent error, Not found. Useful if the caller tried to remove a node that is not attached as a
+       Listener.
 
-     * 0x1032: Permanent error, Already Exists. Useful if the caller tried to add a node as a Listener to
-       itself.
+     * Permanent error, Already Exists. Useful if the caller tried to add a node as a Listener to itself.
 
    If a caller wants to update the flags of a specific listener, the Attach Node message shall be sent with
    the same node ID and the new flags.
@@ -360,7 +363,7 @@
    User interfaces that show the listeners shall not show listener nodes that are marked with the flag
    “Hide”. This flag is intended to be set for controlling throttles and train automation systems.
 
-    
+   A Train Node may, but is not required to change its state upon a received Set Function message with P=1.
 
 6.6 Heartbeat
 
