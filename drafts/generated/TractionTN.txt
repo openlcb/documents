@@ -539,7 +539,9 @@
 
    For OpenLCB, the speed and direction to set is encoded as a half-precision floating point number (aka
    'float16'), with positive numbers indicating forward direction, negative indicating reverse, and
-   (signed) zero indicating full stop. The value specifies a speed in scale meters per second (scale-m/s).
+   (signed) zero indicating stop. The value specifies a speed in scale meters per second (scale-m/s). As an
+   example, he 16-bit quantity 0x5640 represents 100 scale-m/s, which is equivalent to ~223 mph and 360
+   km/h.
 
    Note that even the zero value is signed.  This is needed because locomotives still have a direction,
    even when they are fully stopped.  It's used to control the configuration of lights and sounds that the
@@ -551,7 +553,7 @@
    Rationale: The use of a 16-bit floating point permits relatively precise speed commands, especially at
    lower speeds; such fine granularity ensures not just fine-grained control over the locomotive, but helps
    avoid aliasing issue that arise during the conversion to lower resolution system-specific speed commands
-   (i.e. DCC's 14 or 28-step commands). Using 32-bit floats uses more bandwidth, more program and data
+   (i.e., DCC's 14 or 28-step commands). Using 32-bit floats uses more bandwidth, more program and data
    memory and CPU cycles on small nodes, but is somewhat easier for large nodes.  The conversion between
    float-16 and float-32 is very simple, though, and any node with native 32-bit support can handle
    float-16 easily.  The converse is not true.
@@ -570,22 +572,32 @@
    station need only estimate what a reasonable top speed for a locomotive might be: Let us say, 100mph.
    Thus, the command station could reasonably estimate that 30mph translates to speed step 8.
 
+   A pragmatic way to deal with DCC-controlled locomotives without asking for further parameters is to set
+   the top speed to 126 mph, and convert each speed step increment to 1 mph. Users interested in
+   prototypical operations on DCC can acquire a speedometer and calibrate their locomotives’ speed table to
+   1 mph = 1 speed step, which achieves accurate speed display on the OpenLCB throttles. This display is
+   then going to be accurate even if the throttle is configured to show km/h, without changing the DCC
+   decoder speed table. DCC locomotives with lower maximum speed than 126 mph will have a flat section at
+   the top of their speed table. Speeds above 126 mph will not be achievable using DCC, which is likely not
+   a serious limitation, because model railroad layouts typically can’t operate safely at such high scale
+   speeds.
+
    The alternative possibilities considered were absolute speed using real units (as opposed to scale
-   units), and relative speed units. The difficulty with relative speed units (i.e. percentage of full
+   units), and relative speed units. The difficulty with relative speed units (i.e., percentage of full
    throttle), is that they are ambiguous, and preclude the possibility of performing physical simulations
-   in the cab controller, at least without completely abandoning the particular interpretations assigned to
-   sped values. The difficulty with using real (as opposed to scale) units is that it requires the
-   estimation of an additional parameter for uncalibrated locomotives, specifically the train's scale. If I
-   issue a command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only
-   understand what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1
-   m/s might be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use
-   as a default, users must configure their digital command station to set the scale for either the entire
+   in the throttle, at least without completely abandoning the particular interpretations assigned to speed
+   values. The difficulty with using real (as opposed to scale) units is that it requires the estimation of
+   an additional parameter for uncalibrated locomotives, specifically the train's scale. If I issue a
+   command to a DCC locomotive to proceed at 0.1 (real)m/s, the command station must not only understand
+   what a reasonable top speed for a train is, but how to scale the speed appropriately, as 0.1 m/s might
+   be quite fast for Z scale, but quite slow for G. As there is really no reasonable scale to use as a
+   default, users must configure their digital command station to set the scale for either the entire
    layout, or on a per-model basis—an additional configuration step that is easily avoided by the mechanism
    for scale units described above.
 
 4.2 Function Control
 
-   "Functions" like "horn", "headlight", etc are key user features when operating modern decoders. But
+   "Functions" like "horn", "headlight", etc. are key user features when operating modern decoders. But
    they're also configuration-like, in that they effect the operation of the device.
 
    How to handle them for a native OpenLCB piece of rolling stock, and for legacy ones via e.g. DCC?
