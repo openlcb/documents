@@ -34,7 +34,7 @@
    Elena is running her DCC layout with an OpenLCB Command Station. Elena picks up an OpenLCB throttle,
    presses the locomotive button and sees the list of DCC locomotives currently running on the layout, with
    the addresses augmented by the respective locomotive name from the Command Station memory. Elena selects
-   “C&NW 415” form the list and starts running her train. Elena forgot which function number turns on the
+   “C&NW 415” from the list and starts running her train. Elena forgot which function number turns on the
    Compressor, so she presses the Help button on the throttle. The throttle displays all functions of the
    locomotive with their description, so she knows she has to press 9.
 
@@ -540,8 +540,8 @@
    For OpenLCB, the speed and direction to set is encoded as a half-precision floating point number (aka
    'float16'), with positive numbers indicating forward direction, negative indicating reverse, and
    (signed) zero indicating stop. The value specifies a speed in scale meters per second (scale-m/s). As an
-   example, he 16-bit quantity 0x5640 represents 100 scale-m/s, which is equivalent to ~223 mph and 360
-   km/h.
+   example, he 16-bit quantity 0x5640 represents 100 scale-m/s, which is equivalent to ~223 scale-mph and
+   360 scale-km/h.
 
    Note that even the zero value is signed.  This is needed because locomotives still have a direction,
    even when they are fully stopped.  It's used to control the configuration of lights and sounds that the
@@ -597,49 +597,76 @@
 
 4.2 Function Control
 
-   "Functions" like "horn", "headlight", etc. are key user features when operating modern decoders. But
-   they're also configuration-like, in that they effect the operation of the device.
+   "Functions" like "horn", "headlight", etc. are key user features when operating modern decoders. From
+   the protocol design perspective, they are very similar to configuration, in that:
 
-   How to handle them for a native OpenLCB piece of rolling stock, and for legacy ones via e.g. DCC?
+     * they are parameters that can be set remotely via the OpenLCB bus;
 
-   We could take the purist approach and say "configuration is configuration, it's all the same". But that
-   ignores that many people are going to want "Bell" to appear (automatically) on their throttle, but not
-   so many are going to want "Kp back-emf correction factor" to appear there.
+     * these parameters effect the operation of the device;
 
-   People just think about operating and configuring their locomotives as separate things. (Though e.g.
-   "Master Volume" can cross the line)
+     * the parameters each come with a specific data type and accepted range or values (e.g. binary on/off
+       or 0-255);
 
-   This doesn't mean that we can't use the same protocol for all of them. A mixture of memory configuration
-   and CDI-like definition information should do just fine. It just means that we need to find a way to
-   include clueing information for the throttles on e.g. what to present.
+     * we would like to make it easy for users to discover and understand what the parameters do (e.g. by
+       providing a protocol with a user-visible text for each parameter).
 
-   Many trains offer independent control of various special effects (FX, sometimes called "functions") such
-   as lighting or sound. The Set Function instruction permits a controller to control these effects
-   directly. The first argument is the address of the FX to control as a 24-bit unsigned integer. This
-   protocol does not define a semantics for FX addresses; that is, there is no particular address that is
-   singled out as representing headlights or the air horn. Instead, the addresses are deliberately
-   abstract, permitting the user to decide how to map addresses to FX for each train.
+   OpenLCB has existing protocols for configuration that fulfill all of these requirements: the Memory
+   Configuration Protocol that allows setting remote parameters, and the CDI description that covers the
+   metadata requirements (both machine-readable and user-visible metadata).
 
-   Additionally, each FX can take a 16-bit value. Current technology only permits binary FX; thus 0x00
-   should be interpreted as "off" for a binary FX, and any non-zero value as "on". Analog (non-binary) FX
-   should treat the 16-bit value as an unsigned integer.
+   Yet when we look at other protocols, such as DCC, as well as user expectations, functions and
+   configuration are significantly differentiated:
 
-   Function values are stored in the 0xF9 memory space. "Function Definition Information", similar in
-   intent to Configuration Definition Information (CDI) is stored in XML format in address space 0xFA to
-   provide user-oriented context. That includes:
+     * DCC has separate “functions” and “Configuration Variables” (CVs).
 
-     * Memory layout of the function values, allowing for multiple data types from binary (one and off for
-       lights) through integer values (for e.g. sound intensities) and strings (sign displays?).
+     * CVs are persistent across power cycles, whereas functions are cleared upon a system reboot in many
+       systems (although some do persist functions as well).
 
-     * Function naming, so that a throttle can display useful names to the user such as "Bell", "Coupler
-       Clank" and "Master Volume". This includes internationalization of those labels.
+     * Users want “Bell” to appear (automatically) on their throttle, but rarely want “Kp back-emf
+       correction factor” to appear there. The expectation is that many functions are accessible with just
+       a single button press.
 
-   What else needs to be conveyed? "Make this prominent on the throttle"? "Have this there, just a little
-   less prominent"? "Seriously, nobody cares about this option, bury it"?
+     * Functions are actuated significant more frequently that configuration. For this reason it is
+       important that the protocol actuating functions is lightweight: should be low-latency, bandwidth
+       conserving and should not take complex state machines.
 
-   At present, there are no default values that e.g. associate "Bell" with a particular location or
-   function. These are thought to be too brittle, and there are just too many possibilities to be useful
-   (see the unscientific and incomplete Survey of existing function names).
+     * There are also parameters that are borderline between these two use-cases, such as “Master Volume”.
+
+   The design decision was to separate functions, while re-using patterns from the OpenLCB configuration
+   mechanisms:
+
+     * A lightweight command is added to the Traction Protocol to operate functions. It requires low
+       bandwidth, and no state machines, handshakes or response message.
+
+     * Functions are a Memory Space, similar to Configuration, but at a separate space number. Memory
+       Configuration Protocol can be used to bulk read or bulk write functions.
+
+     * For the user interface, an XML metadata description is specified just like CDI, called FDI. The XML
+       metadata is downloaded using the Memory Configuration Protocol (just like for CDI). There is no
+       binary protocol for the metadata, although a binary encoding of the XML contents were considered,
+       but not (yet) developed.
+
+   The Set Function instruction is the light-weight mechanism for a controller to control the functions
+   directly. The first argument is the address of the function to control as a 24-bit unsigned integer.
+
+   The Traction Protocol does not define a semantics for function addresses; that is, there is no
+   particular address that is singled out as representing headlights or the air horn. Such a mapping is
+   thought to be too brittle, and there are just too many possibilities to be useful. Instead, the
+   addresses are deliberately abstract, permitting the user to decide how to map addresses to functions for
+   each train. This matches the DCC protocol’s abstraction level; an address mapping is presented for DCC
+   track protocol, most other track protocols can also be packed relatively straightforwardly into the
+   24-bit address space.
+
+   The Set Function instruction takes 16-bit values. Most functions in current models are binary; thus 0x00
+   should be interpreted as "off", and any non-zero value as "on". Throttles are required to write “1” for
+   “on” to reduce ambiguity. Analog (non-binary) FX should treat the 16-bit value as an unsigned integer.
+
+   Function values are stored in the 0xF9 memory space. There is only one byte available per function, and
+   it is not specified how values above 255 should be handled. See Section 2.7.1 Function Information 0xF9.
+
+   “Function Definition Information”, similar in intent to Configuration Definition Information (CDI) is
+   stored in XML format in address space 0xFA to provide metadata for user interfaces See Section 2.7.2
+   Function Definition Information (FDI) 0xFA.
 
   4.2.1 Outputs vs Functions
 
@@ -648,92 +675,109 @@
    Control an electrical output, make a sound, etc. This distinction is useful because one of the
    configuration options in (some) DCC decoders is a mapping between the functions and the outputs, useful
    in a world where throttles generally have only about a dozen buttons, but decoders have many output
-   options.
+   options. There is also a separate, independent numbering of electrical outputs by the NMRA and RCN
+   standards that define decoder interfaces to the locomotives (FL, FR, AUX1, AUX2, etc.). These are often
+   (and to much confusion for users) named as “function outputs” and the product is referenced in decoder
+   manufacturers’ marketing material with names such as an “8-output locomotive decoder”1.
 
    OpenLCB makes a clean separation between functions, which are the control operations, and all
-   configuration & physical information, which lives in the memory configuration and CDI. If there's to be
-   a mapping, it's defined through the CDI.
+   configuration & physical information, which lives in the configuration memory and CDI. If there's to be
+   a mapping, it's defined through the CDI. The CDI contents are not standardized by OpenLCB, only the
+   format. As such, there is no OpenLCB standard that defines what the “function mapping” is.
 
   4.2.2 Legacy DCC Function Control
 
-   Although currently most DCC throttles only permit access to 12 or 29 functions, DCC technically permits
-   as many as 32796 different binary FX (see RP-9.2.1: Function Group One Instruction, Function Group Two
-   Instruction, and Feature Expansion Command Instruction especially the Binary State Control Subcommand).
-   For this reason, it seems prudent to go ahead and use a 24-bit value.
+   Although currently most DCC throttles only permit access to 13, 29 or 66 functions, DCC technically
+   permits as many as 32961 different binary functions (see S-9.2.1: Function Group One Instruction,
+   Function Group Two Instruction, and Feature Expansion Command Instruction Subcommand for F13...F65
+   Function Control, as well as Binary State Control short and long form). For this reason, it seems
+   prudent to go ahead and use a 24-bit value.
 
-   Likewise, although current DCC decoders only permit binary FX, some (for example SoundTraxx Tsunami
-   sound decoders) actually permit a kind of analog control of FX by combining multiple DCC Functions.
-   Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off.
+   Likewise, although most DCC decoders only permit binary functions, some (for example SoundTraxx Tsunami
+   sound decoders) also support a kind of analog control of effects by combining multiple DCC Functions.
+   Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off. In
+   recent years, the standard was expanded by a canonical command of controlling analog values in the range
+   of 0-255.
 
-   One problem that faces the decision to use a single command with a numerical FX addressing system is
-   that any kind of standardized assignment of FX addresses to particular FX is impossible in practice.
-   DCC, for example, makes no such prescription, although by convention function F0 controls
-   direction-sensitive headlights. Beyond this lies only manufacturers' conventions. Thus, any kind of
-   mapping is best handled on a per-train basis, by configuring the mapping between particular FX (e.g.
-   headlights, air horn) to FX addresses for each train.
+   One problem that faces the decision to use a single command with a numerical function addressing system
+   is that any kind of standardized assignment of function addresses (0, 1, 2, etc.) to particular effects
+   (headlight, horn, ditch lights, etc.) is impossible in practice. DCC, for example, makes no such
+   prescription, although by convention function F0 controls direction-sensitive headlights. Beyond this
+   only manufacturers' conventions exist, which are not generally consistent across countries or
+   continents:
 
-   One way to mitigate this problem is to not make fixed FX address assignments, but to map them directly
-   onto the addressing scheme used by the various control systems, that is, to leave each address in the
-   OpenLCB FX address space uninterpreted. In this way, the default behavior of each address will map
-   directly onto the default behavior of the decoder in the train, giving some degree of predictability to
-   the system, and permitting a digital command station the make reasonable guesses about the possible
-   address-to-FX mappings. Nevertheless, users will often need to be exposed to this implementation detail,
-   which is deeply unfortunate, but necessary given the ultimate flexibility of current train control
-   systems.
+     * In the US, several throttle manufacturers mechanically label buttons with Headlight (F0), Bell (F1),
+       Horn/Whistle (F2).
 
-   Thus, it is recommended that the FX address space be mapped directly to the particular control system's
-   address space; thus DCC F0 becomes FX address 0x000000, F1 becomes 0x000001, etc. The DCC Binary State
-   addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning with
-   0b1.0000.0000.0000.0000). Other systems should be handled analogously.
+     * In Europe, F4 by convention turns off momentum2.
 
-   RP-9.2.1 defines the following:
+     * In the US, F8 by convention mutes a sound decoder, whereas in Europe, F1 by convention turns on the
+       sound of a sound decoder. Thus not only is the mapping different, but the functionality is also
+       inverted.
 
-     * Function Group One: 5 (F0-F4)
+     * F2 is Horn/Whistle on sound decoders for both conventions.
 
-     * Function Group Two: 8 (F5-F12)
+   As a conclusion, any kind of mapping is best handled on a per-train basis, by configuring the mapping
+   between particular effects (e.g. headlights, air horn) to function addresses for each train, and OpenLCB
+   leaves each address in the function address space uninterpreted.
 
-     * Binary State Control: 32767 (15bits) (note: different address space!)
+   Instead of functional mapping of addresses, OpenLCB maps them directly onto the addressing scheme used
+   by the various control systems. In this way, the default behavior of each address will map directly onto
+   the default behavior of the decoder in the train, giving some degree of predictability to the system,
+   and permitting a digital command station to perform the protocol translation without any user input of
+   configuration. This however leaves users exposed to this implementation detail, which is deeply
+   unfortunate, but necessary given the ultimate flexibility of current train control systems.
 
-     * Feature Expansion Command 11110: 8 (F13-F20)
+   Thus, it is recommended that the function address space be mapped directly to the particular control
+   system's address space; thus DCC F0 becomes function address 0x000000, F1 becomes 0x000001, etc. The DCC
+   Binary State addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning
+   with 0b1.0000.0000.0000.0000), etc. For the complete mapping, see the Traction Protocol Standard,
+   Section “Function Information 0xF9”.
 
-     * Feature Expansion Command 11111: 8 (F21-F28)
+   Other systems should be handled analogously. The expectation is that without any metadata specifically
+   configured by the OEM or the user for the given locomotive, whenever a the user presses buttons 0..9 on
+   an OpenLCB throttle, the same track output is generated as if a native throttle of the given system
+   would press the respective buttons 0..9, if applicable.
 
-   And in the future, perhaps even more. Possibly a lot more. There are just under 20 bits of address space
-   available in the Feature Expansion Command Instruction for the potential manipulation of Binary State
-   Controls.
-
-4.3 Configuration
+4.3 Configuration and Metadata
 
    Trains are OpenLCB nodes just like any other. As such, the Memory Configuration protocol can be used to
-   configure them, the Configuration Description Information system can be used to make that process user
-   friendly, etc. There's nothing traction-specific in these techniques, which are available any time that
-   the train node is connected to the OpenLCB.
+   configure them, and the Configuration Description Information system can be used to make that process
+   user friendly. There's nothing traction-specific in these techniques, which are available any time that
+   the Train Node is connected to the OpenLCB bus.
 
-   The configuration information in a train can include the user documentation that's sometimes referred to
-   as "roster information". This might include owner name, prototype railroad and road number, information
-   about the particular model's construction, etc. As yet, OpenLCB has no standards nor conventions on this
-   information.
+  4.3.1 Roster Information
 
-   One approach to standards in this area would be extend ACDI/SNIP. Those currently have a block for
-   manufacturer identification, and a block for user identification. Those are both versioned. We could
-   take (one of) several approaches:
+   The configuration information in a train can include the user documentation and editable fields that are
+   sometimes referred to as “roster information”. This might include owner name, prototype railroad and
+   road number, information about the particular model's construction, etc. An important user journey is to
+   define identification information for a locomotive. See Section 4.4 (How to find human-readable loco
+   information) on how this is expected to be used.
 
-     * Extend them with a third block, only present when the node implements the train protocol (as seen in
-       PIP). To allow later introduction of more types, this block would have some versioning/type
+   Possible option to standardize this area would be to extend ACDI/SNIP, or define a similar protocol.
+   ACDI/SNIP currently have a block for manufacturer identification, and a block for user identification.
+   Those are both versioned. The following approaches were proposed, and should be considered as future
+   work:
+
+     * Extend ACDI/SNIP with a third block, only present when the node implements the train protocol (as
+       seen in PIP). To allow later introduction of more types, this block would have some versioning/type
        information, but that's straightforward.
 
-     * Create a version 2 of the user block, which holds additional data. (This would be using 2 as a
-       format identifier, rather than a version number; that might make versioning complicated)
+     * Create a new version of the user block, creating additional fields, specific to Roster Information.
 
-   Suitable content for a (first version of) this might be (from [
-   http://jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html JMRI roster], see also similar concepts
-   in [rocrail.net RocRail]):
+     * Define a new memory space for Train Roster Information (with a fixed layout modeled from ACDI) and a
+       new message to request/provide this as Simple Train Node Ident Info Protocol. The MTIs 0xDA8/0x9C8
+       were tentatively reserved for this use-case, but at the time of this writing, no open-source
+       prototype implementation or system in production uses this.
+
+   Suitable content for a (first version of) this might be (from JMRI roster3, see also similar concepts in
+   [rocrail.net RocRail]):
 
      * Road Name
 
      * Road Number
 
-   (Manufacturer, model, owner description, comments, etc are already present in ACDI/SNI)
+   Manufacturer, model, owner description, comments, etc are already present in ACDI/SNIP.
 
    For DCC locomotives, more terms might be desired:
 
@@ -743,12 +787,7 @@
 
         
 
-   The configuration information in a train can include the user documentation that's sometimes referred to
-   as "roster information". This might include owner name, prototype railroad and road number, information
-   about the particular model's construction, etc.  The Simple Train Node Information Protocol (STNIP) has
-   been defined to implement this concept.
-
-  4.3.1 Legacy DCC Configuration and CVs
+  4.3.2 Legacy DCC Configuration and CVs
 
     
 
@@ -797,10 +836,18 @@
 
 4.4 How to find human-readable loco information
 
-   A search protocol may eventually be defined to allow efficient location of specific train nodes on large
-   OpenLCB installations. It provides a general or field-specific search over the SNIP information,
-   returning the Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration
-   & SNIP, is available here in pdf format and here in OpenOffice Writer
+   As convention, OpenLCB throttles are expected to use the “User Name” field (from SNII and ACDI) as
+   locomotive name on the display. The Train Search Protocol specifies that this field shall be searched
+   for cab numbers when a throttle is searching for or attempting to select a locomotive. This means that
+   users are expected to put into the User Name field what they would like to see on their throttle,
+   typically the most important identifying information, such as road name (e.g. “C&NW”), cab number (e.g.
+   “415”), and maybe the prototype model/type (e.g. “F7A”), depending on how long of a name their preferred
+   throttle can display.
+
+   A search protocol has been defined to allow efficient location of specific train nodes on large OpenLCB
+   installations. It provides a general or field-specific search over the SNIP information, returning the
+   Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration & SNIP, is
+   available here in pdf format and here in OpenOffice Writer
 
    e.g. SNII for getting the name of a real loco, DCC loco. Examples of how to provide a human-readable
    roster on the throttle.  Interactions with configuration.
@@ -1051,12 +1098,25 @@
 
    4.2.2 Legacy DCC Function Control
 
-   4.3 Configuration
+   4.3 Configuration and Metadata
 
-   4.3.1 Legacy DCC Configuration and CVs
+   4.3.1 Roster Information
+
+   4.3.2 Legacy DCC Configuration and CVs
 
    4.4 How to find human-readable loco information
 
    4.5 Consisting and Listeners
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 Which, even more confusingly, means that FL, FR, and AUX1..AUX6 are available as electrical outputs.
+
+   2 F4 is the highest addressable function number in the M/M II track protocol. Many early European
+   command station & throttle devices thus had only F0..F4 as function buttons. Most locomotive decoders
+   were based on an ASIC that had only AUX1 and AUX2 as electrical output, which were switched by F1 and
+   F2, and momentum (and momentum off) were features implemented by this ASIC.
+
+   3 https://www.jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html
