@@ -751,8 +751,8 @@
    The configuration information in a train can include the user documentation and editable fields that are
    sometimes referred to as “roster information”. This might include owner name, prototype railroad and
    road number, information about the particular model's construction, etc. An important user journey is to
-   define identification information for a locomotive. See Section 4.4 (How to find human-readable loco
-   information) on how this is expected to be used.
+   define identification information for a locomotive. See Section Error: Reference source not found(Error:
+   Reference source not found) on how this is expected to be used.
 
    Possible option to standardize this area would be to extend ACDI/SNIP, or define a similar protocol.
    ACDI/SNIP currently have a block for manufacturer identification, and a block for user identification.
@@ -787,7 +787,69 @@
 
         
 
-  4.3.2 Legacy DCC Configuration and CVs
+  4.3.2 Train Identification
+
+   The most important metadata is the piece of data that is used to identify a train. For the OpenLCB bus,
+   this is the Node ID, but it is not intended to be a central piece of user interfaces. There are two
+   critical user journeys where identification is needed:
+
+     * How does the user select a locomotive when they have a throttle in hand.
+
+     * When a throttle has a locomotive selected, how is that displayed on the screen.
+
+   As convention, OpenLCB throttles are expected to use the “User Name” field (from SNIP and ACDI) as
+   locomotive name on the display. The Train Search Protocol specifies that the User Name field shall be
+   searched for cab numbers when a throttle is searching for or attempting to select a locomotive.
+
+   This means that users are expected to put into the User Name field what they would like to see on their
+   throttle, typically the most important identifying information, such as road name (e.g. “C&NW”), cab
+   number (e.g. “415”), and maybe the prototype model/type (e.g. “F7A”), depending on how long of a name
+   their preferred throttle can display.
+
+   Background information:
+
+   Historically, digital command systems used a unique locomotive address as identification. The user would
+   set the locomotive address using permanent configuration, is expected to remember what address was set
+   for a given locomotive, and type in the locomotive address on a numeric keypad to select a locomotive.
+
+   For the combination of typical US railroads and DCC protocol, this mechanism works very well due to
+   several specific reasons:
+
+     * DCC supports locomotive addresses up to 4 digits.
+
+     * Most US railroads use 2 to 4 digit cab numbers.
+
+     * Cab numbers are printed with large letters on a side of a US locomotive, making it easy to read on a
+       scale model.
+
+   This established the procedure of “take the cab number from the loco, punch it in and drive”.
+
+   However, none of these hold as general assumptions across the world and across digital command systems:
+
+     * Motorola trinary protocol supports 80 addresses (255 in an extended interpretation); Selectrix
+       supports 112 addresses. This is not sufficient to cover even US cab numbers with a 1-to-1 mapping.
+
+     * The mfx/M4 track protocol does not have persistent addresses that the user would assign to a
+       locomotive. Instead, decoders are uniquely identified with a 32-bit number, and the Command Station
+       provides a session address which is 11, 14 or 28 bits long. The user is not exposed to either of
+       these address schemes. The RCN-218 and NMRA S-9.2.1.1 standards are defining a similar scheme for
+       DCC, where the user would not need to manually assign unique addresses. This also decouples the
+       address on the track protocol from any potential cab number.
+
+     * Rolling stock in Europe is labeled with a unique UIC number. UIC number is a 12 digit number which
+       identifies the type of vehicle, the country in which it is registered, the owner (road), the type of
+       vehicle and a unique number in its series. It might look like “91 85 0 474 014 2”. Even with the
+       most reasonable shortening, this collapses to “474 014”, which is too long for a locomotive address
+       for all track protocols mentioned here.
+
+     * The UIC number is printed on rolling stock using about 6” letters. Half a scale foot is very
+       difficult to read from models in most scales.
+
+   As a conclusion, inheriting the identification mechanism from track protocols such as DCC does not
+   fulfill the requirements on general use-cases. On the other hand, the User Name in SNIP/ACDI is defined
+   as up to 63 byte long UTF-8 string, which comfortably covers the necessary use-cases.
+
+  4.3.3 Legacy DCC Configuration and CVs
 
     
 
@@ -834,76 +896,7 @@
    reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
    e.g. DecoderPro does.
 
-4.4 How to find human-readable loco information
-
-   As convention, OpenLCB throttles are expected to use the “User Name” field (from SNII and ACDI) as
-   locomotive name on the display. The Train Search Protocol specifies that this field shall be searched
-   for cab numbers when a throttle is searching for or attempting to select a locomotive. This means that
-   users are expected to put into the User Name field what they would like to see on their throttle,
-   typically the most important identifying information, such as road name (e.g. “C&NW”), cab number (e.g.
-   “415”), and maybe the prototype model/type (e.g. “F7A”), depending on how long of a name their preferred
-   throttle can display.
-
-   A search protocol has been defined to allow efficient location of specific train nodes on large OpenLCB
-   installations. It provides a general or field-specific search over the SNIP information, returning the
-   Node IDs of matching Train Nodes. One proposal, which is not based on memory configuration & SNIP, is
-   available here in pdf format and here in OpenOffice Writer
-
-   e.g. SNII for getting the name of a real loco, DCC loco. Examples of how to provide a human-readable
-   roster on the throttle.  Interactions with configuration.
-
-   I believe we should strive to make our proposed system not be specific to a particular digital system
-   (e.g. DCC) or otherwise biased. The procedure of "take the cab number from the loco, punch it in and
-   drive" is actually quite US-specific.
-
-   Balazs Racz wrote about how identification works in Europe:
-
-   Each piece of rolling stock is labeled with a unique UIC number. UIC number is a 12 digit number which
-   identifies the type of vehicle, the country in which it is registered, the owner, the type of vehicle
-   and a unique number in its series. It might look like
-
-   91 85 0 474 014 2
-
-   This number is written in a size on the prototype that is legible to a person standing next to it. It is
-   very much not obvious to read it off of a model. this number is not really suitable to punch into a
-   throttle in order to get going...
-
-   [Note about assumptions: Freight cars also have such an ID. However, JMRI itself limits the length of
-   the car ID t something like 8 or 10 characters, so it is not possible to accurately represent a European
-   freight car in JMRI.]
-
-   If you take the shortcut of removing the type and country code, then you end up with 474014, which is a
-   common way to refer to a locomotive say within Switzerland. However, this is too long for a DCC address!
-   So I don't have the choice of putting in the cab number as address. (Of course now your numbers are not
-   unique, for example see http://cfr.stfp.net/Pic/47/915304740144DQOM:1.jpg and
-   http://www.bahnbilder.de/1024/sbb-fahrzeugausstellung-bei-sbb-459408.jpg)
-
-   Another example: MFX is the current track protocol of Marklin. MFX is bidirectional, and locomotives
-   sign in with the command station as soon as they get put on the track. MFX uses 11, 14 or 28 bit
-   addresses. The locomotive address is assigned by the command station upon the login of the locomotive.
-   It is not persistent. The user never sees the locomotive address and in fact it may even be changed by
-   the command station if it so desires.
-
-   So punching in the loco address into the throttle is also not an option.
-
-   Example 3: Older Marklin protocol (Marklin-Motorola protocol or MM) supported only 79 different
-   addresses on the track. Then the address on the track had again nothing to do with the actual engine
-   number, and you don't need to have an extraordinarily large collection to run into duplicate addresses.
-   However, owners of such collections do typically remember the two-digit address of each locomotive they
-   have, because older command stations only had digit buttons for selecting a locomotive.
-
-   I would find it a shame if the recommended design of OpenLCB would only support US-based roads.
-
-   State of the art command stations have color touchscreens where they display you a list of locomotives
-   that you can select from with a fingerpress and get running. You either populate this roster by hand, or
-   it gets populated automatically for locomotives that log in via track feedback systems (like MFX or
-   RailcomPlus). Typically pictures are also assigned to each locomotive.
-
-   Note that SNII/ACDI defines a manufacturer as < 41 bytes, model name < 41 bytes, hardware & software
-   versions < 21, node name < 63 bytes, node description < 64 bytes (including terminating null), much more
-   of than Balazs' example.
-
-4.5 Consisting and Listeners
+4.4 Consisting and Listeners
 
    Consisting is a process familiar to model railroaders, who use it for many purposes:
 
@@ -1102,11 +1095,11 @@
 
    4.3.1 Roster Information
 
-   4.3.2 Legacy DCC Configuration and CVs
+   4.3.2 Train Identification
 
-   4.4 How to find human-readable loco information
+   4.3.3 Legacy DCC Configuration and CVs
 
-   4.5 Consisting and Listeners
+   4.4 Consisting and Listeners
 
     
 
