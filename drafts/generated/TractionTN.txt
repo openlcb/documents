@@ -886,50 +886,97 @@
 
   4.3.3 Legacy DCC Configuration and CVs
 
-    
+   Representing CVs of a DCC decoder is necessary when an OpenLCB-to-DCC gateway is in operation. In this
+   case the Train Node is presented for the OpenLCB bus by the gateway, and other OpenLCB Nodes are
+   attempting to perform CV configuration of the connected DCC decoder.
 
-   [Moved here from the old Wiki Page]
+   The Gateway may be
 
-   OpenLCB has a protocol for handling configuration of nodes. It should work fine for native OpenLCB
-   rolling stock.
+     * A DCC Command Station, representing many DCC locomotives using DCC program-on-main commands and
+       possibly RailCom read-backs;
 
-   Can/should it be adapted to handle the way existing DCC locomotives are configured through CVs?
+     * A DCC Programming Track, which may or may not be built into a DCC Command Station;
 
-   For CVs, one idea that we'd have a memory space that maps straight to the decoder CV space.
+     * A wireless OpenLCB Train Node, built into a locomotive, which generates a DCC output signal for a
+       single standard DCC decoder, which then in turn controls motor, light and sound functions. This is a
+       common setup for battery-powered locomotives / command systems.
 
-   That would allow decoder-specific CDI (if that was available) to customize what's presented. Like
-   DecoderPro, the user wouldn't have to deal with CV 111, but rather with "Motor multisnarb angle offset"
-   or whatever the user-fiendish manufacturer decides to provide as options.
+   A DCC Programming Track is not a Train Node. It does not generally implement the Traction Protocol,
+   because none of the Train Control Operations are available on the Programming Track5. There has to be a
+   mechanism to find Programming Track nodes on the OpenLCB bus; a production system accomplishes this
+   using the Event Protocol with Identify Producer / Producer Identified messages for a specific event ID
+   09.00.99.FE.FF.FF.00.02.
 
-   There are two remaining issues. First, is handling "indexed" CVs. (Ones where you write 12 to CV 51,
-   then 8 to CV52, and then CV54 is the value you want to read/write). QSI is the only extensive user of
-   these, but they're starting to appear in other places too.
+   The intention is to provide a protocol that both the Virtual Train Nodes as well as DCC Programming
+   Track nodes can implement for manipulating DCC CVs. Since there are no low-latency or high-bandwidth
+   requirements on CV reads and writes, the Memory Configuration Protocol is a well-suited transport
+   mechanism. A production system uses memory space 0xF8 for this purpose.
 
-   There are a couple ways to handle it. First, we could just map it as is: The configuring node would have
-   to explicitly do those reads and writes. But that's a mess, well outside the OpenLCB model, and I've
-   spent way to much time debugging weird failures with that.
+   There are two different use-cases of how client Nodes want to operate this protocol:
 
-   A better approach, I [Bob J] think, is to use the large address space. E.g. CV 59 is found at 0x00 00 00
-   3B, while the one I mentioned above is found at 0x01 00 0C 08. (The 0x01 tells how to decode the address
-   space, e.g. which CV the 2nd byte is written to, which the 3rd byte is written to. We'd have to extend
-   CDI to carry that info, but it's within reason.
+     * DCC-specific CV programming protocol. DCC Throttles (or other user interfaces) provide a generic CV
+       programming experience, where the user punches in a CV number, a value and presses Program button.
+       Computer programs such as DecoderPro provide APIs for CV programming and rich parametrized UIs that
+       know details about individual decoders. The OpenLCB Programming Track / Train Node does not need to
+       know about the semantics of the individual CVs of the given decoder.
 
-   The other issue is packed CVs, e.g. mapping parts of one or more CVs to a single "variable". This could
-   be just a single bit in one CV, or something more complicated split across two (like long addresses).
-   I'm not sure how to map those as a general case. For bits, I'd suggest another mapping trick, where some
-   other part of the space is actually bit mapped:
+     * An OpenLCB Configuration Tool, which is unaware of DCC specifics, and given an appropriate CDI
+       definition is possibly able to perform the necessary Memory Configuration Protocol writes/reads to
+       the Memory Space occupied by the DCC CVs. The CDI in this case would typically have to be specific
+       to the particular DCC decoder, or cover only the standardized CV set.
 
-   0xFF 00 53 3C
+   The aforementioned production system uses the following layout for the DCC CV Memory Space:
 
-   is the middle bits (the 3C mask) of CV 53, and the 0xFF is just an arbitrary key for this. That doesn't
-   work with noncontiguous splits across generic CVs, though, as that takes a lot to configure.
+     * Address 0-1023 is read/write (byte-oriented) access to CV 1-1024. (Note: On the DCC track protocol
+       these are actually indexed as 0-1023.)
 
-   (And don't get me started on CV1/CV29 sequencing; I think we just ignore that entirely at the CDI level
-   & build it into the gateway to DCC)
+     * The DCC Train Node defaults to POM writes / RailCom reads, the Programming Track defaults to DCC
+       Direct Mode writes/reads.
 
-   In the end, these legacy pains can't really be avoided. We have to craft the OpenLCB protocols to do a
-   reasonable job with them, but I don't think we have to go nearly as far into the weird special cases as
-   e.g. DecoderPro does.
+     * Address bits masked by 0xFF000000 are modifier bits as follows:
+
+          * 0x00: use default programming mode as above, byte-oriented.
+
+          * 0x01: use direct mode programming (only valid on the Program Track), byte-oriented.
+
+          * 0x02: use program-on-the-main, byte-oriented.
+
+          * 0x03: use paged mode programming (only valid on the Program Track), byte-oriented.
+
+          * 0x10 – 0x17: use default programming mode, bit oriented, masking bit 0..7 respectively.
+
+   Future work:
+
+   The above statements need to be moved to the standard in a future revision, as-is or revised.
+
+   Significant past consideration has been given to certain special cases that happen in DCC manufacturers’
+   CV interpretations, with the aim of providing a mapping of the Memory Space that would allow a CDI XML
+   be written that represents the decoder features accurately and correctly.
+
+     * Indexed CVs. Example by QSI: write 12 to CV 51, then 8 to CV52, and then CV54 is the value to
+       read/write. Example by TCS: write index-hi to CV 201, index-low to CV 202, then CV 203 and CV 204 is
+       a 16-bit value to read/write. Example by NMRA: write index-hi to CV31, index-lo to CV32, then
+       read/write CV 256 to 511 to access a set of 16 million CVs. A proposal to consider is to use a
+       3-byte address to represent the CV number, with the high two bytes representing the index values.
+       The MSB (fourth byte) has to encode which indexing method to use, if more than one is to be
+       supported.
+
+     * Bit-masked CVs such as CV 29 or CV 28 can be handled with a bit selector as above.
+
+     * For arbitrary length bit fields, a different bit selector mechanism was proposed: 0xFF 00 53 3C
+       would access the middle bits (the 0x3C mask) of CV 53, and the 0xFF is just an arbitrary key for
+       representing this. The mask can not span across a byte boundary.
+
+     * Multi-byte writes such as CV17/18 can be performed with a single Memory Configuration Protocol
+       datagram.
+
+     * Writes to CV1/CV29 need a special sequencing; the proposal was to ignore this entirely at the CDI
+       level & build it into the gateway to DCC.
+
+   It’s important to note that none of these advanced considerations are necessary to make a software like
+   DecoderPro work; DecoderPro does not rely on CDI-compatible features. This also means that there is
+   limited returns on defining and implementing complex logic for weird cases that DCC decoders exhibit,
+   because DecoderPro actually coves them.
 
 4.4 Consisting and Listeners
 
@@ -944,18 +991,18 @@
 
      * Connect sound decoders with motion-control decoders so they work well together
 
-   OpenLCB handles consisting by introducing the “Listener” concept to all train nodes. A listener is
-   attached to a given train node in order to receive a copy of all state changing requests that arrive at
-   the given train node. This serves multiple purposes:
+   OpenLCB handles consisting by introducing the “Listener” concept to all Train Nodes. A Listener is
+   attached to a given Train Node in order to receive a copy of all state changing requests that arrive at
+   the given Train Node. This serves multiple purposes:
 
-     * Consist follower engines can be attached directly to the consist lead train node and receive all
-       speed set commands, which will cause the consist to move together.
+     * Consist follower engines can be attached directly to the consist lead Train Node and receive all Set
+       Speed commands, which will cause the consist to move together.
 
      * Throttles that lose the control of a locomotive (through stealing or hand-over) can register
        themselves as listener on the locomotive, and update the UI as the other engineer is driving the
        train.
 
-     * It becomes possible to add a display to the train node that displays a train's status and keeps it
+     * It becomes possible to add a display to the Train Node that displays a train's status and keeps it
        up to date without polling for updates and unnecessarily consuming bus bandwidth.
 
    Consisting can be applied by two methods:
@@ -1151,3 +1198,7 @@
 
    4  OpenLCB has enough bandwidth to download this information directly from the Train Node, provided that
    the system has an effective caching mechanism.
+
+   5   If the Programming Track is to be used as a regular DCC track (mainline), then it is the Virtual
+   Train Nodes that represent the regular DCC addresses that implement the Train Control Operations and
+   thus the Traction Protocol.
