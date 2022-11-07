@@ -751,8 +751,10 @@
    The configuration information in a train can include the user documentation and editable fields that are
    sometimes referred to as “roster information”. This might include owner name, prototype railroad and
    road number, information about the particular model's construction, etc. An important user journey is to
-   define identification information for a locomotive. See Section Error: Reference source not found(Error:
-   Reference source not found) on how this is expected to be used.
+   define identification information for a locomotive. See Section 4.3.2 (Train Identification) on how this
+   is expected to be used.
+
+   Future work:
 
    Possible option to standardize this area would be to extend ACDI/SNIP, or define a similar protocol.
    ACDI/SNIP currently have a block for manufacturer identification, and a block for user identification.
@@ -848,6 +850,39 @@
    As a conclusion, inheriting the identification mechanism from track protocols such as DCC does not
    fulfill the requirements on general use-cases. On the other hand, the User Name in SNIP/ACDI is defined
    as up to 63 byte long UTF-8 string, which comfortably covers the necessary use-cases.
+
+   Future work:
+
+   Modern command stations & ecosystems often contain high performance input devices with high-resolution
+   color touchscreens. A reasonable expectation is for locomotives to be represented by images rather than
+   text. This is true both for selecting a locomotive (a user sees a scrolling list with images from all of
+   their locomotives), as well as while driving one or more locomotives (the currently selected locomotive
+   image is visible on the screen).
+
+   There are three different conceptual sources of the image data:
+
+     * a central image database created by the command system manufacturer, or a cross-manufacturer
+       organization (including OpenLCB, NMRA or RailCommunity);
+
+     * an image or drawing created by the locomotive OEM4;
+
+     * an photograph uploaded by the user.
+
+   An upcoming standard RCN-218 / TN-218 and and NMRA S-9.1.2.2 provide three pieces of metadata to
+   represent locomotive imagery:
+
+     * A 2-bit locomotive category (Steam, Diesel, Electric, Railcar).
+
+     * A 16-bit locomotive enumeration, which can index into a database in the command system, intended to
+       contain drawings or silhouettes of all types covered by large runs of major manufacturers.
+
+     * A string intended to contain a URL.
+
+   In addition to these, a command system can use the unique identifier to key into an internal database of
+   image data uploaded by the user. Both RCN-218/S-9.2.1.1 as well as OpenLCB have unique hardware
+   identifiers suitable for this purpose. These two are not linked together however.
+
+    
 
   4.3.3 Legacy DCC Configuration and CVs
 
@@ -1105,11 +1140,14 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 Which, even more confusingly, means that FL, FR, and AUX1..AUX6 are available as electrical outputs.
+   1  Which, even more confusingly, means that FL, FR, and AUX1..AUX6 are available as electrical outputs.
 
-   2 F4 is the highest addressable function number in the M/M II track protocol. Many early European
+   2  F4 is the highest addressable function number in the M/M II track protocol. Many early European
    command station & throttle devices thus had only F0..F4 as function buttons. Most locomotive decoders
    were based on an ASIC that had only AUX1 and AUX2 as electrical output, which were switched by F1 and
    F2, and momentum (and momentum off) were features implemented by this ASIC.
 
-   3 https://www.jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html
+   3  https://www.jmri.org/JavaDoc/doc/jmri/jmrit/roster/RosterEntry.html
+
+   4  OpenLCB has enough bandwidth to download this information directly from the Train Node, provided that
+   the system has an effective caching mechanism.
