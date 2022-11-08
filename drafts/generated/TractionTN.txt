@@ -992,36 +992,62 @@
      * Connect sound decoders with motion-control decoders so they work well together
 
    OpenLCB handles consisting by introducing the “Listener” concept to all Train Nodes. A Listener is
-   attached to a given Train Node in order to receive a copy of all state changing requests that arrive at
+   attached to a given Train Node in order to receive a copy of all Train Control Operations that arrive at
    the given Train Node. This serves multiple purposes:
 
      * Consist follower engines can be attached directly to the consist lead Train Node and receive all Set
        Speed commands, which will cause the consist to move together.
 
-     * Throttles that lose the control of a locomotive (through stealing or hand-over) can register
+     * It is possible to control a single Train Node from multiple throttles. Each throttle has to register
+       themselves as a Listener on the Train Node. Then when one throttle changes the locomotive state, all
+       other throttles get a copy of the message and have the ability to update their displays real-time.
+       This gives a seamless experience for multiple operators when using encoder-based throttles.
+
+     * Throttles that relinquish the control of a locomotive (through stealing/hand-over) can register
        themselves as listener on the locomotive, and update the UI as the other engineer is driving the
        train.
 
      * It becomes possible to add a display to the Train Node that displays a train's status and keeps it
        up to date without polling for updates and unnecessarily consuming bus bandwidth.
 
-   Consisting can be applied by two methods:
+     * A supervisor software can observe the operator driving a train and intervene when certain policies
+       are not complied with (e.g. if the train runs a signal).
 
-    1. If the lead engine supports listeners, then the consist followers can be added directly to the lead
-       as a listener. Note that the forwarded message is defined in a way that the consist follower sees it
-       as if it came from a regular throttle, therefore the consist follower engine is allowed to not be
-       aware of the consisting.
+   How to handle consist topologies:
 
-    2. If no engine in the consist can be chosen as lead engine, then a virtual node can be instantiated
-       that supports listeners and has the ability to attach all consist members. Such virtual nodes may be
-       provided by throttles or command stations.
+   There are two sound consist topologies, depending on what kind of operator experience the system
+   manufacturer is looking to achieve.
 
-   The listener configuration allows selecting some common use-cases for the consist:
+    1. The consist's listener relation may be established in a symmetric manner, where each link in the
+       consist is bidirectional. This means that if engine A and B have a link, then B is a Listener in A,
+       and A is a Listener in B. Symmetric listener relations are allowed and cause no problem for the
+       network, because a Train Node is required to never echo a message back to where it came from.
 
-     * Forward speed only.
+   The benefit of a symmetric listener relation is that now the consist can be driven by calling up any
+   train number in it, and the control packets will be propagated to all members of the consist. This may
+   be helpful if the user wants to drive a consist by the tail engine (for example after a runaround move)
+   and use e.g. the horn feature on the tail engine. If the tail engine is backwards in the consist, then
+   driving the consist from that engine also changes the relative direction that the throttle sees. This is
+   prototypical, it means that after a runaround move and selecting the other cab, the train is driving in
+   “forward” state of the reverser.
 
-     * Forward speed but invert direction (when the following locomotive is backwards-facing in the
-       consist).
+   It is important that the symmetric listener relations create a spanning tree in the consist nodes. If
+   there is any directed circle (longer than 2 nodes), any message injected will be forwarded between those
+   nodes forever.
+
+    1. One-way consist relations can be set up by creating a Virtual Train Node that represents the
+       consist, and all Train Nodes added as a Listener to this one Node in a directed star topology. In
+       this case the operator can select the consist node to drive the consist, or individual locomotives
+       to drive them independently of the consist. This setup might also be advantageous when there is an
+       NMRA DCC CV19 consist in operation in the background, as the CV19 consist address will need the
+       equivalent of a Virtual Train Node to generate DCC packets.
+
+   How to handle functions in consists:
+
+   The listener configuration allows selecting some common use-cases for the consist.
+
+     * Forward speed only, no functions. (It is possible to select inverted direction, when the following
+       locomotive is backwards-facing in the consist).
 
      * Forward function zero (usually light). Turning this on for the lead and the tail engine in the
        consist, but off for all middle members of the consist will cause the consist to behave
@@ -1030,62 +1056,52 @@
      * Forward all functions. Useful for the throttle listener use-case or in case the two locomotives are
        equipped with identical decoders and features.
 
-     * More advanced configuration (e.g. function remapping, arbitrary function filter) may be applied by
-       using the regular configuration user interface of the consist lead node (e.g. CDI). Such advanced
-       configuration may be however cumbersome for the user to access, since dumb throttles may not have
-       the ability to render arbitrary CDIs, while specialized user interface could be developed according
-       to the above listed common options. Also creating and deleting consists may be considered as an
-       everyday operation to users, therefore advanced consist settings may be accidentally destroyed. An
-       appropriate save/restore feature may be necessary.
+   This provides several possible mechanisms for configuring function forwarding in the consist:
 
-   The consist's listener relation may be established in a symmetric manner, where the lead engine is also
-   attached as a listener to each individual follower engine. Symmetric listener relations are allowed and
-   cause no problem for the network, because a train node is required to never echo back a packet to where
-   it came from.
+    1. The simple model, where only the two fixed configuration bits are available for each consist member.
+       This is suitable for throttles that do not have the capacity to present arbitrary configuration.
 
-   The benefit of a symmetric listener relation is that now the consist can be driven by calling up any
-   train number in it, and the control packets will be propagated to all members of the consist. This may
-   be helpful if the user wants to drive a consist by the tail engine (for example after a runaround move)
-   and use e.g. the horn feature on the tail engine. Of course this feature will only work if the tail
-   locomotive supports listeners, otherwise it is impossible to establish a symmetric listener relation.
+    2. In an advanced configuration each Train Node is responsible for making its own interpretation of the
+       received function messages. The Train Node can use its configuration and the incoming message’s bit
+       P to determine whether a function should be applied locally or just forwarded. In this model it’s
+       essential that the Listener links are all set up with both F0 and Fn forwarding enabled.
 
-   It is important that the symmetric listener relations create a spanning tree in the consist nodes. If
-   there is any directed circle (longer than 2 nodes), any message injected will be forwarded between those
-   nodes forever.
+    3. In case of the unidirectional topology using a central Node, that consist leader has to have
+       sufficiently complex configuration to be able to determine which function messages to forward where.
 
-   and similar “one acts for many” situations by having a node act as the front-man for the consisted
-   group. This node may be a real physical object, but it's more likely to be a software construct
-   somewhere within the hardware that's used to connect the main OpenLCB network to the actual trains.
+   Operations:
 
-   Once the consisting relationship has been initialized, it will handle the individual parts of the
-   Traction Protocol series:
+   Once the consisting relationship has been set up, it will handle the individual parts of the Traction
+   Protocol series.
 
-     * Speed Control - this is perhaps the simplest, just passing the speed values through to the
+     * Speed Control – this is perhaps the simplest, just passing the speed values through to the
        individual members of the consist. Because OpenLCB speeds are in scale meters/second, there's by
-       definition no need to rescale them when forwarding them to disparate equipment
+       definition no need to rescale them when forwarding them to disparate equipment.
 
-     * Function Control - Although the setup process may be able to map or reassign functions in the
+     * Function Control – although the setup process may be able to map or reassign functions in the
        consist-member nodes, in the end this protocol is just a pass-through of the function instructions
        and memory access protocol operations.
 
-     * Train Configuration - except for very limited configuration of the consist itself, the consist does
+     * Train Configuration – except for very limited configuration of the consist itself, the consist does
        not take part in any configuration operations. Those are done by talking directly to the nodes that
        control the individual pieces of the consist. (CDI for a specialized consist node is going to
        require careful definition)
 
-     * Train Acquisition Protocol - the consist, if controlled by a special node, is a separately locatable
-       thing, as throttles will want to be able to find it. As such, it will take part in producing the
-       well-known events, providing human readable (and writable) information via SNII/ACDI, etc, and being
-       the target of search operations. Consists driven by their lead engine can be operated by calling up
-       the lead engine in a throttle. Consists with symmetric listener relationships can be driven by
-       calling up any single node in the consist. Defining the assigned controllers may be tricky in such a
-       situation.
+     * Train Search and Controller Assign – Each member in the consist, as well as a Virtual Train Node, if
+       used, can be separately located by the standard protocol. They will take part in producing the
+       well-known events, providing human readable (and writable) information via SNII/ACDI, and being the
+       target of search operations. If the consist has unidirectional links, it can be operated only by the
+       lead engine. This also means that the assigned Controller is meaningful on the lead Train Node.
+       Consists with symmetric listener relationships can be driven by calling up any single node in the
+       consist. This means that there can be multiple assigned Controllers at the same time; throttles are
+       recommended to use the Listener functionality themselves.
 
    Because there's no protocol difference between full-OpenLCB-node Trains and legacy equipment that uses
-   OpenLCB proxy nodes, consisting works the same for all of those. It can even mix-and-match full nodes
-   with various types of legacy trains, if that's electrically possible. Proxies can handle multiple node
-   IDs (and/or DCC addresses), which allows implementation of consisting.  Speed/direction just passes
-   through; speed matching is automatic due to the use of scale meters/second for units.  
+   an OpenLCB gateway via a Virtual Train Node, consisting works the same for all of those. It can even
+   mix-and-match full nodes with various types of legacy trains, if that's electrically possible. A Gateway
+   can handle multiple node IDs (and/or DCC addresses), which allows implementation of consisting.
+   Speed/direction just passes through; speed matching is automatic, provided that the locomotives were
+   mechanically calibrated to the correct scale speeds.
 
     
 
