@@ -167,6 +167,93 @@
 
    The Standard is silent on the use of specific CAN frame formats or features.
 
+  2.5.1 Can Bit Timing
+
+   The requirement for supporting a peer clock tolerance of 0.9% is designed to be:
+
+    1. Easily achievable with commonly available CAN controllers.
+
+    2. Enable the use of precision “on-chip” oscillators found on some modern microcontrollers.
+
+   It is increasingly common to find precision “on-chip” oscillators in modern microcontrollers with 1% or
+   better tolerance over their full operating range. Getting below the requirement of 0.9% is increasingly
+   possible in some micorcontrollers when the operating range is further limited to temperatures typically
+   found in model railroad environments. The use of “on-chip” oscillators can reduces both cost and the
+   risk of unwanted EMI.
+
+   The CAN bit timing is broken up into configurable segments.
+
+   SyncSeg  TSeg1             TSeg2     
+   ‍SyncSeg PropSeg PhaseSeg1 PhaseSeg2 
+
+    
+
+   These segment lengths are configured into units of time quanta (TQ). The CanBitTimingCalculater.odt
+   spreadsheet is provided to aid node designers in determining valid CAN bit timing parameters. The
+   following table provides some useful information about CAN bit timing terms and parameters.
+
+   Term / Parameter                  Definition                                                             
+   Information Processing Time (IPT) Property of the CAN controller which is device specific. It has a      
+                                     typical value of 2 in most CAN controllers.                            
+   Time Quanta (TQ)                  Equal to the period of the CAN system clock, and the basic unit for    
+                                     defining a CAN bit segment length.                                     
+   ‍Nominal Bit Time (NBT)           The CAN bit period expressed in units of TQ.                           
+   SyncSeg                           Fixed duration of 1 TQ. It is not configurable.                        
+                                     Propagation segment. Typically programmable to a value between 1 and   
+   PropSeg                           8. Some CAN controllers combine this value with PhaseSeg1, in which    
+                                     case the combined value it is typically programmed to between 1 and    
+                                     16.                                                                    
+                                     Segment preceding the Sample Point. Typically programmable to a value  
+   PhaseSeg1                         between 1 and 8. Some CAN controllers combine this value with PropSeg, 
+                                     in which case the combined value it is typically programmed to between 
+                                     1 and 16.                                                              
+   PhaseSeg2                         Segment following the Sample Point. Must be programmed to a value that 
+                                     is the maximum of IPT and PhaseSeg1.                                   
+   ‍TSeg1                            The combination of the PropSeg and PhaseSeg1 fields.                   
+   ‍TSeg2                            The same as the PhaseSeg2 field.                                       
+   ‍Sample Point                     The point between PhaseSeg1 and PhaseSeg2 that the bit value is        
+                                     sampled at.                                                            
+                                     The number of TQ which the bit period may be extended or shortened due 
+   ‍Sync Jump Width (SJW)            to resynchronization. Must be less than or equal to PhaseSeg2. Some    
+                                     CAN controllers require this value to be at least one less than        
+                                     PhaseSeg2. This value cannot exceed 4 TQ.                              
+
+    
+
+   The maximum peer oscillator tolerance can be calculated from the CAN controller bit timing parameters.
+   It is defined as the minimum result of the following two formulas:
+
+   frac {SJW} {20 times NBT }
+
+   {MIN(PhaseSeg1, PhpaseSeg2)} over {2 ( (13 times NBT) -PhaseSeg2 )}
+
+   The following table provides some examples of CAN bit timing values that meet the requirements of the
+   standard. The table assumes that IPT is 2 TQ.
+
+   ‍          TSeg1             TSeg2                                  
+   TQ per Bit PropSeg PhaseSeg1 PhaseSeg2 SJW Tolerance Max Bus Length 
+   20         14                5         4   0.980%    320            
+   16         7       4         4         43  0.980%    310            
+   16         7       4         4         3   0.938%    310            
+
+    
+
+   The maximum oscillator tolerance provided by the above equations, and presented in the above table is
+   for the peer assuming that the node itself has the same oscillator tolerance. It is essentially assuming
+   that the two nodes are symmetrical in their oscillator tolerances, and the total budget (double the
+   value calculated and presented in the above table) is split equally between the two nodes. If the node
+   has a more accurate clock source, typically found with the use of a crystal, the node has greater
+   flexibility in the CAN bit timing parameters because it consumes less of the total budget for itself.
+
+   Conformance testing of this requirement may be by inspection. In this case, it is expected that the node
+   manufacturer will provide the conformance test team the following information:
+
+    1. Make, model, and bit timing configuration of the CAN controller used.
+
+    2. Make, model, and clock configuration of any hardware components used in sourcing of the CAN
+       controller clock. This includes any additional information required to determine the CAN controller
+       clock accuracy.
+
 2.6 ALT_L / ALT_H
 
    After meeting the requirements to carry CAN data and power, there remains a spare conductor pair
@@ -339,13 +426,13 @@
    common connected via a capacitor to ground. This provides a bypass to ground for common mode noise. The
    tolerance on the individual resistor values is significantly tighter than on their total resistance.
    Several references recommend 1% tolerance resistors to reduce coupling of the differential CAN signal
-   into common mode noise3. Selecting matched pairs of resistors with looser nominal tolerance might be
+   into common mode noise4. Selecting matched pairs of resistors with looser nominal tolerance might be
    another solution.
 
     3.1.1.3 Biased split termination
 
    As in (3.1.1.2), but the common of the resistors is also tied to a fixed voltage. This can be to nominal
-   2.5V via a voltage divider4, or by using a voltage reference5. If there is a significant offset of
+   2.5V via a voltage divider5, or by using a voltage reference6. If there is a significant offset of
    ground between two nodes, then this offset will be transmitted to the CAN lines with consequent
    degradation of common-mode rejection.
 
@@ -382,14 +469,14 @@
 
    Manufacturers may want to provide a special termination node to provide some  indication of bus health
    as well as providing termination.  Industrial diagnostic equipment provides some examples of what can be
-   done6.
+   done7.
 
 3.2 EMC Management and Noise Immunity
 
    Electro-Magnetic Compatibility (EMC) refers to ensuring that a system, e.g. a CAN bus, does not cause
    interference with other systems. CAN is a robust signaling method developed for use in the difficult
    environment of automobiles. Issues of EMC, noise immunity, etc have been discussed in numerous vendor
-   application notes7.
+   application notes8.
 
     
 
@@ -400,7 +487,7 @@
    A series choke or transformer can improve the noise immunity of a CAN transceiver. The Standard permits
    the use of one, but doesn't require it. The advantages and disadvantages of including one are discussed
    in the NXP (Philips) and Texas Instruments application notes referenced above. See also the footnote
-   below8.
+   below9.
 
     
 
@@ -414,9 +501,9 @@
    additional protection, but have to balance the costs and benefits of that. For a longer discussion, see:
 
    J. Lepkowski and B. Wolfe, ON Semiconductor: EMI/ESD protection solutions for the CAN bus; CAN in
-   Automation, iCC 20059
+   Automation, iCC 200510
 
-   For an example of external protection, see the footnote below10.
+   For an example of external protection, see the footnote below11.
 
 3.3 Sample Schematic
 
@@ -457,7 +544,7 @@
    requires detailed understanding of CAN characteristics.
 
    Repeaters are sometimes referred to as “working at the bit level”. The CAN transmission is delayed by
-   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.11
+   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.12
 
 4.2 Bridges
 
@@ -476,7 +563,7 @@
    Because bridges break the timing connection between the connected segments, they can also be used for
    remote connections via non-CAN cables, wireless, etc. In this case, a bridge device is usually used at
    each end of the remote link, and the protocol between the two devices is specific to the CAN bridge
-   function12.
+   function13.
 
 4.3 Gateways
 
@@ -485,7 +572,7 @@
    USB-CAN adapter may convert the CAN frame bytes into some form of human-readable text.
 
    This reformatting may be independent of the CAN frame content information, or specific to some protocol
-   that defines meaning for the CAN frames13.
+   that defines meaning for the CAN frames14.
 
                                                  5 References
 
@@ -495,14 +582,14 @@
 5.1 Standards
 
    The OpenLCB CAN Physical Layer Standard references ISO 11898-1 and ISO 11898-2 for CAN specifications.
-   The ISO14 sells PDF and paper copies of these. Copies can generally be found in engineering libraries15.
+   The ISO15 sells PDF and paper copies of these. Copies can generally be found in engineering libraries16.
 
    Note that ISO 11898-3, 11898-4 and 11898-5 specify different variants of the CAN standard that are not
    relevant to OpenLCB CAN-compliant implementations. The original 1995 Bosch CAN standard, which can be
    found online, is similar to ISO 11898-1 and -2, but not identical.
 
    The OpenLCB CAN Physical Layer Standard references TIA/EIA-568-B or the successor TIA/EIA- 568-C for
-   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA16 sells PDF
+   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA17 sells PDF
    and paper copies of these. Copies can generally be found in engineering libraries.
 
 5.2 Books
@@ -543,47 +630,47 @@
 
   5.3.1 Anixter
 
-   “ANSI/TIA/EIA-568-B Standards Reference Guide”17
+   “ANSI/TIA/EIA-568-B Standards Reference Guide”18
 
   5.3.2 Mohawk.com
 
-   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”18
+   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”19
 
   5.3.3 Microchip Corp
 
-   AN713 “Controller Area Network (CAN) Basics”19
+   AN713 “Controller Area Network (CAN) Basics”20
 
-   AN228 “A CAN Physical Layer Discussion”20
+   AN228 “A CAN Physical Layer Discussion”21
 
-   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”21
+   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”22
 
   5.3.4 ON Semiconductor
 
-   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”22
+   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”23
 
   5.3.5 NXP Electronics (Philips)
 
-   AN96116 “PCA82C250 / 251 CAN Transceiver”23
+   AN96116 “PCA82C250 / 251 CAN Transceiver”24
 
-   AN10211 “TJA1040 high speed CAN transceiver”24
+   AN10211 “TJA1040 high speed CAN transceiver”25
 
   5.3.6 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
-   differential signaling (LVDS)”25
+   differential signaling (LVDS)”26
 
-   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”26
+   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”27
 
-   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”27
+   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”28
 
-   Application Report SLLA298B “Isolated CAN Reference Design”28
+   Application Report SLLA298B “Isolated CAN Reference Design”29
 
-   Application Report SLOU262 “Isolated CAN Transceiver EVM”29
+   Application Report SLOU262 “Isolated CAN Transceiver EVM”30
 
-   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”30
+   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”31
 
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
-   transceiver”31
+   transceiver”32
 
 5.4 Component data sheets
 
@@ -594,33 +681,33 @@
 
   5.4.1 Microchip
 
-   MCP2551 High-Speed CAN Transceiver32
+   MCP2551 High-Speed CAN Transceiver33
 
-   MCP2561, MCP2562 High-Speed CAN Transceiver33
+   MCP2561, MCP2562 High-Speed CAN Transceiver34
 
-   MCP2515 Stand-Alone CAN Controller With SPI Interface34
+   MCP2515 Stand-Alone CAN Controller With SPI Interface35
 
   5.4.2 NXP Electronics (Philips)
 
-   PCA82C250 CAN controller interface35
+   PCA82C250 CAN controller interface36
 
-   TJA1043 High-speed CAN transceiver36
+   TJA1043 High-speed CAN transceiver37
 
-   PESD1CAN CAN bus ESD protection diode37
+   PESD1CAN CAN bus ESD protection diode38
 
   5.4.3 STMicroelectronics
 
-   L9615 transceiver38
+   L9615 transceiver39
 
   5.4.4 Texas Instruments
 
-   ISO1050 Isolated CAN Transceiver39
+   ISO1050 Isolated CAN Transceiver40
 
-   SN55HVD251, SN65HVD251 Industrial CAN Transceiver40
+   SN55HVD251, SN65HVD251 Industrial CAN Transceiver41
 
-   SN65HVD1050 EMC Optimized CAN Transceiver41
+   SN65HVD1050 EMC Optimized CAN Transceiver42
 
-   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers42
+   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers43
 
 5.5 Tools
 
@@ -631,13 +718,13 @@
 
   5.5.1 Microchip
 
-   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”43
+   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”44
 
   5.5.2 IXAAT
 
-   CANcheck “Installation tester for CAN networks”44
+   CANcheck “Installation tester for CAN networks”45
 
-   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”45
+   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”46
 
     
 
@@ -656,6 +743,8 @@
    2.4 Physical Interconnection
 
    2.5 Data Transport
+
+   2.5.1 Can Bit Timing
 
    2.6 ALT_L / ALT_H
 
@@ -749,15 +838,17 @@
 
    2 http://focus.ti.com/lit/an/slla270/slla270.pdf
 
-   3 http://focus.ti.com/lit/an/slla270/slla270.pdf, http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   3 Some CAN controllers require SJW to be at least 1 TQ less than PhaseSeg2.
 
-   4 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+   4 http://focus.ti.com/lit/an/slla270/slla270.pdf, http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
 
-   5 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   5 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+
+   6 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
 
    http://www.nxp.com/documents/application_note/AN10211.pdf
 
-   6 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
+   7 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
 
    http://www.ixxat.com/cancheck_en.html?markierung=cancheck
 
@@ -765,23 +856,23 @@
 
    http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html
 
-   7 http://www.nxp.com/documents/application_note/AN10211.pdf
+   8 http://www.nxp.com/documents/application_note/AN10211.pdf
 
    http://focus.ti.com/lit/an/slla270/slla270.pdf
 
-   8 http://www.ti.com/lit/an/slla271/slla271.pdf
+   9 http://www.ti.com/lit/an/slla271/slla271.pdf
 
-   9 www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
+   10 www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
 
-   10 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+   11 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
 
-   11 http://www.ixxat.com/introduction-repeater_en.html
+   12 http://www.ixxat.com/introduction-repeater_en.html
 
    http://www.esd-electronics-usa.com/shared/datasheets/repeat-e.pdf
 
    http://www.ixxat.com/can_cr200_en.html
 
-   12 http://www.ixxat.com/introduction_bridges_en.html
+   13 http://www.ixxat.com/introduction_bridges_en.html
 
    http://www.ieee-icnp.org/1996/papers/1996-21.pdf
 
@@ -793,74 +884,74 @@
 
    http://www.matric.com/canbridge.html
 
-   13 http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
+   14 http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
 
    http://news.thomasnet.com/fullstory/Gateway-converts-from-CAN-into-Ethernet-529941
 
    http://www.icpdas-usa.com/products.php?PID=3075
 
-   14 http://www.iso.org
+   15 http://www.iso.org
 
-   15 http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422
+   16 http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422
 
    http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33423
 
-   16 http://www.tiaonline.org
+   17 http://www.tiaonline.org
 
-   17 https://www.anixter.com/content/dam/Anixter/Guide/12H0001X00-Anixter-Standard-Ref-Guide-ECS-US.pdf
+   18 https://www.anixter.com/content/dam/Anixter/Guide/12H0001X00-Anixter-Standard-Ref-Guide-ECS-US.pdf
 
-   18 http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html
+   19 http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html
 
-   19 http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf
+   20 http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf
 
-   20 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+   21 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
 
-   21 http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf
+   22 http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf
 
-   22 http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF
+   23 http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF
 
-   23 http://www.nxp.com/documents/application_note/AN96116.pdf
+   24 http://www.nxp.com/documents/application_note/AN96116.pdf
 
-   24 http://www.nxp.com/documents/application_note/AN10211.pdf
+   25 http://www.nxp.com/documents/application_note/AN10211.pdf
 
-   25 http://focus.ti.com/lit/an/slyt197/slyt197.pdf
+   26 http://focus.ti.com/lit/an/slyt197/slyt197.pdf
 
-   26 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   27 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
 
-   27 http://focus.ti.com/lit/an/slla270/slla270.pdf
+   28 http://focus.ti.com/lit/an/slla270/slla270.pdf
 
-   28 http://focus.ti.com/lit/an/slla298b/slla298b.pdf
+   29 http://focus.ti.com/lit/an/slla298b/slla298b.pdf
 
-   29 http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf
+   30 http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf
 
-   30 http://www.ti.com/lit/an/slla271/slla271.pdf
+   31 http://www.ti.com/lit/an/slla271/slla271.pdf
 
-   31 http://focus.ti.com/lit/an/slyt249/slyt249.pdf
+   32 http://focus.ti.com/lit/an/slyt249/slyt249.pdf
 
-   32 http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf
+   33 http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf
 
-   33 http://ww1.microchip.com/downloads/en/DeviceDoc/20005167C.pdf
+   34 http://ww1.microchip.com/downloads/en/DeviceDoc/20005167C.pdf
 
-   34 http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf
+   35 http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf
 
-   35 http://www.nxp.com/documents/data_sheet/PCA82C250.pdf
+   36 http://www.nxp.com/documents/data_sheet/PCA82C250.pdf
 
-   36 http://www.nxp.com/documents/data_sheet/TJA1043.pdf
+   37 http://www.nxp.com/documents/data_sheet/TJA1043.pdf
 
-   37 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+   38 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
 
-   38 http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00001375.pdf
+   39 http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00001375.pdf
 
-   39 http://focus.ti.com/lit/ds/symlink/iso1050.pdf
+   40 http://focus.ti.com/lit/ds/symlink/iso1050.pdf
 
-   40 http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf
+   41 http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf
 
-   41 http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf
+   42 http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf
 
-   42 http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf
+   43 http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf
 
-   43 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
+   44 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
 
-   44 http://www.ixxat.com/cancheck_en.html?markierung=cancheck
+   45 http://www.ixxat.com/cancheck_en.html?markierung=cancheck
 
-   45 http://www.ixxat.com/can_bus_tester_cbt_en.html
+   46 http://www.ixxat.com/can_bus_tester_cbt_en.html
