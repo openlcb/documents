@@ -98,35 +98,41 @@
                                Node ID        Event ID            short events. This range is an OFF        
                                                                   request.                                  
                                                                   Activate basic DCC accessory decoder      
-   01     01                                                      address.                                  
+                                                                  address.                                  
                                                                                                             
-                                              12-bit DCC Basic    Bytes 7 and 8 are the DCC accessory       
-                                      FF      Accessory Address   decoder address (0 – 4087)1.  4088 – 4095 
-                                                                  are utilized in the DCC standard as       
-                                                                  broadcast addresses.  All other values    
+                                              12-bit DCC Basic    Bytes 7 and 8 are the DCC accessory       
+   01     01                          FF      Accessory Address   decoder address (0 – 4087)1.  4088 – 4095 
+                                                                  are utilized in the DCC standard as       
+                                                                  broadcast addresses.  All other values    
                                                                   for bytes 7 and 8 are reserved for future 
-                                                                  uses.                                     
+                               00                                 uses.                                     
                                                                   Deactivate basic DCC accessory decoder    
                                                                   address.                                  
                                                                                                             
                                               12-bit DCC Basic    Bytes 7 and 8 are the DCC accessory       
                                       FE      Accessory Address   decoder address (0 – 4087)1.  4088 – 4095 
-                 02     00     00                                 are utilized in the DCC standard as       
+                                                                  are utilized in the DCC standard as       
                                                                   broadcast addresses.  All other values    
                                                                   for bytes 7 and 8 are reserved for future 
-                                                                  uses.                                     
-                                                                  Send aspect to extended DCC accessory     
+                 02     00                                        uses.                                     
+                               01     00      07        FF        Extended DCC accessory decoder emergency  
+                                                                  stop.2                                    
+                                                                  Send command to extended DCC accessory    
                                                                   decoder address.                          
                                                                                                             
-                                                                  Byte 6 is the aspect, only values between 
-                                                                  0 and 31 are allowed.                     
-                                      00 - 1F 11-bit DCC Extended                                           
-                                              Accessory Address   Bytes 7 and 8 are the DCC accessory       
-                                                                  decoder address (0 – 2046).  2047 is      
-                                                                  utilized in the DCC standard as the       
-                                                                  broadcast addresses.  All other values    
-                                                                  for bytes 7 and 8 are reserved for future 
-                                                                  uses.                                     
+                                                                  Please refer to NMRA S-9.2.1 for the      
+                                                                  definitions of Byte 6. Byte 6 corresponds 
+                                                                  to the 3rd byte of a DCC extended         
+                                              11-bit DCC Extended accessory decoder packet.                 
+                               01     00 - FF Accessory Address                                             
+                                                                  Bytes 7 and 8 are the DCC accessory       
+                                              00.04 - 07.FE       decoder address. Valid values are from 4  
+                                                                  to 2046. By convention, user addresses    
+                                                                  are from 1 to 2043, with user address 1   
+                                                                  corresponding to value 4 at bytes 6 and   
+                                                                  7. All other values for bytes 7 and 8 not 
+                                                                  separately defined are reserved for       
+                                                                  future uses.                              
 
     
 
@@ -154,3 +160,5 @@
 
    1 For information on the different methods of how these 2 x 4088 addresses map to the commonly used
    turnout addresses of 1..2040, please see the OpenLCB Event Identifiers Technical Note.
+
+   2 This corresponds to extended DCC accessory decoder address 2047.
