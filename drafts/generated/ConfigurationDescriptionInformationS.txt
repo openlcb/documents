@@ -67,8 +67,8 @@
    The content defines the configuration description information in XML 1.0 format using a specific XML
    vocabulary defined by an XML Schema. No extensions to XML 1.0 are permitted.
 
-   This version of this Standard specifies version 1.1 of the schema.  That version of the schema is
-   defined at http://openlcb.org/schema/cdi/1/1/cdi.xsd and in Appendix A of this document. The CDI content
+   This version of this Standard specifies version 1.2 of the schema.  That version of the schema is
+   defined at http://openlcb.org/schema/cdi/1/2/cdi.xsd and in Appendix A of this document. The CDI content
    shall pass validation against its referenced schema. Nodes are not required to do the validation.
 
    The version number of an OpenLCB CDI schema contains two numbers: The major version first, and the minor
@@ -83,7 +83,7 @@
    The root element of the CDI XML is:
 
    <cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/1/cdi.xsd">
+   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/2/cdi.xsd">
 
    to define the OpenLCB CDI version of the content.
 
@@ -151,7 +151,7 @@
 
   5.1.4 Data Elements
 
-   The following elements are considered Data Elements: <group>, <int>, <string>, <eventid>.
+   The following elements are considered Data Elements: <group>, <int>, <string>, <eventid>, <float>.
 
    The value of the address within the segment is accumulated during a depth-first traversal of the
    contents of the segment definition element.  Address is initialized with the value of the attribute
@@ -228,6 +228,23 @@
    If the <map> enumeration is present, then values not present in the list of <property> entries of the
    enumeration are invalid and shall not be written.
 
+    5.1.4.5 <float> Element
+
+   The <float> element defines a Variable of floating point value.
+
+   The Size of the <float> element is defined as the value of the `size' attribute in bytes. Valid values
+   are 2, 4, and 8 bytes. The format of the bits within the element shall follow the IEEE format of the
+   corresponding size.
+
+   The floating point value shall be written to the bytes pointed to in big-endian byte order. All bytes
+   shall be written. Values smaller than defined by the <min> or larger than defined by the <max>
+   sub-element, if present, are invalid and shall not be written. If the <map> enumeration is present, then
+   values not present in the list of <property> entries of the enumeration are invalid and shall not be
+   written.
+
+   The optional “floatFormat” attribute defines a preferred, but not mandatory, printf-style format for
+   displaying the data to the user.
+
                                         6 Future Extension (Normative)
 
    Configuration Tools implementing a future version of this Standard must be able to process CDI content
@@ -256,7 +273,7 @@
 
    <!-- XML Schema for OpenLCB Configuration Description Information (CDI)     -->
 
-   <xs:schema version="CDI 1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   <xs:schema version="CDI 1.2" xmlns:xs="http://www.w3.org/2001/XMLSchema"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     
@@ -332,6 +349,8 @@
            <xs:element name="int" type="intType" minOccurs="0" maxOccurs="1" />
 
            <xs:element name="eventid" type="eventidType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="int" type="floatType" minOccurs="0" maxOccurs="1" />
 
          </xs:choice>
 
@@ -472,6 +491,112 @@
          </xs:annotation>
 
        </xs:attribute>
+
+     </xs:complexType>
+
+    
+
+     <xs:simpleType name="floatFormat">
+
+   <xs:restriction base="xs:string">
+
+    <!-- This is a somewhat limiting regex, as it does not allow all possible -->
+
+    <!-- printf formats.   It will allow the most common formats that have    -->
+
+    <!-- been seen and used before, however -->
+
+    <xs:pattern value="%[0-9]?(\.[0-9])?f"/>
+
+   </xs:restriction>
+
+     </xs:simpleType>
+
+    
+
+     <xs:complexType name="floatType">
+
+   <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="min" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="max" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="default" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               The 'value' of each entry is displayed, and
+
+               the 'property' content (number) is sent
+
+               to/from the node
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+       </xs:sequence>
+
+       <xs:attribute name="size" type="xs:int" default="4">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the
+
+             address of the end of previous element and the
+
+             start of this elements's contents.
+
+             Offset of zero means that this element starts
+
+             immediately after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+   <xs:attribute name="formatting" type="floatFormat" >
+
+        <xs:annotation>
+
+           <xs:documentation>
+
+             printf-style format string for displaying data to the user.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+   </xs:attribute>
 
      </xs:complexType>
 
@@ -852,6 +977,8 @@
    5.1.4.3 <string> Element
 
    5.1.4.4 <eventid> Element
+
+   5.1.4.5 <float> Element
 
    6 Future Extension (Normative)
 
