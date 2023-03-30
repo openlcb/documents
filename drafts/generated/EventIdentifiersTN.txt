@@ -320,19 +320,23 @@
     
 
    The Extended Accessory Decoder address format in most significant bit first format is:
-    0bA10A9A8A7A6A5A4A3A2A1A0, and it is expected that this is how the bits map to Bytes 7 and 8 of the
+    0bA10A9A8A7A6A5A4A3A2A1A0, and it is expected that this is how the bits map to Bytes 6 and 7 of the
    Event Identifier. Though the A10A9A8 address bits are in 1's complement form under the DCC standards,
    they are in standard non 1's complement form in OpenLCB format.
+
+   The reason that the 11-bit extended DCC accessory address falls into Bytes 6 and 7, inconsistent with
+   the use of Bytes 7 and 8 in the basic DCC accessory address, is so that a single producer/consumer
+   identified range message can be used without violating the 50% space utilization rule.
 
    Example Event to DCC packet mappings:
 
    User Address OpenLCB Event ID        DCC Packet                                     
-   1            01.01.02.00.01.00.00.04 0b10000001  0b01110001  0bXXXXXXXX  0bEEEEEEEE 
-   2            01.01.02.00.01.00.00.05 0b10000001  0b01110011  0bXXXXXXXX  0bEEEEEEEE 
-   ‍3           01.01.02.00.01.00.00.06 0b10000001  0b01110101  0bXXXXXXXX  0bEEEEEEEE 
-   ‍4           01.01.02.00.01.00.00.07 0b10000001  0b01110111  0bXXXXXXXX  0bEEEEEEEE 
-   ‍2043        01.01.02.00.01.00.07.FE 0b10111111  0b00000101  0bXXXXXXXX  0bEEEEEEEE 
-   ‍E-Stop      01.01.02.00.01.00.07.FF 0b10111111  0b00000111  0bXXXXXXXX  0bEEEEEEEE 
+   1            01.01.02.00.01.00.04.XX 0b10000001  0b01110001  0bXXXXXXXX  0bEEEEEEEE 
+   2            01.01.02.00.01.00.05.XX 0b10000001  0b01110011  0bXXXXXXXX  0bEEEEEEEE 
+   ‍3           01.01.02.00.01.00.06.XX 0b10000001  0b01110101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍4           01.01.02.00.01.00.07.XX 0b10000001  0b01110111  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2043        01.01.02.00.01.07.FE.XX 0b10111111  0b00000101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍E-Stop      01.01.02.00.01.07.FF.00 0b10111111  0b00000111  0b00000000  0bEEEEEEEE 
 
     
 
