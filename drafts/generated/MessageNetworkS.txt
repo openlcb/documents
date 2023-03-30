@@ -376,7 +376,7 @@
    0x100x        Permanent error.                                                                           
    0x101x        Reserved.                                                                                  
    0x102x        Source not permitted.                                                                      
-   0x103x        Reserved.                                                                                  
+   0x103x        Not found.                                                                                 
    0x104x        Not implemented.                                                                           
    0x105x-0x107x Reserved                                                                                   
    0x108x        Invalid arguments. Some of the values sent in the message fall outside of the expected     
@@ -665,13 +665,13 @@
 
     7.3.3.4 Optional Interaction Rejected
 
-   Name                          CAN-MTI CAN Header    Data Content               
-   Optional Interaction Rejected 0x068   [0x1906,8sss] fddd, error, optional info 
+   Name                          CAN-MTI CAN Header    Data Content                    
+   Optional Interaction Rejected 0x068   [0x1906,8sss] fddd, error, MTI, optional info 
 
     7.3.3.5 Terminate Due to Error
 
-   Name                   CAN-MTI CAN Header    Data Content               
-   Terminate Due to Error 0x0A8   [0x190A,8sss] fddd, error, optional info 
+   Name                   CAN-MTI CAN Header    Data Content                    
+   Terminate Due to Error 0x0A8   [0x190A,8sss] fddd, error, MTI, optional info 
 
     7.3.3.6 Protocol Support Inquiry  
 
@@ -699,10 +699,14 @@
 
    There are no special provisions for CAN transport layer.
 
-  7.3.7 Routing
+  7.3.7 Routing and Sequencing
 
-   CAN implementations shall send the frames of a message together to reduce buffering.   Higher-priority
-   messages may be sent in the middle of a lower-priority message.   
+   CAN implementations shall send the frames of a message together to reduce buffering. Higher-priority
+   messages may be sent in the middle of a lower-priority message, including when the higher priority
+   message itself is fragmented into multiple frames.
+
+   Gateways shall reassemble the frames of fragmented messages before sending them out on data links that
+   support the necessary message length, unless otherwise stated by a specific Standard.
 
     
 
@@ -824,7 +828,7 @@
 
    7.3.6 Error Handling
 
-   7.3.7 Routing
+   7.3.7 Routing and Sequencing
 
     
 
