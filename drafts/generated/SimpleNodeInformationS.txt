@@ -69,9 +69,12 @@
 5.1 Format
 
    The reply payload is a sequence of bytes which is a concatenation of the following entries without any
-   separator. The entries are of fixed or variable length.
+   separator. The entries are of fixed or variable length. The information is structured into two sections:
+   manufacturer-information and user-information.
 
-     * The byte 0x01 or 0x04 to indicate the version of the following content
+     * A byte indicating the version of the manufacturer-information section.  This also indicates the
+       number of fields present.   At this writing the valid values are 0x01 or 0x04.  Additional values
+       may be defined in the future as new versions are developed.
 
      * A null-terminated string for manufacturer name of no more than 41 bytes including terminating null.
 
@@ -83,7 +86,9 @@
      * A null-terminated string for node software version of no more than 21 bytes including terminating
        null.
 
-     * The byte 0x01 or 0x02 to indicate the version of the following content
+     * A byte indicating the version of the user-information section.  This also indicates the number of
+       fields present.   At this writing the valid values are 0x01 or 0x02.  Additional values may be
+       defined in the future as new versions are developed.  
 
      * A null-terminated string for user-provided node name of no more than 63 bytes including terminating
        null.
@@ -97,7 +102,7 @@
    sections. In such case the version number at the beginning of the sections will be set to the number of
    null-terminated strings presented in the particular section.
 
-   Nodes must therefore accept data with either of the version numbers as presented in Section 5.1.
+   Nodes must therefore accept data with any of the version numbers as presented in Section 5.1 .
 
                                           6 Interactions (Normative)
 
@@ -110,7 +115,7 @@
 
    The requesting node sends a Simple Node Information Request message addressed to the destination node.
    The destination node should reply with one or more messages, each possibly being in one or more parts
-   (frames), whose data content concatenated forms the payload, as defined in Section 5.1.
+   (frames), whose data content concatenated forms the payload, as defined in Section 5.1 .
 
    Nodes implementing the Simple Node Information Protocol should prefer sending the reply in one message
    in multiple frames instead of sending multiple messages. Nodes requesting must be able to process
