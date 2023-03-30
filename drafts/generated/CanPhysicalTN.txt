@@ -169,6 +169,20 @@
 
   2.5.1 Can Bit Timing
 
+   CAN controllers are designed with a variety of configurable parameters in their bit-detection timing.
+   The purpose of these parameters is to adjust for networks of different bus length and peer devices on
+   the network.
+
+   It is very easy to set these parameters to values that appear to work in a workbench setup, but create
+   repeatable errors in wiring situations that conform to the OpenLCB standard. Determining the cause of
+   these errors requires advanced measurement equipment and in-depth understanding of the CAN-bus protocol,
+   which is not expected to be available for a consumer. Setting the parameters correctly for every device
+   connected to the OpenLCB CAN-bus is necessary to ensure that any pair of devices connected to a
+   correctly wired OpenLCB bus are able to communicate error-free.
+
+   The following commentary provides specific guidance on how to configure these parameters, including
+   specific values recommended for common CAN controllers.
+
    The requirement for supporting a peer clock tolerance of 0.9% is designed to be:
 
     1. Easily achievable with commonly available CAN controllers.
@@ -178,8 +192,8 @@
    It is increasingly common to find precision “on-chip” oscillators in modern microcontrollers with 1% or
    better tolerance over their full operating range. Getting below the requirement of 0.9% is increasingly
    possible in some microcontrollers when the operating range is further limited to temperatures typically
-   found in model railroad environments. The use of “on-chip” oscillators can reduces both cost and the
-   risk of unwanted EMI.
+   found in model railroad environments. The use of “on-chip” oscillators can reduce both cost and the risk
+   of unwanted EMI.
 
    The CAN bit timing is broken up into configurable segments.
 
@@ -247,7 +261,7 @@
    If the local node has a more accurate clock source (typical for crystals), then more of the budget is
    left for the peer nodes. This means that the local node has greater flexibility in the CAN bit timing
    parameters. The node manufacturer just has to ensure that the remaining budget for the peer nodes is
-   0.9% or more, i.e. total_budget - osc_tolerance > 0.9.
+   0.9% or more, i.e., total_budget - osc_tolerance > 0.9.
 
    Conformance testing of this requirement may be by inspection. In this case, it is expected that the node
    manufacturer will provide the conformance test team the following information:
