@@ -87,7 +87,7 @@
             protocol. In this case typically one physical hardware connected to the OpenLCB bus represents
             many different Trains, each with its own unique Virtual Train Node. This is a form of a
             Gateway, bridging OpenLCB to a legacy protocol. From the perspective of the legacy protocol,
-            this piece of hardware is often referred to as Command Station.
+            this piece of hardware is often referred to as a Command Station.
 
      * Throttle Node:
 
@@ -126,7 +126,7 @@
 
      * “Command Stations”: Existing DCC and other control systems use “command stations” to create a track
        signal for controlling the trains. Usually the command station is controlled from the user side by
-       some other network, to which throttles and other interface devices are connected. OpenLCB, it it's
+       some other network, to which throttles and other interface devices are connected. OpenLCB, in it’s
        native form, has no such concept. Devices, like throttles, that want to talk to a train do so
        directly. Only when working with legacy systems does the concept of a command station enter, and
        usually through the form of a proxy node that is acting for the Train. In this setup, OpenLCB acts
@@ -209,7 +209,12 @@
 
      * Commanded Speed:  This may lag behind the set speed intentionally due to momentum settings, etc. The
        Commanded Speed can not be directly set via OpenLCB; only indirectly influenced using the Set Speed
-       and Emergency Stop commands.
+       and Emergency Stop commands. It is compliant to the Standard for an OpenLCB node to not report a
+       separate Commanded Speed, in which case the Throttle Node shall assume the Commanded Speed to match
+       the Set Speed.
+
+     * Current Speed. This state is optional, because not all OpenLCB Train Nodes are required to be
+       equipped with electronic measurement of their physical speed.
 
    The three state machines related to emergency stop need to be tracked separately by the Train Node. They
    act independently of each other. The Query Speed Reply flag related to E-Stop reports only the
@@ -258,7 +263,7 @@
    As the Controller is represented by the Node ID of the respective Throttle Node, another throttle can
    query the active Controller from the Train Node, and then reach out to the specific Throttle Node to
    determine metadata such as Simple Node Information to populate user interface elements. For example, a
-   dialog may be presented saying “The Loco ‘C&NW 415’ is controller by ‘Joe’s Throttle 123’, would you
+   dialog may be presented saying “The Loco ‘C&NW 415’ is controlled by ‘Joe’s Throttle 123’, would you
    like to steal it?”.
 
    The Controller is also used for Heartbeats, with the intention to prevent a runaway train. The
@@ -393,7 +398,7 @@
 
      * This distinction does not influence whether the message will be forwarded to any further listeners.
        Incoming Train Control Operations with P=1 are also forwarded; during forwarding they skip the link
-       on this they came from.
+       on which they came from.
 
      * Set Speed and Emergency Stop message needs to be acted upon (and forwarded) by the train,
        independently of whether P=0 or P=1.
