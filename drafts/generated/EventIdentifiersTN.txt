@@ -304,11 +304,41 @@
 
     
 
-    2.5.3.4 Advanced DCC Accessory Decoder
+    2.5.3.4 Extended DCC Accessory Decoder
 
-   There are no known advanced DCC Accessory Decoders currently for sale in the market.  The DCC standards
-   are somewhat ambiguous about the address bit order.  The address space is reserved for the future should
-   the use of advanced DCC Accessory Decoders become better defined and more prevalent.
+   The format of the DCC packet for an extended DCC Accessory Decoder is as follows (most significant bit
+   first):
+
+   Byte 1                        Byte 2                                  Byte 3         Byte 4 (Error Byte) 
+   0b10A7A6A5A4A3A2              0b0Ā10Ā9Ā80A1A01                        0bXXXXXXXX     0bEEEEEEEE          
+                                 Bits 6 down to 4 are the 3 most                                            
+   Bits 5 down to 0 are the      significant bits of the address in 1's  
+   middle 6 bits of the address. complement form.  Bits 2 down to 1 are  8-bit command.  
+                                 the 2 least significant bits of the     
+                                 address.                                
+
+    
+
+   The Extended Accessory Decoder address format in most significant bit first format is:
+    0bA10A9A8A7A6A5A4A3A2A1A0, and it is expected that this is how the bits map to Bytes 6 and 7 of the
+   Event Identifier. Though the A10A9A8 address bits are in 1's complement form under the DCC standards,
+   they are in standard non 1's complement form in OpenLCB format.
+
+   The reason that the 11-bit extended DCC accessory address falls into Bytes 6 and 7, inconsistent with
+   the use of Bytes 7 and 8 in the basic DCC accessory address, is so that a single producer/consumer
+   identified range message can be used without violating the 50% space utilization rule.
+
+   Example Event to DCC packet mappings:
+
+   User Address OpenLCB Event ID        DCC Packet                                     
+   1            01.01.02.00.01.00.04.XX 0b10000001  0b01110001  0bXXXXXXXX  0bEEEEEEEE 
+   2            01.01.02.00.01.00.05.XX 0b10000001  0b01110011  0bXXXXXXXX  0bEEEEEEEE 
+   ‍3           01.01.02.00.01.00.06.XX 0b10000001  0b01110101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍4           01.01.02.00.01.00.07.XX 0b10000001  0b01110111  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2043        01.01.02.00.01.07.FE.XX 0b10111111  0b00000101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍E-Stop      01.01.02.00.01.07.FF.00 0b10111111  0b00000111  0b00000000  0bEEEEEEEE 
+
+    
 
     2.5.3.5 Other Well-Known
 
@@ -354,7 +384,7 @@
 
    2.5.3.3 Basic DCC Accessory Decoder
 
-   2.5.3.4 Advanced DCC Accessory Decoder
+   2.5.3.4 Extended DCC Accessory Decoder
 
    2.5.3.5 Other Well-Known
 
