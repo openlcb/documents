@@ -1020,13 +1020,11 @@
 
    How to handle consist topologies:
 
-   There are two sound consist topologies, depending on what kind of operator experience the system
-   manufacturer is looking to achieve.
-
-    1. The consist's listener relation may be established in a symmetric manner, where each link in the
-       consist is bidirectional. This means that if engine A and B have a link, then B is a Listener in A,
-       and A is a Listener in B. Symmetric listener relations are allowed and cause no problem for the
-       network, because a Train Node is required to never echo a message back to where it came from.
+   When creating or managing a consist, the listener relation is recommended to be established in a
+   symmetric manner, where each link in the consist is bidirectional. This means that if engine A and B
+   have a link, then B is a Listener in A, and A is a Listener in B. Symmetric listener relations are
+   allowed and cause no problem for the network, because a Train Node is required to never echo a message
+   back to where it came from.
 
    The benefit of a symmetric listener relation is that now the consist can be driven by calling up any
    train number in it, and the control packets will be propagated to all members of the consist. This may
@@ -1040,12 +1038,27 @@
    there is any directed circle (longer than 2 nodes), any message injected will be forwarded between those
    nodes forever.
 
-    1. One-way consist relations can be set up by creating a Virtual Train Node that represents the
-       consist, and all Train Nodes added as a Listener to this one Node in a directed star topology. In
-       this case the operator can select the consist node to drive the consist, or individual locomotives
-       to drive them independently of the consist. This setup might also be advantageous when there is an
-       NMRA DCC CV19 consist in operation in the background, as the CV19 consist address will need the
-       equivalent of a Virtual Train Node to generate DCC packets.
+   When more than two locomotives are part of a consist, there are multiple choices of how to arrange the
+   (bidirectional) links with regards to each other, as there are multiple possible spanning trees across
+   the Train Nodes. From the perspective of the OpenLCB protocol, any spanning tree will work correctly and
+   the states (and state changes) of the locomotives will be indistinguishable. Example topologies would be
+   a “star” topology where one Train Node is selected as “lead” and all others are consisted with a single
+   link to the lead; or a linear topology where every locomotive is consisted to the previous and next
+   according to a given order. The star topology minimizes the latency of all locomotives receiving a
+   command. In the presence of both wired and wireless locomotives, it is not recommended to select a
+   wireless locomotive as the center node of a star.
+
+   It is not recommended to create unidirectional consist links. Consist management software may
+   automatically, or upon request by the user, fix consists that have a problem with their links such as a
+   unidirectional consist link, or rearrange the topology of the links according to some policy.
+
+   If an application requires representing and storing the order of members in a consist, a star topology
+   allows to do this. OpenLCB nodes are required to retain the ordering of the registered Listener links.
+   This means that the center of the star would be the first locomotive, and all the remaining locomotives
+   are in the order as registered at the first locomotive. There is no operation to change the order of
+   listeners, consist manager software may have to delete and re-create multiple links in the desired order
+   to change the stored order. It is not possible to create an order between two locomotives using this
+   technique.
 
    How to handle functions in consists:
 
