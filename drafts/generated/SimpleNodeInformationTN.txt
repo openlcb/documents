@@ -128,14 +128,17 @@
 
    The solution is that the version identifier byte will double as a count of the null-terminated strings
    in the particular data segment, hence the current standard defines 0x04 and 0x02 as valid version
-   numbers, because the first section has four fields and the second section has two fields.. Thus a
+   numbers, because the first section has four fields and the second section has two fields. Thus a
    receiving node can count the number of zero bytes in the received message to find the separator between
    the sections and identify the known fields.
+
+   Nodes must accept data with a higher version number than in this standard, by ignoring the additional
+   strings, as described above.
 
 2.6 Interactions
 
    When a node gets a Simple Node Information Request, if possible it shall reply with one or more Simple
-   Node Information Reply messages containing the node's information.  If it's not able to process the
+   Node Information Reply messages containing the node's information. If it's not able to process the
    request, (for example because it is already servicing another request), it shall send an Optional
    Interaction Rejected with an appropriate error code. It's recommended that the rejection message have
    the temporary-error bit set, so that the node sending the original request will retry it. The suggested
@@ -186,8 +189,8 @@
      * f = 0x3 for each middle frames of a reply with more than two frames
 
    Note is made again that previous node implementations may send the SNIP replies as multiple independent
-   frames, where f is zero, and receiving nodes should accept these.  The end of the SNIP can be determined
-   by counting the fields as determined by the version numbers.
+   messages, where f is zero, and receiving nodes should accept these. The end of the SNIP can be
+   determined by counting the fields as determined by the version numbers.
 
     
 
