@@ -68,10 +68,10 @@
 
     
 
-   The online schema is really the normative thing, because that's what we check for conformance testing.
-   There is no requirement that a node use the CDI to perform validation against the schema. But since the
-   contents of the schema are normative, it has to obey the defaults, etc., for missing elements. There is
-   further information about schema versions in the Section Future Extension.
+   The online schema is really the normative thing, because that's what we check for conformance testing. A
+   node using the CDI is not required to validate it against the schema. But since the contents of the
+   schema are normative, it has to obey the defaults, etc., for missing elements. There is further
+   information about schema versions in the Section Future Extension.
 
     
 
@@ -232,7 +232,7 @@
    Data Elements support constraints for the values:
 
      * Integers and floats have <min> and <max> elements inside. They constrain the range with endpoints
-       inclusive, i.e. <min>5</min> allows value 5 but disallows value 4.
+       inclusive i.e., <min>5</min> allows value 5 but disallows value 4.
 
      * All elements support a <map> which can be used to constrain the possible values to a fixed list, as
        well as provide user-readable descriptions to the values. Inside the map, the <property> entry is
@@ -256,9 +256,21 @@
             offset that received that specific label. Any whitespace at the end of the <repname> element
             should be preserved before appending the number.
 
+            For example,  
+
+            <group replication=4><repname>Headlight</repname><repname>F</repname>
+
+            should translate into labels of "Headlight", "F1", "F2", "F3".
+
          2. If the text in ends with a decimal representation of an integer, then that integer shall be
             incremented by one for every additional group for which there were not enough elements. Note
             this does not imply any whitespace before the integer is needed.
+
+            For example
+
+            <group replication=4><repname>F0</repname>
+
+            should translate into labels of "F0", "F1", "F2", "F3".
 
     
 
@@ -372,7 +384,7 @@
 
     
 
-   An "Integer" or “Float” may be signed; if no sign, it's taken as positive.
+   An "Integer" may be signed; if no sign, it's taken as positive.
 
     
 
@@ -458,7 +470,7 @@
      * Min: Integer - the minimum value allowed.
 
      * Size: describes how many bytes are occupied by this variable. Also used for integers and floats to
-       describe the data type size (e.g. byte, word, dword etc).
+       describe the data type size (e.g. byte, word, dword etc). It is required for floats and strings.
 
      * Description: Optional String
 

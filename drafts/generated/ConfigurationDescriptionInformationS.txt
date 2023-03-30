@@ -14,7 +14,7 @@
    configure all aspects of the node's capabilities.
 
    The configurable values are expressed as Variables, with each Variable having a specific type, a size in
-   bytes, a value for Space and Address (to locate the variable), and Name and Description as user-readable
+   bytes, a value for Space and Address (to locate the Variable), and Name and Description as user-readable
    strings so that users understand the use of the particular setting.
 
    Variables can be grouped together, groups can be repeated (for example if a Node has multiple outputs)
@@ -54,7 +54,7 @@
        format.
 
      * Segments: The configuration information in the node is organized in zero or more segments, each of
-       which contains zero or more configurable variables.  A variable is the basic unit of configuration.
+       which contains zero or more configurable Variables.  A Variable is the basic unit of configuration.
        The segment definition specifies the organization of each segment. A segment consists of zero or
        more bytes within a linear address space.
 
@@ -147,7 +147,8 @@
    segments by appropriate UI elements, such as tabs, boxes or horizontal bars.
 
    A <segment> element shall contain an optional user-readable name and optional description tags, and a
-   sequence of zero or more Data Elements.
+   sequence of zero or more Data Elements. The user-readable name and description are intended as hints for
+   optional UI display by configuration tools.
 
   5.1.4 Data Elements
 
@@ -172,6 +173,9 @@
 
      * End Address, which is defined as Address + Size, unless otherwise specified.
 
+   The data element’s <name> and <description> elements and the <group> element’s <repname> element are
+   intended as hints for optional UI display by configuration tools.  
+
     5.1.4.1 <group> Element
 
    The <group> element allows logical grouping of Variables, providing common documentation for them, and
@@ -191,9 +195,6 @@
    minus the Address of the <group> element.
 
    Configuration Tools shall not render a <group> element with no child elements4 on their UI.
-
-   The <group> element’s <name>, <description> and <repname> elements are intended as hints for optional UI
-   display by configuration tools.  
 
     5.1.4.2 <int> Element
 
@@ -505,11 +506,11 @@
 
     <!-- This is a somewhat limiting regex, as it does not allow all possible -->
 
-    <!-- printf formats.   It will allow the most common formats that have    -->
+    <!-- printf formats. It will allow the most common formats that have    -->
 
     <!-- been seen and used before, however -->
 
-    <xs:pattern value="%[0-9]?(\.[0-9])?f"/>
+    <xs:pattern value="%[0-9]+(\.([0-9]*))?f"/>
 
    </xs:restriction>
 
@@ -551,7 +552,7 @@
 
        </xs:sequence>
 
-       <xs:attribute name="size" type="xs:int" default="4">
+       <xs:attribute name="size" type="xs:int" use="required">
 
          <xs:annotation>
 
@@ -593,7 +594,7 @@
 
            <xs:documentation>
 
-             printf-style format string for displaying data to the user.
+             printf-style format string for displaying data to the user, like %3.1f
 
            </xs:documentation>
 
