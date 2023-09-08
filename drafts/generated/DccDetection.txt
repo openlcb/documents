@@ -63,20 +63,30 @@
 
     1. 6 byte unique ID of the detector,
 
-    2. 1 entry/exit bit where 1 indicates exit. A 0 for the entry/exit bit may be, but is not required to
-       be, followed by an Event ID with a 1 in the entry/exit bit. Nothing in this Standard requires a
-       detector to produce an “exit” event.
+    2. Two bits to represent entry/exit and forward/reverse.  These are coded:
 
-    3. 1 forward/reverse bit where 1 indicates reverse. A 0 for the forward/reverse bit indicates the
-       decoder is moving forward or that the detector can’t determine the direction that it is moving.
+   0b00 unoccupied, ie exit
 
-    4. 14 bits of DCC address
+   0b01 occupied, forward, ie entry
 
-    1.   1. If the high bits are 0x28 this represents a DCC short address
+   0b10 occupied, reverse, ie entry
 
-         2. If the high bits are 0x29 this represents a DCC consist address
+   0b11 occupied, direction unknown, ie entry
 
-         3. Otherwise it’s a DCC long address
+    1. 14 bits of DCC address
+
+    1.   1. If the high bits are 0x38 this represents a DCC short address
+
+         2. If the high bits are 0x39 this represents a DCC consist address
+
+         3. An address of 0x3800 (short address 0) represents “unknown”.
+
+         4. Otherwise it’s a DCC long address
+
+   The encoding of DCC addresses into 14 bits follows the S-9.2.1.1 and RCN-218 standards.
+
+   The 0x3800 value is used for unknown instead of 0x0000 because 0x0000 is long address zero, which is a
+   valid (though uncommon) long address.
 
 2.5 States
 
@@ -102,12 +112,6 @@
    range.
 
    There is no PIP bit allocated to this protocol.
-
-    
-
-    
-
-    
 
                                            3 Background Information
 
