@@ -10,45 +10,71 @@
 
 1.1 Served Use Cases
 
-     * A signal needs to determine occupancy in the block before it. It is not concerned with identity, but
+    1. A signal needs to determine occupancy in the block before it. It is not concerned with identity, but
        it does need to know location and entry/exit.
 
-     * A train enters a current-detected block.  A detector recognizes this, successfully queries the
+    2. A train enters a current-detected block.  A detector recognizes this, successfully queries the
        decoder for its address, and reports that information on the OpenLCB bus. That information results
        in a signal sending a speed command such as Slow or Stop to that particular detector.
 
-     * A train crosses an RFID reader which determines the train’s DCC address and reports that address on
+    3. A train crosses an RFID reader which determines the train’s DCC address and reports that address on
        the OpenLCB bus.
 
-     * A train exits a current-detected block. A detector recognizes this, and reports that interaction on
+    4. A train exits a current-detected block. A detector recognizes this, and reports that interaction on
        the OpenLCB bus.
 
-     * A train enters a current detected block. A detector recognizes this, and attempts unsuccessfully to
+    5. A train enters a current detected block. A detector recognizes this, and attempts unsuccessfully to
        query the decoder for its address.  The detector emits a report without decoder address information.
 
-     * A train-announcement unit needs to determine the identity and location of approaching trains so it
+    6. A train-announcement unit needs to determine the identity and location of approaching trains so it
        can announce their arrival.
 
-     * A train display needs to gather all train locations for display to the users.
+    7. A train display needs to gather all train locations for display to the users.
 
-     * A train-display needs to gather the location and identity of all trains within a specified area.
+    8. A train-display needs to gather the location and identity of all trains within a specified area.
 
-     * An application needs to gather the location and identity of all trains.
+    9. An application needs to gather the location and identity of all trains.
 
-     * A node powers up and emits a query which generates messages carrying all available location
+   10. A node powers up and emits a query which generates messages carrying all available location
        information.
 
-     * A detector observes that a piece of rolling stock has been added to the layout.  It reports this. A
+   11. An RFID reader reads a tag and uses this protocol to distribute the raw tag contents.  A separate
+       database node receives this content, does an internal lookup to locate the rolling stock’s Unique
+       ID, and then uses this protocol to distribute a human-readable version of the original distribution
+       that also carries the rolling stock’s Unique ID.
+
+   12. A detector observes that a piece of rolling stock has been added to the layout.  It reports this. A
        throttle or command station provides that rolling stock in its roster display.
 
-     * A detector observes that a piece of rolling stock has been removed from the layout. A throttle or
+   13. A detector observes that a piece of rolling stock has been removed from the layout. A throttle or
        command station removes that rolling stock from its roster display.
+
+   14. The user has a throttle, which has a train on it. There is a location report coming in for that
+       train. The user would like to display on the throttle the name of the location where that train was
+       seen. (This has to be a user-visible name, so coming out of some configuration.)  This raises two
+       indirection issues that need to be solvable:
+
+         1. Indirection of the OpenLCB train and the detector address. Say this is a DCC train from a
+            command station, then there is a known DCC address, which is recognized by RailCom detectors,
+            and reported. The harder case of OpenLCB trains needs to be handled too.
+
+         2. Indirection from the detector address to a user-visible (configured) block name.
+
+   15. Cab signaling: display on the throttle what the next signal aspect is for the selected train. This
+       raises indirection issues:
+
+         1. Going from train to block as above
+
+         2. Going from physical orientation plus reverser setting on the logical locomotive to an absolute
+            direction inside the block
+
+         3. Going from block + absolute direction to a next signal (which is a multi-state state machine)
+
+         4. Aspect interpretation (state to human readable text)
 
 1.2 Unserved Use Cases
 
    (To be determined as the proposal is developed)
-
-    
 
 1.3 Requirements
 
@@ -95,43 +121,14 @@
        inevitably a messy migration at some point in the future.
 
    11. Ideally, the messages for this protocol could be a super-set of those from the DCC Detection
-       Protocol.
+       Protocol. (This does not seem possible now, but at an early stage of requirement generation one can
+       dream...)
 
    12. Ideally, information about short circuit and current overload status could be conveyed by this
        protocol. These are often generated by the same device as the transponder messages e.g. LocoNet
        devices. These are providing location-specific information. It would be good to have some
        commonality between all location based messages. Another example would be current or voltage
        measurements at a point.  
-
-   13. An RFID reader reads a tag and uses this protocol to distribute the raw tag contents.  A separate
-       database node receives this content, does an internal lookup to locate the rolling stocks Unique ID,
-       and then uses this protocol to distribute a version of the original distribution that also carries
-       the Unique ID.
-
-   14. The user has a throttle, which has a train on it. There is a location report coming in for that
-       train. The user would like to display on the throttle the name of the location where that train was
-       seen. (This has to be a user-visible name, so coming out of some configuration.)  This raises two
-       indirection issues that need to be solvable:
-
-    1.   1. Indirection of the OpenLCB train and the detector address. Say this is a DCC train from a
-            command station, then there is a known DCC address, which is recognized by RailCom detectors,
-            and reported. The harder case of OpenLCB trains needs to be handled too.
-
-         2. Indirection from the detector address to a user-visible (configured) block name.
-
-    1. Cab signaling: display on the throttle what the next signal aspect is for the selected train. This
-       raises indirection issues:
-
-    1.   1. Going from train to block as above
-
-         2. Going from physical orientation plus reverser setting on the logical locomotive to an absolute
-            direction inside the block
-
-         3. Going from block + absolute direction to a next signal (which is a multi-state state machine)
-
-         4. Aspect interpretation (state to human readable text)
-
-    
 
                                              2 Specified Sections
 
