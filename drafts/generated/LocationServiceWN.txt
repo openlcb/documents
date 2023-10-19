@@ -10,28 +10,28 @@
 
 1.1 Served Use Cases
 
-    1. A signal needs to determine occupancy in the block before it. It is not concerned with identity, but
-       it does need to know location and entry/exit.
+    1. A signal needs to determine occupancy in the block it protects. It is not concerned with identity,
+       but it does need to know location and entry/exit.
 
     2. A train enters a current-detected block.  A detector recognizes this, successfully queries the
        decoder for its address, and reports that information on the OpenLCB bus. That information results
        in a signal sending a speed command such as Slow or Stop to that particular detector.
 
-    3. A train crosses an RFID reader which determines the train’s DCC address and reports that address on
-       the OpenLCB bus.
+    3. A train enters a current detected block. A detector recognizes this, and attempts unsuccessfully to
+       query the decoder for its address.  The detector emits a report without decoder address information.
 
     4. A train exits a current-detected block. A detector recognizes this, and reports that interaction on
        the OpenLCB bus.
 
-    5. A train enters a current detected block. A detector recognizes this, and attempts unsuccessfully to
-       query the decoder for its address.  The detector emits a report without decoder address information.
+    5. A train crosses an RFID reader which determines the train’s DCC address and reports that address on
+       the OpenLCB bus.
 
     6. A train-announcement unit needs to determine the identity and location of approaching trains so it
        can announce their arrival.
 
     7. A train display needs to gather all train locations for display to the users.
 
-    8. A train-display needs to gather the location and identity of all trains within a specified area.
+    8. A train display needs to gather the location and identity of all trains within a specified area.
 
     9. An application needs to gather the location and identity of all trains.
 
@@ -143,9 +143,18 @@
 
    Note that this section of the Standard is informative, not normative.
 
+   A “scanner’ is a device that can gather information from the railroad, typically when something happens.
+   RFID readers, QR code readers, point optical detectors and track current detectors are all examples of
+   scanners.
+
+   A scanner forwards one instance of the gathered information as a “report”.  
+
 2.2 Intended Use
 
    Note that this section of the Standard is informative, not normative.
+
+   This protocol is intended to provide a standardized way for scanners to distribute report information
+   across the OpenLCB network.
 
 2.3 Reference and Context
 
@@ -155,9 +164,146 @@
 
 2.4 Message Formats
 
+   The proposal is to carry these within a Producer Consumer Event Report as an event with payload defined
+   by (note bytes 0-7 are the Event ID of the message, 8-264 are the payload of the message)
+
+     * Bytes 0-1: A defined prefix from the well-defined space - to be assigned. This will enable nodes not
+       interested in this protocol to discard the event with payload transmission immediately.
+
+     * Bytes 2-7: A Unique ID that specifies the device that read the information e.g. a scanner. This will
+       be in the 1st message (1st CAN frame), allowing early rejection of uninteresting scanner sources.
+
+     * Bytes 8-9: Flag bits, set below
+
+     * Bytes 10-15: A Unique ID that specifies the item being scanned, e.g. a train node ID, or zeros if
+       that is not available. This will fit in the 2nd message, allowing early rejection of uninteresting
+       items when available.
+
+     * Bytes 16-NN: Any read (scanned) content that's available.
+
+   Note that the proposed 256 byte payload size allows 248 bytes here.
+
+   Flag bits
+
+   0-1 – direction of relative motion information – defined with respect to the front of the locomotive or
+   piece of rolling stock
+
+   0b00 stopped
+
+   0b01 forward
+
+   0b10 reverse
+
+   0b11 unknown
+
+   2-3 – direction of absolute motion information – the meanings of these are defined during set up of the
+   detector
+
+   0b00 stopped
+
+   0b01 east/north
+
+   0b10 west/south
+
+   0b11 unknown
+
+    
+
+   4-7 reserved: Send as zero and ignore on receipt
+
+   8-10 reserved: Send as zero and ignore on receipt
+
+   11-15 – information format – see below
+
+    
+
+   The information format field is used to indicate the format of bytes 16-NN
+
+   0x00 reserved, do not send; it is an error to receive this
+
+   0x01 occupancy/location information only, no additional payload
+
+   0x02 human-readable format – not intended for machine parsing
+
+   0x03 JSON formatted data (where the specific JSON content is defined how? “Self-defining” is not great
+   in a standard)
+
+   0x04 - 0x07 raw content of a read RFID tag, QR code, etc.  (Do we need to have subtypes here for the
+   type of tag, i.e.  ISO14443 vs  ISO15693.
+
+   (Much more work needed here)
+
+    
+
 2.5 States
 
+   This protocol has no states
+
 2.6 Interactions
+
+   When a scanner gathers new information, it may emit a PCER message with the above format.  PCER messages
+   are global, so all interested nodes will receive this message. The interested nodes can then process
+   them as desired.
+
+  2.6.1 Identification of scanners
+
+   Every node that produces information via this protocol also consumes a specific well-known Event ID
+   consisting of the well-known prefix assigned above followed by six 0x00 bytes. Sending this Event ID in
+   an Identify Producer message will result in Producer Identified messages that indicate which nodes can
+   take part in this protocol.
+
+   This removes the need to include it in the Protocol Identification Protocol bits, although that can also
+   be considered for ease of access.
+
+   Once the nodes that use this protocol have been identified, an Identify Events directed to each of them
+   will return Producer identified messages indicating the Unique IDs of all the scanners.
+
+   The six bytes of 0x00 was chosen because that is not a valid unique ID for a reader.
+
+  2.6.2 Identification of scanned objects
+
+   There is currently no way to efficiently request the unique IDs of all scannable objects. You can
+   retrieve all presently-visible objects by retrieving the most recent scan reports, see section below.
+
+  2.6.3 Retrieving most recent scan reports
+
+   When a new node joins the network, it may want to catch up on previous scan reports. In that case, it
+   can produce (in a PCER message) the well-known ID of the well-know prefix followed by size 0x00 bytes.
+    This is consumed by all nodes that implement this protocol.  When consumed, the node will re-emit the
+   most recent report from each of its scanner implementati
+
+   How to handle multiple overlapping reports from the same scanner?  Just send them all? In what order?
+   Option for the implementor?
+
+  2.6.4 Traffic limiting
+
+   Producing nodes may not produce the same event with payload content twice in a row
+
+   This is a compromise.  It reduces the amount of state that a producing node needs to retain down to one
+   message regardless of the number of attached readers, while at the same time trying to reduce the
+   bandwidth consumed by repeating detection messages.
+
+   Another approach would be to say that a node may not produce the same content twice in a row from each
+   scanner that it supports.  This will prevent "scanner A, scanner B, scanner A, scanner B" bursts of
+   messages. The cost is some additional buffering.
+
+   Another approach would be to say that a node may not produce the same content more than N times a
+   second. This may require buffering of O(10kB/N) bytes, although there may be hardware or software
+   structures that require less than this.
+
+   Note that the Unique ID that specified the device doing the reading (bytes 2-7) does not need to be the
+   Node ID of the scanning node.  It just needs to be uniquely assigned by the node creator from some
+   assigned space to indicate the device doing the read.
+
+   Note that a single node implementing multiple readers will send event with payload messages from those
+   separate readers with different Unique reader IDs, but must not interleave the messages making up the
+   payload of those separate PCER messages.  The event with payload protocol requires that the sending node
+   only sends one sequence at a time. This may require internal buffering for the messages from each reader
+   until they can be sent.
+
+  2.6.5 Motivate the use of high-bytes in the Event ID to identify this protocol
+
+   Use of high bytes in Event ID to identify this protocol…
 
                                            3 Background Information
 
@@ -184,7 +330,7 @@
    track vs the other (North vs South, East vs West). ProTrak Grapevine systems can report moving
    North/East, not moving, and moving South/West.
 
-   RPS detectors report absolute X, Y and Z coordinates of the detected rolling stock.  The report is
+   RPS detectors reported absolute X, Y and Z coordinates of the detected rolling stock.  The report was
    emitted at specified intervals.  Although these are no longer being produced, something similar may
    emerge in the future with developments in e.g. video monitoring of a layout.
 
@@ -219,6 +365,16 @@
    2.5 States
 
    2.6 Interactions
+
+   2.6.1 Identification of scanners
+
+   2.6.2 Identification of scanned objects
+
+   2.6.3 Retrieving most recent scan reports
+
+   2.6.4 Traffic limiting
+
+   2.6.5 Motivate the use of high-bytes in the Event ID to identify this protocol
 
    3 Background Information
 
