@@ -15,9 +15,9 @@
 
     2. A train enters a current-detected block.  A detector recognizes this, successfully queries the
        decoder for its address, and reports that information on the OpenLCB bus. That information results
-       in a signal sending a speed command such as Slow or Stop to that particular detector.
+       in a signal sending a speed command such as Slow or Stop to that particular decoder.
 
-    3. A train enters a current detected block. A detector recognizes this, and attempts unsuccessfully to
+    3. A train enters a current-detected block. A detector recognizes this, and attempts unsuccessfully to
        query the decoder for its address.  The detector emits a report without decoder address information.
 
     4. A train exits a current-detected block. A detector recognizes this, and reports that interaction on
@@ -101,7 +101,10 @@
 
     5. The messages should not rely on the transmitting-node-address field of the message for decoding.
         I.e. the protocol doesn’t say “You identify who made the scan by looking at who sent the message”.
-        This allows messages to be created by e.g. a debugging node during development.
+        This allows replacing the physical hardware that is broken with another piece of physical hardware
+       carrying the same configuration; we expect that the entire network continues to operate as it did
+       before. It is also useful to allow messages to be created by e.g. a debugging node during
+       development.
 
     6. It should be possible to look at the message(s) carrying a specific scan and know that they contain
        a scan without additional information.  I.e. you don’t have to configure a layout monitor with all
@@ -115,14 +118,15 @@
        nodes to drop the receipt of the message(s) early, without having to buffer them completely. (Note
        that the relative priority of this requirement and the one above has not yet been determined)
 
-    9. There should be a standard way to find the UniqueID of the scanned piece of rolling stock, when the
-       scanner can provide one.  For some scanners, e.g some types of RFID scanner, the scanner might not
-       be able to map the scanned value to a specific piece of rolling stock, in which case this
+    9. There should be a standard algorithm to find the UniqueID of the scanned piece of rolling stock
+       within the message(s), when the scanner can provide one.  In the common case of DCC, this is the
+       UniqueID mapped from the DCC address. For some scanners, e.g some types of RFID scanner, the scanner
+       might not be able to map the scanned value to a specific piece of rolling stock, in which case this
        information field would be blank.  
 
-   10. Note that the item directly above is referring to a Unique ID (node ID), not a DCC address. Someday,
-       there will be LCC-native trains and this protocol should be ready for them.  The alternative is
-       inevitably a messy migration at some point in the future.
+   10. Note that the item directly above is referring to a full Unique ID (node ID), not just a DCC
+       address. Someday, there will be LCC-native trains and this protocol should be ready for them.  The
+       alternative is inevitably a messy migration at some point in the future.
 
    11. Ideally, the messages for this protocol could be a super-set of those from the DCC Detection
        Protocol. (This does not seem possible now, but at an early stage of requirement generation one can
