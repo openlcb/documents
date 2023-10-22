@@ -8,6 +8,8 @@
    e.g. RFID and QR scanners and other detectors to publish information about the detected location of
    rolling stock.
 
+   Items in italics are basic open questions that should be addressed before this is published as a draft.
+
 1.1 Served Use Cases
 
     1. A signal needs to determine occupancy in the block it protects. It is not concerned with identity,
@@ -116,7 +118,8 @@
 
     8. The identification of the detected rolling stock should be early in the message(s).  This allows
        nodes to drop the receipt of the message(s) early, without having to buffer them completely. (Note
-       that the relative priority of this requirement and the one above has not yet been determined)
+       that the relative priority of this requirement and the one above has not yet been determined; this
+       proposal ranks the previous one above this one)
 
     9. There should be a standard algorithm to find the UniqueID of the scanned piece of rolling stock
        within the message(s), when the scanner can provide one.  In the common case of DCC, this is the
@@ -144,6 +147,8 @@
 
    This is the usual section organization for a Technical Note, to accumulate the Standard and Technical
    Note content in its eventual order.
+
+   In this section, deeply indented content is intended for the eventual Technical Note.
 
 2.1 Introduction
 
@@ -175,19 +180,28 @@
 
   2.4.1 Report Message
 
-   The proposal is to carry reports within a Producer Consumer Event Report as an event with payload
-   defined by (note bytes 0-7 are the Event ID of the message, 8-264 are the payload of the message)
+   The proposal is to carry reports within a Producer Consumer Event Report (PCER) as an event with payload
+   defined by:
 
-     * Bytes 0-1: A defined prefix from the well-defined space - to be assigned, 0x0102 is recommended by
-       this draft.
+   Note bytes 0-7 are the Event ID of the message, 8-264 are the payload of the message.
 
-   This will enable nodes not interested in this protocol to discard the event with payload transmission
+     * Bytes 0-1: A defined prefix from the well-defined space to be assigned.
+
+          *  0x0102 is recommended by this draft.
+
+   This unambiguously identifies this PCER as part of this protocol.
+
+   That enables nodes not interested in this protocol to discard this event-with-payload transmission
    immediately.
 
-   Putting a unique prefix (0x0102 recommended) on a UniqueID is a mechanism for creating a fully-unique
-   Event ID. No other Event ID allocation mechanism can duplicate one of these IDs.
+   Using a unique prefix (e.g. the recommended 0x0102) followed by a UniqueID (see immediately below) is a
+   mechanism for creating a fully-unique Event ID. No other Event ID allocation mechanism can duplicate one
+   of these IDs.
 
      * Bytes 2-7: A Unique ID that specifies the device that read the information e.g. a scanner.
+
+   Having this in the 1st eight bytes, i.e. the Event ID, allows using the various identify message
+   exchanges to locate scanners.
 
    Putting this near the start of the message (1st CAN frame) allows early rejection of uninteresting
    scanner sources.
@@ -199,9 +213,13 @@
 
    This will fit in the 2nd CAN frame, allowing early rejection of uninteresting items when available.
 
+   Is it the right choice to put the scanner ID in the Event ID for easy retrieval by the identify
+   exchanges, while putting the scanned device in the content requiring more interactions to find them?
+
      * Bytes 16-NN: Any read (scanned) content that's available.
 
-   Note that the proposed 256 byte payload size allows 248 bytes here
+   Note that the proposed 256 byte payload size allows 248 bytes here. The standard format (see below) uses
+   at least two of those for headers, allowing a maximum of 246 data bytes.
 
     2.4.1.1 Flag bits
 
@@ -264,6 +282,9 @@
    The standard content form consists of one or more blocks formatted as
 
    byte 0: length of content N, including type byte and data but not including the length byte
+
+   Numerology:  A byte is sufficient here, as the maximum length is restricted to 246 bytes by the Event
+   Transfer protocol.
 
    byte 1: type of content – see below
 
