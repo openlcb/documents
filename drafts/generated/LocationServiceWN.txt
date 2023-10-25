@@ -12,46 +12,52 @@
 
 1.1 Served Use Cases
 
-    1. A signal needs to determine occupancy in the block it protects. It is not concerned with identity,
-       but it does need to know location and entry/exit.
+    1.  
 
     2. A train enters a current-detected block.  A detector recognizes this, successfully queries the
        decoder for its address, and reports that information on the OpenLCB bus. That information results
        in a speed command such as Slow or Stop being sent to that particular train.
 
-    3. A train enters a current-detected block. A detector recognizes this, and attempts unsuccessfully to
+   There is a simpler use case for detectors without the ability to read the address:
+
+   A signal needs to determine occupancy in the block it protects. It is not concerned with identity, but
+   it does need to know location and entry/exit.
+
+   This can be handled efficiently with standard PCER messages carrying just the EventID.
+
+    1. A train enters a current-detected block. A detector recognizes this, and attempts unsuccessfully to
        query the decoder for its address.  The detector emits a report without decoder address information.
 
-    4. A train exits a current-detected block. A detector recognizes this, and reports that interaction on
+    2. A train exits a current-detected block. A detector recognizes this, and reports that interaction on
        the OpenLCB bus.
 
-    5. A train crosses an RFID reader which determines the train’s DCC address and reports that address on
+    3. A train crosses an RFID reader which determines the train’s DCC address and reports that address on
        the OpenLCB bus.
 
-    6. A train-announcement unit needs to determine the identity and location of approaching trains so it
+    4. A train-announcement unit needs to determine the identity and location of approaching trains so it
        can announce their arrival.
 
-    7. A train display needs to gather all train locations for display to the users.
+    5. A train display needs to gather all train locations for display to the users.
 
-    8. A train display needs to gather the location and identity of all trains within a specified area.
+    6. A train display needs to gather the location and identity of all trains within a specified area.
 
-    9. An application needs to gather the location and identity of all trains.
+    7. An application needs to gather the location and identity of all trains.
 
-   10. A node powers up and emits a query which generates messages carrying all available location
+    8. A node powers up and emits a query which generates messages carrying all available location
        information.
 
-   11. An RFID reader reads a tag and uses this protocol to distribute the raw tag contents.  A separate
+    9. An RFID reader reads a tag and uses this protocol to distribute the raw tag contents.  A separate
        database node receives this content, does an internal lookup to locate the rolling stock’s Unique
        ID, and then uses this protocol to distribute a human-readable version of the original distribution
        that also carries the rolling stock’s Unique ID.
 
-   12. A detector observes that a piece of rolling stock has been added to the layout.  It reports this. A
+   10. A detector observes that a piece of rolling stock has been added to the layout.  It reports this. A
        throttle or command station provides that rolling stock in its roster display.
 
-   13. A detector observes that a piece of rolling stock has been removed from the layout. A throttle or
+   11. A detector observes that a piece of rolling stock has been removed from the layout. A throttle or
        command station removes that rolling stock from its roster display.
 
-   14. The user has a throttle, which has a train on it. There is a location report coming in for that
+   12. The user has a throttle, which has a train on it. There is a location report coming in for that
        train. The user would like to display on the throttle the name of the location where that train was
        seen. (This has to be a user-visible name, so coming out of some configuration.)  This raises two
        indirection issues that need to be solvable:
@@ -62,7 +68,7 @@
 
          2. Indirection from the detector address to a user-visible (configured) block name.
 
-   15. Cab signaling: display on the throttle what the next signal aspect is for the selected train. This
+   13. Cab signaling: display on the throttle what the next signal aspect is for the selected train. This
        raises indirection issues:
 
          1. Going from train to block as above
@@ -218,8 +224,12 @@
 
      * Bytes 16-NN: Any read (scanned) content that's available.
 
-   Note that the proposed 256 byte payload size allows 248 bytes here. The standard format (see below) uses
-   at least two of those for headers, allowing a maximum of 246 data bytes.
+    
+
+   Note that there is no restriction on the length of the message in the Standard.  When designing
+   something using this protocol, it’s important to consider the impact of the data length on network
+   bandwidth and latency, particularly in light of the section on “Retrieving most recent scan reports”
+   below.
 
     2.4.1.1 Flag bits
 
@@ -233,7 +243,9 @@
    0b10: entry with state – the report refers to an item appearing in the detected area; a report of the
    item eventually disappearing from the detected area will follow
 
-   0b11: reserved, do not send; ignore field upon receipt
+   0b11: runknown – this message may or may not be due to an item appearing or disappearing.
+
+   E.g. this might refer to an item that’s remaining within the scanned region.
 
    bits 2-3: direction of relative motion – defined with respect to the designated front of the piece of
    rolling stock.
@@ -283,8 +295,7 @@
 
    byte 0: length of content N, including type byte and data but not including the length byte
 
-   Numerology:  A byte is sufficient here, as the maximum length is restricted to 246 bytes by the Event
-   Transfer protocol.
+   Numerology:  Is a byte sufficient here? Why?
 
    byte 1: type of content – see below
 
@@ -303,7 +314,9 @@
    This is meant as a convenient flag for software while creating and parsing messages.
 
    0x01 human-readable format: not intended for machine parsing, this is meant to carry messages for human
-   display:  “Train 123 arriving at station ABC”
+   display.
+
+   An example would be “Train 123 arriving at station ABC”.
 
    0x02 raw content of a read RFID tag.
 
@@ -313,13 +326,24 @@
 
    0x04 raw content of a RailCom read
 
+   Is there a document we can refer to about the format and content of this?
+
+   The scanner is expected to parse the contents of the read data and fill in as many of the flag fields as
+   possible.
+
    0x05 raw content of a Digitrax Transponding read
 
+   Is there a document we can refer to about the format and content of this?
+
+   The scanner is expected to parse the contents of the read data and fill in as many of the flag fields as
+   possible.
+
    0x06 position information: Three 16-bit IEEE floating point numbers representing the X, Y and Z position
-   of the detected object on the layout. The units are meters.  The origin and direction of axes is
-   specified when the scanner is configured by the user, but conventionally X is -left/+right, Y is
-   -front/+back and Z is -down/+up from some location on the layout. This corresponds to putting the origin
-   at the left-front of the layout on the lowest level.
+   of the detected object on the layout. The units are meters.  
+
+   The origin and direction of axes is specified when the scanner is configured by the user, but
+   conventionally X is -left/+right, Y is -front/+back and Z is -down/+up from some location on the layout.
+   This corresponds to putting the origin at the left-front of the layout on the lowest level.
 
    Note that 8-bit IEEE does not have a suitable resolution at a suitable maximum range. 16-bit IEEE
    provides roughly 16mm steps at +/-25m
@@ -328,12 +352,18 @@
 
    How is the specific JSON content defined? “Self-defining” is not great in a standard.
 
+   Should XML-formatted data also be provided for?
+
+   Perhaps having neither JSON nor XML should be here.  Isn’t the basic length/type/data coding sufficient
+   for typed data?
+
    0x08 Analog information – for reporting analog information (voltage, current, temperature, water level,
    …) as an IEEE-16 value in SI units
 
    How do we indicate what kind of information is being presented?  We need something in the block so that
    we can have multiple analog blocks in the block. Note that there can even be multiple readings of a
-   single type in the same message e.g. “Ambient temperature” and “Motor temperature”
+   single type in the same message e.g. “Ambient temperature” and “Motor temperature”. Possibilities
+   include:
 
     1. A single byte sub-type ID with a defined set of values and meanings
 
@@ -341,10 +371,10 @@
        and their meanings.
 
     3. A combination: a byte that identifies the physical quantity (volts, amps, degrees C, meters,
-       radians, …) with provision for an optional null-terminated string label (“Ambient” for a temperature
-       reading)
+       radians, …) with provision for an optional null-terminated string label (e.g “Ambient” for a
+       temperature reading)
 
-   0x09 – 0xFF reserved, do not send; ignore the block on receipt
+   0x09 – 0xFF reserved, do not send; ignore the block on receipt.
 
    (Much more work needed here)
 
@@ -396,14 +426,14 @@
    mapping database consumes that message, looks up the appropriate Unique ID, and produces a report
    message that contains it and the original RFID information block.
 
-   Example: A scanner produces a message that carries only the minimal information.  A second node with a
-   database consumes that message,. Using the Unique IDs for the scanner and the scanned item, it creates
-   suitable human-readable content such as “Train 123 arriving on track 4 five minutes late”. It then adds
-   that content as a new block and produces a new message with otherwise the same content.  Meanwhile, a
-   node driving a station display consumes the first message, sees it’s from its associated scanner but
-   there’s no human readable content and discards it.  It then consumes the second message, sees it’s from
-   its appropriate scanner and contains a human-readable block, extracts the human readable content, and
-   displays it.
+   Example: A scanner produces a message that carries only the minimal information.  A second node with
+   other sources of data consumes that message. Using the Unique IDs for the scanner and the scanned item,
+   this second node creates suitable human-readable content such as “Train 123 arriving on track 4 five
+   minutes late”. It then adds that content as a new block and produces a new message with otherwise the
+   same content.  Meanwhile, a third node driving a station display consumes the first message, sees it’s
+   from its associated scanner but there’s no human readable content and discards it.  It then consumes the
+   second message, sees it’s from its appropriate scanner and contains a human-readable block, extracts the
+   human readable content, and displays it.
 
    Example: A control node is tasked with controlling the speed of each train that approaches a signal. A
    scanner is configured to report the arrival and departure of each train on the track approaching the
@@ -413,7 +443,7 @@
    protocol.
 
    Example: A node facilitating cab signaling will consume all messages from this protocol. It consumes all
-   report reporting arrival of all trains on the track approaching each signal. For each report, it
+   reports reporting arrival of all trains on the track approaching each signal. For each report, it
    determines if the train is approaching the signal, (somehow) determines the current aspect of the
    relevant signal, and then transmits that aspect to the relevant train throttle(s) using some protocol
    not defined here.  
@@ -467,6 +497,9 @@
    This might be a large load on the network. PCER messages are high priority, and this request will result
    on one or more messages from (most? all?) scanners.
 
+   Is there a need for being able to get a report from just one scanned device?  E.g. “Any scanner that
+   currently sees device A.B.C.D.E.F, please resend your last report”?
+
   2.6.5 Identifying users of scanned information
 
    A node can identify all nodes that use scanned information by emitting an Identify Producer message for
@@ -480,18 +513,20 @@
 
   2.6.6 Traffic limiting
 
-   Producing nodes may not produce the same event with payload content twice in a row
+   Producing nodes may not produce the same event with payload content more than twice per second.
 
-   This is a compromise.  It reduces the amount of state that a producing node needs to retain down to one
-   message regardless of the number of attached readers, while at the same time trying to reduce the
-   bandwidth consumed by repeating detection messages.
+   The goal of this section is to reduce the bandwidth consumed by repeating detection messages.
+
+    
+
+   Another approach would to prohibit sending the same content twice in a row. However, there may be
+   situations where that’s a valid thing to do.
 
    Another approach would be to say that a node may not produce the same content twice in a row from each
    scanner that it supports.  This will prevent "scanner A, scanner B, scanner A, scanner B" bursts of
    messages. The cost is additional state for each scanner.
 
-   Another approach would be to say that a node may not produce the same content more than N times a
-   second. This may require more state information be retained than the other approaches.
+    
 
                                            3 Background Information
 
@@ -511,7 +546,7 @@
    conventions have been proposed for the contents of those bytes.
 
    QR codes come in multiple forms.  Depending on version, size and error correction level, they can
-   contain thousands of characters.
+   contain thousands of characters, many more than can reasonably be carried across OpenLCB CAN links.
 
    Some scanners can report the direction of the detected train. For some, this is whether the train is
    moving in forward or reverse.  For others, it’s whether the train is moving in one direction on the
@@ -524,7 +559,8 @@
 
    Traditional block detectors and point detectors are an interesting special case. They’re simple,
    low-cost and common on layouts. They can’t sense any address information from the detected rolling
-   stock. The protocol should be able to convey their information too.
+   stock. Their needs are already met by the Event Transfer protocol itself, they can also use this
+    protocol to convey their information too.
 
    Table of Contents
 
