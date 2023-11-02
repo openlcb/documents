@@ -312,37 +312,37 @@
    The type-byte values are allocated by this document.  It’s expected that new types will be routinely
    added.  The current set of types are:
 
-   0x00 reserved, do not send, ignore the associated block on receipt
+   0: Reserved, do not send, ignore the associated block on receipt
 
    This is meant as a convenient flag for software while creating and parsing messages.
 
-   0x01 human-readable format: not intended for machine parsing, this is meant to carry messages for human
+   1: Human-readable format. Not intended for machine parsing, this is meant to carry messages for human
    display.
 
    An example would be “Train 123 arriving at station ABC”.
 
-   0x02 raw content of a read RFID tag.
+   2: Raw content of a read RFID tag
 
    In the  future, it may be desirable to define types for specific types of tag, e.g. ISO14443, ISO15693,
    etc. That’s left for a future version once more usage experience is available.
 
-   0x03 raw content of a read QR or bar code
+   3: Raw content of a QR or bar code read
 
-   0x04 raw content of a RailCom read
-
-   Is there a document we can refer to about the format and content of this?
-
-   The scanner is expected to parse the contents of the read data and fill in as many of the flag fields as
-   possible.
-
-   0x05 raw content of a Digitrax Transponding read
+   4: Raw content of a RailCom read
 
    Is there a document we can refer to about the format and content of this?
 
    The scanner is expected to parse the contents of the read data and fill in as many of the flag fields as
    possible.
 
-   0x06 position information: Three 16-bit IEEE floating point numbers representing the X, Y and Z position
+   5: Raw content of a Digitrax Transponding read
+
+   Is there a document we can refer to about the format and content of this?
+
+   The scanner is expected to parse the contents of the read data and fill in as many of the flag fields as
+   possible.
+
+   6: Position information: Three 16-bit IEEE floating point numbers representing the X, Y and Z position
    of the detected object on the layout. The units are meters.  
 
    The origin and direction of axes is specified when the scanner is configured by the user, but
@@ -352,8 +352,8 @@
    Note that 8-bit IEEE does not have a suitable resolution at a suitable maximum range. 16-bit IEEE
    provides roughly 16mm steps at +/-25m
 
-   0x08 Analog information – for reporting analog information (voltage, current, temperature, water level,
-   …) as an IEEE-16 value in SI units, followed by a byte for units, followed by an optional human-readable
+   7: Analog information: For reporting analog information (voltage, current, temperature, water level, …)
+   as an IEEE-16 value in SI units, followed by a byte for units, followed by an optional human-readable
    string. The defined units are
 
    0: Unknown, no unit specified.
@@ -390,7 +390,7 @@
    readings in the block. Note that there can be multiple readings of a single type in the same message
    e.g. “Ambient temperature” and “Motor temperature”.
 
-   0x09 – 0xFF reserved, do not send; ignore the block on receipt.
+   All others reserved, do not send; ignore the block on receipt.
 
    Definitions for JSON and XML formats were considered. They were not included because that would define
    yet another level of syntax that would require standardization, and it was felt that the standard format
