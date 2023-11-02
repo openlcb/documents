@@ -8,13 +8,9 @@
    e.g. RFID and QR scanners and other detectors to publish information about the detected location of
    rolling stock.
 
-   Items in italics are basic open questions that should be addressed before this is published as a draft.
-
 1.1 Served Use Cases
 
-    1.  
-
-    2. A train enters a current-detected block.  A detector recognizes this, successfully queries the
+    1. A train enters a current-detected block.  A detector recognizes this, successfully queries the
        decoder for its address, and reports that information on the OpenLCB bus. That information results
        in a speed command such as Slow or Stop being sent to that particular train.
 
@@ -119,13 +115,10 @@
        possible scanner IDs before it can start processing or displaying scanning results.
 
     7. The identification of which scanner is reporting should be early in the message(s).  This allows
-       nodes to drop the receipt of the message(s) early, without having to buffer them completely. (Note
-       that the relative priority of this requirement and the one below has not yet been determined)
+       nodes to drop the receipt of the message(s) early, without having to buffer them completely.
 
     8. The identification of the detected rolling stock should be early in the message(s).  This allows
-       nodes to drop the receipt of the message(s) early, without having to buffer them completely. (Note
-       that the relative priority of this requirement and the one above has not yet been determined; this
-       proposal ranks the previous one above this one)
+       nodes to drop the receipt of the message(s) early, without having to buffer them completely.
 
     9. There should be a standard algorithm to find the UniqueID of the scanned piece of rolling stock
        within the message(s), when the scanner can provide one.  In the common case of DCC, this is the
@@ -145,9 +138,7 @@
 
 1.4 Not Requirements; Unmet Requirements
 
-    1. Ideally, the messages for this protocol should be a super-set of those from the DCC Detection
-       Protocol. (This does not seem possible now, but at an early stage of requirement generation one
-       could dream...)
+    1. The messages for this protocol should be a super-set of those from the DCC Detection Protocol.
 
                                              2 Specified Sections
 
@@ -162,7 +153,7 @@
 
    A “scanner’ is a device that can gather information from the railroad, typically when something happens.
    RFID readers, QR code readers, point optical detectors and track current detectors are all examples of
-   scanners.
+   scanners. There may be many scanners associated with an individual node.
 
    A scanner forwards one instance of the gathered information as a “report”.  
 
@@ -189,20 +180,22 @@
    The proposal is to carry reports within a Producer Consumer Event Report (PCER) as an event with payload
    defined by:
 
-   Note bytes 0-7 are the Event ID of the message, 8-264 are the payload of the message.
+   Note bytes 0-7 are the Event ID of the message, 8 through the end of the message are the payload of the
+   message.
 
-     * Bytes 0-1: A defined prefix from the well-defined space to be assigned.
+     * Bytes 0-1: The defined prefix 0x0102 is assigned to this.
 
-          *  0x0102 is recommended by this draft.
-
-   This unambiguously identifies this PCER as part of this protocol.
+   This unambiguously identifies this PCER message as part of this protocol.
 
    That enables nodes not interested in this protocol to discard this event-with-payload transmission
    immediately.
 
-   Using a unique prefix (e.g. the recommended 0x0102) followed by a UniqueID (see immediately below) is a
-   mechanism for creating a fully-unique Event ID. No other Event ID allocation mechanism can duplicate one
-   of these IDs.
+   Using a unique prefix followed by a UniqueID (see immediately below) is a mechanism for creating a
+   fully-unique Event ID. No other Event ID allocation mechanism can duplicate one of these IDs.
+
+   As an alternative, using multiple prefixes to separate out various forms of content was considered.
+    This makes the interactions below more complicated, without any particular benefit, so a single prefix
+   is used.
 
      * Bytes 2-7: A Unique ID that specifies the device that read the information e.g. a scanner.
 
@@ -212,6 +205,10 @@
    Putting this near the start of the message (1st CAN frame) allows early rejection of uninteresting
    scanner sources.
 
+   Note that each scanner has a Unique ID that may be separate from the Unique ID of the node supporting
+   it.  In the case of multiple scanners associated with a node, each will have its own Unique ID, and only
+   one at most may be the same as that node.
+
      * Bytes 8-9: Flag bits, defined below
 
      * Bytes 10-15: A Unique ID that specifies the item being scanned, e.g. a train node ID, DCC address
@@ -219,12 +216,12 @@
 
    This will fit in the 2nd CAN frame, allowing early rejection of uninteresting items when available.
 
-   Is it the right choice to put the scanner ID in the Event ID for easy retrieval by the identify
-   exchanges, while putting the scanned device in the content requiring more interactions to find them?
+   Placing this in the content and having the scanner ID in the first eight bytes was preferred because it
+   simplified the defined interactions.
+
+   The process for mapping a DCC address to a Unique ID is defined elsewhere.
 
      * Bytes 16-NN: Any read (scanned) content that's available.
-
-    
 
    Note that there is no restriction on the length of the message in the Standard.  When designing
    something using this protocol, it’s important to consider the impact of the data length on network
@@ -235,19 +232,19 @@
 
    bits 0-1: entry/exit
 
-   0b00: exit – the report refers to an item disappearing from the detected area
+   0b00: exit – The report refers to an item disappearing from the detected area.
 
-   0b01: entry without state – the report refers to an item appearing in the detected area; no report of
-   the item eventually disappearing from the detected area will follow
+   0b01: entry without state – The report refers to an item appearing in the detected area; no report of
+   the item eventually disappearing from the detected area will follow.
 
-   0b10: entry with state – the report refers to an item appearing in the detected area; a report of the
-   item eventually disappearing from the detected area will follow
+   0b10: entry with state – The report refers to an item appearing in the detected area; a report of the
+   item eventually disappearing from the detected area will follow.
 
-   0b11: runknown – this message may or may not be due to an item appearing or disappearing.
+   0b11: unknown – This message may or may not be due to an item appearing or disappearing.
 
    E.g. this might refer to an item that’s remaining within the scanned region.
 
-   bits 2-3: direction of relative motion – defined with respect to the designated front of the piece of
+   bits 2-3: direction of relative motion – Defined with respect to the designated front of the piece of
    rolling stock.
 
    0b00: stopped
@@ -258,7 +255,7 @@
 
    0b11: unknown
 
-   bits 4-5: direction of absolute motion – the geographical meanings of these are defined during set up of
+   bits 4-5: direction of absolute motion – The geographical meanings of these are defined during set up of
    the scanner. Note that this is the direction of motion, not direction the front of the item is pointing.
 
    0b00: stopped
@@ -269,10 +266,19 @@
 
    0b11: unknown
 
-   bits 6-7: reserved, send as zero and ignore on receipt
+   bits 6-7:  facing direction – The geographical direction that the front of the item is facing. The
+   geographical meanings of these are defined during the set up of the scanners.
 
-   Should this contain an indication of the direction the front of the item is facing? There could be
-   scanners that can detect that but can’t detect forward/reverse motion and east/west motion.
+   0b00: reserved – Do not send, ignore on receipt.
+
+   0b01: east/north
+
+   0b10: west/south
+
+   0b11: unknown – The scanner did not determine a value for this item.
+
+    There could be scanners that can detect this but can’t detect forward/reverse motion and east/west
+   motion.
 
    bits 8-11: reserved, send as zero and ignore on receipt
 
@@ -282,12 +288,7 @@
 
    0b00 reserved, do not send; ignore message upon receipt of 0b00
 
-   0b01 occupancy/location information only, no additional information present
-
-   Indicating “no additional information present”, instead of there just being no additional bytes of
-   information, could be reconsidered.
-
-   0b02 (initial) standard content form, see below
+   0b01 (initial) standard content form, see below
 
     2.4.1.2 Standard Content Form
 
@@ -295,7 +296,9 @@
 
    byte 0: length of content N, including type byte and data but not including the length byte
 
-   Numerology:  Is a byte sufficient here? Why?
+   Numerology:   Although the length of the data field is not limited by Standards, messages with over 256
+   bytes of content in a single item are expected to be rare.  Should that be required at some point, that
+   data can be placed in multiple blocks defined with a first, middle, end type.
 
    byte 1: type of content – see below
 
@@ -320,7 +323,8 @@
 
    0x02 raw content of a read RFID tag.
 
-   Do we need to have subtypes here for the type of tag, i.e.  ISO14443 vs ISO15693?
+   In the  future, it may be desirable to define types for specific types of tag, e.g. ISO14443, ISO15693,
+   etc. That’s left for a future version once more usage experience is available.
 
    0x03 raw content of a read QR or bar code
 
@@ -348,45 +352,59 @@
    Note that 8-bit IEEE does not have a suitable resolution at a suitable maximum range. 16-bit IEEE
    provides roughly 16mm steps at +/-25m
 
-   0x07 JSON formatted data
-
-   How is the specific JSON content defined? “Self-defining” is not great in a standard.
-
-   Should XML-formatted data also be provided for?
-
-   Perhaps having neither JSON nor XML should be here.  Isn’t the basic length/type/data coding sufficient
-   for typed data?
-
    0x08 Analog information – for reporting analog information (voltage, current, temperature, water level,
-   …) as an IEEE-16 value in SI units
+   …) as an IEEE-16 value in SI units, followed by a byte for units, followed by an optional human-readable
+   string. The defined units are
 
-   How do we indicate what kind of information is being presented?  We need something in the block so that
-   we can have multiple analog blocks in the block. Note that there can even be multiple readings of a
-   single type in the same message e.g. “Ambient temperature” and “Motor temperature”. Possibilities
-   include:
+   0: Unknown, no unit specified.
 
-    1. A single byte sub-type ID with a defined set of values and meanings
+   1: Volts
 
-    2. A null-terminated string that describes the type, with or without a defined set of possible values
-       and their meanings.
+   2: Amperes
 
-    3. A combination: a byte that identifies the physical quantity (volts, amps, degrees C, meters,
-       radians, …) with provision for an optional null-terminated string label (e.g “Ambient” for a
-       temperature reading)
+   3: Watts
+
+   4: Ohms
+
+   5: Degrees C
+
+   6: Seconds
+
+   7: Meters
+
+   8: Meters2
+
+   9: Meters3
+
+   10: Meters/second
+
+   11: Meters/second/second
+
+   12: Kilograms
+
+   13: Newtons
+
+   All others: Reserved, do not send, treat as unknown on receipt
+
+   There needs to be something in the block so that there can be multiple independent analog information
+   readings in the block. Note that there can be multiple readings of a single type in the same message
+   e.g. “Ambient temperature” and “Motor temperature”.
 
    0x09 – 0xFF reserved, do not send; ignore the block on receipt.
 
-   (Much more work needed here)
+   Definitions for JSON and XML formats were considered. They were not included because that would define
+   yet another level of syntax that would require standardization, and it was felt that the standard format
+   could be defined to carry the same data as needed.
 
   2.4.2 Consumed and Produced Event ID
 
-   Every node that produces information via this protocol also consumes a specific well-known Event ID
-   consisting of the well-known prefix assigned above (0x0102 recommended) followed by six 0x00 bytes.
+   Every node that produces information via this protocol must also consume a specific well-known Event ID
+   consisting of the well-known 0x0102 prefix assigned  followed by six 0x00 bytes.
 
-   The six 0x00 bytes is an invalid Unique ID, so no node will allocate this as its own.
+   The six 0x00 bytes is an invalid Unique ID, so no scanner will allocate this as its own.
 
-   Nodes that will inquire as to the current values of reports produce a specific well-known Event ID
-   consisting of the well-known prefix assigned above (0x0102 recommended) followed by six 0x00 bytes.
+   Nodes that will inquire for the current values of reports produce a specific well-known Event ID
+   consisting of the 0x0102 prefix followed by six 0x00 bytes.
 
 2.5 States
 
@@ -397,7 +415,7 @@
 
 2.6 Interactions
 
-   Note that the Unique ID that specified the device doing the reading (bytes 2-7) does not need to be the
+   Note that the Unique ID that specified the scanner doing the reading (bytes 2-7) does not need to be the
    Node ID of the scanning node.  It just needs to be uniquely assigned by the node creator from some
    assigned space to indicate the device doing the read.
 
@@ -421,10 +439,10 @@
    event-with-payload sequence at a time.  
 
    Example: An RFID reader reads the fixed information from a tag.  This does not directly contain a Unique
-   ID for the associated item.  The reader produces a report with a zero value for bytes 10-15, the
-   identity of the scanned item, and a block of RFID information.  A second node with a RFID → Node ID
-   mapping database consumes that message, looks up the appropriate Unique ID, and produces a report
-   message that contains it and the original RFID information block.
+   ID for the scanned item.  The reader produces a report with a zero value for bytes 10-15, the identity
+   of the scanned item, and a block of RFID information.  A second node with a RFID → Node ID mapping
+   database consumes that message, looks up the appropriate Unique ID of the scanned item, and produces a
+   report message that contains it and the original RFID information block.
 
    Example: A scanner produces a message that carries only the minimal information.  A second node with
    other sources of data consumes that message. Using the Unique IDs for the scanner and the scanned item,
@@ -466,17 +484,17 @@
   2.6.2 Identification of scanners
 
     Sending the defined 0x01 02 00 00 00 00 00 00 Event ID in an Identify Consumer message will result in
-   Consumer Identified messages that indicate which nodes can take part in this protocol as scanners.
+   Consumer Identified messages that indicate which nodes can take part in this protocol.
 
    This removes the need to include this protocol in the Protocol Identification Protocol bits, although
    that can also be considered for ease of access.
 
+   Note that this refers to nodes. The individual scanners are not nodes. They’re not expected to each
+   implement the full OpenLCB protocol stack.  Instead, this protocol has a single node providing that
+   service for multiple scanners.
+
    Once the nodes that use this protocol have been identified, an Identify Events directed to each of them
    will return Producer Identified messages indicating the Unique IDs of all the scanners.
-
-   Note that scanners are not individual full nodes.  They’re not expected to each implement the full
-   OpenLCB protocol stack.  Instead, this protocol has a single node providing that service for multiple
-   scanners.
 
   2.6.3 Identification of scannable objects
 
@@ -497,19 +515,17 @@
    This might be a large load on the network. PCER messages are high priority, and this request will result
    on one or more messages from (most? all?) scanners.
 
-   Is there a need for being able to get a report from just one scanned device?  E.g. “Any scanner that
-   currently sees device A.B.C.D.E.F, please resend your last report”?
+   There is no standard interaction defined to get a report from just one scanned device, i.e. there is no
+   standard interaction defined that does “Any scanner that currently sees device A.B.C.D.E.F, please
+   resend your last report”.
 
   2.6.5 Identifying users of scanned information
 
-   A node can identify all nodes that use scanned information by emitting an Identify Producer message for
-   the 0x01 02 00 00 00 00 00 00 Event Id.  
+   A node can identify  nodes that use scanned information by emitting an Identify Producer message for the
+   0x01 02 00 00 00 00 00 00 Event Id.  
 
-   It works out this way, but is there any use for it?
-
-   The current language doesn’t actually require that a using node be able to produce that event if it’s
-   not going to inquire about the current reports.  So “identify all nodes that use scanned information”
-   might be over-promising.
+   The Standard doesn’t actually require that a using node be able to produce that event if it’s not going
+   to inquire about the current reports.  So this is not “identify all nodes that use scanned information”.
 
   2.6.6 Traffic limiting
 
@@ -517,16 +533,8 @@
 
    The goal of this section is to reduce the bandwidth consumed by repeating detection messages.
 
-    
-
-   Another approach would to prohibit sending the same content twice in a row. However, there may be
-   situations where that’s a valid thing to do.
-
-   Another approach would be to say that a node may not produce the same content twice in a row from each
-   scanner that it supports.  This will prevent "scanner A, scanner B, scanner A, scanner B" bursts of
-   messages. The cost is additional state for each scanner.
-
-    
+   Another approach would have been to prohibit sending the same content twice in a row. However, there may
+   be situations where that’s a valid thing to do.
 
                                            3 Background Information
 
@@ -550,7 +558,7 @@
 
    Some scanners can report the direction of the detected train. For some, this is whether the train is
    moving in forward or reverse.  For others, it’s whether the train is moving in one direction on the
-   track vs the other (North vs South, East vs West). ProTrak Grapevine systems can report moving
+   track vs the other (North vs South, East vs West), e.g. ProTrak Grapevine systems can report moving
    North/East, not moving, and moving South/West.
 
    RPS detectors reported absolute X, Y and Z coordinates of the detected rolling stock.  The report was
@@ -559,8 +567,8 @@
 
    Traditional block detectors and point detectors are an interesting special case. They’re simple,
    low-cost and common on layouts. They can’t sense any address information from the detected rolling
-   stock. Their needs are already met by the Event Transfer protocol itself, they can also use this
-    protocol to convey their information too.
+   stock. Although their needs are already met by the Event Transfer protocol itself, they can also use
+   this  protocol to convey their information too.
 
    Table of Contents
 
