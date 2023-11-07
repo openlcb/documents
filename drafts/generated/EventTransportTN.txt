@@ -141,6 +141,11 @@
    The source Node ID allows identification of which node sent the event. This can be used for diagnostic
    and status purposes, but nodes must act on the event without regard to where it came from.
 
+   Note that the Standard does not define a maximum length for the payload.  In practice, because PCER
+   messages are high priority, very long PCER-with-payload messages can block timely transmission of other
+   high-priority messages. When designed protocols that use this service, it may be useful to define ways
+   to use multiple, shorter PCER-with-payload messages instead of one long one.
+
   2.4.2 Identify Consumer
 
    This message is broadcast and requests each node to report whether it consumes this Event ID.  
@@ -449,7 +454,7 @@
 
   2.6.6 Resetting to Default
 
-   Nodes are responsible for ensuring that a Event ID is really unique if required.  This has implications
+   Nodes are responsible for ensuring that an Event ID is really unique if required.  This has implications
    for how event IDs are defined when the node is reset to “factory defaults”.  
 
    For example, say that a node has Node ID 1.2.3.4.5.6 and therefore starts with its first producer
@@ -471,12 +476,12 @@
 
    Alternately, the node can keep track of which Event IDs might have left the node and been reused.  This
    includes any of the messages that carry the Event ID, including but not limited to Teach Event, plus
-   configuration memory reads and perhap other methods.  If the Event ID in a producer or consumer has been
-   retrieved and used, then it needs to be given a new Event ID.  If not, it can keep it's existing Event
-   ID.  While Identify Event messages can be used to discover if a particualr Event is being used, it will
-   not find any nodes that are not active, or have left the layout, so a conflict could occur if those
+   configuration memory reads and perhaps other methods.  If the Event ID in a producer or consumer has
+   been retrieved and used, then it needs to be given a new Event ID.  If not, it can keep it's existing
+   Event ID.  While Identify Event messages can be used to discover if a particular Event is being used, it
+   will not find any nodes that are not active, or have left the layout, so a conflict could occur if those
    nodes become active of the layout again.  It is therefore much safer to reset to defaults and obtain a
-   new set of unused Events.  This is particularly important is the node is passed onto someone else.  
+   new set of unused Events.  This is particularly important if the node is passed onto someone else.  
 
     
 
@@ -490,28 +495,42 @@
    across CAN networks.  Following those standards, the Event Transport messages used on CAN are as defined
    in the following table.
 
-   MessageName                       Simple Node Dest ID Event ID Header Format           Data-part Content 
-   Producer/Consumer Event Report    Y           N       Y        0x195B,4sss5            Event ID          
-   (PCER)                            
-   Identify Consumer                 Y           N       Y        0x198F,4sss             Event ID          
-                                                                  0x194C,4sss — Valid                       
-                                                                                          
-   Consumer Identified               N           N       Y        0x194C,5sss — Invalid   Event ID
-                                                                                          
-                                                                  0x194C,7sss — Unknown   
-   Consumer Range Identified         N           N       Y        0x194A,4sss             Event ID Range    
-   Identify Producer                 Y           N       Y        0x1991,4sss             Event ID          
-                                                                  0x1954,4sss — Valid                       
-                                                                                          
-   Producer Identified               N           N       Y        0x1954,5sss — Invalid   Event ID
-                                                                                          
-                                                                  0x1954,7sss — Unknown   
-   Producer Identified Range         N           N       Y        0x1952,4sss             Event ID Range    
-   Identify Events                   Y           N       N        0x1997,0sss                               
-                                     N           Y       N        0x1996,8sss             fddd6             
-   Teach Event                       Y           N       Y        0x1959,4sss             Event ID          
+   MessageName                        Simple Node Dest ID Event ID Header Format         Data-part Content  
+   Producer/Consumer Event Report     Y           N       Y        0x195B,4sss5          Event ID           
+   (PCER)                             
+   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,7sss           Event ID           
+   (PCER) first frame                 
+   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,6sss           8 bytes of payload 
+   (PCER) middle frame                
+   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,5sss           Last 1-8 bytes of  
+   (PCER) last frame                                                                     payload            
+   Identify Consumer                  Y           N       Y        0x198F,4sss           Event ID           
+                                                                   0x194C,4sss — Valid                      
+                                                                                         
+   Consumer Identified                N           N       Y        0x194C,5sss — Invalid Event ID
+                                                                                         
+                                                                                         
+                                                                   0x194C,7sss — Unknown 
+   Consumer Range Identified          N           N       Y        0x194A,4sss           Event ID Range     
+   Identify Producer                  Y           N       Y        0x1991,4sss           Event ID           
+                                                                   0x1954,4sss — Valid                      
+                                                                                         
+   Producer Identified                N           N       Y        0x1954,5sss — Invalid Event ID
+                                                                                         
+                                                                   0x1954,7sss — Unknown 
+   Producer Identified Range          N           N       Y        0x1952,4sss           Event ID Range     
+   Identify Events                    Y           N       N        0x1997,0sss                              
+                                      N           Y       N        0x1996,8sss           fddd6              
+   Teach Event                        Y           N       Y        0x1959,4sss           Event ID           
 
     
+
+   Note that a PCER message may carry its Event ID in two types of CAN frames with header format
+   0x195B,7sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
+   it should still examine and react to the Event ID carried with both header forms.
+
+   The MTI values for the first-middle-last CAN frames were chosen so that the first frame has higher CAN
+   priority than the middle, which has higher CAN priority than the last frame.
 
   2.7.1 CAN States
 
@@ -551,6 +570,11 @@
 
    The automatically-routed event range always has to be routed. This can be done by making a permanent
    entry in routing tables, or any other implementation method.
+
+   Note that gateways may, but are not required to, reorder lower priority messages after higher priority
+   messages.  This does not extend to reordering the frames of a CAN PCER message without payload (MTI
+   0x05b4) behind a PCER message with payload (MTI 0x05B7, 0x05B6, 0x05B5).  All of these must maintain
+   their original order.
 
 3.2 Examples
 
@@ -651,7 +675,7 @@
    Similar discussion goes for repeated events:  Does the hardware have to do something twice?  That
    depends. In some cases, it's not even clear what it means. Specifying this is the node manufacturers
    job, because they have uses in mind, and they make nodes to meet those uses.  OpenLCB just arranges to
-   deliver events for them their processing. Node manufacturers should certainly specify the performance of
+   deliver events for  their processing. Node manufacturers should certainly specify the performance of
    their nodes.  More knowledge is good, but the standard doesn't compel anything because it's hard to
    write a testable requirement.
 

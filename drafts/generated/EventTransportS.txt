@@ -10,8 +10,9 @@
    to one specific concept, such as a specific lighting configuration, or a more abstract concept, such as
    the “start of the day” or “global stop”.   That concept can then be implemented and shared by
    cooperative action between nodes that “produce” the event by sending messages, and nodes that “consume”
-   the event by receiving messages and acting upon them.  This document defines that interaction between
-   producers and consumers in terms of OpenLCB messages.
+   the event by receiving messages and acting upon them.  In addition, the Event ID can be accompanied by
+   one or byes of payload whose content is defined by other OpenLCB documents. This document defines that
+   interaction between producers and consumers in terms of OpenLCB messages.
 
    This document describes the required message formats for event transport. Section 4 gives an overview of
    the message types with an abstract numeric description intended as a normative guide to the construction
@@ -53,8 +54,9 @@
 
 4.1 Producer/Consumer Event Report (PCER)
 
-   Name                           Simple Node Dest ID Event ID Common MTI Data Content 
-   Producer/Consumer Event Report Y           N       Y        0x05B4     Event ID     
+   Name                           Simple Node Dest ID Event ID Common MTI Data Content                      
+   Producer/Consumer Event Report Y           N       Y        0x05B4     Event ID, followed by 0 or more   
+                                                                          additional payload bytes          
 
     
 
@@ -192,10 +194,11 @@
 6.1 Event Transfer
 
    To produce an event, the node containing the producer shall emit a PCER message containing the specific
-   Event ID. The OpenLCB message network shall transport that message to all attached nodes, except as
-   described in the next paragraph. Nodes containing consumers shall check for a match between the message
-   Event ID and their consumers. If a match is found, the consumer shall perform any local operations
-   configured into it. If a match is not found, the consumer shall not perform any local operations.
+   Event ID and optional payload. The OpenLCB message network shall transport that message to all attached
+   nodes, except as described in the next paragraph. Nodes containing consumers shall check for a match
+   between the message Event ID and their consumers. If a match is found, the consumer shall perform any
+   local operations configured into it. If a match is not found, the consumer shall not perform any local
+   operations.
 
    Equipment that transports PCER messages shall transport them to all connected nodes from which the
    equipment has received a Consumer Identified or Consumer Range Identified for the reported Event ID.
@@ -256,8 +259,31 @@
 
                                          7 CAN Adaptation (Normative)
 
-   There are no specific provisions for CAN transport. The messages are formatted on CAN transport as
-   defined for generic addressed messages in the OpenLCB Message Network Standard.
+   There are no specific provisions for CAN transport other than the Producer/Consumer Event Report
+   message. The other messages are formatted on CAN transport as defined for generic addressed messages in
+   the OpenLCB Message Network Standard.
+
+   When the Producer/Consumer Event Report message has only the Event ID and no additional payload, it is
+   sent as a single frame with the 0x05B4 MTI documented above.
+
+   When a Producer/Consumer Event Report message contains an additional payload, it is send as multiple
+   frames:
+
+     * The Event ID is sent in a CAN frame formatted with the MTI 0x05B7
+
+     * If there are more than eight bytes of payload, one or more CAN frames carrying eight sequential
+       bytes of the payload are sent with MTI 0x05B6.  Note that these must carry exactly eight bytes of
+       payload.
+
+     * The final one to eight bytes are sent in a CAN frame with MTI 0x05B5.
+
+   The CAN frames making up a single Producer/Consumer Event Report message with payload must be sent
+   together, with no intervening lower priority frames.  This includes a Producer/Consumer Event Report
+   message without payload (MTI 0x5b4).
+
+    
+
+    
 
     
 
