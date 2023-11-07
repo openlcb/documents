@@ -72,67 +72,93 @@
 
    The following Event Identifiers are not automatically routed.
 
-   Value                                        Suffix            Description                               
-   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6    Byte 7    Byte 8  
-                 *      *      *      *         *         *       Well-Known Event Identifiers              
-                                                02        01      Duplicate Node ID Detected                
-                                                03        *       Reserved for Traction Protocol            
-                                                03        01      Reserved                                  
-                                                03        02      Reserved                                  
-                               00     00        03        03      This node is a Train                      
-                 00     00                      03        04      This node is a Traction Proxy             
-                                                06        *       Reserved for Firmware Upgrade Protocol    
-                                                06        01      Firmware Corrupted                        
-                                                06        02      Firmware Upgrade Request by Hardware      
-                                                                  Switch                                    
-                               01     00        *                 Default Fast Clock                        
-                                      01        *                 Default Real-Time Clock                   
-                 00     00     01     02        *                 Alternate Clock 1                         
-                                      03        *                 Alternate Clock 2                         
-                                                                  Subset of the assigned Node ID space for  
-                 01     00     CBUS             CBUS              CBUS mapped nodes. Node ID is 00.00 for   
-                               Node ID          Event ID          short events. This range is an ON         
-                                                                  request.                                  
-                                                                  Subset of the assigned Node ID space for  
-                 01     01     CBUS             CBUS              CBUS mapped nodes. Node ID is 00.00 for   
-                               Node ID          Event ID          short events. This range is an OFF        
-                                                                  request.                                  
-                                                                  Activate basic DCC accessory decoder      
-                                                                  address.                                  
+   Value                                        Suffix               Description                            
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6    Byte 7      Byte 8   
+                 *      *      *      *         *           *        Well-Known Event Identifiers           
+                                                02          01       Duplicate Node ID Detected             
+                                                03          *        Reserved for Traction Protocol         
+                                                03          01       Reserved                               
+                                                03          02       Reserved                               
+                               00     00        03          03       This node is a Train                   
+                 00     00                      03          04       This node is a Traction Proxy          
+                                                06          *        Reserved for Firmware Upgrade Protocol 
+                                                06          01       Firmware Corrupted                     
+                                                06          02       Firmware Upgrade Request by Hardware   
+                                                                     Switch                                 
+                               01     00        *                    Default Fast Clock                     
+                                      01        *                    Default Real-Time Clock                
+                 00     00     01     02        *                    Alternate Clock 1                      
+                                      03        *                    Alternate Clock 2                      
+                                                                     Subset of the assigned Node ID space   
+                 01     00     CBUS             CBUS                 for CBUS mapped nodes. Node ID is      
+                               Node ID          Event ID             00.00 for short events. This range is  
+                                                                     an ON request.                         
+                                                                     Subset of the assigned Node ID space   
+                 01     01     CBUS             CBUS                 for CBUS mapped nodes. Node ID is      
+                               Node ID          Event ID             00.00 for short events. This range is  
+                                                                     an OFF request.                        
+                                                                     Activate basic DCC accessory decoder   
+                                                                     address.                               
                                                                                                             
-                                                12-bit DCC Basic  Bytes 7 and 8 are the DCC accessory       
-   01     01                          FF        Accessory Address decoder address (0 – 4087)1.  4088 – 4095 
-                                                                  are utilized in the DCC standard as       
-                                                                  broadcast addresses.  All other values    
-                                                                  for bytes 7 and 8 are reserved for future 
-                               00                                 uses.                                     
-                                                                  Deactivate basic DCC accessory decoder    
-                                                                  address.                                  
+                                                12-bit DCC Basic     Bytes 7 and 8 are the DCC accessory    
+                                      FF        Accessory Address    decoder address (0 – 4087)1.  4088 –   
+                                                                     4095 are utilized in the DCC standard  
+                                                                     as broadcast addresses.  All other     
+                                                                     values for bytes 7 and 8 are reserved  
+                                                                     for future uses.                       
+                                                                     Deactivate basic DCC accessory decoder 
+                                                                     address.                               
                                                                                                             
-                                                12-bit DCC Basic  Bytes 7 and 8 are the DCC accessory       
-                                      FE        Accessory Address decoder address (0 – 4087)1.  4088 – 4095 
-                                                                  are utilized in the DCC standard as       
-                                                                  broadcast addresses.  All other values    
-                                                                  for bytes 7 and 8 are reserved for future 
-                 02     00                                        uses.                                     
-                                      07        FF        00      Extended DCC accessory decoder emergency  
-                                                                  stop.2                                    
-                                                                  Send command to extended DCC accessory    
-                                                                  decoder address.                          
+                                                12-bit DCC Basic     Bytes 7 and 8 are the DCC accessory    
+                                      FE        Accessory Address    decoder address (0 – 4087)1.  4088 –   
+                                                                     4095 are utilized in the DCC standard  
+                                                                     as broadcast addresses.  All other     
+                                                                     values for bytes 7 and 8 are reserved  
+   01     01                                                         for future uses.                       
+                                                                     DCC turnout feedback active/on/high.   
+                                                                                                            
+                                      FD        12-bit DCC Accessory Bytes 7 and 8 contain the DCC          
+                               00               Address              accessory decoder address (0 – 4095).  
+                                                                     All other values for bytes 7 and 8 are 
+                                                                     reserved for future uses.              
+                                                                     DCC turnout feedback inactive/off/low. 
                                                                                                             
-                                                                  Please refer to NMRA S-9.2.1 for the      
-                                                                  definitions of Byte 8, which corresponds  
-                                                                  to the 3rd byte of a DCC extended         
-                               01     11-bit DCC Extended         accessory decoder packet.                 
-                                      Accessory Address   00 - FF                                           
-                                                                  Bytes 6 and 7 are the DCC accessory       
-                                      00.04 - 07.FE               decoder address. Valid values are from 4  
-                                                                  to 2046. By convention, user addresses    
-                                                                  are from 1 to 2043, with user address 1   
-                                                                  corresponding to value 4 at bytes 6 and   
-                                                                  7. All other values for bytes 6 and 7 not 
-                                                                  separately defined are reserved for       
-                                                                  future uses.                              
+                                      FC        12-bit DCC Accessory Bytes 7 and 8 contain the DCC          
+                                                Address              accessory decoder address (0 – 4095).  
+                                                                     All other values for bytes 7 and 8 are 
+                                                                     reserved for future uses.              
+                 02     00                                           DCC system sensor feedback             
+                                                                     active/on/high.                        
+                                                12-bit DCC Sensor                                           
+                                      FB        Address              Bytes 7 and 8 contain the sensor       
+                                                                     address (0 – 4095). All other values   
+                                                                     for bytes 7 and 8 are reserved for     
+                                                                     future uses.                           
+                                                                     DCC system sensor feedback             
+                                                                     inactive/off/low.                      
+                                                12-bit DCC Sensor                                           
+                                      FA        Address              Bytes 7 and 8 contain the DCC sensor   
+                                                                     address (0 – 4095). All other values   
+                                                                     for bytes 7 and 8 are reserved for     
+                                                                     future uses.                           
+                                      07        FF          00       Extended DCC accessory decoder         
+                                                                     emergency stop.2                       
+                                                                     Send command to extended DCC accessory 
+                                                                     decoder address.                       
+                                                                                                            
+                                                                     Please refer to NMRA S-9.2.1 for the   
+                                                                     definitions of Byte 8, which           
+                                                                     corresponds to the 3rd byte of a DCC   
+                               01     11-bit DCC Extended            extended accessory decoder packet.     
+                                      Accessory Address     00 - FF                                         
+                                                                     Bytes 6 and 7 are the DCC accessory    
+                                      00.04 - 07.FE                  decoder address. Valid values are from 
+                                                                     4 to 2046. By convention, user         
+                                                                     addresses are from 1 to 2043, with     
+                                                                     user address 1 corresponding to value  
+                                                                     4 at bytes 6 and 7. All other values   
+                                                                     for bytes 6 and 7 not separately       
+                                                                     defined are reserved for future uses.  
 
     
 
