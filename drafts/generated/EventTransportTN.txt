@@ -28,7 +28,7 @@
    event.
 
    In addition to the 8-byte EventID, produced events may be accompanied by one or more bytes of payload.
-    This can be used as effectively a global transport mechanism.
+    This can be used as a global transport mechanism.
 
    OpenLCB event IDs carry no specific information about whether they are coding “on” or “off”, “active” or
    “inactive” for some output state.  It's possible for multiple consumers to do different things in
@@ -532,8 +532,8 @@
    0x195B,7sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
    it should still examine and react to the Event ID carried with both header forms.
 
-   The MTI values for the first-middle-last CAN frames were chosen so that the first frame has higher CAN
-   priority than the middle, which has higher CAN priority than the last frame.
+   The MTI values for the first-middle-last CAN frames were chosen so that the first frame has lower CAN
+   priority than the middle, which has lower CAN priority than the last frame.
 
   2.7.1 CAN States
 
@@ -575,9 +575,9 @@
    entry in routing tables, or any other implementation method.
 
    Note that gateways may, but are not required to, reorder lower priority messages after higher priority
-   messages.  This does not extend to reordering the frames of a CAN PCER message without payload (MTI
-   0x05b4) behind a PCER message with payload (MTI 0x05B7, 0x05B6, 0x05B5).  All of these must maintain
-   their original order.
+   messages.  This only applies to OpenLCB priorities, of which there are four values. Gateways are not
+   allowed to reorder messages that have the same priority. This means that they may not reorder 0x5B4’s
+   between each other, nor may they reorder a 0x5B4 with any event with payload message either.
 
 3.2 Examples
 
