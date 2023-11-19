@@ -286,15 +286,16 @@
 
    The content format field is used to indicate the format of bytes 16-NN
 
-   0b00 reserved, do not send; ignore message upon receipt of 0b00
+   00x0 reserved, do not send; ignore message upon receipt of 0b00
 
-   0b01 (initial) standard content form, see below
+   0x1 (initial) standard content form, see below
 
     2.4.1.2 Standard Content Form
 
    The standard content form consists of one or more blocks formatted as
 
-   byte 0: length of content N, including type byte and data but not including the length byte
+   byte 0: length of content N, including type byte and data but not including the length byte. The value
+   of 0xFF is reserved for expansion to longer blocks and should not be used until that is defined.
 
    Numerology:   Although the length of the data field is not limited by Standards, messages with over 256
    bytes of content in a single item are expected to be rare.  Should that be required at some point, that
@@ -399,12 +400,16 @@
   2.4.2 Consumed and Produced Event ID
 
    Every node that produces information via this protocol must also consume a specific well-known Event ID
-   consisting of the well-known 0x0102 prefix assigned  followed by six 0x00 bytes.
+   consisting of the well-known 0x0102 prefix assigned  followed by six 0x00 bytes. When asked to Identify
+   Producers for this event, the reply should include the Valid modifier because the consuming nodes are
+   always prepared to respond to this event.
 
    The six 0x00 bytes is an invalid Unique ID, so no scanner will allocate this as its own.
 
    Nodes that will inquire for the current values of reports produce a specific well-known Event ID
-   consisting of the 0x0102 prefix followed by six 0x00 bytes.
+   consisting of the 0x0102 prefix followed by six 0x00 bytes. When asked to Identify Producers for this
+   event, the reply should include the Unknown modifier because there’s no state associated with this
+   inside the producer.
 
 2.5 States
 
@@ -421,8 +426,20 @@
 
    For example, consider a board that supports four RFID readers that operate independently.  Each of those
    readers will have a distinct Unique ID that is used when its detections are reported. In addition, the
-   board will have a Unique ID that it uses as its node ID.  This may, but does not have to be, the same as
-   the Unique ID of one of the readers.
+   board will have a single Unique ID that it uses as its node ID.  This may, but does not have to be, the
+   same as the Unique ID of one of the readers.
+
+   When requested to Identify Producers for one of the Report Messages defined above, the Producer
+   Identified response should  carry as modifiers:
+
+     * Valid – the last Report Message’s contents are still valid, and would be produced now
+
+     * Invalid – the last Report Message’s contents are no long valid, and would not be produced now
+
+     * Unknown – if neither of the above apply
+
+   These values are chosen to be consistent with the general definitions in the Event Transport protocol
+   definition.
 
   2.6.1 Reporting new information
 
