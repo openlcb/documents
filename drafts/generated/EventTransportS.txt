@@ -55,7 +55,7 @@
 4.1 Producer/Consumer Event Report (PCER)
 
    Name                           Simple Node Dest ID Event ID Common MTI Data Content                      
-   Producer/Consumer Event Report Y           N       Y        0x05B4     Event ID, followed by 0 or more   
+   Producer/Consumer Event Report Y           N       Y        0x05B4     Event ID, followed by 0 to  256   
                                                                           additional payload bytes          
 
     
@@ -281,11 +281,14 @@
 
      * The final one to eight bytes are sent in a CAN frame with the Variable field containing 0x05B5.
 
-   The CAN frames making up a single Producer/Consumer Event Report message with payload must be sent
-   together, with no intervening lower priority frames.  This includes a Producer/Consumer Event Report
-   message without payload (MTI 0x5b4). A Gateway translating the above CAN frame sequence to a different
-   Data Link layer shall ensure that for this sequence of frames, only one message is sent out with an MTI
-   of 0x5B4.
+   The CAN frames making up a single Producer/Consumer Event Report message with payload shall be sent
+   together, with no inter-frame delays or intervening frames of other messages.  This includes a
+   Producer/Consumer Event Report message without payload (MTI 0x5b4). A Gateway translating the above CAN
+   frame sequence to a different Data Link layer shall ensure that for this sequence of frames, only one
+   message is sent out with an MTI of 0x5B4.
+
+   Nodes that consume Producer/Consumer Event Report messages with payload shall be prepared to receive and
+   process Producer/Consumer Event Report messages that have overlapped.
 
     
 

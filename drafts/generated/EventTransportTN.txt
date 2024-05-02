@@ -144,10 +144,10 @@
    The source Node ID allows identification of which node sent the event. This can be used for diagnostic
    and status purposes, but nodes must act on the event without regard to where it came from.
 
-   Note that the Standard does not define a maximum length for the payload.  In practice, because PCER
-   messages are high priority, very long PCER-with-payload messages can block timely transmission of other
-   high-priority messages. When designed protocols that use this service, it may be useful to define ways
-   to use multiple, shorter PCER-with-payload messages instead of one long one.
+   Note that the Standard limits the payload to 256 bytes. This is to put a bound on required buffers. In
+   practice, because PCER messages are high priority, very long PCER-with-payload messages can block timely
+   transmission of other high-priority messages. When designing protocols that use this capability, it may
+   be useful to define ways to use multiple, shorter PCER-with-payload messages instead of one long one.
 
   2.4.2 Identify Consumer
 
@@ -532,6 +532,9 @@
    0x195B,7sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
    it should still examine and react to the Event ID carried with both header forms.
 
+   If a node handles PCER messages but doesn't use the event payload, it can skip the payload without
+   buffering it by ignoring middle and final EWP frames.
+
    The header values for the first-middle-last CAN frames were chosen so that the first frame has lower CAN
    priority than the middle, which has lower CAN priority than the last frame.
 
@@ -678,7 +681,7 @@
    Similar discussion goes for repeated events:  Does the hardware have to do something twice?  That
    depends. In some cases, it's not even clear what it means. Specifying this is the node manufacturers
    job, because they have uses in mind, and they make nodes to meet those uses.  OpenLCB just arranges to
-   deliver events for  their processing. Node manufacturers should certainly specify the performance of
+   deliver events for their processing. Node manufacturers should certainly specify the performance of
    their nodes.  More knowledge is good, but the standard doesn't compel anything because it's hard to
    write a testable requirement.
 
