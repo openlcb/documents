@@ -274,7 +274,7 @@
    Note that there is no requirement that the node's alias value be consistent from one power-up reset to
    the next.
 
-    2.6.2.3 Node ID Alias validation
+    2.6.2.3 Node ID Alias validation and invalidation
 
    The Alias Mapping Enquiry provides a mechanism for determining which alias is associated with each Node
    ID.  This can be used when a new node attaches and needs the information.  Operating nodes can also
@@ -305,6 +305,25 @@
    through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN level.
    It must not be a OpenLCB common message, though higher level protocols may want to provide a similar
    capability that spans the entire OpenLCB installation.
+
+   In either Inhibited or Permitted state, receipt of an Alias Mapping Enquiry frame with no data content
+   invalidates any previously validated alias to/from Node ID mapping information.  This will be followed
+   by nodes in Permitted state responding with AMD frames containing their alias and Node ID, which will
+   allow a node to rebuild the valid entries any alias ↔ Node ID mapping it maintains. Nodes which have
+   transitioned to Inhibited state or left the network will not reply. Sending an AME with no data content
+   thus insures that nodes are using only currently accurate alias information.
+
+   For an example of how this is useful, consider virtual nodes that are created and maintained by some
+   host node, e.g. in the Traction protocol. Other nodes are referencing those virtual nodes through
+   aliases.  When the control node is rebooted, it no longer knows that those virtual nodes have been
+   created, nor does it know that those aliases refer to them, yet the other nodes are still sending
+   messages using those aliases.  Those messages don’t get delivered to the virtual nodes because those
+   virtual nodes don’t exist yet.  By sending an AME with no content when it reboots, the host node can
+   ensure that the aliases for those virtual nodes are invalidated in the other nodes: The virtual nodes
+   won’t be replying to the AME with no content because they don’t exist yet.  When another node next tries
+   to send a message to a virtual node, it will realize that it doesn’t know the alias of that virtual
+   node. It will go through the process of using an AMD to acquire that alias, which will prompt recreation
+   of the virtual node so that operations can continue.
 
     2.6.2.4 Transition to Inhibited State
 
@@ -804,7 +823,7 @@
 
    2.6.2.2 Transition to Permitted State
 
-   2.6.2.3 Node ID Alias validation
+   2.6.2.3 Node ID Alias validation and invalidation
 
    2.6.2.4 Transition to Inhibited State
 
