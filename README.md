@@ -33,19 +33,22 @@ If you need to change any standards or drafts, use the following process:
 
 1. Make your edits in the ODT file. When you are in the drafts folder, make
    sure to have "Edit > Change tracking > Record" and "Show changes" both on.
-   
-2. Save the ODT file and exit soffice.
 
-3. Run make in the respective directory (standards or drafts) to generate PDF
+2. Update the last changed date in menu > File > Properties, select Custom
+   Properties, and update OlcbDate to the current date.
+   
+4. Save the ODT file and exit soffice.
+
+5. Run make in the respective directory (standards or drafts) to generate PDF
    and TXT output.
 
-4. Commit all three files (ODT, PDF, TXT).
+6. Commit all three files (ODT, PDF, TXT).
 
-5. Create a pull request. Make sure the pull request sets the "allow changes by
+7. Create a pull request. Make sure the pull request sets the "allow changes by
    the maintainer of the repository" if you are working from a fork. Assign
    reviewers from the repository maintainers to check your changes.
 
-6. Wait for the reviewer to approve the change. Fix any comments. If the ODT
+8. Wait for the reviewer to approve the change. Fix any comments. If the ODT
    file is changed, run `make` again to re-generate the PDF and TXT files.
 
 If you are unable to run `make`, ask a repository maintainer or help on the
