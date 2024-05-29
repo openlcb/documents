@@ -54,13 +54,14 @@
 
 4.1 Producer/Consumer Event Report (PCER)
 
-   Name                           Simple Node Dest ID Event ID Common MTI Data Content                      
-   Producer/Consumer Event Report Y           N       Y        0x05B4     Event ID, followed by 0 to  256   
-                                                                          additional payload bytes          
+   Name                            Simple Node Dest ID Event ID Common MTI Data Content                     
+   Producer/Consumer Event Report  Y           N       Y        0x05B4     Event ID                         
+   ‍Producer/Consumer Event Report Y           N       Y        0x0F14     Event ID, followed by 1 to  256  
+   With Payload                                                            additional payload bytes         
 
     
 
-   The MTIs of 0x05B5, 0x05B6 and 0x05B7 are permanently reserved for the CAN implementation of this
+   The MTIs of 0x0F14, 0x0F15 and 0x0F16 are permanently reserved for the CAN implementation of this
    protocol and shall not be used in any future version of this or any other OpenLCB Standards for any
    other purpose.
 
@@ -198,11 +199,11 @@
 6.1 Event Transfer
 
    To produce an event, the node containing the producer shall emit a PCER message containing the specific
-   Event ID and optional payload. The OpenLCB message network shall transport that message to all attached
-   nodes, except as described in the next paragraph. Nodes containing consumers shall check for a match
-   between the message Event ID and their consumers. If a match is found, the consumer shall perform any
-   local operations configured into it. If a match is not found, the consumer shall not perform any local
-   operations.
+   Event ID with or without additional payload. The OpenLCB message network shall transport that message to
+   all attached nodes, except as described in the next paragraph. Nodes containing consumers shall check
+   for a match between the message Event ID and their consumers. If a match is found, the consumer shall
+   perform any local operations configured into it. If a match is not found, the consumer shall not perform
+   any local operations.
 
    Equipment that transports PCER messages shall transport them to all connected nodes from which the
    equipment has received a Consumer Identified or Consumer Range Identified for the reported Event ID.
@@ -273,19 +274,19 @@
    When a Producer/Consumer Event Report message contains an additional payload, it is sent as multiple
    frames:
 
-     * The Event ID is sent in a CAN frame formatted with the Variable field containing 0x05B7
+     * The Event ID is sent in a CAN frame formatted with the Variable field containing 0x0F16
 
      * If there are more than eight bytes of payload, one or more CAN frames carrying eight sequential
-       bytes of the payload are sent with the Variable field containing 0x05B6.  Note that these must carry
+       bytes of the payload are sent with the Variable field containing 0x0F15.  Note that these must carry
        exactly eight bytes of payload.
 
-     * The final one to eight bytes are sent in a CAN frame with the Variable field containing 0x05B5.
+     * The final one to eight bytes are sent in a CAN frame with the Variable field containing 0x0F14.
 
    The CAN frames making up a single Producer/Consumer Event Report message with payload shall be sent
    together, with no inter-frame delays or intervening frames of other messages.  This includes a
    Producer/Consumer Event Report message without payload (MTI 0x5b4). A Gateway translating the above CAN
    frame sequence to a different Data Link layer shall ensure that for this sequence of frames, only one
-   message is sent out with an MTI of 0x5B4.
+   message is sent out with an MTI of 0x0F14.
 
    Nodes that consume Producer/Consumer Event Report messages with payload shall be prepared to receive and
    process Producer/Consumer Event Report messages that have overlapped.

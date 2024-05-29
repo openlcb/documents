@@ -145,8 +145,8 @@
    and status purposes, but nodes must act on the event without regard to where it came from.
 
    Note that the Standard limits the payload to 256 bytes. This is to put a bound on required buffers. In
-   practice, because PCER messages are high priority, very long PCER-with-payload messages can block timely
-   transmission of other high-priority messages. When designing protocols that use this capability, it may
+   practice, very long PCER-with-payload messages can block timely transmission of e.g. Datagram and Stream
+   messages and other PCER-with-payload messages. When designing protocols that use this capability, it may
    be useful to define ways to use multiple, shorter PCER-with-payload messages instead of one long one.
 
   2.4.2 Identify Consumer
@@ -498,45 +498,45 @@
    across CAN networks.  Following those standards, the Event Transport messages used on CAN are as defined
    in the following table.
 
-   MessageName                        Simple Node Dest ID Event ID Header Format         Data-part Content  
-   Producer/Consumer Event Report     Y           N       Y        0x195B,4sss5          Event ID           
-   (PCER)                             
-   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,7sss           Event ID           
-   (PCER) first frame                 
-   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,6sss           8 bytes of payload 
-   (PCER) middle frame                
-   ‍Producer/Consumer Event Report    Y           N       Y        0x195B,5sss           Last 1-8 bytes of  
-   (PCER) last frame                                                                     payload            
-   Identify Consumer                  Y           N       Y        0x198F,4sss           Event ID           
-                                                                   0x194C,4sss — Valid                      
-                                                                                         
-   Consumer Identified                N           N       Y        0x194C,5sss — Invalid Event ID
-                                                                                         
-                                                                                         
-                                                                   0x194C,7sss — Unknown 
-   Consumer Range Identified          N           N       Y        0x194A,4sss           Event ID Range     
-   Identify Producer                  Y           N       Y        0x1991,4sss           Event ID           
-                                                                   0x1954,4sss — Valid                      
-                                                                                         
-   Producer Identified                N           N       Y        0x1954,5sss — Invalid Event ID
-                                                                                         
-                                                                   0x1954,7sss — Unknown 
-   Producer Identified Range          N           N       Y        0x1952,4sss           Event ID Range     
-   Identify Events                    Y           N       N        0x1997,0sss                              
-                                      N           Y       N        0x1996,8sss           fddd6              
-   Teach Event                        Y           N       Y        0x1959,4sss           Event ID           
+   MessageName                         Simple Node Dest ID Event ID Header Format         Data-part Content 
+   Producer/Consumer Event Report      Y           N       Y        0x195B,4sss5          Event ID          
+   (PCER)                              
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,6sss           Event ID          
+   With Payload first frame            
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,5sss           8 bytes of        
+   With Payload middle frame                                                              payload           
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,4sss           Last 1-8 bytes of 
+   With Payload last frame                                                                payload           
+   Identify Consumer                   Y           N       Y        0x198F,4sss           Event ID          
+                                                                    0x194C,4sss — Valid                     
+                                                                                          
+   Consumer Identified                 N           N       Y        0x194C,5sss — Invalid Event ID
+                                                                                          
+                                                                                          
+                                                                    0x194C,7sss — Unknown 
+   Consumer Range Identified           N           N       Y        0x194A,4sss           Event ID Range    
+   Identify Producer                   Y           N       Y        0x1991,4sss           Event ID          
+                                                                    0x1954,4sss — Valid                     
+                                                                                          
+   Producer Identified                 N           N       Y        0x1954,5sss — Invalid Event ID
+                                                                                          
+                                                                    0x1954,7sss — Unknown 
+   Producer Identified Range           N           N       Y        0x1952,4sss           Event ID Range    
+   Identify Events                     Y           N       N        0x1997,0sss                             
+                                       N           Y       N        0x1996,8sss           fddd6             
+   Teach Event                         Y           N       Y        0x1959,4sss           Event ID          
 
     
 
    Note that a PCER message may carry its Event ID in two types of CAN frames with header format
-   0x195B,7sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
+   0x19F1,6sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
    it should still examine and react to the Event ID carried with both header forms.
 
-   If a node handles PCER messages but doesn't use the event payload, it can skip the payload without
-   buffering it by ignoring middle and final EWP frames.
-
-   The header values for the first-middle-last CAN frames were chosen so that the first frame has lower CAN
-   priority than the middle, which has lower CAN priority than the last frame.
+   The 0x19F1,6sss, 0x19F1,5sss and 0x19F1,4ss sequence for first, middle and last frame of a PCER with
+   payload message were chosen so that the first frame has lower CAN priority than the middle frame, which
+   has lower CAN priority than the last frame.  This ensures that once a node starts transmitting a PCER
+   with payload message, no other node’s first PCER with payload frame will be able to arbitrate and appear
+   on the CAN bus while the first message is being transmitted.
 
    The requirement that the frames of a PCER message with payload be sent without inter-frame gaps is meant
    to remove the possibility that parts of two messages will overlap due to a collision.  Imperfect
