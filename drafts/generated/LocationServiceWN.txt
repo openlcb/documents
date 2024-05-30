@@ -301,13 +301,33 @@
 
    0b11: reserved – Do not send, ignore on receipt.
 
-   bits 8-11: reserved, send as zero and ignore on receipt
+   bits 8-9: flags content that spans multiple EWP messages
+
+   0b00 – only EWP message of the content
+
+   0b01 – first EWP message of the content, will be followed by more EWP messages
+
+   0b11 – middle EWP message of the content, will be followed by more EWP messages
+
+   0b10 – last EWP message of the content, must be preceded by an EWP marked “first EWP”.
+
+   It is strongly recommended that nodes sending Location Services define their content to be as short as
+   possible, such that multiple-EWP messages are not necessary.  For example, nodes should not repeat
+   previous Location Services message content when they send an additional Location Services message with
+   additional content.  A node that’s adding human-readable information to a prior Location Services report
+   that already contains several optional fields, e.g. position information, should not repeat those
+   optional fields.
+
+   Nodes that are expecting several types of optional Location Services information for a single reporting
+   event should expect that information to arrive in multiple Location Services messages.
+
+   bits 10-11: reserved, send as zero and ignore on receipt
 
    bits 12-15: content format – see below
 
    The content format field is used to indicate the format of bytes 16-NN
 
-   00x0 reserved, do not send; ignore message upon receipt of 0b00
+   00x0 reserved, do not send; ignore message upon receipt
 
    0x1 (initial) standard content form, see below
 
@@ -318,9 +338,13 @@
    byte 0: length of content N, including type byte and data but not including the length byte. The value
    of 0xFF is reserved for expansion to longer blocks and should not be used until that is defined.
 
-   Numerology:   Although the length of the data field is not limited by Standards, messages with over 256
-   bytes of content in a single item are expected to be rare.  Should that be required at some point, that
-   data can be placed in multiple blocks defined with a first, middle, end type.
+   Numerology:   Although the length of EWP messages is limited to to a total of 256 bytes, it is possible
+   for the Location Services content to be longer than that through the use of the first/middle/last
+   flags.Messages with over 256 bytes of content in a single block are expected to be rare and are strongly
+   recommended against at this time.  Should that be required at some point, that data can be placed in
+   multiple blocks defined with their own first, middle, end flags, or a system for identifying longer
+   blocks can be defined. There is not enough information available to define this method at this time,
+   although not doing so will result is some backward-compatibility issues,
 
    byte 1: type of content – see below
 
