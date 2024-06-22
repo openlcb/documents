@@ -151,9 +151,10 @@
 
   2.4.2 Defined Error Codes
 
-   Not a controller: For the use of this error code, see Section “Controller”.
+   Permanent error – source not permitted – not a controller: 0x1021: For the use of this error code, see
+   Section 2.6.1 “Controller”.
 
-   Not found, already exists: For the use of this error code, see Section “Listeners”.
+   Permanent error – not found: 0x1030: For the use of this error code, see Section 2.6.5 “Listeners”.
 
   2.4.3 Traction Control Command Message
 
@@ -314,7 +315,7 @@
   2.6.3 Function Operation
 
    For analog functions, it is not specified what the individual values mean or what is the acceptable
-   scale. The Function definition Information conveys the acceptable range to the Throttle.
+   scale. The Function Definition Information conveys the acceptable range to the Throttle.
 
    It is not specified, how function values greater than 255 written using the Set Function instruction are
    represented in the Function memory space (0xF9), where there is only one byte available per function.
@@ -388,8 +389,8 @@
    can recognize that their information is out of date by observing a change in the count of listeners
    compared to the expected number of listeners and restart the enumeration process.
 
-   A Train Node may provide additional configuration, for example as part of the CDI to customize the
-   forwarding of messages. This may be interesting for Virtual Train Nodes specifically designed to be
+   A Train Node may provide additional configuration information, perhaps with associated CDI, to customize
+   the forwarding of messages. This may be interesting for Virtual Train Nodes specifically designed to be
    consist proxies.
 
    A Train Node can distinguish on the received Traction Control Request message whether it came from a
@@ -659,7 +660,7 @@
    thought to be too brittle, and there are just too many possibilities to be useful. Instead, the
    addresses are deliberately abstract, permitting the user to decide how to map addresses to functions for
    each train. This matches the DCC protocol’s abstraction level; an address mapping is presented for DCC
-   track protocol, most other track protocols can also be packed relatively straightforwardly into the
+   track protocol. Most other track protocols can also be packed relatively straightforwardly into the
    24-bit address space.
 
    The Set Function instruction takes 16-bit values. Most functions in current models are binary; thus 0x00
@@ -696,13 +697,13 @@
    permits as many as 32961 different binary functions (see S-9.2.1: Function Group One Instruction,
    Function Group Two Instruction, and Feature Expansion Command Instruction Subcommand for F13...F68
    Function Control, as well as Binary State Control short and long form). For this reason, it seems
-   prudent to go ahead and use a 24-bit value.
+   prudent to go ahead and use a 24-bit value for the address.
 
    Likewise, although most DCC decoders only permit binary functions, some (for example SoundTraxx Tsunami
    sound decoders) also support a kind of analog control of effects by combining multiple DCC Functions.
    Thus, it seems likewise prudent to permit a wide range of values, and not simply a binary on and off. In
-   recent years, the standard was expanded by a canonical command of controlling analog values in the range
-   of 0-255.
+   recent years, the DCC standard was expanded by a canonical command of controlling analog values in the
+   range of 0-255.
 
    One problem that faces the decision to use a single command with a numerical function addressing system
    is that any kind of standardized assignment of function addresses (0, 1, 2, etc.) to particular effects
@@ -883,9 +884,9 @@
 
      * A string intended to contain a URL.
 
-   In addition to these, a command system can use the unique identifier to key into an internal database of
-   image data uploaded by the user. Both RCN-218/S-9.2.1.1 as well as OpenLCB have unique hardware
-   identifiers suitable for this purpose. These two are not linked together however.
+   In addition to these, a command system can use the unique identifier of the train to key into an
+   internal database of image data uploaded by the user. Both RCN-218/S-9.2.1.1 as well as OpenLCB have
+   unique hardware identifiers suitable for this purpose. These two are not linked together however.
 
     
 
@@ -981,7 +982,7 @@
    It’s important to note that none of these advanced considerations are necessary to make a software like
    DecoderPro work; DecoderPro does not rely on CDI-compatible features. This also means that there is
    limited returns on defining and implementing complex logic for weird cases that DCC decoders exhibit,
-   because DecoderPro actually coves them.
+   because DecoderPro actually covers them.
 
 4.4 Consisting and Listeners
 
@@ -1020,10 +1021,10 @@
 
    How to handle consist topologies:
 
-   When creating or managing a consist, the listener relation is recommended to be established in a
+   When creating or managing a consist, the listener relationship is recommended to be established in a
    symmetric manner, where each link in the consist is bidirectional. This means that if engine A and B
    have a link, then B is a Listener in A, and A is a Listener in B. Symmetric listener relations are
-   allowed and cause no problem for the network, because a Train Node is required to never echo a message
+   allowed and cause no problem for the network because a Train Node is required to never echo a message
    back to where it came from.
 
    The benefit of a symmetric listener relation is that now the consist can be driven by calling up any
@@ -1064,15 +1065,15 @@
 
    The listener configuration allows selecting some common use-cases for the consist.
 
-     * Forward speed only, no functions. (It is possible to select inverted direction, when the following
-       locomotive is backwards-facing in the consist).
+     * Forwarding speed commands only, no functions. (It is possible to select inverted direction, when the
+       following locomotive is backwards-facing in the consist).
 
-     * Forward function zero (usually light). Turning this on for the lead and the tail engine in the
-       consist, but off for all middle members of the consist will cause the consist to behave
-       prototypically with headlights.
+     * Forwarding function zero (usually light) commands only. Turning this on for the lead and the tail
+       engine in the consist, but off for all middle members of the consist will cause the consist to
+       behave prototypically with headlights.
 
-     * Forward all functions. Useful for the throttle listener use-case or in case the two locomotives are
-       equipped with identical decoders and features.
+     * Forwarding all function commands. Useful for the throttle listener use-case or in case the two
+       locomotives are equipped with identical decoders and features.
 
    This provides several possible mechanisms for configuring function forwarding in the consist:
 
