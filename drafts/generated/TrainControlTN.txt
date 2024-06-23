@@ -83,19 +83,19 @@
             connects to the OpenLCB bus, presumably using wireless communication.
 
           * An important class of Train Nodes is when the Train Node is not built into the model, but
-            instead remotely actuates the model using electrical signals or a legacy communication
+            instead remotely actuates the model using electrical signals or a non-OpenLCB communication
             protocol. In this case typically one physical hardware connected to the OpenLCB bus represents
             many different Trains, each with its own unique Virtual Train Node. This is a form of a
-            Gateway, bridging OpenLCB to a legacy protocol. From the perspective of the legacy protocol,
-            this piece of hardware is often referred to as a Command Station.
+            Gateway, bridging OpenLCB to a non-OpenLCB protocol. From the perspective of the non-OpenLCB
+            protocol, this piece of hardware is often referred to as a Command Station.
 
      * Throttle Node:
 
           * For the purposes of discussion, we draw a distinction between three kinds of throttles that a
             user might encounter:
 
-               * “Legacy Throttles” refers to throttles designed for use with extant DCC systems, e.g. a
-                 Digitrax DT402 or Lenz LH100.
+               * “Proprietary Throttles” refers to throttles designed for use with extant DCC systems, e.g.
+                 a Digitrax DT402 or Lenz LH100.
 
                * “Full-Featured Throttles” refers to full-featured native OpenLCB throttles with multi-line
                  screens and effectively unlimited processing power, e.g. a software throttle implemented
@@ -109,14 +109,14 @@
             example when it has appropriate operator interface (e.g. multiple knobs, or multiple windows
             open on a computer screen).
 
-          * A single Throttle Node may also be a Gateway from a legacy throttle bus, translating commands
-            originating from multiple physical throttles to OpenLCB, each of which may be in control of
-            different trains on the OpenLCB bus.
+          * A single Throttle Node may also be a Gateway from a proprietary throttle bus, translating
+            commands originating from multiple physical throttles to OpenLCB, each of which may be in
+            control of different trains on the OpenLCB bus.
 
    Additional glossary and explanations:
 
-     * “DCC” refers to NMRA DCC; “Legacy” refers to all pre-existing protocols including DCC, TMCC,
-       Marklin, DCS, etc.
+     * “DCC” refers to NMRA DCC; “ non-OpenLCB track protocol” refers to all pre-existing protocols
+       including DCC, TMCC, Marklin, DCS, etc.
 
      * “Trains”: For our purposes, Train is anything which can be independently controlled, typically using
        speed, direction and function commands. In addition to a model of a prototype train from locomotive
@@ -128,9 +128,9 @@
        signal for controlling the trains. Usually the command station is controlled from the user side by
        some other network, to which throttles and other interface devices are connected. OpenLCB, in it’s
        native form, has no such concept. Devices, like throttles, that want to talk to a train do so
-       directly. Only when working with legacy systems does the concept of a command station enter, and
-       usually through the form of a proxy node that is acting for the Train. In this setup, OpenLCB acts
-       as the throttle bus for the DCC Command Station.
+       directly. Only when working with proprietary systems does the concept of a command station enter,
+       and usually through the form of a proxy node that is acting for the Train. In this setup, OpenLCB
+       acts as the throttle bus for the DCC Command Station.
 
      * “Consisting”: The running of multiple Trains together, e.g. three coupled engines, each with their
        own NodeID or DCC address, as a single locomotive. DCC systems provide this now in various ways and
@@ -699,7 +699,7 @@
    a mapping, it's defined through the CDI. The CDI contents are not standardized by OpenLCB, only the
    format. As such, there is no OpenLCB standard that defines what the “function mapping” is.
 
-  4.2.2 Legacy DCC Function Control
+  4.2.2 DCC Function Control
 
    Although currently most DCC throttles only permit access to 13, 29 or 66 functions, DCC technically
    permits as many as 32961 different binary functions (see S-9.2.1: Function Group One Instruction,
@@ -898,7 +898,7 @@
 
     
 
-  4.3.3 Legacy DCC Configuration and CVs
+  4.3.3  DCC Configuration and CVs
 
    Representing CVs of a DCC decoder is necessary when an OpenLCB-to-DCC gateway is in operation. In this
    case the Train Node is presented for the OpenLCB bus by the gateway, and other OpenLCB Nodes are
@@ -1123,12 +1123,12 @@
        consist. This means that there can be multiple assigned Controllers at the same time; throttles are
        recommended to use the Listener functionality themselves.
 
-   Because there's no protocol difference between full-OpenLCB-node Trains and legacy equipment that uses
-   an OpenLCB gateway via a Virtual Train Node, consisting works the same for all of those. It can even
-   mix-and-match full nodes with various types of legacy trains, if that's electrically possible. A Gateway
-   can handle multiple node IDs (and/or DCC addresses), which allows implementation of consisting.
-   Speed/direction just passes through; speed matching is automatic, provided that the locomotives were
-   mechanically calibrated to the correct scale speeds.
+   Because there's no protocol difference between full-OpenLCB-node Trains and proprietary equipment that
+   uses an OpenLCB gateway via a Virtual Train Node, consisting works the same for all of those. It can
+   even mix-and-match full nodes with various types of proprietary trains, if that's electrically possible.
+   A Gateway can handle multiple node IDs (and/or DCC addresses), which allows implementation of
+   consisting. Speed/direction just passes through; speed matching is automatic, provided that the
+   locomotives were mechanically calibrated to the correct scale speeds.
 
     
 
@@ -1214,7 +1214,7 @@
 
    4.2.1 Outputs vs Functions
 
-   4.2.2 Legacy DCC Function Control
+   4.2.2 DCC Function Control
 
    4.3 Configuration and Metadata
 
@@ -1222,7 +1222,7 @@
 
    4.3.2 Train Identification
 
-   4.3.3 Legacy DCC Configuration and CVs
+   4.3.3  DCC Configuration and CVs
 
    4.4 Consisting and Listeners
 
