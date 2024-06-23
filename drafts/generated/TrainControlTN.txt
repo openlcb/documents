@@ -1,8 +1,8 @@
                                                 1 Introduction
 
-   This Technical Note covers the Traction Protocol, the way that OpenLCB handles moving objects such as
-   locomotives, engines, and other rolling stock. This document is intended to be read in parallel to the
-   matching Standard, as commentary and background information.
+   This Technical Note covers the Train Control Protocol, the way that OpenLCB handles moving objects such
+   as locomotives, engines, and other rolling stock. This document is intended to be read in parallel to
+   the matching Standard, as commentary and background information.
 
 1.1 Served Use Cases
 
@@ -139,7 +139,7 @@
      * “Configuration”, “Functions”: Traditional DCC decoders provide “functions” for controlling
        accessories such as lights and sounds during operation, and provide a separate mechanism for doing
        long-term configuration via Configuration Variables (CVs). OpenLCB makes the same distinction,
-       providing access to “functions” via the Traction Protocol, while leaving “configuration” to the
+       providing access to “functions” via the Train Control Protocol, while leaving “configuration” to the
        configuration protocol(s).  The line between these is admittedly vague, and different node
        developers may implement some capability one way or the other.  The general intent is that things
        that are changed in normal operation are considered functions, while things that are set once and
@@ -156,25 +156,25 @@
 
    Permanent error – not found: 0x1030: For the use of this error code, see Section 2.6.5 “Listeners”.
 
-  2.4.3 Traction Control Command Message
+  2.4.3 Train Control Command Message
 
    The MTI parameters are chosen to have the reply a higher priority than the request, ensuring replies to
    repeated instructions are always possible.  The Type field expresses that these messages belong
    together. The Modifier field was chosen during the prototyping phase with a CAN-bus specific
    argumentation.
 
-   Dedicated OpenLCB messages are defined for traction control, instead of using datagrams, so that they
-   have higher priority, and less complicated state machines. Given the small size of these messages, they
-   also use less bandwidth than datagrams.
+   Dedicated OpenLCB messages are defined for train control, instead of using datagrams, so that they have
+   higher priority, and less complicated state machines. Given the small size of these messages, they also
+   use less bandwidth than datagrams.
 
    There's no reply defined to Set Speed and Set Function to reduce bandwidth use. OpenLCB is a
    reliable-transport network, so these replies are not required for reliability.  Train nodes must be able
    to receive and process them at full rate, as they can arrive adjacent to each other on the link.
 
-  2.4.4 Traction Control Reply Message
+  2.4.4 Train Control Reply Message
 
-   This message is higher priority than the Traction Control Command message to ensure that it can be sent
-   immediately over Traction Control Command messages. Coding and structure is intentionally similar.
+   This message is higher priority than the Train Control Command message to ensure that it can be sent
+   immediately over Train Control Command messages. Coding and structure is intentionally similar.
 
    The Query Function Reply is in the format of the Set Function message, with a different MTI and the
    query bit set.
@@ -338,7 +338,7 @@
 
      * The Event Transport protocol to locate Train Nodes;
 
-     * PIP for enquiry about the support of Traction Protocol;
+     * PIP for enquiry about the support of Train Control Protocol;
 
      * SNIP will be used to carry both manufacturer-provided and user-provided information about the
        particular Train Node. In particular, the user (Node) Name and (Node) Description fields are to be
@@ -367,11 +367,11 @@
 
    1. Multiple throttles driving the same train. The critical issue is that when one throttle sends a Train
    Control Operation to the train, the other throttle normally does not see that message on the OpenLCB
-   bus. This is because the Traction Request messages are addressed messages, i.e., point-to-point on the
-   network. The solution is that both throttles registers themselves as a Listener on the Train Node. When
-   Throttle A sends a Train Control Operation to the Train Node, that operation gets forwarded to Throttle
-   B. This allows Throttle B to update its internal state and display with the effect of Throttle A’s
-   operation.
+   bus. This is because the Train Control Request messages are addressed messages, i.e., point-to-point on
+   the network. The solution is that both throttles registers themselves as a Listener on the Train Node.
+   When Throttle A sends a Train Control Operation to the Train Node, that operation gets forwarded to
+   Throttle B. This allows Throttle B to update its internal state and display with the effect of Throttle
+   A’s operation.
 
    2. One Throttle Node driving multiple Train Nodes (also known as Consisting). In this case the different
    Train Nodes are connected to each other using bidirectional Listener links. The topology has to be
@@ -393,7 +393,7 @@
    the forwarding of messages. This may be interesting for Virtual Train Nodes specifically designed to be
    consist proxies.
 
-   A Train Node can distinguish on the received Traction Control Request message whether it came from a
+   A Train Node can distinguish on the received Train Control Request message whether it came from a
    throttle directly (P=0) or was forwarded from another Train Node (P=1). This is how the Train Node may
    and may not use this information:
 
@@ -459,14 +459,14 @@
 
   2.7.1 Function Information 0xF9
 
-   Functions, such as lights and sounds, can be operated by the Traction Control Set Function instruction,
-   and their current value can be retrieved via the Traction Control Query Function instruction. The values
-   are also available for reading and writing in the Function Information memory space.  This allows
-   multi-byte reads and writes using Configuration Memory Protocol access. That's a more efficient way of
-   setting and reading large numbers of functions, for backup, initial setup, etc. The Traction Control
-   instructions have two bytes per function value (support 0-65535), whereas the memory space only has one
-   byte per function (supports 0-255). It is not specified how function values greater than 255 are
-   represented in the Function Information memory space.
+   Functions, such as lights and sounds, can be operated by the Train Control Set Function instruction, and
+   their current value can be retrieved via the Train Control Query Function instruction. The values are
+   also available for reading and writing in the Function Information memory space.  This allows multi-byte
+   reads and writes using Configuration Memory Protocol access. That's a more efficient way of setting and
+   reading large numbers of functions, for backup, initial setup, etc. The Train Control instructions have
+   two bytes per function value (support 0-65535), whereas the memory space only has one byte per function
+   (supports 0-255). It is not specified how function values greater than 255 are represented in the
+   Function Information memory space.
 
    The NMRA S-9.2.1 describes DCC as having four separate sets of “functions”. The most common one is the
    traditional F0-F68. In addition, the “Binary State Control Instruction long form” accesses 32767
@@ -529,15 +529,23 @@
 
 3.1 Basic Throttle and Train Connection
 
-   graphics2
+   Image3
 
 3.2 Throttle to Throttle handover not supported
 
-   Image2
+    
+
+   Image4
+
+    
 
 3.3 Throttle to Throttle Successful Hand-over (steal)
 
-   Image1
+    
+
+   Image2
+
+    
 
                                            4 Background Information
 
@@ -641,7 +649,7 @@
    The design decision was to separate functions, while re-using patterns from the OpenLCB configuration
    mechanisms:
 
-     * A lightweight command is added to the Traction Protocol to operate functions. It requires low
+     * A lightweight command is added to the Train Control Protocol to operate functions. It requires low
        bandwidth, and no state machines, handshakes or response message.
 
      * Functions are a Memory Space, similar to Configuration, but at a separate space number. Memory
@@ -655,7 +663,7 @@
    The Set Function instruction is the light-weight mechanism for a controller to control the functions
    directly. The first argument is the address of the function to control as a 24-bit unsigned integer.
 
-   The Traction Protocol does not define a semantics for function addresses; that is, there is no
+   The Train Control Protocol does not define a semantics for function addresses; that is, there is no
    particular address that is singled out as representing headlights or the air horn. Such a mapping is
    thought to be too brittle, and there are just too many possibilities to be useful. Instead, the
    addresses are deliberately abstract, permitting the user to decide how to map addresses to functions for
@@ -737,7 +745,7 @@
    Thus, it is recommended that the function address space be mapped directly to the particular control
    system's address space; thus DCC F0 becomes function address 0x000000, F1 becomes 0x000001, etc. The DCC
    Binary State addresses should be mapped to 0x010000 to 0x017FFF (i.e., to the 15-bit range beginning
-   with 0b1.0000.0000.0000.0000), etc. For the complete mapping, see the Traction Protocol Standard,
+   with 0b1.0000.0000.0000.0000), etc. For the complete mapping, see the Train Control Protocol Standard,
    Section “Function Information 0xF9”.
 
    Other systems should be handled analogously. The expectation is that without any metadata specifically
@@ -749,8 +757,8 @@
 
    Trains are OpenLCB nodes just like any other. As such, the Memory Configuration protocol can be used to
    configure them, and the Configuration Description Information system can be used to make that process
-   user friendly. There's nothing traction-specific in these techniques, which are available any time that
-   the Train Node is connected to the OpenLCB bus.
+   user friendly. There's nothing train-control-specific in these techniques, which are available any time
+   that the Train Node is connected to the OpenLCB bus.
 
   4.3.1 Roster Information
 
@@ -907,7 +915,7 @@
        single standard DCC decoder, which then in turn controls motor, light and sound functions. This is a
        common setup for battery-powered locomotives / command systems.
 
-   A DCC Programming Track is not a Train Node. It does not generally implement the Traction Protocol,
+   A DCC Programming Track is not a Train Node. It does not generally implement the Train Control Protocol,
    because none of the Train Control Operations are available on the Programming Track5. There has to be a
    mechanism to find Programming Track nodes on the OpenLCB bus; a production system accomplishes this
    using the Event Protocol with Identify Producer / Producer Identified messages for a specific event ID
@@ -1090,8 +1098,8 @@
 
    Operations:
 
-   Once the consisting relationship has been set up, it will handle the individual parts of the Traction
-   Protocol series.
+   Once the consisting relationship has been set up, it will handle the individual parts of the Train
+   Control Protocol series.
 
      * Speed Control – this is perhaps the simplest, just passing the speed values through to the
        individual members of the consist. Because OpenLCB speeds are in scale meters/second, there's by
@@ -1162,9 +1170,9 @@
 
    2.4.2 Defined Error Codes
 
-   2.4.3 Traction Control Command Message
+   2.4.3 Train Control Command Message
 
-   2.4.4 Traction Control Reply Message
+   2.4.4 Train Control Reply Message
 
     
 
@@ -1236,4 +1244,4 @@
 
    5   If the Programming Track is to be used as a regular DCC track (mainline), then it is the Virtual
    Train Nodes that represent the regular DCC addresses that implement the Train Control Operations and
-   thus the Traction Protocol.
+   thus the Train Control Protocol.
