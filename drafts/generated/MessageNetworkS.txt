@@ -141,8 +141,8 @@
    reachable on the network.  
 
    Name                    Description            Simple Protocol Dest ID Event ID CommonMTI Data Content   
-   Initialization Complete Full Protocol Required N               N       N        0x0100    Source Node ID 
-                           Simple-set Sufficient  N               N       N        0x0101    
+   Initialization Complete Full Protocol Required 0               0       0        0x0100    Source Node ID 
+                           Simple-set Sufficient  0               0       0        0x0101    
 
    This message has two MTIs, distinguished by the modifier field, to indicate whether the node requires
    delivery of all the messages in the full protocol, or whether delivery of the Simple Protocol subset is
@@ -153,8 +153,8 @@
    Issued to determine which node(s) are present and can be reached.  
 
    Name           Description Simple Protocol Dest ID Event ID CommonMTI Data Content          
-   Verify Node ID Addressed   -2              Y       N        0x0488    Optional Full Node ID 
-                  Global      Y               N       N        0x0490    
+   Verify Node ID Addressed   02              1       0        0x0488    Optional Full Node ID 
+                  Global      1               0       0        0x0490    
 
     
 
@@ -165,8 +165,8 @@
                                                     Simple                                              
    Name                    Description                       Dest ID Event ID CommonMTI Data Content
                                                     Protocol 
-   Verified Node ID Number Full Protocol Required   Y        N       N        0x0170     Source Node ID 
-                           Simple Subset Sufficient Y        N       N        0x0171    
+   Verified Node ID Number Full Protocol Required   1        0       0        0x0170     Source Node ID 
+                           Simple Subset Sufficient 1        0       0        0x0171    
 
    This message has two MTIs, distinguished by the modifier field, to indicate whether the node requires
    delivery of all the messages in the full protocol, or whether delivery of the Simple Protocol subset is
@@ -177,7 +177,7 @@
    This is a reply indicating failure.  
 
    Name                          Simple Protocol Dest ID Event ID CommonMTI Data Content                   
-   Optional Interaction Rejected N               Y       N        0x0068    Error code, MTI, optional info 
+   Optional Interaction Rejected 0               1       0        0x0068    Error code, MTI, optional info 
 
    The data contents are, in order:
 
@@ -200,7 +200,7 @@
                                                             Common                                
    Name                   Simple  Protocol Dest ID Event ID        Data Content
                                                             MTI    
-   Terminate Due to Error N                Y       N        0x00A8 Error code, MTI, optional info 
+   Terminate Due to Error 0                1       0        0x00A8 Error code, MTI, optional info 
 
    The contents are, in order:
 
@@ -223,7 +223,7 @@
                                                              Common              
    Name                     Simple Protocol Dest ID Event ID        Data Content
                                                              MTI    
-   Protocol Support Inquiry -               Y       N        0x0828 (none)       
+   Protocol Support Inquiry 0               1       0        0x0828 (none)       
 
     
 
@@ -233,7 +233,7 @@
 
    Name             Simple Protocol Dest ID Event ID CommonMTI Data Content                                 
    Protocol Support                                            One or more bytes identifying the supported  
-   Reply            -               Y       N        0x0668    protocols; see Table immediately below for   
+   Reply            0               1       0        0x0668    protocols; see Table immediately below for   
                                                                coding.                                      
 
    A 1 in a bit position of the data indicates that the corresponding protocol is supported by the
@@ -257,7 +257,7 @@
    Display Protocol                                              0x00 20 00                 3               
    Simple Node Information Protocol                              0x00 10 00     x           x               
    Configuration Description Information (CDI)                   0x00 08 00     x           x               
-   Traction Control Protocol (Train Protocol)                    0x00 04 00                 2               
+   Train Control Protocol                                        0x00 04 00                 2               
    Function Description Information (FDI)                        0x00 02 00                 2               
    DCC Command Station Protocol                                  0x00 01 00                 3               
    Simple Train Node Information Protocol                        0x00 00 80                 2               
@@ -376,7 +376,7 @@
    0x100x        Permanent error.                                                                           
    0x101x        Reserved.                                                                                  
    0x102x        Source not permitted.                                                                      
-   0x103x        Reserved.                                                                                  
+   0x103x        Not found.                                                                                 
    0x104x        Not implemented.                                                                           
    0x105x-0x107x Reserved                                                                                   
    0x108x        Invalid arguments. Some of the values sent in the message fall outside of the expected     
@@ -545,14 +545,14 @@
    The CAN mapping uses several formats.  The general form of the CAN header is:
 
    29-bit CAN Header
-   Field             CAN prefix    Frame Type     Variable Field                    Source ID
+   Field             CAN prefix    Frame Format   Variable Field                    Source ID
                      2 bits        3 bits         12 bits                           12 bits
    Size & location                                                                         
                      0x1800,0000   0x0700,0000    0x00FF,F000                       0x0000,0FFF
    Value(s)          3             1,2,3,4,5,or 7 CAN-MTI or Destination Node Alias Source Node Alias
    Up to 8 Byte Data-Part
-   Byte#      0             1               2        3        4        5       6           7          
-   Values     variable      variable        (Data)   (Data)   (Data)   (Data)  (Data)      (Data)     
+   Byte#      0             1              2         3        4        5       6           7          
+   Values     variable      variable       (Data)    (Data)   (Data)   (Data)  (Data)      (Data)     
 
    Table 1: CAN Frame Format
 
@@ -564,24 +564,24 @@
 
     7.3.1.2 CAN MTI Mapping
 
-   The Common MTI is mapped to one of eight frame types:
+   The Common MTI is mapped to one of eight frame formats:
 
-   Frame Type Meaning                    
-   0          (Reserved)                 
-   1          Global & Addressed MTI     
-   2          Datagram complete in frame 
-   3          Datagram first frame       
-   4          Datagram middle frame      
-   5          Datagram final frame       
-   6          (Reserved)                 
-   7          Stream Data                
+   Frame Format Meaning                    
+   0            (Reserved)                 
+   1            Global & Addressed MTI     
+   2            Datagram complete in frame 
+   3            Datagram first frame       
+   4            Datagram middle frame      
+   5            Datagram final frame       
+   6            (Reserved)                 
+   7            Stream Data                
 
-   Table 2: CAN Frame Type Values
+   Table 2: CAN Frame Format Values
 
-    7.3.1.3 Global and Addressed Messages, CAN Frame Type 1
+    7.3.1.3 Global and Addressed Messages, CAN Frame Format 1
 
    Global and Addressed messages are those Common MTIs with the “stream and datagram” bits set to 0, and
-   are mapped to and from CAN MTI type 1.
+   are mapped to and from CAN MTI format 1.
 
    The CAN MTI is carried in the CAN header.  It consists of the lowest-order 12 bits of the Common MTI,
    and, by implication has the “stream or datagram” and “special” bits as zeros.
@@ -590,7 +590,7 @@
 
    29-bit CAN Header
             CAN     Frame   Static       Type      Simple Node  Address  Event ID     Modifier      
-   Field    prefix  Type    Priority     within    flag         Present  present      Bits      Source ID
+   Field    prefix  Format  Priority     within    flag         Present  present      Bits      Source ID
                                          Priority
             2 bits  3 bits  2 bits       5 bits                 1 bit                 2 bits        
    Size &                                          1 bit                 1 bit                  12 bits
@@ -604,7 +604,7 @@
    Value  Optional Flags/Destn Alias or       (Data)      (Data)    (Data)      (Data)     (Data)   (Data)  
           (Data)
 
-   Table 3: CAN Frame Type 1 Format
+   Table 3: CAN Frame Format 1
 
    If the Address Present bit is set to 1, then the destination address is placed in the 1st two bytes of
    the data part of the CAN frame: the top nibble of the 1st byte contains flags (see below); the lower
@@ -631,9 +631,9 @@
    CAN frames marked as First or Middle frame shall carry eight total data bytes. CAN frames marked as Last
    or Only frame shall have from two through eight total data bytes.   
 
-    7.3.1.4 Datagram and Stream Messages, CAN Frame Types 2-5 and 7
+    7.3.1.4 Datagram and Stream Messages, CAN Frame Formats 2-5 and 7
 
-   Frame Types 2-5 and 7 are used specifically for Datagram and Stream messages.  
+   Frame Formats 2-5 and 7 are used specifically for Datagram and Stream messages.  
 
     
 
@@ -665,13 +665,13 @@
 
     7.3.3.4 Optional Interaction Rejected
 
-   Name                          CAN-MTI CAN Header    Data Content               
-   Optional Interaction Rejected 0x068   [0x1906,8sss] fddd, error, optional info 
+   Name                          CAN-MTI CAN Header    Data Content                    
+   Optional Interaction Rejected 0x068   [0x1906,8sss] fddd, error, MTI, optional info 
 
     7.3.3.5 Terminate Due to Error
 
-   Name                   CAN-MTI CAN Header    Data Content               
-   Terminate Due to Error 0x0A8   [0x190A,8sss] fddd, error, optional info 
+   Name                   CAN-MTI CAN Header    Data Content                    
+   Terminate Due to Error 0x0A8   [0x190A,8sss] fddd, error, MTI, optional info 
 
     7.3.3.6 Protocol Support Inquiry  
 
@@ -699,10 +699,15 @@
 
    There are no special provisions for CAN transport layer.
 
-  7.3.7 Routing
+  7.3.7 Routing and Sequencing
 
-   CAN implementations shall send the frames of a message together to reduce buffering.   Higher-priority
-   messages may be sent in the middle of a lower-priority message.   
+   CAN implementations shall send the frames of a message consecutively on the CAN bus, with no frames of
+   equal or lower priority being interspersed. Higher-priority messages may be sent in the middle of a
+   lower-priority message, including when the higher priority message itself is fragmented into multiple
+   frames.
+
+   Gateways shall reassemble the frames of fragmented messages before sending them out on data links that
+   support the necessary message length, unless otherwise stated by a specific Standard.
 
     
 
@@ -796,9 +801,9 @@
 
    7.3.1.2 CAN MTI Mapping
 
-   7.3.1.3 Global and Addressed Messages, CAN Frame Type 1
+   7.3.1.3 Global and Addressed Messages, CAN Frame Format 1
 
-   7.3.1.4 Datagram and Stream Messages, CAN Frame Types 2-5 and 7
+   7.3.1.4 Datagram and Stream Messages, CAN Frame Formats 2-5 and 7
 
    7.3.2 States
 
@@ -824,17 +829,17 @@
 
    7.3.6 Error Handling
 
-   7.3.7 Routing
+   7.3.7 Routing and Sequencing
 
     
 
      ----------------------------------------------------------------------------------------------------
 
-   1 See Appendix 1, and the associated TN, it provides concrete examples that may help you understand the
-   material in this document.
+   1 See the associated TN, which provides concrete examples that may help you understand the material in
+   this document.
 
-   2   By definition, all addressed messages are received by the addressee, so the simple bit is ignored.
-    See TN.
+   2   Addressed messages are always directed to the destination node, regardless of the content of the
+   Simple bit. See section 4
 
    3 For example, in this case, CAN delivers 12+1 bits of the MTI via each frame (the special bit is known
    to be zero).

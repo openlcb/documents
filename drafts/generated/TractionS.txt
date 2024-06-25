@@ -1,0 +1,471 @@
+                                         1 Introduction (Informative)
+
+   This Standard covers the Traction Protocol, the way that OpenLCB handles moving objects such as
+   locomotives, engines, and other rolling stock.
+
+                                         2 Intended Use (Informative)
+
+   The Traction Protocol covers the interaction between one (or more) Throttles and one or more Trains, as
+   this interaction is represented on the OpenLCB bus. There can be more than one Throttles controlling a
+   single Train, and more than one Trains being controlled by a single Throttle (also called consisting).
+   The Throttle, as a Node on the OpenLCB bus, may be either a physical throttle, or a Gateway converting
+   messages of a different throttle protocol to OpenLCB. The Train is also represented as a Node on the
+   OpenLCB bus; this may be a physical decoder present in a locomotive and capable of participating in the
+   OpenLCB network (presumably via wireless communication), or it may be a Gateway device translating the
+   OpenLCB Traction Protocol to some other method of controlling trains. The most important example of such
+   other method is the DCC track protocol, in which case the Gateway device is commonly referred to as a
+   DCC Command Station.
+
+                                     3 References and Context (Normative)
+
+   For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note.
+
+   For information on OpenLCB message transport and OpenLCB communications, see:
+
+     * OpenLCB Message Network Standard.
+
+   A Node implementing the Traction Protocol must implement:
+
+     * OpenLCB Event Transport Standard;
+
+     * OpenLCB Simple Node Information Protocol Standard.
+
+   The following protocols are strongly recommended to be implemented by any Train node:
+
+     * OpenLCB Memory Configuration Standard and Datagram Protocol it depends on;
+
+     * OpenLCB Configuration Description Information Standard;
+
+     * OpenLCB Function Description Information Standard;
+
+     * OpenLCB Train Search Protocol.
+
+   Float-16 is the half-precision numeric format defined by IEEE 754-2008. This is the format that the GNU
+   toolchain's -mfp16-format=ieee flag and __fp16 type makes available on some CPU types.
+
+3.1 Terminology
+
+   The following Nodes participate in the interactions presented in this Standard:
+
+     * Train Node: A Train is represented by a single, specific Node. To control that specific Train,
+       OpenLCB messages are sent addressed to that Node. It is not a requirement that the hardware
+       operating the given Train Node be mechanically installed in the specific Train.
+
+     * Throttle Node: An OpenLCB Node controlling one or more Train Nodes using the Traction Protocol. It
+       is not a requirement that the hardware operating the Throttle Node be mechanically installed into
+       the physical throttle that the operator is using. A single OpenLCB Node may have independent
+       interactions with multiple Train Nodes, and thus represent more than one physical throttle.
+
+   The following additional concepts are used:
+
+     * Train Control Operation: The set of commands Set Speed, Emergency Stop and Set Function.
+
+     * Controller: A Train Node has zero or one Throttle Node assigned as the Controller. There is no
+       requirement that the Train Node should accept Train Control Operations from the Controller only. A
+       Throttle Node set as the Controller has to stay alive and connected to the OpenLCB bus, and the
+       Train Node may periodically verify this as a safety check.
+
+     * Listener: A Throttle Node may be interested in receiving a copy of all state changing messages from
+       a given Train Node. Since Throttle-to-Train configuration is addressed, there is no network-level
+       mechanism to guarantee that messages destined to the Train Node can be intercepted by the interested
+       third party. The Train Node therefore has a feature that allows other nodes to be registered, and
+       the Train shall forward the speed (and optionally function) setting messages to the registered
+       Listener nodes. A way to achieve consisting is to specify the consist members as listeners on the
+       lead engine's train node, or to allocate a virtual node and specify all engines as listeners to that
+       virtual node.
+
+                                        4 Message Formats (Normative)
+
+    
+
+4.1 Defined Event IDs
+
+   Is Train: 01.01.00.00.00.00.03.03
+
+   Emergency Stop All: 01.00.00.00.00.00.FF.FD
+
+   Clear Emergency Stop All: 01.00.00.00.00.00.FF.FC
+
+   Emergency Off All: 01.00.00.00.00.00.FF.FF
+
+   Clear Emergency Off All: 01.00.00.00.00.00.FF.FE
+
+4.2 Defined Error Codes
+
+   Permanent error – source not permitted – not a controller: 0x1021.
+
+   Permanent error – not found: 0x1030.
+
+   Permanent error – already exists: 0x1032.
+
+4.3 Traction Control Command Message
+
+   MTI: Priority 1, index 15, modifier 3, addressed => MTI 0x05EB, CAN frame [195EBsss] fd dd
+
+   This message type and MTI is specific to traction control.  Bits 0-6 of the first byte of the content
+   codes an instruction, which defines the rest of the format. See below for the definition of bit 7.
+
+                       Byte 0                                                     Byte  Byte Byte Byte Byte 
+   Instruction         Bit 7 Bits Byte 1                   Byte 2         Byte 3  4     5    6    7    8    
+                             6-0  
+   Set Speed/Direction P     0x00 Speed and direction as signed float16                                     
+   Set Function        P     0x01 Address                                         Value                     
+   Emergency Stop      P     0x02                                                                           
+   Query Speeds        0     0x10                                                                           
+   Query Function      0     0x11 Address                                                                   
+                                                           Flags                  
+                                  Assign Controller 0x01                  Controller Node ID
+                                                           (Reserved)     
+                                                           Flags                  
+   Controller          0     0x20 Release Controller  0x02                Controller Node ID
+   Configuration                                           (Reserved)     
+                                  Query Controller  0x03                                                    
+                                  Controller Changing      Flags                  
+                                  Notify 0x04                             New Requesting Controller Node ID
+                                                           (Reserved)     
+                                                           Flags                  
+                                                           0x01=Resv’d    
+                                                                          
+                                  Attach Node              0x02=Rev       
+                                  or                       direction      
+                                  Update Flags                            Listener Node ID
+                                  0x01                     0x04=Link F0   
+   Listener            0     0x30                                         
+   Configuration                                           0x08=Link Fn   
+                                                                          
+                                                           0x80=Hide      
+                                                           Flags                  
+                                  Detach Node    0x02                     Listener Node ID
+                                                           (Reserved)     
+                                  Query Nodes              Listener index                                   
+                                  0x03                     {optional}     
+   Traction Management 0     0x40 Reserve           0x01                                                    
+                                  Release  0x02                                                             
+                                  No-op                                                                     
+                                  0x03                     
+
+    
+
+   The Set Function instruction uses a three-byte address for brevity; it's to be interpreted with a high
+   byte of zero to make a four byte address in the function memory space (0xF9).
+
+   The P bit shall be set to 0 when a Throttle Node sends a command to a Train Node, and set to 1 when a
+   Train Node is sending a forwarded command to a Listener Node.
+
+4.4 Traction Control Reply Message
+
+   MTI: Priority 0, index 15, modifier 1, addressed => MTI 0x01E9, CAN frame [191E9sss] fd dd
+
+    
+
+   Instruction    Byte 0 Byte 1        Byte 2              Byte 3     Byte 4 Byte Byte Byte Byte  Byte Byte 
+                                                                             5    6    7    8     9    10   
+                                                           Status                                           
+   Query Speeds   0x10   Set Speed                                    Commanded   Actual                
+   Reply                                                   Bit 0:     Speed       Speed
+                                                           1=E-Stop.  
+   Query Function 0x11   Address                                      Value                                 
+   Reply          
+                                       Result:                                                              
+                                       0 == OK             
+                                       Non-zero == Failed  
+                                                           
+                         Assign        Fail Code: Bit      
+                         Controller    0=Assigned                                                       
+                         Reply 0x01    Controller Refused  
+   Controller                          Connection          
+   Configuration  0x20                                     
+   Reply                               Bit 1 = Train       
+                                       Refused Connection  
+                         Query         Flags               Active Controller (0.0.0.0.0.0 if no             
+                         Controller    0x01=Resv’d         controller active)                           
+                         Reply 0x03    
+                         Controller    Result: 0 == OK                                                      
+                         Changed                                                                        
+                         Notify Reply  Non-zero == Reject  
+                         0x04          
+                         Attach Node   Node ID                                              Reply Code      
+   Listener              Reply  0x01   
+   Configuration  0x30   Detach Node   Node ID                                              Reply Code      
+    Reply                Reply    0x02 
+                         Query Node    Node count          Node index Flags  Node ID
+                         Reply  0x03                       {opt}      {opt}  {optional}
+   Traction              Reserve Reply Result:                                                              
+   Management     0x40    0x01         0 == OK                                                          
+   Reply                               Non-zero == Failed  
+                         Heartbeat                                                                          
+                         Request       Timeout in seconds                                               
+                         0x03          
+
+    
+
+    
+
+   The Query Speed/Direction reply is almost in the Set Speed/Direction format, with the addition of the
+   two additional speeds.  If a node cannot provide any of those three speeds, it shall use float16 NaN
+   (not a number) 0xFFFF. “Set Speed” is the most recent speed received in a Set Speed/Direction
+   instruction, or ±0 if an E-Stop command was received after the last Set Speed/Direction command. The
+   E-Stop bit in the Flags byte represents whether the Train Node is in Emergency Stop state. “Commanded
+   Speed” is the speed that the traction control is currently attempting to move, taking into account
+   momentum and any other control modifiers.  “Actual Speed” is the current measured speed of the
+   locomotive. There is no accuracy guarantee for Actual Speed.
+
+                                             5 States (Normative)
+
+   OpenLCB Train Nodes have the following states:
+
+   Related to Speed:
+
+     * Set Speed – The speed set by a throttle, the content of the most recent “set speed” instruction
+
+     * Commanded Speed – the current speed that is intended by the control algorithm of the Train Node.
+       Optional (assumed to match the Set Speed when not implemented).
+
+     * Current Speed – a physical state, the speed at which the object is currently moving. Optional
+       (assumed to match the Commanded Speed when not implemented).
+
+   Related to Emergency Stop:
+
+     * A Train Node enters Emergency Stop state upon receiving a Traction Control Command message with
+       Emergency Stop command. A Train Node leaves Emergency Stop state upon receiving a Traction Control
+       Command message with a Set Speed command (for any speed, including ±0).
+
+     * A Train Node enters Global Emergency Stop state upon receiving an Event Report message with the
+       Emergency Stop All event. A Train Node leaves Global Emergency Stop state upon receiving an Event
+       Report message with the Clear Emergency Stop All event.
+
+     * A Train Node enters Global Emergency Off state upon receiving an Event Report message with the
+       Emergency Off All event. A Train Node leaves Global Emergency Off state upon receiving an Event
+       Report message with the Clear Emergency Off All event.
+
+   Related to Functions:
+
+     * It is not specified, which Function numbers are part of the state of the Train Node, and for those
+       that are, what resolution the value needs to be represented.
+
+   Related to Listeners:
+
+     * The state consists of which Listeners are currently attached (their Node ID), the Flag byte with
+       which they were last attached, and the order in which they were attached. Updating the flags shall
+       not change the order.
+
+     * It is strongly recommended to store the Listener configuration in persistent state.
+
+   Related to Controller:
+
+     * The state consists of a single Node ID, which may be unset.
+
+                                          6 Interactions (Normative)
+
+6.1 Controller
+
+   A Train Node maintains a single Node ID in its state as the Controller. A Throttle Node, before
+   attempting any Train Control Operation, shall assign its own Node ID as the Train Node’s Controller. A
+   Throttle Node which is the current Controller, before intentionally powering down, shall attempt to
+   release itself from the Train Node.
+
+   A Train Node may, but is not required to, reject all Train Control Operations from an OpenLCB Node that
+   is not the current Controller. In such a case the Terminate Due To Error message shall be used with the
+   error code “source not permitted – not a controller”. Messages arriving from an attached Listener with
+   the P bit set to 1 shall never be rejected.
+
+   A Train Node may, but is not required to, use heartbeats (see Section Heartbeat) to ensure that the
+   Controller is continuously present on the network and is intending to keep the control of the
+   locomotive.
+
+   A Throttle Node, to assign itself as the Controller of a Train Node, sends a Traction Control Command
+   message to the Train Node, with the Controller Configuration – Assign Controller command and its own
+   Node ID. To accept the request, the Train Node shall set the Controller to the provided Node ID and
+   reply with a Traction Control Reply with a Controller Configuration – Assign Controller Reply with a
+   Result of 0. A result of non-zero rejects the request. If there was a previous Controller, the Train
+   Node sends a Controller Changing Notify Request to the previous Controller. The Train Node may, but is
+   not required to wait for the reply of the previous Controller and factor in its reply to the decision.
+   The Train Node shall reply to the Assign Controller message within 3 seconds.
+
+   A Node may query the active Controller from a Train Node.  If no Controller is assigned the Train Node
+   returns a Node ID of 0.0.0.0.0.0.
+
+   A Throttle Node assigned as a Controller of a Train Node, to release itself as the active Controller,
+   sends a Controller Configuration – Release Controller request with its own Node ID to the Train Node.
+   The Train Node shall verify that the Node ID matches the current Controller before setting the
+   Controller to empty.
+
+6.2 Emergency Stop
+
+   Receipt of the Emergency Stop instruction stops the locomotive as fast as possible.  This sets the Set
+   Speed to zero (preserving existing direction) and the Commanded Speed to zero (preserving existing
+   direction) regardless of any momentum, BEMF or other operations with the train node.
+
+   Entering the Global Emergency Stop or Global Emergency Off state also stops the locomotive as fast as
+   possible, but does not change the Set Speed. The train shall remain stopped while it is in any of the
+   Emergency Stop, Global Emergency Stop or Global Emergency Off states. Upon exiting all Emergency Stop
+   states, the locomotive shall accelerate to the currently valid Set Speed, if that is not zero, according
+   to its settings.
+
+   In addition to stopping movement, the Global Emergency Off state shall de-energize all other outputs of
+   the Train Node if possible. Upon exiting Global Emergency Off, these shall then be restored to their
+   commanded state, which may have changed during the period of the Global Emergency Off state.
+
+6.3 Function Operation
+
+   Function values are stored in the 0xF9 memory space. They are written using the memory configuration
+   protocol or using the Set Function instruction.
+
+   For a binary function the Throttle Node shall write the value ‘0’ to turn the function off, and ‘1’ to
+   turn the function on.
+
+6.4 Train Identification
+
+   Train Nodes shall be producers of the well-known reserved event ‘Is Train’ according to the OpenLCB
+   Event Transport Standard.
+
+6.5 Listeners
+
+   When listeners are configured on a Train Node, the incoming Train Control Operations are forwarded by
+   the Train Node to all the Listener nodes. The forwarded message shall be a Traction Control Request
+   message with the bit P set to 1.
+
+   Even if the source node of the incoming message is on the listener list, the message is not forwarded to
+   the source node to avoid message loops.
+
+   The listener flags define which messages shall be forwarded:
+
+     * Set speed message is always forwarded. If the flag “Rev direction” is set for the listener, the
+       direction of the forwarded speed is flipped.
+
+     * Set function message with function number = 0 shall be forwarded if and only if the “Link F0” flag
+       is set on the listener configuration.
+
+     * Set function message for any other function number shall be forwarded if and only if the “Link Fn”
+       flag is set on the listener configuration.
+
+   To add or remove a listener, the Attach Node or Detach Node message shall be sent to the target Train
+   Node. The response shall contain the same node ID and a 2-byte OpenLCB Error Code. The following error
+   codes may be helpful:
+
+     * 0x0000: Success.
+
+     * Permanent error, Not found. Useful if the caller tried to remove a node that is not attached as a
+       Listener.
+
+     * Permanent error, Already Exists. Useful if the caller tried to add a node as a Listener to itself.
+
+   If a caller wants to update the flags of a specific listener, the Attach Node message shall be sent with
+   the same node ID and the new flags.
+
+   To query the listeners from a train node, a Listener configuration Query Nodes message shall be sent to
+   the train node. The response message contains the number of listeners currently configured. Listeners
+   are indexed from 0 to count-1. Sending the Query Nodes message with the index specified, the train node
+   will return the information for that specific listener, including Node ID and the flags specifying the
+   forwarding options. If the requested index is out of bounds, or no index is requested, then the response
+   will be short (no node information).
+
+   User interfaces that show the listeners shall not show listener nodes that are marked with the flag
+   “Hide”. This flag is intended to be set for controlling throttles and train automation systems.
+
+   A Train Node may, but is not required to change its state upon a received Set Function message with P=1.
+   Whether or not it changes state, the forwarding of the message to other Listeners is required as
+   specified above.
+
+6.6 Heartbeat
+
+   The Heartbeat Request may be sent by a Train Node to the currently active Controller node at the
+   discretion of the Train Node.  The argument is a deadline in seconds for the Controller node to reply.
+   The Controller node may reply with any control or query command, or a No-op command.
+
+   Trains shall not initiate a Heartbeat Request if the last Set Speed is zero (including when the Train
+   Node is in Emergency Stop state).
+
+   Trains shall accept any command or query sent from the Controller node to the Train Node to clear the
+   Heartbeat Request. If the Controller node does not have anything to command or query, the Traction
+   Management No-op request may be used to clear the Heartbeat.
+
+   If a Train Node does not receive any command or query from the Controller node within the deadline
+   presented in the Heartbeat Request, the Train Node shall interpret that as a Set Speed 0 command. This
+   command shall be forwarded to all registered Listeners at the same time, including the Controller node,
+   if it is registered as a Listener.
+
+   In case there is no assigned Controller node, the Train Node shall continue operating as last commanded.
+
+                                         7 Memory Spaces (Normative)
+
+7.1 Function Information 0xF9
+
+   Functions, such as lights and sounds, can be operated by the Traction Control Set Function instruction,
+   and their current value can be retrieved via the Traction Control Query Function instruction. The values
+   are also available for reading and writing in the Function Information memory space, so long as the
+   value of a given function does not exceed 255.
+
+   The NMRA S-9.2.1 Standard describes four separate DCC packets controlling sets of “functions”. The
+   OpenLCB 0xF9 space is allocated to cover all these by using the third byte of the address as a selector.
+
+   Type                       Low Address High Address Values                           
+                                                       A non-zero value indicates "ON", 
+   F0-F68                     0x0 00 00   0x0 00 44                                     
+                                                       a zero value is "OFF".           
+   Binary State Controls                                                                
+                              0x1 00 00   0x1 7F FF    "
+   (full space)               
+   Binary State Controls                                                                
+                              0x2 00 00   0x2 00 7F    "
+   (short space, if separate) 
+   Analog Outputs             0x3 00 00   0x3 00 FF                                     
+
+   A Train Node representing a DCC locomotive may, but is not required to provide support for all of the
+   above features, and it may, but is not required to provide the last written data upon a read command.
+
+7.2 Function Definition Information (FDI) 0xFA
+
+   0xFA is a read-only memory space which provides information for Throttle Nodes on how to present a user
+   interface to control the specific functions that are available on this particular Train Node.
+
+   The format and semantics of this data is specified by the OpenLCB Function Definition Information
+   Standard.
+
+    
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 Intended Use (Informative)
+
+   3 References and Context (Normative)
+
+   3.1 Terminology
+
+   4 Message Formats (Normative)
+
+   4.1 Defined Event IDs
+
+   4.2 Defined Error Codes
+
+   4.3 Traction Control Command Message
+
+   4.4 Traction Control Reply Message
+
+   5 States (Normative)
+
+   6 Interactions (Normative)
+
+   6.1 Controller
+
+   6.2 Emergency Stop
+
+   6.3 Function Operation
+
+   6.4 Train Identification
+
+   6.5 Listeners
+
+   6.6 Heartbeat
+
+   7 Memory Spaces (Normative)
+
+   7.1 Function Information 0xF9
+
+   7.2 Function Definition Information (FDI) 0xFA
+
+    

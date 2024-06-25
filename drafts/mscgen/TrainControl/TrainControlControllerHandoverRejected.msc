@@ -1,0 +1,24 @@
+# Assigning a controller when the train node does not support throttle to throttle handover.
+
+msc {
+     hscale = "1";
+     "Throttle 1", "Throttle 2", "Train Node 1";
+     
+     "Throttle 1" note "Train Node 1"      [ label = "Multiple Throttles attempt to control a Train Node", textbgcolour="#c0c0c0" ];
+     |||;
+     "Throttle 1" -> *                            [ label = "Identify Producer IsTrain" ];
+     "Throttle 2" -> *                            [ label = "Identify Producer IsTrain" ];
+     * <- "Train Node 1"                          [ label = "Producer Identified: IsTrain" ];
+     "Throttle 1" box "Throttle 1"               [ label = "Throttle 1 selects (and runs) Train Node" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Train Control: Controller Assign - Throttle 1 Node ID" ];
+     "Throttle 1" <- "Train Node 1"               [ label = "Train Control: Controller Assign Result Ok" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Train Control: Set Speed" ];
+     ...;
+     "Throttle 2" box "Throttle 2"               [ label = "Throttle 2 selects the same Train Node" ];
+     "Throttle 2" -> "Train Node 1"               [ label = "Train Control: Controller Assign - Throttle 2 Node ID" ];
+     "Throttle 2" <- "Train Node 1"               [ label = "Train Control: Controller Assign Result Failed\nTrain Node rejected" ];
+     
+     "Throttle 1" box "Throttle 1"		  [ label = "Throttle 1 continues running Train Node" ];
+     "Throttle 1" -> "Train Node 1"               [ label = "Train Control: Set Speed" ];
+     ...;            
+}

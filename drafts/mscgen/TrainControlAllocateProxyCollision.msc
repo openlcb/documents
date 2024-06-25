@@ -1,0 +1,29 @@
+# MSC for normal allocation & deallocation of a throttle control proxy
+msc {
+
+  ta [label="Throttle A"], tb [label="Throttle B"], p [label="Proxy"];
+
+
+  p box p [label="Node Starts"];
+  
+
+  p->* [ label = "Initialization Complete" ] ;
+  p->* [ label = "ProducerIdentified Valid: Idle Event" ] ;
+  p->* [ label = "ProducerIdentified Invalid: InUse Event" ] ;
+
+  ta box tb [label="Start Simultaneous Allocation"];
+
+  ta->p [ label = "Throttle Control: Reserve Instruction" ] ;
+  tb->p [ label = "Throttle Control: Reserve Instruction" ] ;
+
+  ta box tb [label="Preceding Effectively Simultaneous\nHow do A and B know who got the proxy?"];
+
+  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  p->ta [ label = "Throttle Control: Reserve Reply: OK" ] ;
+  p->tb [ label = "Throttle Control: Reserve Reply: Not allocated; already in use" ] ;
+
+  tb box tb [label="Uses some other proxy"];
+
+
+  
+}

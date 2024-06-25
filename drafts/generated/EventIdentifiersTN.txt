@@ -253,64 +253,99 @@
    The format of the DCC packet for a basic DCC Accessory Decoder is as follows (most significant bit
    first):
 
-   Byte 1                        Byte 2                                                 Byte 3 (Error Byte) 
-   0b10aaaaaa                    0b1AAACDDD                                             0bEEEEEEEE          
-                                 Bits 6 down to 4 are the 3 most significant bits of                        
-   Bits 5 down to 0 are the      the address in 1's complement form.  Bits 2 down to 0   
-   middle 6 bits of the address. are the 3 least significant bits of the address.  Bit  
-                                 3 is set for active, clear for inactive.               
+   Byte 1                          Byte 2                                               Byte 3 (Error Byte) 
+   0b10A7A6A5A4A3A2                0b1Ā10Ā9Ā8DA1A0R                                     0bEEEEEEEE          
+                                   Bits 6 down to 4 are the 3 most significant bits of                      
+   Bits 5 down to 0 are the middle the address in 1's complement form.  Bits 2 down to  
+   6 bits of the address.          1 are the 2 least significant bits of the address.    
+                                    Bit 3 is set for active, clear for inactive. Bit 0  
+                                   is used to distinguish between a pair of outputs.    
 
     
 
-   The Accessory Decoder address format in most significant bit first format is:  0bAAAaaaaaaDDD, and it is
-   expected that this is how the bits map to Bytes 7 and 8 of the Event Identifier.  Though the AAA address
-   bits are in 1's complement form under the DCC standards, they are in standard non 1's complement form in
-   OpenLCB format.
+   The Accessory Decoder address is 11 bits in the form of A10..A0. The pair bit ‘R’ adds a 12th least
+   significant address bit. Though the Ā10Ā9Ā8 address bits are in 1's complement form under the DCC
+   standards, they are in standard non 1's complement form in OpenLCB format.
 
    By convention, most DCC Accessory Decoders couple two outputs together to form an output pair, and use
-   the least significant address bit to select the direction of travel for the output pair as a whole.  In
-   this mode, the active/inactive bit 'C' is always sent as set or ignored altogether by the DCC decoder.
-    The effective address space is cut in half (max of 2048 addresses); one set of four addresses are used
-   for broadcast space; and another set of four addresses are thrown away by convention due to indexing
-   starting at one. This is where the available 1-2040 accessory decoder addresses that most DCC users are
-   familiar with comes from.
+   the least significant address bit ‘R’ to select the direction of travel for the output pair as a whole.
+    In this mode, the active/inactive bit ‘D’ is always sent as set (activate) or ignored altogether by the
+   DCC decoder.  The effective address space is cut in half (max of 2048 addresses).
 
-   There is some ambiguity in how the 1-2040 addresses that most DCC users are familiar with translate to
-   the bit level addresses between existing DCC systems in the market place.  There are generally two
-   schemes that are deployed, as follows in bold/underline with a repeating pattern throughout the address
-   space.  It is not prescribed how the OpenLCB user interfaces map to the bit level events. Grey cells
-   mark addresses that do not exist in the opposing scheme.
+   There is some ambiguity between DCC systems in the market in how the 1-2048 addresses that most DCC
+   users are familiar with translate to the bit level addresses sent over the rails.  There are generally
+   two schemes that are deployed. The NMRA S-9.2.1 DCC standard defines these as Linear and Non-Linear. It
+   is not prescribed how the OpenLCB user interfaces maps to the bit level events, however the NMRA S-9.2.1
+   DCC Standard requires the Linear scheme be used in all new designs.
 
-   User Facing Address DCC Vendor A Binary Address   DCC Vendor B Binary Address
-                       DCC Format     OpenLCB Format DCC Format     OpenLCB Format 
-   Reference           0bAAAaaaaaaDDD 0bAAAaaaaaaDDD 0bAAAaaaaaaDDD 0bAAAaaaaaaDDD 
-   1 (normal)          0b111000001001 0b000000001001 0b111000001001 0b000000001001 
-   1 (reverse)         0b111000001000 0b000000001000 0b111000001000 0b000000001000 
-   252                 0x11111111111x 0b00011111111x 0b11111111111x 0b00011111111x 
-   253                 0b11100000000x 0b00000000000x 0b11000000000x 0b00100000000x 
-   256                 0b11100000011x 0b00000000011x 0b11000000011x 0b00100000011x 
-   257                 0b11000000100x 0b00100000100x 0b11000000100x 0b00100000100x 
-   508                 0x11011111111x 0b00111111111x 0b11011111111x 0b00111111111x 
-   509                 0b11000000000x 0b00100000000x 0b10100000000x 0b01000000000x 
-   512                 0b11000000011x 0b00100000011x 0b10100000011x 0b01000000011x 
-   513                 0b10100000100x 0b01000000100x 0b10100000100x 0b01000000100x 
-   1788                0x00111111111x 0b11011111111x 0b00111111111x 0b11011111111x 
-   1789                0b00100000000x 0b11000000000x 0b00000000000x 0b11100000000x 
-   1792                0b00100000011x 0b11000000011x 0b00000000011x 0b11100000011x 
-   1793                0b00000000100x 0b11100000100x 0b00000000100x 0b11100000100x 
-   2039                0b00011111000x 0b11111111000x 0b00011111000x 0b11111111000x 
-   2040                0b00011111011x 0b11111111011x 0b00011111011x 0b11111111011x 
-   Broadcast           0b000111111xxx 0b111111111xxx 0b000111111xxx 0b111111111xxx 
+   User Address Linear Addressing Scheme   
+                DCC Format                 OpenLCB Format             
+   Reference    0bĀ10Ā9Ā8A7A6A5A4A3A2A1A0R 0bA10A9A8A7A6A5A4A3A2A1A0R 
+   1 (reverse)  0b111000001000             0b000000001000             
+   1 (normal)   0b111000001001             0b000000001001             
+   …            …                          …                          
+   2044         0b00011111111R             0b11111111111R             
+   2045         0b11100000000R             0b00000000000R             
+   2046         0b11100000001R             0b00000000001R             
+   2047         0b11100000010R             0b00000000010R             
+   2048         0b11100000011R             0b00000000011R             
+
+    2.5.3.4 DCC Turnout Feedback
+
+   These events may be used to report actual turnout state. Some proprietary network protocols may already
+   define messages that can appropriately be mapped to these events. The address mapping of these events to
+   DCC turnout addresses is the same as defined in section 2.5.3.3 above.
+
+    2.5.3.5 DCC System Sensor Feedback
+
+   Some proprietary network protocols may already define messages for generic sensor feedback, which can
+   then be appropriately mapped to these events. No assumptions are made about address translation.
+
+    2.5.3.6 Extended DCC Accessory Decoder
+
+   The Well-Known Event ID space for basic DCC accessory decoders is provided as a suggestion to
+   manufactures on how to translate OpenLCB events to classic Extended DCC accessories.  It is possible
+   that there could be future mapping schemes required to implement a use case not covered by this scheme.
+    This scheme is not designed to be mutually exclusive of other possible schemes, and its use is not
+   required when mapping between OpenLCB events and classic Extended DCC accessories. The format of the DCC
+   packet for an extended DCC Accessory Decoder is as follows (most significant bit first):
+
+   Byte 1                        Byte 2                                  Byte 3         Byte 4 (Error Byte) 
+   0b10A7A6A5A4A3A2              0b0Ā10Ā9Ā80A1A01                        0bXXXXXXXX     0bEEEEEEEE          
+                                 Bits 6 down to 4 are the 3 most                                            
+   Bits 5 down to 0 are the      significant bits of the address in 1's  
+   middle 6 bits of the address. complement form.  Bits 2 down to 1 are  8-bit command.  
+                                 the 2 least significant bits of the     
+                                 address.                                
 
     
 
-    2.5.3.4 Advanced DCC Accessory Decoder
+   The Extended Accessory Decoder address format in most significant bit first format is:
+    0bA10A9A8A7A6A5A4A3A2A1A0, and it is expected that this is how the bits map to Bytes 6 and 7 of the
+   Event Identifier. Though the A10A9A8 address bits are in 1's complement form under the DCC standards,
+   they are in standard non 1's complement form in OpenLCB format.
 
-   There are no known advanced DCC Accessory Decoders currently for sale in the market.  The DCC standards
-   are somewhat ambiguous about the address bit order.  The address space is reserved for the future should
-   the use of advanced DCC Accessory Decoders become better defined and more prevalent.
+   The reason that the 11-bit extended DCC accessory address falls into Bytes 6 and 7, inconsistent with
+   the use of Bytes 7 and 8 in the basic DCC accessory address, is so that a single producer/consumer
+   identified range message can be used without violating the 50% space utilization rule.
 
-    2.5.3.5 Other Well-Known
+   Example Event to DCC packet mappings:
+
+   User Address OpenLCB Event ID        DCC Packet                                     
+   1            01.01.02.00.01.00.04.XX 0b10000001  0b01110001  0bXXXXXXXX  0bEEEEEEEE 
+   2            01.01.02.00.01.00.05.XX 0b10000001  0b01110011  0bXXXXXXXX  0bEEEEEEEE 
+   ‍3           01.01.02.00.01.00.06.XX 0b10000001  0b01110101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍4           01.01.02.00.01.00.07.XX 0b10000001  0b01110111  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2043        01.01.02.00.01.07.FE.XX 0b10111111  0b00000101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2044        01.01.02.00.01.07.FF.XX 0b10111111  0b00000111  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2045        01.01.02.00.01.00.00.XX 0b10000000  0b01110001  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2046        01.01.02.00.01.00.01.XX 0b10000000  0b01110011  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2047        01.01.02.00.01.00.02.XX 0b10000000  0b01110101  0bXXXXXXXX  0bEEEEEEEE 
+   ‍2048        01.01.02.00.01.00.03.XX 0b10000000  0b01110111  0bXXXXXXXX  0bEEEEEEEE 
+
+    
+
+    2.5.3.7 Other Well-Known
 
    Other Well-Known Event Identifiers not discussed here have their uses prescribed and/or discussed
    elsewhere.  No assumptions should be made about the use of these Well-Known Event Identifiers as
@@ -354,8 +389,12 @@
 
    2.5.3.3 Basic DCC Accessory Decoder
 
-   2.5.3.4 Advanced DCC Accessory Decoder
+   2.5.3.4 DCC Turnout Feedback
 
-   2.5.3.5 Other Well-Known
+   2.5.3.5 DCC System Sensor Feedback
+
+   2.5.3.6 Extended DCC Accessory Decoder
+
+   2.5.3.7 Other Well-Known
 
     

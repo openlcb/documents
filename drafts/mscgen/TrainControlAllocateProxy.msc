@@ -1,0 +1,43 @@
+# MSC for normal allocation & deallocation of a throttle control proxy
+msc {
+
+  t [label="Throttle"], p [label="Proxy"];
+
+
+  p box p [label="Node Starts"];
+  
+
+  p->* [ label = "Initialization Complete" ] ;
+  p->* [ label = "ProducerIdentified Valid: Idle Event" ] ;
+  p->* [ label = "ProducerIdentified Invalid: InUse Event" ] ;
+
+  t box t [label="Already Knows Proxy Node ID"];
+
+  t box t [label="Start Allocation of Proxy"];
+
+  t->p [ label = "Throttle Control: Reserve Instruction" ] ;
+
+  p->* [ label = "ProducerConsumerEventReport: In-Use Event" ] ;
+  p->t [ label = "Throttle Control: Reserve Reply: OK" ] ;
+
+  t box t [label="Assign"];
+
+  t->p [ label = "Throttle Control: Attach DCC address instruction" ] ;
+  p->t [ label = "Throttle Control: Attach DCC address reply" ] ;
+
+  t->p [ label = "Throttle Control: Release Instruction" ] ;
+
+  t box p [label="Operate Locomotive"];
+
+  t box t [label="Deallocation of Proxy"];
+
+  t->p [ label = "Throttle Control: Reserve Instruction" ] ;
+  p->t [ label = "Throttle Control: Reserve Reply: OK" ] ;
+
+  t->p [ label = "Throttle Control: Detach DCC address instruction" ] ;
+  p->t [ label = "Throttle Control: Detach DCC address reply" ] ;
+  
+  t->p [ label = "Throttle Control: Release Instruction" ] ;
+
+  p->* [ label = "ProducerConsumerEventReport: Idle Event" ] ;
+}

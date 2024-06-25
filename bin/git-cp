@@ -1,0 +1,39 @@
+#!/bin/bash
+
+if [ ! -z "$(git status -s -uno)" ]; then
+    echo working directory must be clean >&2
+    git status -s -uno
+    exit 1
+fi
+
+SRC="$1"
+DST="$2"
+BACKUP="${1}.bak"
+if [ ! -f "${SRC}" ] ; then
+    echo source file $SRC does not exist >&2
+    exit 1
+fi
+
+if [ -f ${DST} ] ; then
+    echo dest file $DST must not exist >&2
+    exit 1
+fi
+
+set -e
+set -x
+
+git mv "${SRC}" "${DST}"
+git commit -n -m "Fork ${SRC} to ${DST}"
+SAVED=`git rev-parse HEAD`
+git reset --hard HEAD^
+git mv "${SRC}" "${BACKUP}"
+sleep 0.3
+git commit -n -m "Fork ${SRC} to ${DST} step 2"
+sleep 0.3
+git merge $SAVED || true
+sleep 0.3
+git commit -a -m "Fork ${SRC} to ${DST} step 3"
+sleep 0.3
+git mv "${BACKUP}" "${SRC}"
+sleep 0.3
+git commit -n -m "Fork ${SRC} to ${DST} step 4"

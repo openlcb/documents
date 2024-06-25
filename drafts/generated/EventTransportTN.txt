@@ -1,0 +1,834 @@
+                                                1 Introduction
+
+   This Technical Note contains informative discussion and background for the corresponding OpenLCB Event
+   Transport Standard. This explanation is not normative in any way.
+
+   OpenLCB nodes respond to local inputs and state changes by emitting Producer/Consumer Event Report
+   (PCER) messages. When they do this, they are acting as “Producers”. OpenLCB nodes receive these
+   messages, and can act on them locally if desired. If they do so, they are acting as “Consumers”.
+   Together, this is called the Producer-Consumer Model of system control.  In this model a particular
+   concept, or event, is the sum of the inputs that trigger the production of the PCER by the producer(s)
+   and the action(s) taken by the consumer(s).
+
+   Its main advantage is the knowledge independence it imparts between all of the nodes involved in an
+   event.  Expressed in more anthropomorphic terms, neither the producers nor consumers of a PCER are aware
+   of each other.  This adds flexibility to the system, since more producers or consumers of the PCER can
+   be added to implement the associated event, without concern of side effects to the other nodes involved
+   in the event.1,2
+
+   The Producer/Consumer Event ID included in a PCER message is an 8-byte unique identifier. The method for
+   assigning these and ensuring their uniqueness is in the OpenLCB Event Identifiers Standard and Technical
+   Note.
+
+   There are many possible ways to use these 64 bits, some of which are discussed as examples below. In
+   particular, OpenLCB does not require or enforce any particular partitioning of the eight bytes. More
+   than one node may emit the same Producer/Consumer Event ID (note that the Node ID of the emitting node
+   is available separately in the message). More than one node may receive and act on a PCER message with a
+   specific Producer/Consumer Event ID. The only requirement is that the 8-byte quantity be unique to the
+   event.
+
+   In addition to the 8-byte EventID, produced events may be accompanied by one or more bytes of payload.
+    This can be used as a global transport mechanism.
+
+   OpenLCB event IDs carry no specific information about whether they are coding “on” or “off”, “active” or
+   “inactive” for some output state.  It's possible for multiple consumers to do different things in
+   response to a single event:  A event that means “set nighttime lighting” might turn some outputs off and
+   turn others on.  Simple nodes will often use two producers to represent “input line N went on” and
+   “input line N went off”; they will often use two consumers to represent “turn on output line N” and
+   “turn off output line N”.
+
+   OpenLCB events therefore do not directly represent states.  Rather, they represent state transitions, or
+   rather a change to the state of the layout. One event might be interpreted as “go to output N on”,
+   another as “go to output N off”, and only by seeing which transition happened most recently can the
+   state of output N be recovered.
+
+                                        2 Annotations to the Standard
+
+   This section provides background information on corresponding sections of the Standard document. It is
+   expected that these two documents will be read together.
+
+2.1 Introduction
+
+   Nothing to add to the Standard.  
+
+2.2 Intended Use
+
+   A particular PCER may be produced in response to physical input or state change on a layout, for example
+   a contact closure or the activation of a block occupancy detector, or it can be in response to a
+   non-physical change such as the arrival of a certain time.  The same PCER can be produced by several
+   different state changes.  That PCER may result in some action at consumers.   The term 'event' includes
+   the state changes, the PCER message, and the resulting actions, and represent a specific idea or
+   concept, such as “Night has fallen”.  
+
+   For example, the concept of  an “Emergency stop” event might include the actions of turning off track
+   power, turning on a fault-indicator, and sounding a buzzer.  The PCER may be produced by any of: a panic
+   button, a throttle button, an over-current detector, or an anti-collision system.  
+
+   The aforementioned “Night has fallen” event might be triggered by a fast-clock time, a toggle switch, or
+   a control program, and its actions might include illuminating street lights, house lights, and the
+   dimming of overhead lighting.  
+
+   In addition, ranges of PCERs can be used for specific purposes.  For example, a fast clock's messages
+   can be implemented as a range of PCERs, where the low order bytes code the time.  
+
+2.3 References and Context
+
+    For more information on format and presentation, see:
+
+     * OpenLCB Common Information Technical Note
+
+   For more information on MTI values and how they are laid out, see:
+
+     * OpenLCB Message Network Standard
+
+     * OpenLCB MTI allocation table3.
+
+2.4 Message Formats
+
+   The range mask is implemented as a combined base value and mask in order to save space.  The base value
+   takes the form 0bv...0 and the mask 0b0...m.  If the lowest bit of the base value is a one, then the
+   combined form is 0bv...0.  However, if the lowest bit of the base value is a zero, then the mask is
+   inverted and the combined form becomes 0bv...1.  
+
+   Base
+
+   Mask
+
+   Base
+
+   Mask
+
+   Range Mask
+
+   Base
+
+   Mask
+
+   The sense of the mask bits depend on this bit.  
+
+   Base
+
+   Mask
+
+   If the lowest base bit is a 0, then mask bits are 1s.  
+
+   Base
+
+   Mask
+
+   If the lowest base bit is a 1, then mask bits are 0s.  
+
+   Ranges can only be specified in powers of 2, i.e., they can specify ranges of 2, 4, 8, … .Therefore, if
+   a range of n is required, then the next larger power of two is used.  Ranges should not be over
+   specified, so the standard requires that a range not extend past the next power of two by requiring that
+   at least 50% of the EventIDs in the range be relevant.
+
+   Encoding a range is done by determining how many values are required, choosing the next higher power of
+   two, choosing a base value and the mask, and finally combining the two, inverting the mask if necessary.
+    For example, a range 0x1234xx would require a mask of the form 0x0000FF, and the combined form would be
+   0x1234FF.  A range of 0x1235xx would also require a mask of 0x0000FF, but the combined form would be
+   0x123500, since the mask is inverted.   In this example, an event range of 256 events and a 16-bit
+   address is specified.   
+
+   Decoding a range involves identifying the mask as lowest contiguous bits of the same value as the lowest
+   bit.  The base value is the remaining high order bits.  For example, the combined form 0x987650 would
+   yield a mask of 0x00000F (inverted) and a base of 0x98765, whereas 0x98764F would yield a mask of
+   0x00000F and a base of 0x987640.  In this example, an event range of 16 events and a 20-bit address is
+   specified.   
+
+  2.4.1 Producer/Consumer Event Report (PCER)
+
+   This message transports an Event ID from a producer node(s) to zero or more unspecified consumer nodes.
+    It is the backbone of the protocol, and forms most of the expected traffic.
+
+   The source Node ID allows identification of which node sent the event. This can be used for diagnostic
+   and status purposes, but nodes must act on the event without regard to where it came from.
+
+   Note that the Standard limits the payload to 256 bytes. This is to put a bound on required buffers. In
+   practice, very long PCER-with-payload messages can block timely transmission of e.g. Datagram and Stream
+   messages and other PCER-with-payload messages. When designing protocols that use this capability, it may
+   be useful to define ways to use multiple, shorter PCER-with-payload messages instead of one long one.
+
+  2.4.2 Identify Consumer
+
+   This message is broadcast and requests each node to report whether it consumes this Event ID.  
+
+  2.4.3 Consumer Identified
+
+   This message is broadcast, in response to a received Identify Consumer message, from each node that
+   consumes the included Event ID.  Nodes also send this as part of their startup so that other nodes know
+   they want to consume particular events.
+
+   This is one of the messages that allows bridges to do automatic routing of event messages.
+
+   The “valid”, “invalid”, “unknown” subforms are used to attempt to recover the state of the overall
+   system.  In general, event transmission via PCER messages conveys state changes. If a node comes in
+   during operation, it might want to determine the correct value of the distributed state. Producers can,
+   but don't always, know that state.  For example, consider “On” and “Off” events for a light.  There
+   might be two producers attached to a toggle switch. In that case, one of them will still see their state
+   as current, and will reply with valid. Alternately, the two producers might be set to produce when two
+   separate pushbuttons are pressed.  In that case, at some later time neither producer knows whether the
+   distributed state corresponds to its event. They both have to report as unknown. Consumers can also know
+   the state.  The lamp controller that consumes the “On” and “Off” probably knows whether it is currently
+   providing power to the lamp, and so can reply with valid for one event and invalid for the other.
+
+  2.4.4 Consumer Range Identified
+
+   This message broadcasts, in response to a received Identify Consumer message, from each node that
+   consumes events in the range specified by the included event-ID-with-mask.  This is one of the messages
+   that allows bridges to do automatic routing of event messages.     
+
+   The requirement that 50% or more of the Event IDs in a range are consumed is to allow rounding the range
+   up to the enclosing bit, but no further. This keeps the Event ID ranges in the complete OpenLCB system
+   compact and is intended to make the task of gateways more manageable.
+
+   Allowing this requirement to be overridden by other Standards permits development of standard protocols
+   that use one Consumer Range Identified message for separate disconnected ranges to improve efficiency.
+   By only allowing this to be done via the Standards process, not as an ad-hoc design issue, complexity is
+   kept under control.
+
+  2.4.5 Identify Producer
+
+   This message is broadcast and requests each node to report whether it produces this Event ID.  
+
+  2.4.6 Producer Identified
+
+   This message is broadcast, in response to a received Identify Producer message, from each node that
+   produces the included Event ID.  This is one of the messages that allows bridges to do automatic routing
+   of event messages.  
+
+   The ProducerIdentified message is different from a Producer-ConsumerEventReport message for several
+   reasons:
+
+     * It allows the valid/invalid/unknown subforms, which don't make any sense for a PCER message
+
+     * It allows network listeners to separate the event identification mechanism, which uses
+       ProducerIdentified, from the event transport mechanism, which uses PCER.  Otherwise, nodes might
+       think that an event had occurred and was being produced, when it was just a response to a request
+       for current status.
+
+  2.4.7 Producer Range Identified
+
+   The requirement that 50% or more of the Event IDs in a range are produced is to allow rounding the range
+   up to the enclosing bit, but no further. This keeps the Event ID ranges in the complete OpenLCB system
+   compact and is intended to make the task of gateways more manageable.
+
+   Allowing this requirement to be overridden by other Standards permits development of standard protocols
+   that use one Producer Range Identified message for separate disconnected ranges to improve efficiency.
+   By only allowing this to be done via the Standards process, not as an ad-hoc design issue, complexity is
+   kept under control.
+
+   An example of a producer range would be a fast clock node that sends a range of events to indicate the
+   time. Since there are 24*60*60 = 86,400 seconds in a day, it needs a range containing 86,400 events.  In
+   this case, rather than having to send 86,400 individual ProducerIdentified messages at start-up or on
+   request, it can send one Producer Range Identified message with the appropriate base/mask Event ID Range
+   value.   
+
+   This message is broadcast, in response to a received Identify Producer message, from each node that
+   produces events in the range specified by the included event-ID-with-mask.  This is one of the messages
+   that allows bridges to do automatic routing of event messages.
+
+  2.4.8 Identify Events
+
+   Identify Events comes in both addressed and global forms. They are intended to be used for different use
+   cases.
+
+   In some cases, the node may want to query a specific node as to what events it produces or consumes. In
+   these cases the directed form is appropriate.  This message will minimize the load on the network as
+   only the node of interest will respond.
+
+   In other cases, the node producing the Identify Events message has a lack of knowledge to which nodes
+   produce or consume the events of interest, and therefore the global form is the more appropriate choice.
+    The global form of Identify Events is similar to the combination of an Identify Producers and an
+   Identify Consumers message for every possible enumeration of Event Ids.  This event is useful to build
+   routing tables for networks segments or network browsing tool but be aware that since this form is
+   transmitted throughout the network, it can be relatively expensive in terms of bandwidth.
+
+  2.4.9 Learn Event
+
+   This message is part of a communication-based method for configuring various producers and consumers
+   across the OpenLCB network to respond to a single Event ID. After those producers and consumers have
+   been selected via some other process, this message is broadcast to carry a specific Event ID to all of
+   them.
+
+2.5 States
+
+   After the Initialization Complete message is sent, but before any Producer/Consumer Event Report
+   messages are sent, each node must identify all events produced or consumed  via zero or more Identify
+   Consumer, Identify Consumer Range, Identify Producer and Identify Producer Range messages. These are not
+   required to be in any particular order.
+
+2.6 Interactions
+
+   Nothing prevents extra Producer/Consumer Identified messages. Nothing prevents combining replies to
+   multiple requests.  This allows simplified implementations, for example setting a bit to indicate that a
+   reply can be sent when time/priority is available.
+
+   Nodes can send identify/identified messages for automatically-routed Event IDs. Nodes aren't required to
+   reply to Identify Producer/Consumer messages for automatically-routed Event IDs to simplify node
+   programming, but it is useful if they do.
+
+   Identify Producer/Consumer messages for well-known Event IDs require response; there's no exemption for
+   those.
+
+   The state of the system can sometimes  be constructed from the received Producer/Consumer Identified
+   messages and their “valid”, “invalid”, “unknown” subforms.  It is possible that these will result in
+   conflicting and/or ambiguous state.
+
+   Note that the Advertised/Not-Advertised state machine is reset by the Initialization Complete message,
+   and not by any lower level link (CAN or other) state machine.
+
+   Delay in sending the Producer Identified / Producer Range Identified and Consumer Identified / Consumer
+   Range Identified messages after Initialization Complete is allowed, but there's no delivery guarantee
+   for this node's events until those have been sent and the state has transitioned to Advertised.
+
+   When a node changes the events it manages, it still needs to emit the Producer Identified / Producer
+   Range Identified and/or Consumer Identified / Consumer Range Identified messages.  For example,
+   reconfiguration could cause this.  It can be handled by sending individual messages, or by resetting and
+   sending them all as part of that process.
+
+   There is no way to indicate that a node is no longer interested in a particular Event ID.  (Sending
+   Initialization Complete again says that all events are not interesting, though).  This could be added,
+   but it is much harder for gateways to decide that an Event ID is not interesting than that it is
+   interesting, because they have to keep a list of all the node IDs that are interested, and back that
+   off.  Better to just let the set of interesting Event IDs grow until the layout or gateway is reset.
+
+   To ensure that event messages are properly routed, nodes must announce when they start to produce or
+   consume messages. Specifically, they must do this at two times:
+
+     * When the node is first initialized, after  the “Initialization Complete” message has been sent.
+
+     * When a configuration change has added another Event ID that can be produced or consumed.
+
+   To announce new Event IDs, the node must transmit a Producer Identified message for each
+   Producer/Consumer Event ID it can newly produce, and a Consumer Identified message for each
+   Producer/Consumer Event ID that it can newly consume.  
+
+  2.6.1 Event Transfer
+
+   The last sentence is the key to gateway traffic reduction. See §3.1 below.
+
+  2.6.2 Event Inquiry
+
+   Identify Events comes in both global and addressed forms. The global form can place a very large load on
+   the network and should only be used when needed.  
+
+   The Identify Events message is sent to request that the specified nodes report all the events they
+   produce or consume.  These reports can be Identified Event messages specifying individual Event IDs or
+   ranges of events.  
+
+   Identify Events is useful to be able to rapidly determine which, if any, Producer/Consumer Event IDs
+   that a particular node is listening for and that it can emit. This can be used as a configuration
+   diagnostic.
+
+   To determine which Producer/Consumer Event IDs can be sent by a particular node, the inquiring node
+   sends an Identify Events message addressed to the target node.
+
+   The node must reply with a Producer Identified message for each Producer/Consumer Event ID it can
+   produce, and a Consumer Identified message for each Producer/Consumer Event ID for which it is
+   listening.
+
+  2.6.3 Producer Inquiry
+
+   It is useful to be able to determine which, if any, nodes are configured to possibly transmit a specific
+   PCER message and the current state of those producers. This can be used as a configuration diagnostic,
+   and as a way of building filtering and routing tables.
+
+   To determine which nodes can send a particular Producer/Consumer Event ID, a node sends an Identify
+   Producers message carrying the desired Producer/Consumer Event ID. This is an unaddressed message
+   addressed to all nodes.
+
+   All nodes that are listening for that Producer/Consumer Event ID reply with a Producer Identified
+   broadcast message.
+
+   The “valid” bit indicates that the node's internal condition is consistent with sending this
+   Producer/Consumer Event ID. For example, assume a node sends Producer/Consumer Event ID 2 when the input
+   goes active and Producer/Consumer Event ID 4 when the input goes inactive. Then if the input was active
+   and the node was asked about Producer/Consumer Event ID 2, it would reply “valid”; if asked about
+   Producer/Consumer Event ID 4, it would reply “not valid”. Depending on the node's structure, it might
+   not always be possible to set the “valid” bit with certainty, in which case the “unknown” bit must be
+   set.
+
+   You can query a state when you come up with the Identify Events message. Conflicting states can happen,
+   and have to be addressed. You might also want to enquire of the consumers if you don't get a definitive
+   answer from the producers.
+
+   In regard to valid/invalid/unknown, it is always possible to send only unknown, or to ignore the three
+   sub-forms, but a lot of capability is then lost.  
+
+  2.6.4 Consumer Inquiry
+
+   This message is useful to determine which, if any, nodes are listening for a specific Producer/Consumer
+   Event ID message.
+
+   This can be used as a configuration diagnostic, and as a way of building routing tables.
+
+   To determine which nodes are listening for a particular Producer/Consumer Event ID, a node sends an
+   Identify Consumers message carrying the desired Producer/Consumer Event ID. This is an unaddressed
+   message processed by all nodes.
+
+   All nodes that are listening for that Producer/Consumer Event ID reply with a Consumer Identified
+   broadcast message.
+
+   The “valid” bit indicates that the node is currently in the state it would be if this message had been
+   received last. For example, assume a node sets its output active for Producer/Consumer Event ID 2, and
+   inactive for a Producer/Consumer Event ID 4. Then if the output was active and the node was asked about
+   Producer/Consumer Event ID 2, it would reply "valid"; if asked about Producer/Consumer Event ID 4, it
+   would reply "not valid". Depending on the node's structure, it might not always be possible to set the
+   “valid” bit with certainty, in which case the “unknown” bit must be set.
+
+  2.6.5 Teach/Learn Configuration
+
+   Entry-level OpenLCB users should be able to buy two OpenLCB nodes and configure them to do something
+   useful with only the pushbutton(s) and LED(s) on them, without requiring a separate configuration tool,
+   computer, etc.
+
+   Producers (in nodes that connect to buttons, toggle switches, occupancy detectors, etc) and consumers
+   (in nodes connected to signals, LEDs, displays, layout lighting, etc) need to be configured to use a
+   common EventID, such that activating a producer will send the common EventID, which will cause one or
+   more consumers to activate.
+
+   The Teach/Learn Configuration interaction provides communications support for that. It works without any
+   central configuration mechanism, nor even any global knowledge of which producers and consumers are
+   being configured.
+
+   The configuration starts by using external mechanisms, e.g. walking around and pushing buttons, to
+   select producers and consumers which will learn the common EventID. These are colloquially called
+   "Learners".  The Standard does not discuss how a node defines its local user interface for doing that
+   selection process4. A single producer or consumer then provides the EventID that is to be learned in a
+   “Teach Event” message. If the taught Event ID is a new unique ID, then only the selected producers and
+   consumers will share it.  If producers and/or consumers are already using that Event ID, the newly
+   configured producers and/or consumers will be tied into the existing network of producers and consumers.
+
+    2.6.5.1 Blue/Gold Buttons Implementation Example
+
+   General Description
+
+   Nodes can be built with two buttons, called Blue and Gold, which can be used to configure the nodes'
+   hardware, including event IDs from one node to one or more other nodes.  
+
+     * On one or more 'learner'-node(s), using the Blue-button, choose a consumer/producer, and then push
+       the Gold-button to set it to learn.  This can be repeated on the same node or on others.  
+
+     * On the 'teacher'-node, push the Gold-button to choose teach-mode, then using the Blue-button, choose
+       a consumer/producer.  
+
+     * Push the Gold-button to send the Learn Event message.
+
+     * As a result, all producers selected above will activate all the consumers.
+
+   Summary:
+
+     * Select to learn: blue, blue, ..., gold.
+
+     * Select to teach: gold, blue, blue, …, gold.
+
+   Notes:
+
+     * Pushing the Blue-button selects consumer/producer's in a circular fashion, with a 'no-selection'
+       before starting again at the beginning
+
+     * The teaching- producer/consumer can also be a 'learner'.
+
+     * New teaching will replace the previous teaching.
+
+     * Pushing Gold for more than 3-seconds will reset the node to its factory events.
+
+   Layout Example
+
+   Given two Button-nodes, each with three buttons, A-C and D-F, respectively, and four Signals-nodes, 1-4:
+
+    1. Buttons set Aspects: Push blue on Signal-1 until the 'green' aspect is selected, then push gold.  On
+       the first Button-node, push gold, and then blue once to select button-A, then push the gold again.
+       On Signal-1 use the blue-button to select aspect 'red', and push gold, and then on the Button-node
+       push gold and the blue twice to select button-B, and then  gold again.  Now, pushing button-A will
+       change Signal-1 to green, and button-B will change it to red.
+
+    2. Make a duplicate button: On the second Button-node, push blue once to select button-D, and then
+       gold, and on the first Button-node, push gold, then blue once and then gold. On the second
+       Button-node, push blue twice to select button-E, and then gold, and on the first Button-node, push
+       gold, then blue twice and then gold. Now, button-D will turn Signal-1 to green, and button-E will
+       turn it to red.
+
+    3. Add a second consumer-node: On Signal-2 push blue to select red and then gold, then on Signal-1 push
+       gold, then blue to select green, and then gold. On Signal-2 push blue to select green and then gold,
+       then on Signal-1 push gold, then blue to select red, and then  gold. Now pushing button-A sets
+       Signal-1 to green and signal-2 to red, and button-B turns Signal-1 to red and Signal-2 to green.
+
+  2.6.6 Resetting to Default
+
+   Nodes are responsible for ensuring that an Event ID is really unique if required.  This has implications
+   for how event IDs are defined when the node is reset to “factory defaults”.  
+
+   For example, say that a node has Node ID 1.2.3.4.5.6 and therefore starts with its first producer
+   containing the  1.2.3.4.5.6.0.1 Event ID.  As it comes from the factory, this Event ID is guaranteed to
+   be unique because it comes from the node's unique ID.
+
+   This Event ID can be then be configured into several other nodes, which are using it for some particular
+   purpose, say “start of day”.  The node 1.2.3.4.5.6 producer can then be reconfigured to contain some
+   other event ID, say 6.5.4.3.2.1.99.99 which is used to mean “end of day”.
+
+   If the node is reset to defaults and returns to 1.2.3.4.5.6.0.1, that's no longer a “unique” Event ID.
+    It's being used by another part of the system for “start of day”. Node 1.2.3.4.5.6 will not be behaving
+   as expected for a reset node, as it'll be responding to events taking place on the network.  Further,
+   it's 1.2.3.4.5.6.0.1 Event ID is not safe to be copied out into other producers and consumers.
+
+   One way to do this is to maintain a counter of created unique Event IDs, and use the next set when doing
+   a reset to defaults. There are 65,538 different Event IDs possible for a node, so even one that uses 512
+   Event IDs can be reset to defaults a lot of times before its are risk of running out.
+
+   Alternately, the node can keep track of which Event IDs might have left the node and been reused.  This
+   includes any of the messages that carry the Event ID, including but not limited to Teach Event, plus
+   configuration memory reads and perhaps other methods.  If the Event ID in a producer or consumer has
+   been retrieved and used, then it needs to be given a new Event ID.  If not, it can keep it's existing
+   Event ID.  While Identify Event messages can be used to discover if a particular Event is being used, it
+   will not find any nodes that are not active, or have left the layout, so a conflict could occur if those
+   nodes become active of the layout again.  It is therefore much safer to reset to defaults and obtain a
+   new set of unused Events.  This is particularly important if the node is passed onto someone else.  
+
+    
+
+2.7 CAN Adaptation
+
+   For reference, we describe the messages defined in this standard as formatted for the CAN transport
+   protocol. This section is not normative; should there be a conflict between this document and the
+   Standards, then the Standards take precedence.
+
+   The CAN Frame Transport Standard and Message Network Standard define how OpenLCB messages are carried
+   across CAN networks.  Following those standards, the Event Transport messages used on CAN are as defined
+   in the following table.
+
+   MessageName                         Simple Node Dest ID Event ID Header Format         Data-part Content 
+   Producer/Consumer Event Report      Y           N       Y        0x195B,4sss5          Event ID          
+   (PCER)                              
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,6sss           Event ID          
+   With Payload first frame            
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,5sss           8 bytes of        
+   With Payload middle frame                                                              payload           
+   ‍Producer/Consumer Event Report     Y           N       Y        0x19F1,4sss           Last 1-8 bytes of 
+   With Payload last frame                                                                payload           
+   Identify Consumer                   Y           N       Y        0x198F,4sss           Event ID          
+                                                                    0x194C,4sss — Valid                     
+                                                                                          
+   Consumer Identified                 N           N       Y        0x194C,5sss — Invalid Event ID
+                                                                                          
+                                                                                          
+                                                                    0x194C,7sss — Unknown 
+   Consumer Range Identified           N           N       Y        0x194A,4sss           Event ID Range    
+   Identify Producer                   Y           N       Y        0x1991,4sss           Event ID          
+                                                                    0x1954,4sss — Valid                     
+                                                                                          
+   Producer Identified                 N           N       Y        0x1954,5sss — Invalid Event ID
+                                                                                          
+                                                                    0x1954,7sss — Unknown 
+   Producer Identified Range           N           N       Y        0x1952,4sss           Event ID Range    
+   Identify Events                     Y           N       N        0x1997,0sss                             
+                                       N           Y       N        0x1996,8sss           fddd6             
+   Teach Event                         Y           N       Y        0x1959,4sss           Event ID          
+
+    
+
+   Note that a PCER message may carry its Event ID in two types of CAN frames with header format
+   0x19F1,6sss and 0x195B,4sss. Even if a node has no use for the payload of a PCER-with-payload message,
+   it should still examine and react to the Event ID carried with both header forms.
+
+   The 0x19F1,6sss, 0x19F1,5sss and 0x19F1,4ss sequence for first, middle and last frame of a PCER with
+   payload message were chosen so that the first frame has lower CAN priority than the middle frame, which
+   has lower CAN priority than the last frame.  This ensures that once a node starts transmitting a PCER
+   with payload message, no other node’s first PCER with payload frame will be able to arbitrate and appear
+   on the CAN bus while the first message is being transmitted.
+
+   The requirement that the frames of a PCER message with payload be sent without inter-frame gaps is meant
+   to remove the possibility that parts of two messages will overlap due to a collision.  Imperfect
+   implementations may have gaps and allow such collisions to take place. Implementors should assume that
+   EWP messages may overlap. Although the most probable collision case is that an EWP message will only
+   overlap with one other EWP message, this cannot be assumed in general.  Best practice is to allow for
+   variable buffering up to the available node memory.
+
+  2.7.1 CAN States
+
+   There are no CAN-specific modifications to the states described in Section 5 above.
+
+  2.7.2 CAN Interactions
+
+   There are no CAN-specific modifications to the interactions described in Section 6 above.
+
+                                          3 Background information 
+
+   This section is general information of interest to the reader, implementers, etc.
+
+   An OpenLCB Event represents the sum of all the causes and actions associated with particular concept ,
+   such as “Night is falling”, and implements a many-to-many relationship.  It has been referred to as the
+   Producer-Consumer Model, in opposition to the Master-Slave Model.7  Each Event is abstracted into a
+   single unique event-number.  An Event-message contains only this event-number.   An advantage of this
+   model is that new triggers or new causes which cause the production of the event-number, or new actions
+   resulting from the consumption the event-number, can be implemented by a node without reference to other
+   producers or consumers, which makes this model very flexible and extensible.  
+
+   Events are most often used to advertise changes in system state, for example an occupancy detector's
+   state.  The model maintains the distributed-state model of a layout because Events-messages are
+   broadcast8 to all nodes, and this allows individual producers and consumers to use them to change their
+   knowledge of the distributed state.  
+
+   Other important, and perhaps not obvious, uses include: publishing a capability using an event from a
+   list of well-known Event IDs; transmitting well-known ranges of data, such as fast-clock time; and
+   embedding an other system's message into the bytes of the Event ID, for example a DCC accessory message.
+   Notice that these latter uses allows any node to respond to these messages using its usual
+   event-handling.  For example, a node can activate an output in response to a specific fast-clock time.
+
+3.1 Gateways
+
+   Gateways can route PCERs only to segments with nodes expressing interest by processing the other event
+   messages, including Consumer and Producer Identified.  
+
+   The automatically-routed event range always has to be routed. This can be done by making a permanent
+   entry in routing tables, or any other implementation method.
+
+   Note that gateways may, but are not required to, reorder lower priority messages after higher priority
+   messages.  This only applies to OpenLCB priorities, of which there are four values. Gateways are not
+   allowed to reorder messages that have the same priority. This means that they may not reorder 0x5B4’s
+
+   between each other, but they may reorder a 0x5B4 to come before any event with payload message (0xF14).
+   It is not guaranteed that events and events-with-payload messages arrive in the same order as they were
+   sent by a given node. Applications must be aware of this when they implement distributed state machines
+   or controlling logic.
+
+3.2 Examples
+
+   Consider a OpenLCB installation with two CAN segments A and B connected via gateways and a TCP/IP link.
+   In addition, a program is attached via a TCP/IP link and additional gateway to CAN segment B.
+
+   graphics3
+
+   Figure 1 – Example OpenLCB Network
+
+   The program has to be able to fully communicate with all OpenLCB nodes on both segments A and B. These
+   examples shows how the gateways can make that happen. For simplicity, the labels on the figure will be
+   used as if they were the full NID of the node, e.g. "GB1" for the left gateway on segment B. Frames and
+   messages are represented by [“source address”, “content”, “optional destination address”] triplets. Not
+   all messages are shown. Note that there are many ways that gateways can manage traffic, and this is just
+   one approach.
+
+   Before the cases below, both segments come up, assign the numbers 1,2,3 as aliases to their local nodes,
+   10 to gateway 1 and 20 to gateway 2 on segment B. For simplicity, A1 produces event X, which A2 and B2
+   want to consume. A1 also produces Y, which no other node wants to consume.
+
+  3.2.1 Case 1: All nodes initialized before link established, event X is sent
+
+   The A-B gateways initialize their internal tables.
+
+   A1 sends X. GA receives it. Because GA hasn't seen X before, X is forwarded across the link to GB,
+   followed by an “Identify Consumers of X” message.
+
+   GB puts the X message on the CAN segment, and B2 consumes it.
+
+   GB puts the “Identify Consumers of X” message on the CAN segment.
+
+   B2 responds with “Consumer of X Identified”
+
+   GB receives “Consumer of X Identified”, forwards to GA, which marks its tables to continue forwarding
+   these. GA forwards that message on the CAN segment in case there are other listeners for it.
+
+  3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above
+
+   The gateways are up, but don't know about B2. GA has seen X sent by A1, but has marked it as “do not
+   forward” because there was no consumer for it on B.
+
+   B2 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   B2 sends “Consumer of X Identified”. GB forwards that to GA.
+
+   GA remembers that event X must be forwarded across this link if seen.
+
+   A1 sends X, GA receives it, forwards it across link.
+
+  3.2.3 Case 3: Node A1 comes up, then event X is sent
+
+   The gateways are up, but don't know about A1 or X.
+
+   A1 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   A1 sends “Producer of X Identified”. GA forwards that to GB.
+
+   GA notes that event X currently must be forwarded across this link if/when seen.
+
+   A1 sends X. GA receives it. Because GA hasn't seen X before, X is forwarded across the link to GB,
+   followed by an “Identify Consumers of X” message.
+
+   The rest of this proceeds like case 1.
+
+  3.2.4 Case 4: Node A1 comes up, then event Y is sent
+
+   The gateways are up, but don't know about A1 or Y.
+
+   A1 comes up, gets a NID alias assigned, sends “AMD” and “Initialization Complete”.
+
+   A1 sends “Producer of Y Identified”. GA forwards that to GB.
+
+   GA notes that event Y currently must be forwarded across this link if seen.
+
+   A1 sends X. GA receives it. Because GA hasn't seen Y before, Y is forwarded across the link to GB,
+   followed by an “Identify Consumers of Y” message.
+
+   No “Consumer of Y Identified” message is received back, so after a short timeout GA marks it's tables to
+   not forward Y.  (If a not later comes up that consumes Y, a sequence similar to Case 2 occurs.)
+
+3.3 Node Implementation hints
+
+   Buffering issues, particularly on CAN, have to be carefully considered. All nodes have to be able to
+   keep up with PCER messages that can arrive about every millisecond (125000 bps / 120 bits per message)
+
+     * Don't  do long linear searches to match an incoming Event ID to internal structures.
+
+     * Instead, consider just decoding the Event ID and setting a “process as available” bit, and then
+       doing further work outside the CAN receive loop.
+
+   There is no requirement that events be processed in any particular order. Multiple PCER messages with
+   the same Event ID may result in multiple actions inside a consumer, or may not, depending on the details
+   of the consumer. There's a whole range of ways that events could be handled.  A consumer might always
+   handle them in the order received, and with the inter-event time intervals as received, down to the
+   microsecond.  Or it might do them in-order on a time-available basis, and generally be able to do them
+   in 50 milliseconds.  Or it might do them in the order that lets it get done fastest.  Or whatever.
+   Similar discussion goes for repeated events:  Does the hardware have to do something twice?  That
+   depends. In some cases, it's not even clear what it means. Specifying this is the node manufacturers
+   job, because they have uses in mind, and they make nodes to meet those uses.  OpenLCB just arranges to
+   deliver events for their processing. Node manufacturers should certainly specify the performance of
+   their nodes.  More knowledge is good, but the standard doesn't compel anything because it's hard to
+   write a testable requirement.
+
+   The Standard doesn't make any statements about delivery performance because it's specific to the
+   link-types, arrangement of OpenLCB nodes & links, etc that make up a specific OpenLCB network.  In
+   general, OpenLCB is going to provide sub-millisecond, millisecond, or perhaps even 10's of millisecond
+   timing quality, for example.  Nor can it guarantee absolute order of events.  If Node A and Node B emit
+   events at the same time on different segments, there's no guarantee of when node C will receive them,
+   nor in what order, nor that Node D will receive it at the same time & in the same order as Node C.
+
+3.4 Well known events
+
+   There are a small number of cases where a globally-allocated and reserved Event ID will simplify
+   operation. These “well-known Event ID numbers” can be used to e.g. advertise that a node can provide a
+   specific capability, or to tell locomotive control hardware to stop all trains instantly, etc.
+
+   For these to be useful, they not only have to be unique (so there are no collisions that accidentally
+   trigger reactions to them), but they must also be well-known.  All of these are assigned with the
+   01.00.00.00.00.00 or 01.01.00.00.00.00 reserved IDs in their upper six bytes to ensure uniqueness and
+   simplify recognition.  The OpenLCB group maintains a central list of the individual assigned Event IDs.9
+
+   The Event IDs that start 01.00.00.00.00.00 are the automatically-routed events, a subset of the
+   well-known events.
+
+   Except for the automatically-routed events, nodes producing or consuming well-known events must mention
+   them when identifying the event IDs they produce and consume. Gateways may filter on these, but are not
+   required to. For ease of implementation, a gateway may just pass all events with the common values of
+   the top 6 bytes.
+
+    
+
+    
+
+    
+
+   Table of Contents
+
+   1 Introduction
+
+   2 Annotations to the Standard
+
+   2.1 Introduction
+
+   2.2 Intended Use
+
+   2.3 References and Context
+
+   2.4 Message Formats
+
+   2.4.1 Producer/Consumer Event Report (PCER)
+
+   2.4.2 Identify Consumer
+
+   2.4.3 Consumer Identified
+
+   2.4.4 Consumer Range Identified
+
+   2.4.5 Identify Producer
+
+   2.4.6 Producer Identified
+
+   2.4.7 Producer Range Identified
+
+   2.4.8 Identify Events
+
+   2.4.9 Learn Event
+
+   2.5 States
+
+   2.6 Interactions
+
+   2.6.1 Event Transfer
+
+   2.6.2 Event Inquiry
+
+   2.6.3 Producer Inquiry
+
+   2.6.4 Consumer Inquiry
+
+   2.6.5 Teach/Learn Configuration
+
+   2.6.5.1 Blue/Gold Buttons Implementation Example
+
+   2.6.6 Resetting to Default
+
+   2.7 CAN Adaptation
+
+   2.7.1 CAN States
+
+   2.7.2 CAN Interactions
+
+   3 Background information 
+
+   3.1 Gateways
+
+   3.2 Examples
+
+   3.2.1 Case 1: All nodes initialized before link established, event X is sent
+
+   3.2.2 Case 2: Node B2 comes up, after event X has been sent in the example above
+
+   3.2.3 Case 3: Node A1 comes up, then event X is sent
+
+   3.2.4 Case 4: Node A1 comes up, then event Y is sent
+
+   3.3 Node Implementation hints
+
+   3.4 Well known events
+
+    
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 D. Miorandi and S. Vitturi, “Performance analysis of producer/consumer protocols over IEEE 802.11
+   wireless links”, Proc. IEEE Workshop Factory Communication Systems (WFCS), 2004
+
+   2 The Producer/Consumer Model and Control System Design ControlLogix 1999
+   https://cours.etsmtl.ca/gpa774/Cours/old-24-03-04/Documentations/Rockwell/articles/Producer_Consumer.html
+
+   3 http://openlcb.org/trunk/specs/MtiAllocations.pdf
+
+   4 Having conventions for the user interface would make it easier for users to work with multiple OpenLCB
+   products. Some work has gone into a system for doing this with two buttons and two LEDs, called the
+   “Blue/Gold configuration”, see the next section, but this has not become a consensus solution as of the
+   time of this writing.
+
+   5 sss — The 12-bit source alias field.
+
+   6 fddd — First two bytes of the data-part, representing the flag bits and 12-bit destination Alias. See
+   the CAN Frame Transport Standard.  
+
+   7  For a general discussion, see: http://openlcb.org/trunk/documents/notes/ProducerConsumerModel.html
+   and http://openlcb.org/trunk/scratchpads/JohnSL/Tech_Note_Introduction_to_the_PC_Model_2007-10-10.pdf
+
+   8  OpenLCB uses interest-based routing, which means that Event messages are actually broadcast only to
+   those bus segments on which a node has expressed interest.  Event-ranges are used to express interest in
+   a classes of events.   
+
+   9 See http://www.openlcb.org/trunk/specs/EventIdAllocations.pdf for specific definitions
