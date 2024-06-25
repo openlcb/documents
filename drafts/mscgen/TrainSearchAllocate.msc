@@ -1,0 +1,51 @@
+# MSC for Train Search Protocol Allocate flow
+msc {
+
+  sp [label="User"],
+  cs [label="CS"],
+  t1 [label="Train"], t2 [label="Train"], t3 [label="Train"];
+
+  sp rbox sp [label="Throttle"],
+  cs rbox t2 [label="Command Station"],
+  t3 rbox t3 [label="OpenLCB\nRe 474 014"];
+
+  t1 rbox t1 [label="DCC 8300"],
+  t2 rbox t2 [label="Empty"];
+
+  sp box sp [label="User types '47'"];
+
+  sp box sp [label="Compute E=\n<prefix>FFFF4700"];
+
+  sp->* [label="Identify Producer FFFF4700"];
+
+  t1 box t1 [label="Evaluate\nNo Match"],
+  t3 box t3 [label="Evaluate\nMatch"];
+
+  cs x- t1 [label="No Reply"];
+  *<-t3 [label="Producer Identified Invalid FFFF4700"];
+
+  sp box sp [label="User presses ENTER"];
+  sp box sp [label="Compute E=\n<prefix>FFFF47C0"];
+
+  sp->* [label="Identify Producer FFFF47C0"];
+
+  t1 box t1 [label="Evaluate\nNo Match"],
+  t3 box t3 [label="Evaluate\nNo Match"];
+
+  cs x- t1 [label="No Reply"];
+  t2 x- t3 [label="No Reply"];
+
+  cs box cs [label="Wait 200 msec"];
+
+  cs => t2 [label="Start DCC 47"];
+
+  t2 rbox t2 [label="DCC 47"];
+
+  * <-t2 [label="Node Initialization Complete"];
+  * <-t2 [label="Producer Identified Valid FFFF47C0"];
+
+  --- [label="Throttle is driving Train"];
+
+  sp -> t2 [label="Traction Protocol Assign Controller"];
+  
+}
