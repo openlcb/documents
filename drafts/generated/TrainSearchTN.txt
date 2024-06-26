@@ -9,7 +9,7 @@
 
 1.1 Background
 
-  1.1.1 Relation to Traction Protocol
+  1.1.1 Relation to Train Control Protocol
 
    The OpenLCB Network is a peer-to-peer network where Nodes connected to the network can communicate with
    each other using the OpenLCB Network Protocols. These protocols are organized around the different OSI
@@ -27,9 +27,9 @@
    OpenLCB-connected Train, or an OpenLCB-connected Command Station, we have two protocols that are part of
    this interaction:
 
-     * The Traction Protocol defines the addressed interactions related to driving a train, such as setting
-       speed and direction, or operating functions. It takes place between one Throttle and one or more
-       Train Node(s) that are controlled.
+     * The Train Control Protocol defines the addressed interactions related to driving a train, such as
+       setting speed and direction, or operating functions. It takes place between one Throttle and one or
+       more Train Node(s) that are controlled.
 
      * The Train Search Protocol is a broadcast protocol that specifies interactions needed for the
        Throttle to identify the Node ID of the Train Node that the user intends to drive.
@@ -45,10 +45,10 @@
    generating the track protocol signal. This device has to receive commands from the Throttles, and
    translate them to remote control the mobile decoders built into the trains rolling on the track. The
    Command Station is then responsible for participating on the OpenLCB Network and representing the remote
-   trains. The Traction Protocol requires each train to be a separate OpenLCB Node with its own Node ID,
-   therefore the one Command Station device will be operating a number of Virtual Nodes, one per actively
-   controlled train. All of these Virtual Train Nodes participate in the Train Search Protocol so that
-   Throttles can discover, find and operate the trains connected to the track.
+   trains. The Train Control Protocol requires each train to be a separate OpenLCB Node with its own Node
+   ID, therefore the one Command Station device will be operating a number of Virtual Nodes, one per
+   actively controlled train. All of these Virtual Train Nodes participate in the Train Search Protocol so
+   that Throttles can discover, find and operate the trains connected to the track.
 
    An important question then becomes: how does the Command Station know when the user intends to address a
    new train on the track that does not yet have a matching Virtual Train Node. The Train Search Protocol
@@ -70,8 +70,8 @@
      * The User is holding a Throttle connected to the OpenLCB Network. The Throttle has a numeric keypad
        and no screen. The user types in the four digit cab number they see on the locomotive and presses
        the Enter key. The Throttle uses the Train Search Protocol to find the matching OpenLCB Node. Then
-       the throttle uses the Traction Protocol to connect to that Train Node, and the user is able to drive
-       the train.
+       the throttle uses the Train Control Protocol to connect to that Train Node, and the user is able to
+       drive the train.
        Note that this use-case presents the same way if the train itself has a radio-equipped decoder and
        is directly participating on the OpenLCB network; and also if the train has a DCC decoder and
        represented by a Command Station on the OpenLCB Network.
@@ -153,7 +153,7 @@
 
    The Throttle is waiting for Producer Identified messages on their requested Event ID. These messages
    contain a Source Node ID (or equivalent representation). These are the search results. The Throttle may
-   pick the first search result’s Node ID and operate that train using the Traction Protocol, or if
+   pick the first search result’s Node ID and operate that train using the Train Control Protocol, or if
    multiple responses arrive, then the Throttle may interrogate those Nodes using the SNIP and PIP protocol
    to present a list of possible trains to select to the user, if there is a display.
 
@@ -176,9 +176,9 @@
 
 2.3 References and Context
 
-   There is no reference to the Traction Protocol, which the Throttle would use to drive actual trains.
-   This is on purpose, because the scope of the Train Search Protocol ends after the Throttle discovers the
-   Node ID. The scope of the Traction Protocol begins once a Node ID is known.
+   There is no reference to the Train Control Protocol, which the Throttle would use to drive actual
+   trains. This is on purpose, because the scope of the Train Search Protocol ends after the Throttle
+   discovers the Node ID. The scope of the Train Control Protocol begins once a Node ID is known.
 
 2.4 Message Formats
 
@@ -286,7 +286,7 @@
 
    Image2
 
-   On this diagram we see the same two interactions as in Section 2.6.1, where the DCC 47 node does not
+   On this diagram we see the same two interactions as in Section 2.6.1 , where the DCC 47 node does not
    exist at the beginning of the interaction. The Throttle is configured to send the request with the
    “Allocate” bit set when the user pressed ENTER. The Command Station waits for 200 msec for any responses
    to come in to the exact match request, after which it assigns an empty Train Node to proxy for DCC
@@ -612,7 +612,7 @@
 
    1.1 Background
 
-   1.1.1 Relation to Traction Protocol
+   1.1.1 Relation to Train Control Protocol
 
    1.1.2 Relation to Legacy Track Protocols
 
