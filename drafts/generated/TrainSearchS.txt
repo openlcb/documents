@@ -1,29 +1,27 @@
                                          1 Introduction (Informative)
 
-   This standard defines a method for Throttle Nodes to find Train Nodes on the network, and for legacy
-   use-cases, instruct an OpenLCB Command Station to create a virtual Train Node given a legacy address and
-   track protocol. This standard is not specific to any wire protocol.
+   This standard defines a method for Throttle Nodes to find Train Nodes on the network, and for track
+   protocol use-cases, instruct an OpenLCB Command Station to create a virtual Train Node given a track
+   protocol and an address. This standard is not specific to any link layer choice.
 
                                          2 Intended Use (Informative)
 
-   The OpenLCB Traction Protocol describes how a Node acting as throttle can and should control a Node
-   acting as a train. An important component of an ecosystem is how the throttle can find the remote train
-   node that corresponds to the user’s desired locomotive to control. This standard defines one possible
-   method on how to find train nodes from a throttle. As a basic transport this method uses the Event
+   The OpenLCB Train Control Protocol describes how a Node acting as throttle can and should control a Node
+   acting as a train. An important component of an ecosystem is how the throttle can find the remote Train
+   Node that corresponds to the user’s desired locomotive to control. This standard defines one possible
+   method on how to find Train Nodes from a throttle. As a basic transport this method uses the Event
    Transport protocol.
 
    In addition to finding already existing Train Nodes, this standard describes an interaction that can be
    followed by a Command Station to instantiate virtual Nodes in order to act as a gateway between the
-   OpenLCB traction protocol and a legacy track protocol such as DCC. As part of this interaction, certain
-   options are specifically enumerated in this standard that are specific to current commonly used legacy
-   track protocols (such as DCC), while leaving expansion space for including additional such protocols in
-   future revisions.
+   OpenLCB Train Control protocol and a pre-existing track protocol such as DCC. As part of this
+   interaction, certain options are specifically enumerated in this standard that are specific to current
+   commonly used track protocols (such as DCC), while leaving expansion space for including additional such
+   protocols in future revisions.
 
    Note that this standard does not exclude other methods and standards, including some not yet developed,
    for the same or similar purposes. See the Train Search Protocol Technical Note for some alternatives
    that were considered or can be employed based on more general enumeration protocols.
-
-    
 
                                      3 References and Context (Normative)
 
@@ -79,15 +77,15 @@
    0xA - 0xE                 Reserved. Do not send, check upon receipt.                                     
                              Empty / unused character position. Short queries shall be padded with this     
    0xF                       nibble value to 6 characters long. Multiple search terms may be concatenated   
-                             to a search query with this nibble as a separator between them which means the 
-                             individual terms shall be evaluated with AND relation between them.            
+                             to a search query with this nibble as a separator between them, which means    
+                             the individual terms shall be evaluated with AND relation between them.        
 
     
 
    The flag byte ‘rr’ is defined as follows:
 
    Bit 7    Bit 6 Bit 5        Bits 4-0       Description                              
-   Allocate                                   0x80: Force allocate legacy node         
+   Allocate                                   0x80: Force allocate new gateway node    
                                               0: Search only existing nodes            
                                               0x40: Exact match only                   
             Exact                                                                      
@@ -106,7 +104,7 @@
    0b00    0     0b01     Native OpenLCB Train Node                                          
    0b00    0     0b10     MFX® / M4® track protocol                                          
    0b00    0     0b11     Reserved (do not send, check on receipt).                          
-   0b00    1     *        Marklin-Motorola track protocol                                    
+   0b00    1     *        Märklin-Motorola track protocol                                    
    "       "     0b00     MM – Any / Default version                                         
    "       "     0b01     MM – Protocol version I (14 speed steps + F0)                      
    "       "     0b10     MM – Protocol version II (Directional + F0-F4)                     
@@ -127,17 +125,17 @@
 
    The following hardware and software nodes are taking part in the interactions presented here:
 
-     * The Train Node is an OpenLCB Node that implements the Traction Protocol, controlling a single
+     * The Train Node is an OpenLCB Node that implements the Train Control Protocol, controlling a single
        (physical) train with one or more coupled engines. The hardware implementing the Train Node may be
        physically built into a model, or it may be built into a centralized gateway hardware that converts
        to a non-OpenLCB protocol in order to remotely control an engine, for example via Bluetooth or a
-       legacy track protocol such as DCC or Märklin-Motorola. In this case a single piece of hardware may
-       be responsible for representing multiple OpenLCB Nodes on the network.
+       pre-existing track protocol such as DCC or Märklin-Motorola. In this case a single piece of hardware
+       may be responsible for representing multiple OpenLCB Nodes on the network.
 
-     * The Throttle Node is an OpenLCB Node that intends to send Traction Protocol commands to a desired
-       Train Node. The Throttle Node may be a physical hardware device with a user interface to be used by
-       an operator, a computer software with a user interface for operators to control trains, or a fully
-       automated software.
+     * The Throttle Node is an OpenLCB Node that intends to send Train Control Protocol commands to a
+       desired Train Node. The Throttle Node may be a physical hardware device with a user interface to be
+       used by an operator, a computer software with a user interface for operators to control trains, or a
+       fully automated software.
 
      * The Command Station is a gateway for proxying to some non-OpenLCB protocol, implementing Train
        Node(s), and having an OpenLCB network connection. There may or may not be a separate OpenLCB Node
@@ -146,7 +144,7 @@
    A Train Node has a set of properties, the following of which are relevant for the interactions defined
    in this Standard:
 
-     * Name is a user-assigned textual description for the train.
+     * Name is a user-assigned textual (alphanumeric) description for the train.
 
      * Protocol defines the native command set that is used to address this train. The options are listed
        in the Track Protocol table.
@@ -176,7 +174,8 @@
             Identifier E according to Section 6.3;
 
           * in case of a match, the Train Node shall emit a “Producer Identified” message with the Event
-            Identifier E to the network, setting the Producer validity bits according to Section 6.4;
+            Identifier E to the network, setting the Producer validity bits according to
+            Section 6.4 ;
 
           * in absence of a match, the Train Node shall not emit a “Producer Identified” message with the
             Event Identifier E.
@@ -202,7 +201,7 @@
           * validate that it has the ability to create a Train Node matching its identifying properties to
             the search criteria represented by the Event Identifier E according to Section 6.3; for
             properties marked as ‘Any / Default’ by the Event Identifier E the Command Station may pick any
-            implementation-specific default value;
+            implementation-specific default or user-configured value;
 
           * wait at least 200 msec for existing Train Nodes to reply with a “Producer Identified” message;
 
@@ -225,16 +224,14 @@
 
      * the search query represented by the qq qq qq nibbles of E matches, AND
 
-     * the requirement by the rr flag byte matches the Protocol and Protocol Version, AND
+     * the requirement by the rr flag byte matches the Protocol, AND
 
      * the Flag byte or the query nibbles specify no reserved values marked as “check upon receipt”.
 
    The flag byte rr matches Protocol if and only if the Track Protocol field of rr is set to “Default/Any”
    OR Protocol matches the value of the Track Protocol field.
 
-   The flag byte rr matches Protocol Version if and only if the Track Protocol field of rr is set to the
-   specific value or range matching Protocol and the version bits of rr are set to “Default/Any” or to a
-   value that matches Protocol Version.
+   The Protocol Version is not used by the matching algorithm.
 
    We say that the Flag byte rr requests a DCC long address if and only if rr specifies the DCC protocol
     AND Bit 2 (DCC - Force long address bit) is set.
