@@ -6,18 +6,23 @@
 
                                          2 Intended Use (Informative)
 
-   The OpenLCB Train Control Protocol describes how a Node acting as throttle can and should control a Node
+   The OpenLCB Train Control protocol describes how a Node acting as throttle can and should control a Node
    acting as a train. An important component of an ecosystem is how the throttle can find the remote Train
    Node that corresponds to the user’s desired locomotive to control. This standard defines one possible
    method on how to find Train Nodes from a throttle. As a basic transport this method uses the Event
    Transport protocol.
 
+   When an OpenLCB Command Station is controlling many locomotives through a track protocol (e.g. DCC), it
+   acts as a gateway between the OpenLCB Train Control protocol and the track protocol. For the purpose of
+   the Train Control protocol, all of the controlled trains have to have unique Train Nodes on the OpenLCB
+   bus, therefore the Command Station is representing many Nodes on the OpenLCB bus. These are called
+   virtual Nodes, or virtual Train Nodes.
+
    In addition to finding already existing Train Nodes, this standard describes an interaction that can be
-   followed by a Command Station to instantiate virtual Nodes in order to act as a gateway between the
-   OpenLCB Train Control protocol and a pre-existing track protocol such as DCC. As part of this
-   interaction, certain options are specifically enumerated in this standard that are specific to current
-   commonly used track protocols (such as DCC), while leaving expansion space for including additional such
-   protocols in future revisions.
+   followed by a Command Station to instantiate the virtual Train Nodes. As part of this interaction,
+   certain options are specifically enumerated in this standard that are specific to current commonly used
+   track protocols (such as DCC), while leaving expansion space for including additional such protocols in
+   future revisions.
 
    Note that this standard does not exclude other methods and standards, including some not yet developed,
    for the same or similar purposes. See the Train Search Protocol Technical Note for some alternatives
@@ -59,6 +64,8 @@
 
 5.2 Identifier Format
 
+   Note that the semantic meaning of these identifiers are defined in Section 6 (Interactions).
+
    Table 1. The Event Identifiers in the given range are defined as follows:
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 
@@ -79,7 +86,7 @@
                              Empty / unused character position. Short queries shall be padded with this     
    0xF                       nibble value to 6 characters long. Multiple search terms may be concatenated   
                              to a search query with this nibble as a separator between them, which means    
-                             the individual terms shall be evaluated with AND relation between them.        
+                             the individual terms shall be evaluated with an AND relation between them.     
 
     
 

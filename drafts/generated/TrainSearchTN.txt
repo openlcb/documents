@@ -4,8 +4,8 @@
    Standard (in short ‘the Standard’). This document is not intended to be read standalone, but in parallel
    to the Standard.
 
-   The capitalized terms Train, Throttle, and Command Station refer to the definitions according to the
-   Section ‘Interactions’ in the Standard.
+   The capitalized terms Train Node, Throttle Node, and Command Station refer to the definitions according
+   to the Section ‘Interactions’ in the Standard.
 
 1.1 Background
 
@@ -34,14 +34,14 @@
      * The Train Search Protocol is a broadcast protocol that specifies interactions needed for the
        Throttle to identify the Node ID of the Train Node that the user intends to drive.
 
-  1.1.2 Relation to Legacy Track Protocols
+  1.1.2 Relation to Track Protocols
 
    Trains may or may not be equipped with the necessary technology to directly participate in the OpenLCB
    Network. For now and the foreseeable future, an overwhelming majority of digitally controlled trains
    will be using a mobile decoder that operates using an existing standard or proprietary method of
    transmitting commands to the mobile decoder through the track, such as the NMRA® DCC® protocol suite.
 
-   In such a setting, there is a centralized component called Command Station which is responsible for
+   In such a setting, there is a centralized component called a Command Station which is responsible for
    generating the track protocol signal. This device has to receive commands from the Throttles, and
    translate them to remote control the mobile decoders built into the trains rolling on the track. The
    Command Station is then responsible for participating on the OpenLCB Network and representing the remote
@@ -62,8 +62,7 @@
    higher cost for the Throttle Node in terms of the necessary resources (above all RAM) and higher number
    of network messages to send and keep track of.
 
-   Some of these options are described in the Alternatives Considered section below (TODO: replace with
-   reference).
+   Some of these options are described in Section 3 (Alternatives Considered) below.
 
 1.2 Served Use Cases
 
@@ -99,7 +98,7 @@
        proprietary bus select locomotives by a DCC address. The Gateway device intercepts these messages
        and sends out Train Search Protocol messages to the OpenLCB bus. A DCC Command Station connected to
        the OpenLCB bus creates Virtual Train Nodes for the intended locomotives. A radio-equipped OpenLCB
-       locomotive that has an up to 4 digit number on the cab can also be selected using this method.
+       locomotive that has an up to 6 digit number on the cab can also be selected using this method.
 
      * A large software system designed to control model railroads has a system-specific implementation
        module for a variety of different command systems. The API of this module gives a 4-digit DCC
@@ -123,9 +122,13 @@
      * Only digits are supported in the search query. The maximum length of the query is 6 digits. Longer
        and alphanumeric search queries are not supported.
 
-     * A Command Station can only receive a signal using the Train Search Protocol when the user wants a
-       new Virtual Train Node to be created. The Train Search Protocol does not support giving a signal to
-       the Command Station on when to delete a Virtual Train Node.
+     * A Command Station can only receive a command using the Train Search Protocol when the user wants a
+       new Virtual Train Node to be created. The Train Search Protocol does not support instructing the
+       Command Station to delete a Virtual Train Node.
+
+     * This protocol does not support having multiple Command Stations that serve trains using the same
+       Protocol.  For example, you can't have two DCC Command Stations attached, as both will try to create
+       a Virtual Train Node when a particular DCC address is requested.
 
 1.4 Overview of the Protocol
 
@@ -222,9 +225,9 @@
        connection to and participates in the OpenLCB Network. Alternatively, it could be a Virtual Train
        Node represented by a DCC Command Station for the purpose of the OpenLCB bus.
 
-     * The Command Station might be a DCC Command Station, creating the track signal. It could also be a
-       Gateway from OpenLCB to a proprietary bus, remote controlling a Command Station connected to that
-       proprietary bus.
+     * The Command Station might be a DCC Command Station with OpenLCB network connection, creating the
+       track signal. It could also be a Gateway from OpenLCB to a proprietary bus, remote controlling a
+       proprietary Command Station connected to that proprietary bus.
 
    Examples for Train Node properties:
 
@@ -238,21 +241,26 @@
 
           * “Thomas the Tank Engine”.
 
-     * Protocol: DCC 7-bit address; DCC 14-bit address; Märklin-Motorola; MFX/M4; OpenLCB.
+     * Protocol: Protocol can be DCC with 7-bit address; DCC with 14-bit address; Märklin-Motorola; MFX/M4;
+       OpenLCB. There is space reserved for adding further protocols in the future.
 
      * Protocol Version: DCC has three different speed step modes (14, 28, 128 speed step mode).
        Märklin-Motorola has multiple versions.
 
      * Address: 1 to 127 for DCC 7-bit, 0 to 10239 for DCC 14-bit, 1 to 80 (or 1 to 255) for
-       Märklin-Motorola. There is no address for OpenLCB and for MFX/M4, because for these protocols the
-       user is not required to configure a unique numeric value for each decoder. The manufacturer-assigned
-       unique addresses are not relevant for the user and the user is not expected to be aware of or ever
-       input those addresses by the number. It might be beneficial for an OpenLCB-connected mobile decoder
-       to allow the user to configure a purely numeric cab number, which the Train Node may apply as if it
-       was a DCC address. This can enable a DCC-only throttle to select that OpenLCB locomotive instead of
-       a DCC locomotive of that address. The user has to be aware that such an option makes that specific
-       DCC address unavailable, as the Command Station will never instantiate a Virtual Train Node for that
-       address so long as the OpenLCB locomotive is on the network.
+       Märklin-Motorola.
+
+       There is no address for OpenLCB and for MFX/M4, because for these protocols the user is not required
+       to configure a unique numeric value for each decoder. The manufacturer-assigned unique addresses are
+       not relevant for the user and the user is not expected to be aware of or ever input those addresses
+       by the number.
+
+       It might be beneficial for an OpenLCB-connected mobile decoder to allow the user to configure a
+       purely numeric cab number, which the Train Node may apply as if it was a DCC address. This can
+       enable a DCC-only throttle to select that OpenLCB locomotive instead of a DCC locomotive of that
+       address. The user has to be aware that such an option makes that specific DCC address unavailable,
+       as the Command Station will never instantiate a Virtual Train Node for that address so long as the
+       OpenLCB locomotive is on the network.
 
   2.6.1 Search for existing Train Nodes
 
@@ -308,7 +316,9 @@
        before the operator at the end of the line.
 
    This logic expression defines the exact interpretation of the various flag bits and query nibbles which
-   were allocated in the Section ‘Allocations’.
+   were allocated in the Section ‘Allocations’. For example, this logic expression normatively defines what
+   the DCC “Default Address Space” means (it means short address for 1..127 and long address for
+   128..10239).
 
    It is important that this algorithm is part of the Standard, therefore Command Stations and Train Nodes
    must follow it very precisely. The interoperability of throttle features and use-cases of mixing Command
@@ -641,7 +651,7 @@
 
    1.1.1 Relation to Train Control Protocol
 
-   1.1.2 Relation to Legacy Track Protocols
+   1.1.2 Relation to Track Protocols
 
    1.1.3 Relation to other Search and Discovery Protocols
 
@@ -696,7 +706,9 @@
    3 For example it is not possible to search for an Event.
 
    4 Command Stations and Train Nodes shall declare themselves by sending a Producer Range Identified
-   message upon startup that covers the entire range of the Train Search Protocol Event IDs.
+   message upon startup that covers the entire range of the Train Search Protocol Event IDs. Note that this
+   is an exception to the rule that Producer Range Identified should only be used to identify a range that
+   is more than 50% produced as Events.
 
    5 This Event ID also sets Allocate, Exact and Address-only bits to ensure that it connects to a DCC
    train via a Command Station.
