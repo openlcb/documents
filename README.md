@@ -150,7 +150,8 @@ git checkout -b bracz-adopt-foo-standard
   - This creates a PDF file with changes marked.  Copy that to the 
     standards/changes directory. Name it with the date, 
     e.g. FooStandardS-changes-2024-07-22.pdf
-  - Add that copy and commit it to your branch.
+  - Add that copy and commit it with all other changed files (odt, pdf, txt) to
+    your branch.
     
 5. Update the ODT file to remove change markers
 
