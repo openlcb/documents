@@ -401,7 +401,11 @@
     2.3.5.1 Reject Addressed Optional Interaction
 
    This is a response to a message directly addressed to this node, as such the originating node will be
-   expecting some action, or a reply.  
+   expecting some action, or a reply.  The intent is that a node would always reply with OIR if it received
+   a self-addressed MTI that it was not going to process via some other interaction. That way, the sending
+   node would be told that the receiving node wasn't able to properly handle a request, and could invoke
+   some error handling. The goal here was to provide that error handling (without need for timeouts) for
+   future interactions that might involve MTIs that pre-existing nodes didn't implement.
 
    Example:  A node receives an addressed message with an unrecognized MTI:
 
@@ -413,7 +417,9 @@
 
    The 0068 indicates Reject Optional-Interaction, note that it has its addressed-bit set. The 0x04 F9 is
    the original MTI. The 0x10 00  is the error code, which in this case indicates this is a permanent
-   error.
+   error. The MTI is included so that the originating node can determine which type of interaction failed.
+
+    
 
     2.3.5.2 Reject Unaddressed Optional Interaction
 
