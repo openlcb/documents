@@ -1,20 +1,20 @@
                                          1 Introduction (Informative)
 
-   This Standard covers the Traction Protocol, the way that OpenLCB handles moving objects such as
+   This Standard covers the Train Control Protocol, the way that OpenLCB handles moving objects such as
    locomotives, engines, and other rolling stock.
 
                                          2 Intended Use (Informative)
 
-   The Traction Protocol covers the interaction between one (or more) Throttles and one or more Trains, as
-   this interaction is represented on the OpenLCB bus. There can be more than one Throttles controlling a
-   single Train, and more than one Trains being controlled by a single Throttle (also called consisting).
-   The Throttle, as a Node on the OpenLCB bus, may be either a physical throttle, or a Gateway converting
-   messages of a different throttle protocol to OpenLCB. The Train is also represented as a Node on the
-   OpenLCB bus; this may be a physical decoder present in a locomotive and capable of participating in the
-   OpenLCB network (presumably via wireless communication), or it may be a Gateway device translating the
-   OpenLCB Traction Protocol to some other method of controlling trains. The most important example of such
-   other method is the DCC track protocol, in which case the Gateway device is commonly referred to as a
-   DCC Command Station.
+   The Train Control Protocol covers the interaction between one (or more) Throttles and one or more
+   Trains, as this interaction is represented on the OpenLCB bus. There can be more than one Throttles
+   controlling a single Train, and more than one Trains being controlled by a single Throttle (also called
+   consisting). The Throttle, as a Node on the OpenLCB bus, may be either a physical throttle, or a Gateway
+   converting messages of a different throttle protocol to OpenLCB. The Train is also represented as a Node
+   on the OpenLCB bus; this may be a physical decoder present in a locomotive and capable of participating
+   in the OpenLCB network (presumably via wireless communication), or it may be a Gateway device
+   translating the OpenLCB Train Control Protocol to some other method of controlling trains. The most
+   important example of such other method is the DCC track protocol, in which case the Gateway device is
+   commonly referred to as a DCC Command Station.
 
                                      3 References and Context (Normative)
 
@@ -26,7 +26,7 @@
 
      * OpenLCB Message Network Standard.
 
-   A Node implementing the Traction Protocol must implement:
+   A Node implementing the Train Control Protocol must implement:
 
      * OpenLCB Event Transport Standard;
 
@@ -53,8 +53,8 @@
        OpenLCB messages are sent addressed to that Node. It is not a requirement that the hardware
        operating the given Train Node be mechanically installed in the specific Train.
 
-     * Throttle Node: An OpenLCB Node controlling one or more Train Nodes using the Traction Protocol. It
-       is not a requirement that the hardware operating the Throttle Node be mechanically installed into
+     * Throttle Node: An OpenLCB Node controlling one or more Train Nodes using the Train Control Protocol.
+       It is not a requirement that the hardware operating the Throttle Node be mechanically installed into
        the physical throttle that the operator is using. A single OpenLCB Node may have independent
        interactions with multiple Train Nodes, and thus represent more than one physical throttle.
 
@@ -100,12 +100,12 @@
 
    Permanent error – already exists: 0x1032.
 
-4.3 Traction Control Command Message
+4.3 Train Control Command Message
 
    MTI: Priority 1, index 15, modifier 3, addressed => MTI 0x05EB, CAN frame [195EBsss] fd dd
 
-   This message type and MTI is specific to traction control.  Bits 0-6 of the first byte of the content
-   codes an instruction, which defines the rest of the format. See below for the definition of bit 7.
+   This message type and MTI is specific to train control.  Bits 0-6 of the first byte of the content codes
+   an instruction, which defines the rest of the format. See below for the definition of bit 7.
 
                        Byte 0                                                     Byte  Byte Byte Byte Byte 
    Instruction         Bit 7 Bits Byte 1                   Byte 2         Byte 3  4     5    6    7    8    
@@ -141,7 +141,8 @@
                                                            (Reserved)     
                                   Query Nodes              Listener index                                   
                                   0x03                     {optional}     
-   Traction Management 0     0x40 Reserve           0x01                                                    
+   Train Control       0     0x40 Reserve           0x01                                                    
+   Management          
                                   Release  0x02                                                             
                                   No-op                                                                     
                                   0x03                     
@@ -154,7 +155,7 @@
    The P bit shall be set to 0 when a Throttle Node sends a command to a Train Node, and set to 1 when a
    Train Node is sending a forwarded command to a Listener Node.
 
-4.4 Traction Control Reply Message
+4.4 Train Control Reply Message
 
    MTI: Priority 0, index 15, modifier 1, addressed => MTI 0x01E9, CAN frame [191E9sss] fd dd
 
@@ -192,7 +193,7 @@
     Reply                Reply    0x02 
                          Query Node    Node count          Node index Flags  Node ID
                          Reply  0x03                       {opt}      {opt}  {optional}
-   Traction              Reserve Reply Result:                                                              
+   Train Control         Reserve Reply Result:                                                              
    Management     0x40    0x01         0 == OK                                                          
    Reply                               Non-zero == Failed  
                          Heartbeat                                                                          
@@ -208,9 +209,9 @@
    (not a number) 0xFFFF. “Set Speed” is the most recent speed received in a Set Speed/Direction
    instruction, or ±0 if an E-Stop command was received after the last Set Speed/Direction command. The
    E-Stop bit in the Flags byte represents whether the Train Node is in Emergency Stop state. “Commanded
-   Speed” is the speed that the traction control is currently attempting to move, taking into account
-   momentum and any other control modifiers.  “Actual Speed” is the current measured speed of the
-   locomotive. There is no accuracy guarantee for Actual Speed.
+   Speed” is the speed that the train is currently attempting to move, taking into account momentum and any
+   other control modifiers.  “Actual Speed” is the current measured speed of the locomotive. There is no
+   accuracy guarantee for Actual Speed.
 
                                              5 States (Normative)
 
@@ -228,8 +229,8 @@
 
    Related to Emergency Stop:
 
-     * A Train Node enters Emergency Stop state upon receiving a Traction Control Command message with
-       Emergency Stop command. A Train Node leaves Emergency Stop state upon receiving a Traction Control
+     * A Train Node enters Emergency Stop state upon receiving a Train Control Command message with
+       Emergency Stop command. A Train Node leaves Emergency Stop state upon receiving a Train Control
        Command message with a Set Speed command (for any speed, including ±0).
 
      * A Train Node enters Global Emergency Stop state upon receiving an Event Report message with the
@@ -275,14 +276,14 @@
    Controller is continuously present on the network and is intending to keep the control of the
    locomotive.
 
-   A Throttle Node, to assign itself as the Controller of a Train Node, sends a Traction Control Command
+   A Throttle Node, to assign itself as the Controller of a Train Node, sends a Train Control Command
    message to the Train Node, with the Controller Configuration – Assign Controller command and its own
    Node ID. To accept the request, the Train Node shall set the Controller to the provided Node ID and
-   reply with a Traction Control Reply with a Controller Configuration – Assign Controller Reply with a
-   Result of 0. A result of non-zero rejects the request. If there was a previous Controller, the Train
-   Node sends a Controller Changing Notify Request to the previous Controller. The Train Node may, but is
-   not required to wait for the reply of the previous Controller and factor in its reply to the decision.
-   The Train Node shall reply to the Assign Controller message within 3 seconds.
+   reply with a Train Control Reply with a Controller Configuration – Assign Controller Reply with a Result
+   of 0. A result of non-zero rejects the request. If there was a previous Controller, the Train Node sends
+   a Controller Changing Notify Request to the previous Controller. The Train Node may, but is not required
+   to wait for the reply of the previous Controller and factor in its reply to the decision. The Train Node
+   shall reply to the Assign Controller message within 3 seconds.
 
    A Node may query the active Controller from a Train Node.  If no Controller is assigned the Train Node
    returns a Node ID of 0.0.0.0.0.0.
@@ -324,8 +325,8 @@
 6.5 Listeners
 
    When listeners are configured on a Train Node, the incoming Train Control Operations are forwarded by
-   the Train Node to all the Listener nodes. The forwarded message shall be a Traction Control Request
-   message with the bit P set to 1.
+   the Train Node to all the Listener nodes. The forwarded message shall be a Train Control Request message
+   with the bit P set to 1.
 
    Even if the source node of the incoming message is on the listener list, the message is not forwarded to
    the source node to avoid message loops.
@@ -379,7 +380,7 @@
    Node is in Emergency Stop state).
 
    Trains shall accept any command or query sent from the Controller node to the Train Node to clear the
-   Heartbeat Request. If the Controller node does not have anything to command or query, the Traction
+   Heartbeat Request. If the Controller node does not have anything to command or query, the Train Control
    Management No-op request may be used to clear the Heartbeat.
 
    If a Train Node does not receive any command or query from the Controller node within the deadline
@@ -393,10 +394,10 @@
 
 7.1 Function Information 0xF9
 
-   Functions, such as lights and sounds, can be operated by the Traction Control Set Function instruction,
-   and their current value can be retrieved via the Traction Control Query Function instruction. The values
-   are also available for reading and writing in the Function Information memory space, so long as the
-   value of a given function does not exceed 255.
+   Functions, such as lights and sounds, can be operated by the Train Control Set Function instruction, and
+   their current value can be retrieved via the Train Control Query Function instruction. The values are
+   also available for reading and writing in the Function Information memory space, so long as the value of
+   a given function does not exceed 255.
 
    The NMRA S-9.2.1 Standard describes four separate DCC packets controlling sets of “functions”. The
    OpenLCB 0xF9 space is allocated to cover all these by using the third byte of the address as a selector.
@@ -442,9 +443,9 @@
 
    4.2 Defined Error Codes
 
-   4.3 Traction Control Command Message
+   4.3 Train Control Command Message
 
-   4.4 Traction Control Reply Message
+   4.4 Train Control Reply Message
 
    5 States (Normative)
 
