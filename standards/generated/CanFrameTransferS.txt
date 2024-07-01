@@ -16,7 +16,7 @@
    In this document, the term "OpenLCB-CAN" refers to details of OpenLCB nodes that are specific to using a
    CAN transport, as opposed to generic OpenLCB protocol or OpenLCB using other transports.
 
-   This Standard should be interpreted in the the context of the following OpenLCB Standards:
+   This Standard should be interpreted in the context of the following OpenLCB Standards:
 
      * The OpenLCB CAN Physical Layer Standard, which specifies the physical layer for transporting
        OpenLCB-CAN frames
@@ -48,8 +48,8 @@
    The second-most-significant bit is the Frame Type indicator. A value of 0 indicates a CAN-specific
    Control Frame. A value of 1 indicates an OpenLCB Message.
 
-   The next 15 bits are the Variable Field. The format and contents of the Variable Field depends on the
-   Frame Type bit value. Section 6.1 Control Frame Format of this document defines the Variable Field
+   The next 15 bits are the Content Field. The format and contents of the Content Field depends on the
+   Frame Type bit value. Section 6.1 Control Frame Format of this document defines the Content Field
    content for CAN Control Frames. The OpenLCB Message content is defined in the OpenLCB Message
    Standard(s).
 
@@ -58,7 +58,7 @@
    Bit number1: Bit 28              Bit 27                    Bits 26-12              Bits 11-0             
                                     Frame Type                                                              
                 Reserved:                                     
-   Content:     Send as 1,          1: OpenLCB Message        Variable Field          Source NID Alias
+   Content:     Send as 1,          1: OpenLCB Message        Content Field           Source NID Alias
                 ignore upon receipt                           
                                     0: CAN Control Frame      
    Mask:        0x1000,0000         0x0800,0000               0x07FF,F000             0x0000,0FFF           
@@ -93,7 +93,7 @@
 
    The format and contents of CAN-specific Control frames are defined in the following table:
 
-   Name                         Variable Field                              Source Alias Data Bytes         
+   Name                         Content Field                               Source Alias Data Bytes         
                                 0bMMM,NNNN,NNNN,NNNN                                                        
                                                                             
                                 MMM is the frame sequence number, with      
@@ -126,16 +126,16 @@
      * Generate a tentative source Node ID alias value
 
      * Transmit a Check ID frame (CID) with MMM = 0x7, NNNN, NNNN, NNNN = bits 36-47 of the full Node ID in
-       the Variable Field, and the tentative source Node ID alias value in the Source NID Alias field.
+       the Content Field, and the tentative source Node ID alias value in the Source NID Alias field.
 
      * Transmit a Check ID frame (CID) with MMM = 0x6, NNNN, NNNN, NNNN = bits 24-35 of the full Node ID in
-       the Variable Field, and the tentative source Node ID alias value in the Source NID Alias field.
+       the Content Field, and the tentative source Node ID alias value in the Source NID Alias field.
 
      * Transmit a Check ID frame (CID) with MMM = 0x5, NNNN, NNNN, NNNN = bits 12-23 of the full Node ID in
-       the Variable Field, and the tentative source Node ID alias value in the Source NID Alias field.
+       the Content Field, and the tentative source Node ID alias value in the Source NID Alias field.
 
      * Transmit a Check ID frame (CID) with MMM = 0x4, NNNN, NNNN, NNNN = bits 0-11 of the full Node ID in
-       the Variable Field, and the tentative source Node ID alias value in the Source NID Alias field.
+       the Content Field, and the tentative source Node ID alias value in the Source NID Alias field.
 
      * Wait at least 200 milliseconds
 
@@ -159,17 +159,21 @@
 
      * Transmit an Alias Map Definition (AMD) frame with the node's Node ID alias and Node ID
 
-  6.2.3 Node ID Alias validation
+  6.2.3 Node ID Alias validation and invalidation
 
-   A node in Permitted state receiving a Alias Mapping Enquiry frame shall compare the full Node ID in the
+   A node in Permitted state receiving an Alias Mapping Enquiry frame shall compare the full Node ID in the
    CAN data segment to the node's own Node ID. If and only if they match in length and content and the
-   receiving node is in Permitted state, the node shall reply with a Alias Map Definition frame carrying
+   receiving node is in Permitted state, the node shall reply with an Alias Map Definition frame carrying
    the node's full Node ID in the data segment of the frame.
 
    A node in Permitted state receiving an Alias Mapping Enquiry frame with no data content shall reply with
    an Alias Map Definition frame carrying the node's full Node ID in the data segment of the frame.
 
-   A node in Inhibited state shall not reply to a Alias Mapping Enquiry frame.
+   A node in Inhibited state shall not reply to an Alias Mapping Enquiry frame.
+
+   Upon receipt of an Alias Mapping Enquiry frame with no data content, in either Inhibited or Permitted
+   state, the receiving node must discard any information it is retaining that maps aliases to/from Node
+   IDs other than its own.
 
   6.2.4 Transition to Inhibited State
 
@@ -268,7 +272,7 @@
 
    6.2.2 Transition to Permitted State
 
-   6.2.3 Node ID Alias validation
+   6.2.3 Node ID Alias validation and invalidation
 
    6.2.4 Transition to Inhibited State
 

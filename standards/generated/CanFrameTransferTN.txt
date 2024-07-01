@@ -123,7 +123,7 @@
 
    RTR frames are not used in the protocol because CAN semantics require a specific use for them, which has
    been built into some silicon implementations. There are also some arbitration issues, see: CiA
-   Application Note 802 (2005)4 and http://www.thecanmancan.com/?tag=rtr for more information.
+   Application Note 802 (2005)4 for more information.
 
    A CAN node can emit an overload frame when “Due to internal conditions, the node is not yet able to
    begin reception of the next (frame). A node may generate a maximum of two sequential overload frames to
@@ -185,7 +185,7 @@
    The coding of the 0x07NN field was selected to allow expansion of control fields in the 0x070N range,
    and expansion of error indications in the 0x071N range.
 
-   The block of CAN frames with Variable field from 0x1000 to 0x3FFF are not used by OpenLCB.  Although
+   The block of CAN frames with Content Field from 0x1000 to 0x3FFF are not used by OpenLCB.  Although
    formally reserved, they can serve as a convenient 26-bit (with bit 28) address block for experimentation
    and migration of other equipment.
 
@@ -274,7 +274,7 @@
    Note that there is no requirement that the node's alias value be consistent from one power-up reset to
    the next.
 
-    2.6.2.3 Node ID Alias validation
+    2.6.2.3 Node ID Alias validation and invalidation
 
    The Alias Mapping Enquiry provides a mechanism for determining which alias is associated with each Node
    ID.  This can be used when a new node attaches and needs the information.  Operating nodes can also
@@ -305,6 +305,25 @@
    through one or more gateways, so it needs to be a segment-specific frame defined only at the CAN level.
    It must not be a OpenLCB common message, though higher level protocols may want to provide a similar
    capability that spans the entire OpenLCB installation.
+
+   In either Inhibited or Permitted state, receipt of an Alias Mapping Enquiry frame with no data content
+   invalidates any previously validated alias to/from Node ID mapping information.  This will be followed
+   by nodes in Permitted state responding with AMD frames containing their alias and Node ID, which will
+   allow a node to rebuild the valid entries any alias ↔ Node ID mapping it maintains. Nodes which have
+   transitioned to Inhibited state or left the network will not reply. Sending an AME with no data content
+   thus ensures that nodes are using only currently accurate alias information.
+
+   For an example of how this is useful, consider virtual nodes that are created and maintained by some
+   host node, e.g. in the Train Control protocol. Other nodes are referencing those virtual nodes through
+   aliases.  When the control node is rebooted, it no longer knows that those virtual nodes have been
+   created, nor does it know that those aliases refer to them, yet the other nodes are still sending
+   messages using those aliases.  Those messages don’t get delivered to the virtual nodes because those
+   virtual nodes don’t exist yet.  By sending an AME with no content when it reboots, the host node can
+   ensure that the aliases for those virtual nodes are invalidated in the other nodes: The virtual nodes
+   won’t be replying to the AME with no content because they don’t exist yet.  When another node next tries
+   to send a message to a virtual node, it will realize that it doesn’t know the alias of that virtual
+   node. It will go through the process of using an AME to acquire that alias, which will prompt recreation
+   of the virtual node so that operations can continue.
 
     2.6.2.4 Transition to Inhibited State
 
@@ -473,7 +492,7 @@
   2.6.3 Node ID Alias Generation
 
    We have a preferred implementation for node ID alias generation which is described in Section 6
-   “Preferred Alias Allocation Method” below.
+    “Preferred Alias Allocation Method” below.
 
    The Standard is written to specify the minimum needed to ensure proper operation. This allows developers
    to create other implementations if needed.
@@ -692,7 +711,7 @@
    values and XORing them together.  This preserves the information content of every bit in the final
    result.
 
-  6.1.3 Example C implementation7
+  6.1.3 Example C implementation
 
    The PRNG state is stored in two 32-bit quantities:
 
@@ -756,9 +775,9 @@
    Starting 48-bit seed Alias Next 48-bit seed  
    00 00 00 00 00 00    0     1B 0C A3 7A 4B A9 
    1B 0C A3 7A 4B A9    11E   4F 60 3B 8B E9 52 
-   4F 60 3B 8B E9 52    521   2A E3 F5 D8 D8 FB 
-   2A E3 F5 D8 D8 FB    42D   0D DC 4B 05 1A A4 
-   0D DC 4B 05 1A A4    663   E1 7E F8 B4 AE 4D 
+   4F 60 3B 8B E9 52    521   2A E3 F6 D8 D8 FB 
+   2A E3 F6 D8 D8 FB    42E   0D DE 4C 05 1A A4 
+   0D DE 4C 05 1A A4    464   E5 82 F9 B4 AE 4D 
 
    Table: Sequence of aliases and seeds starting from zero
 
@@ -804,7 +823,7 @@
 
    2.6.2.2 Transition to Permitted State
 
-   2.6.2.3 Node ID Alias validation
+   2.6.2.3 Node ID Alias validation and invalidation
 
    2.6.2.4 Transition to Inhibited State
 
@@ -838,7 +857,7 @@
 
    6.1.2 Preferred PRNG to node ID alias mapping
 
-   6.1.3 Example C implementation7
+   6.1.3 Example C implementation
 
    7 Additional References
 
@@ -847,12 +866,12 @@
      ----------------------------------------------------------------------------------------------------
 
    1 See Atmel application note “AVR076: AVR® CAN - 4K Boot Loader”
-   http://www.atmel.com:80/dyn/resources/prod_documents/doc8247.pdf
+   https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/doc8247.pdf
 
    2 See Microchip application note “AN247 A CAN Bootloader for PIC18F CAN Microcontrollers”
    http://ww1.microchip.com/downloads/en/AppNotes/00247a.pdf
 
-   3 See http://www.merg.org.uk/resources/lcb.html
+   3 See https://www.merg.org.uk/resources/cbus
 
    4 See http://www.can-cia.org/
 
@@ -862,7 +881,3 @@
    size. This is merely an informative statement of expectations, however, and some layouts will no doubt
    exceed that.  We use the larger number 100 here to avoid placing any stronger limitation on what can be
    achieved electrically.
-
-   7 The code in this section is from the OpenLCB C sample implementation available at
-   http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/  The specific code is available at
-   http://www.openlcb.org/trunk/prototypes/C/libraries/OlcbCommonCAN/LinkControl.cpp
