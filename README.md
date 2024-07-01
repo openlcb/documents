@@ -142,6 +142,7 @@ git checkout -b bracz-adopt-foo-standard
   - In menu > File > Properties > Custom Properties, set OlcbStatus to Adopted,
     the date, and the year as a range up till now, e.g. 2013-2021.
   - menu > Format > Watermark..., replace the DRAFT text with a single space.
+  - Make sure that View -> Show Tracked Changes is still on at this point.
 
 4. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
    output.
