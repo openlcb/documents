@@ -89,7 +89,7 @@ git push
   This step can only be done by a maintainer -- ask someone on the
   openlcb@groups.io list.
 
-1. Create a new brach:
+1. Create a new branch:
 
 ```
 git checkout master
@@ -132,21 +132,32 @@ git pull
 git checkout -b bracz-adopt-foo-standard
 ```
 
-1. Update the ODT file for adopted.
+1. Update the ODT file to mark it as adoped
+
+  - In menu > File > Properties > Custom Properties, set OlcbStatus to Adopted,
+    the date, and the year as a range up till now, e.g. 2013-2021.
+  - menu > Format > Watermark..., replace the DRAFT text with a single space.
+
+  - Do not accept changes at this point.
+  
+2. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
+   output.
+
+  - This creates a PDF file with changes marked.  Move that to the 
+    standards/changes directory. Add it and commit it to your branch.
+    
+3. Update the ODT file to remove change markers
 
   - Review all changes in menu > Edit > Track Changes > Manage...
   - Accept all changes. There should be no changes left in the Manage changes
     dialog.
-  - In menu > File > Properties > Custom Properties, set OlcbStatus to Adopted,
-    the date, and the year as a range up till now, e.g. 2013-2021.
-  - menu > Format > Watermark..., replace the DRAFT text with a single space.
     
-2. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
+4. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
    output.
    
-3. Commit the odt, pdf, txt files to your branch.
+5. Commit the odt, pdf, txt files to your branch.
 
-4. Delete the files from the standards directory. This step should be skipped
+6. Delete the files from the standards directory. This step should be skipped
    if we are adopting a standard the first time, and there are no previous
    adopted files.
 
@@ -156,9 +167,9 @@ git rm standards/FooStandardS.pdf
 git rm standards/generated/FooStandardS.txt
 ```
 
-5. Commit these to your branch.
+7. Commit these to your branch.
 
-6. Move the files from draft to standards.
+8. Move the files from draft to standards.
 
 ```
 git mv {drafts,standards}/FooStandardS.odt
@@ -166,11 +177,11 @@ git mv {drafts,standards}/FooStandardS.pdf
 git mv {drafts,standards}/generated/FooStandardS.txt
 ```
 
-7. Commit these to your branch.
+9. Commit these to your branch.
 
-8. Create a PR with your changes on GitHub. Ask a maintainer to review the PR.
+10. Create a PR with your changes on GitHub. Ask a maintainer to review the PR.
 
-9. IMPORTANT: The PR must be merged with a "Create a merge commit" option.
+11. IMPORTANT: The PR must be merged with a "Create a merge commit" option.
 
 ## Docker
 A Docker image file has been added to provide a consistent file conversion processing environment in a Docker Container.
