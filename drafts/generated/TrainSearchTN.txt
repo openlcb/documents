@@ -4,8 +4,8 @@
    Standard (in short ‘the Standard’). This document is not intended to be read standalone, but in parallel
    to the Standard.
 
-   When we use capitalized terms Train, Throttle, and Command Station, we refer to the definitions
-   according to the Section ‘Interactions’ in the Standard.
+   The capitalized terms Train Node, Throttle Node, and Command Station refer to the definitions according
+   to the Section ‘Interactions’ in the Standard.
 
 1.1 Background
 
@@ -24,8 +24,8 @@
    these on a user interface to the user to select.
 
    Considering the interaction of a user using an OpenLCB-connected Throttle to communicate to an
-   OpenLCB-connected Train, or an OpenLCB-connected Command Station, we have two protocols that are part of
-   this interaction:
+   OpenLCB-connected Train, or an OpenLCB-connected Command Station, there are two protocols that are part
+   of this interaction:
 
      * The Train Control Protocol defines the addressed interactions related to driving a train, such as
        setting speed and direction, or operating functions. It takes place between one Throttle and one or
@@ -34,14 +34,14 @@
      * The Train Search Protocol is a broadcast protocol that specifies interactions needed for the
        Throttle to identify the Node ID of the Train Node that the user intends to drive.
 
-  1.1.2 Relation to Legacy Track Protocols
+  1.1.2 Relation to Track Protocols
 
    Trains may or may not be equipped with the necessary technology to directly participate in the OpenLCB
    Network. For now and the foreseeable future, an overwhelming majority of digitally controlled trains
    will be using a mobile decoder that operates using an existing standard or proprietary method of
    transmitting commands to the mobile decoder through the track, such as the NMRA® DCC® protocol suite.
 
-   In such a setting, there is a centralized component called Command Station which is responsible for
+   In such a setting, there is a centralized component called a Command Station which is responsible for
    generating the track protocol signal. This device has to receive commands from the Throttles, and
    translate them to remote control the mobile decoders built into the trains rolling on the track. The
    Command Station is then responsible for participating on the OpenLCB Network and representing the remote
@@ -62,8 +62,7 @@
    higher cost for the Throttle Node in terms of the necessary resources (above all RAM) and higher number
    of network messages to send and keep track of.
 
-   Some of these options are described in the Alternatives Considered section below (TODO: replace with
-   reference).
+   Some of these options are described in Section 3 (Alternatives Considered) below.
 
 1.2 Served Use Cases
 
@@ -99,14 +98,14 @@
        proprietary bus select locomotives by a DCC address. The Gateway device intercepts these messages
        and sends out Train Search Protocol messages to the OpenLCB bus. A DCC Command Station connected to
        the OpenLCB bus creates Virtual Train Nodes for the intended locomotives. A radio-equipped OpenLCB
-       locomotive that has an up to 4 digit number on the cab can also be selected using this method.
+       locomotive that has an up to 6 digit number on the cab can also be selected using this method.
 
      * A large software system designed to control model railroads has a system-specific implementation
        module for a variety of different command systems. The API of this module gives a 4-digit DCC
        address to select a locomotive. The OpenLCB implementation of this API translates this number to a
        Train Search Protocol message in order to trigger an OpenLCB-connected Command Station to create a
        Virtual Node. The Command Station uses its settings to decide whether it should be a DCC protocol
-       train or some other protocol (e.g. Marklin-Motorola). A radio-equipped OpenLCB locomotive that has
+       train or some other protocol (e.g. Märklin-Motorola). A radio-equipped OpenLCB locomotive that has
        an up to 4 digit number on the cab can also be selected using this method.
 
 1.3 Unserved Use Cases
@@ -123,9 +122,13 @@
      * Only digits are supported in the search query. The maximum length of the query is 6 digits. Longer
        and alphanumeric search queries are not supported.
 
-     * A Command Station can only receive a signal using the Train Search Protocol when the user wants a
-       new Virtual Train Node to be created. The Train Search Protocol does not support giving a signal to
-       the Command Station on when to delete a Virtual Train Node.
+     * A Command Station can only receive a command using the Train Search Protocol when the user wants a
+       new Virtual Train Node to be created. The Train Search Protocol does not support instructing the
+       Command Station to delete a Virtual Train Node.
+
+     * This protocol does not support having multiple Command Stations that serve trains using the same
+       Protocol.  For example, you can't have two DCC Command Stations attached, as both will try to create
+       a Virtual Train Node when a particular DCC address is requested.
 
 1.4 Overview of the Protocol
 
@@ -222,9 +225,9 @@
        connection to and participates in the OpenLCB Network. Alternatively, it could be a Virtual Train
        Node represented by a DCC Command Station for the purpose of the OpenLCB bus.
 
-     * The Command Station might be a DCC Command Station, creating the track signal. It could also be a
-       Gateway from OpenLCB to a proprietary bus, remote controlling a Command Station connected to that
-       proprietary bus.
+     * The Command Station might be a DCC Command Station with OpenLCB network connection, creating the
+       track signal. It could also be a Gateway from OpenLCB to a proprietary bus, remote controlling a
+       proprietary Command Station connected to that proprietary bus.
 
    Examples for Train Node properties:
 
@@ -238,27 +241,32 @@
 
           * “Thomas the Tank Engine”.
 
-     * Protocol: DCC 7-bit address; DCC 14-bit address; Marklin-Motorola; MFX/M4; OpenLCB.
+     * Protocol: Protocol can be DCC with 7-bit address; DCC with 14-bit address; Märklin-Motorola; MFX/M4;
+       OpenLCB. There is space reserved for adding further protocols in the future.
 
      * Protocol Version: DCC has three different speed step modes (14, 28, 128 speed step mode).
-       Marklin-Motorola has multiple versions.
+       Märklin-Motorola has multiple versions.
 
-     * Address: 1 to 127 for DCC 7-bit, 0 to 10239 for DCC 14-bit, 1 to 80 (or 255) for Marklin-Motorola.
+     * Address: 1 to 127 for DCC 7-bit, 0 to 10239 for DCC 14-bit, 1 to 80 (or 1 to 255) for
+       Märklin-Motorola.
+
        There is no address for OpenLCB and for MFX/M4, because for these protocols the user is not required
        to configure a unique numeric value for each decoder. The manufacturer-assigned unique addresses are
-       not relevant for the user and we should not expect the user to be aware of or ever input those
-       addresses by the number. It might be beneficial for an OpenLCB-connected mobile decoder to allow the
-       user to configure a purely numeric cab number, which the Train Node may apply as if it was a DCC
-       address. This can enable a DCC-only throttle to select that OpenLCB locomotive instead of a DCC
-       locomotive of that address. The user has to be aware that such an option makes that specific DCC
-       address unavailable, as the Command Station will never instantiate a Virtual Train Node for that
-       address so long as the OpenLCB locomotive is on the network.
+       not relevant for the user and the user is not expected to be aware of or ever input those addresses
+       by the number.
+
+       It might be beneficial for an OpenLCB-connected mobile decoder to allow the user to configure a
+       purely numeric cab number, which the Train Node may apply as if it was a DCC address. This can
+       enable a DCC-only throttle to select that OpenLCB locomotive instead of a DCC locomotive of that
+       address. The user has to be aware that such an option makes that specific DCC address unavailable,
+       as the Command Station will never instantiate a Virtual Train Node for that address so long as the
+       OpenLCB locomotive is on the network.
 
   2.6.1 Search for existing Train Nodes
 
    Image1
 
-   On this diagram we see two interactions with the Train Search Protocol.
+   On this diagram there are two interactions with the Train Search Protocol.
 
    In the first interaction the user enters some digits, and the Throttle sends this out as a prefix search
    for trains starting with “47”. There are multiple replies coming back.
@@ -286,8 +294,8 @@
 
    Image2
 
-   On this diagram we see the same two interactions as in Section 2.6.1 , where the DCC 47 node does not
-   exist at the beginning of the interaction. The Throttle is configured to send the request with the
+   On this diagram the same two interactions are presented as in Section 2.6.1 , where the DCC 47 node does
+   not exist at the beginning of the interaction. The Throttle is configured to send the request with the
    “Allocate” bit set when the user pressed ENTER. The Command Station waits for 200 msec for any responses
    to come in to the exact match request, after which it assigns an empty Train Node to proxy for DCC
    Address 47. The newly started node then responds to the Throttle.
@@ -295,6 +303,11 @@
    If the low five bits of the flag byte contain a protocol selection information, then the Command Station
    would create the new Virtual Train Node according to that protocol. Here the CS used the default
    settings (DCC protocol).
+
+   If the Command Station does not support the protocol requested, or the address requested for that
+   protocol5, then no new virtual Train Node is created and no response is sent to the throttle. The
+   throttle will typically display a “Train not found or Command Station not responding” error in this
+   case.
 
   2.6.3 Event Identifier matching algorithm
 
@@ -308,15 +321,17 @@
        before the operator at the end of the line.
 
    This logic expression defines the exact interpretation of the various flag bits and query nibbles which
-   were allocated in the Section ‘Allocations’.
+   were allocated in the Section ‘Allocations’. For example, this logic expression normatively defines what
+   the DCC “Default Address Space” means (it means short address for 1..127 and long address for
+   128..10239).
 
    It is important that this algorithm is part of the Standard, therefore Command Stations and Train Nodes
    must follow it very precisely. The interoperability of throttle features and use-cases of mixing Command
    Station and OpenLCB Train Nodes on the same network depends on the correct implementation of this
    algorithm.
 
-   The following non-normative statements help in interpreting the algorithm. We say that the request is
-   accepted to generate a response, or dropped to not generate a response.
+   The following non-normative statements help in interpreting the algorithm. The terminology is that the
+   request is accepted to generate a response, or dropped to not generate a response.
 
      * If the request specifies an unknown (reserved) option, protocol or nibble in the query, the request
        is dropped.
@@ -331,12 +346,12 @@
        shall be checked.
 
      * If there is more than one separate sequence of digits in the qq qq qq nibbles, then Address will not
-       match. In this case it’s hard to interpret what numerical value we should assign to this query.
-       Typical throttles with numeric keypad will only ever send a single digit sequence.
+       match. In this case it’s hard to interpret what numerical value this query should represent. Typical
+       throttles with numeric keypad will only ever send a single digit sequence.
 
      * An Exact match against the address is if the numerical value matches the Address’s numerical value.
        This is the only acceptable match is the Exact-Only bit is set in the flags. If this bit is clear,
-       we also check for prefix match, for example ‘83’ will prefix-match ‘8300’.
+       then prefix match is also checked, for example ‘83’ will prefix-match ‘8300’.
 
      * DCC has two overlapping address ranges. Address values over 128 are always interpreted as DCC long
        addresses. Address values 0-127 are interpreted as either short or long addresses when doing a
@@ -344,12 +359,13 @@
        be DCC and set the bit DCC Force Long Address to indicate that a long address train is requested. A
        common practice for throttles is to select DCC Long Address when the user prefixes the number with
        an extra zero, e.g. the user typing “053” would be sent as DCC-force-long-address 53, with the Event
-       ID <prefix>53FFFFEC (Note5). When the Command Station receives a request with Force Long Address,
+       ID <prefix>53FFFFEC (Note6). When the Command Station receives a request with Force Long Address,
        only the trains with actual long addresses will match. When the Protocol is Default/Any or Protocol
-       is DCC but the Force Long Address bit is clear, we look at the Allocate bit to decide what to do. If
-       the Allocate bit is clear, we match both short and long address Trains. When the Allocate bit is
-       set, we only match short address Trains. This special case is necessary to be able to allocate a DCC
-       train short-address-53 when there is already a DCC train with long-address-53 on the network.
+       is DCC but the Force Long Address bit is clear, the Allocate bit is consulted to decide what to do.
+       If the Allocate bit is clear, both short and long address Trains are matching. When the Allocate bit
+       is set, only short address Trains are matching. This special case is necessary to be able to
+       allocate a DCC train short-address-53 when there is already a DCC train with long-address-53 on the
+       network.
 
        Some specific examples for this rule:
 
@@ -359,17 +375,17 @@
 
           * request “53”, not force long, allocate => Train 053L drops, Train 53S accepts.
 
-     * To match a number against the Name of the Train, we look for digits in the Name. When we have a
-       substring of digits in the Name, we start matching the throttle’s digits at the beginning of this
-       substring to get a prefix match. We keep using up digits from the Name, jumping over any other
-       characters until we have exhausted the nibbles in the number received from the throttle. If
-       Exact-Only match is requested, then at this point the next character in the Name has to be not a
-       digit. For example the Name of “C&NW F7A 415” is exact-matched by the query 415, prefix-matched by
-       the query 41 or 4. The query 15 or 5 does not match this name. The query 7 is also exact-matched,
-       because “7” inside “F7A” fulfills the requirement that there are no further digits before and no
-       further digits after. This Name also matches the query nibbles 7F415F, because both terms in the
-       query (“7” and “415”) match the Name. Also the query 7415 exact-matches (we jumped over ‘A’ and the
-       space character to match this), but 741 is only a prefix-match.
+     * To match a number against the Name of the Train, digits in the Name are matched. For each substring
+       of digits in the Name, the throttle’s digits are matched at the beginning of this substring to get a
+       prefix match. Digits from the Name are used up from here on, jumping over any other characters until
+       the nibbles in the number received from the throttle are exhausted. If Exact-Only match is
+       requested, then at this point the next character in the Name has to be not a digit. For example the
+       Name of “C&NW F7A 415” is exact-matched by the query 415, prefix-matched by the query 41 or 4. The
+       query 15 or 5 does not match this name. The query 7 is also exact-matched, because “7” inside “F7A”
+       fulfills the requirement that there are no further digits before and no further digits after. This
+       Name also matches the query nibbles 7F415F, because both terms in the query (“7” and “415”) match
+       the Name. Also the query 7415 exact-matches (‘A’ and the space character was jumped over to match
+       this), but 741 is only a prefix-match.
 
   2.6.4 Search Result Differentiation
 
@@ -450,23 +466,23 @@
 
    Result Event ID Addr Name Protocol
 
-   no match6 090099FFFFFF1300 45 "FooBar" DCC
+   no match7 090099FFFFFF1300 45 "FooBar" DCC
 
-   no match7 090099FFFFFF1300 4513 "FooBar" DCC
+   no match8 090099FFFFFF1300 4513 "FooBar" DCC
 
     
 
-      match8 090099FFFFFF1300 45 "FooBar13" DCC
+      match9 090099FFFFFF1300 45 "FooBar13" DCC
 
-      match9 090099FFFFFF1300 45 "Foo135" DCC
+      match10 090099FFFFFF1300 45 "Foo135" DCC
 
-   no match10 090099FFFFFF1340 45 "Foo135" DCC
+   no match11 090099FFFFFF1340 45 "Foo135" DCC
 
       match 090099FFFFFF1340 45 "Foo13 5" DCC
 
-      match11 090099FFFFF13540 45 "Foo13 5" DCC
+      match12 090099FFFFF13540 45 "Foo13 5" DCC
 
-   no match12 090099FFFFF13540 45 "Foo13 51" DCC
+   no match13 090099FFFFF13540 45 "Foo13 51" DCC
 
       match 090099FFFFF11340 45 "1 11 3" DCC
 
@@ -474,19 +490,19 @@
 
     
 
-      match13 090099FFFFFF1300 13 "FooBar777" DCC
+      match14 090099FFFFFF1300 13 "FooBar777" DCC
 
-      match14 090099FFFFFF1300 135 "FooBar777" DCC
+      match15 090099FFFFFF1300 135 "FooBar777" DCC
 
-   no match15 090099FFFFFF1340 135 "FooBar777" DCC
+   no match16 090099FFFFFF1340 135 "FooBar777" DCC
 
       match 090099FFFFF13540 135 "FooBar777" DCC
 
-   no match16 090099FFFFFF3500 135 "FooBar777" DCC
+   no match17 090099FFFFFF3500 135 "FooBar777" DCC
 
-      match17 090099FFFFFF1360 13 "FooBar777" DCC
+      match18 090099FFFFFF1360 13 "FooBar777" DCC
 
-   no match18 090099FFFFFF3520 135 "FooBar35" DCC
+   no match19 090099FFFFFF3520 135 "FooBar35" DCC
 
     
 
@@ -506,7 +522,7 @@
 
       match 090099FFFFF0130C 13 "FooBar777" DCC long address
 
-   no match19 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
+   no match20 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
 
    no match 090099FFFFF013EC 13 "FooBar777" DCC
 
@@ -516,68 +532,68 @@
 
     
 
-   no match20 090099FFFFF13FE6 13 "FooBar777" DCC
+   no match21 090099FFFFF13FE6 13 "FooBar777" DCC
 
-      match 090099FFFFF13FE6 13 "FooBar777" Marklin-Motorola II
+      match 090099FFFFF13FE6 13 "FooBar777" Märklin-Motorola II
 
       match 090099FFFFF0130C 13 "FooBar777" DCC 14-speed long address
 
     
 
-   no match21 090099FFFFFF13E0 13 "013" DCC 28-speed long address
+   no match22 090099FFFFFF13E0 13 "013" DCC 28-speed long address
 
-   no match22 090099FFFFF013EC 13 "13" DCC 28-speed
+   no match23 090099FFFFF013EC 13 "13" DCC 28-speed
 
     
 
-   no match23 090099FFFFF13FE6 13 "013L" DCC 28-speed long address
+   no match24 090099FFFFF13FE6 13 "013L" DCC 28-speed long address
 
    no match 090099FFFFF13FE6 13 "13S" DCC 28-speed
 
-      match24 090099FFFFF13FE6 13 "13m" Marklin-Motorola I
+      match25 090099FFFFF13FE6 13 "13m" Märklin-Motorola I
 
-      match 090099FFFFF13FE6 13 "13M" Marklin-Motorola II
+      match 090099FFFFF13FE6 13 "13M" Märklin-Motorola II
 
-      match 090099FFFFFF13E0 13 "13m" Marklin-Motorola I
+      match 090099FFFFFF13E0 13 "13m" Märklin-Motorola I
 
-      match 090099FFFFFF13E0 13 "13M" Marklin-Motorola II
+      match 090099FFFFFF13E0 13 "13M" Märklin-Motorola II
 
-   no match25 090099FFFFF013EC 13 "13m" Marklin-Motorola I
+   no match26 090099FFFFF013EC 13 "13m" Märklin-Motorola I
 
-   no match 090099FFFFF013EC 13 "13M" Marklin-Motorola II
+   no match 090099FFFFF013EC 13 "13M" Märklin-Motorola II
 
-   no match 090099FFFFF13FEC 13 "13M" Marklin-Motorola II
+   no match 090099FFFFF13FEC 13 "13M" Märklin-Motorola II
 
-   no match 090099FFFFF13FEC 13 "13m" Marklin-Motorola I
+   no match 090099FFFFF13FEC 13 "13m" Märklin-Motorola I
 
-   no match26 090099FFFFF13FE8 13 "13m" Marklin-Motorola I
+   no match27 090099FFFFF13FE8 13 "13m" Märklin-Motorola I
 
-   no match 090099FFFFF13FE8 13 "13M" Marklin-Motorola II
+   no match 090099FFFFF13FE8 13 "13M" Märklin-Motorola II
 
                                            5 Recommended Operation
 
    While the protocol contains a lot of different features, a fairly specific set of rules are provided in
    the standard on the interpretation of these features. These rules were put together to allow a certain
-   set of user experience options to be easy to implement and produce the behavior that we believe matches
+   set of user experience options to be easy to implement and produce the behavior that is believed to meet
    the expectations of modelers in how typical digital command systems operate.
 
-   In the following section we describe how these different classes of user interfaces are expected to use
-   the protocol features.
+   In the following section these different classes of user interfaces are enumerated in how they are
+   expected to use the protocol features.
 
      * Utility throttle with numeric keyboard 0-9 and a select key, with no screen.
 
-   On this throttle the the only available user interaction for locomotive selection is that the user will
+   On this throttle the only available user interaction for locomotive selection is that the user will
    punch in a number and press the select key. There will be only one round of interaction of the Train
    Search Protocol. The Throttle is recommended to perform the request by setting the qq qq qq nibbles to
    the user-entered digits, and the rr options to 0xC0 (allocate + exact). If the user typed in a prefix
    zero, then use 0xEC (force DCC long address), if two prefix zeros, then use 0xE6 (force MM protocol).
 
    There are some compromises on this throttle with respect to differentiating between Train Nodes that
-   have the same address but a different protocol. We recommend against setting the “address only” bit or
-   else it becomes impossible to select a native OpenLCB Train Node. With the above settings the specific
-   concession is that if a native OpenLCB Train Node has a cab number in the 1..127 range, then it becomes
-   impossible to drive a DCC short address locomotive with the same address so long as the native Train
-   Node is turned on.
+   have the same address but a different protocol. It is strongly recommended against setting the “address
+   only” bit or else it becomes impossible to select a native OpenLCB Train Node. With the above settings
+   the specific concession is that if a native OpenLCB Train Node has a cab number in the 1..127 range,
+   then it becomes impossible to drive a DCC short address locomotive with the same address so long as the
+   native Train Node is turned on.
 
      * Smart throttle with numeric keyboard 0-9, a screen supporting scrolling and select keys.
 
@@ -592,14 +608,14 @@
        searches, the locomotive can be operated using the Train Control Protocol directly.
 
        Alternatively, the user may press the select/enter key without picking a locomotive from the result
-       list. Then we interpret the intention as driving a given address via the command station, creating a
-       new virtual Train Node as needed. The throttle sends another Train Search request with the digits
+       list. Then the intention is interpreted as driving a given address via the command station, creating
+       a new virtual Train Node as needed. The throttle sends another Train Search request with the digits
        and rr options 0xE0 (allocate+exact+address only).  If the user typed in a prefix zero, then use
        0xEC (force DCC long address), if two prefix zeros, then use 0xE6 (force MM protocol). The alternate
        protocols could be a user-configurable setting.
 
        The user interface might have additional elements for protocol selection, which would be expressed
-       in the options field, but we recommend the default choice to have the above behavior.
+       in the options field, but the recommended default choice is to have the above behavior.
 
      * A gateway connecting a proprietary throttle bus to OpenLCB, where the throttle bus transmits only a
        four-digit number for locomotive selection.
@@ -615,18 +631,18 @@
    These recommendations are laid out with the following principles:
 
     1. The user should be able to select both DCC locomotives and native OpenLCB locomotives. This is why
-       we generally avoid fixing the protocol selection bits to DCC during the default interaction type.
+       fixing the protocol selection bits to DCC are avoided during the default interaction type.
 
     2. The user should be able to select between locomotives from different address spaces (e.g. DCC short
        address, DCC long address, address of another protocol), and be able to run two locomotives of the
        same address at the same time if they belong to different address spaces. Although the user
-       interface might limit the available interactions, we use whatever is available to select between
-       short and long DCC addresses; usually one prefix zero selects long address. Numeric addresses 128
-       and above do not need a prefix zero to be unambiguous.
+       interface might limit the available interactions, any available possibilities are used to select
+       between short and long DCC addresses; usually one prefix zero selects long address. Numeric
+       addresses 128 and above do not need a prefix zero to be unambiguous.
 
     3. If possible, there should be a distinction between searching for existing trains (which might return
        OpenLCB Train Nodes) vs allocating a new virtual Train Node using the DCC address. If the user
-       interface is too limited, we make principle 1. take precedence over this.
+       interface is too limited, principle 1 takes precedence over this.
 
     
 
@@ -640,7 +656,7 @@
 
    1.1.1 Relation to Train Control Protocol
 
-   1.1.2 Relation to Legacy Track Protocols
+   1.1.2 Relation to Track Protocols
 
    1.1.3 Relation to other Search and Discovery Protocols
 
@@ -695,56 +711,61 @@
    3 For example it is not possible to search for an Event.
 
    4 Command Stations and Train Nodes shall declare themselves by sending a Producer Range Identified
-   message upon startup that covers the entire range of the Train Search Protocol Event IDs.
+   message upon startup that covers the entire range of the Train Search Protocol Event IDs. Note that this
+   is an exception to the rule that Producer Range Identified should only be used to identify a range that
+   is more than 50% produced as Events.
 
-   5 This Event ID also sets Allocate, Exact and Address-only bits to ensure that it connects to a DCC
+   5 An example would be addresses 82 to 255 for Märklin-Motorola protocol or short address 100 to 127 when
+   using certain DCC Command Stations.
+
+   6 This Event ID also sets Allocate, Exact and Address-only bits to ensure that it connects to a DCC
    train via a Command Station.
 
-   6 Neither Name or Address matches here.
+   7 Neither Name or Address matches here.
 
-   7 Address contains 13 but not as a prefix, therefore it does not match.
+   8 Address contains 13 but not as a prefix, therefore it does not match.
 
-   8 Name contains a sequence of digits matching 13.
+   9 Name contains a sequence of digits matching 13.
 
-   9 Name contains a sequence of digits which has a prefix of 13.
+   10 Name contains a sequence of digits which has a prefix of 13.
 
-   10 Exact match fails in the name.
+   11 Exact match fails in the name.
 
-   11 Name match jumps over spaces between the digits here.
+   12 Name match jumps over spaces between the digits here.
 
-   12 Not an exact match, because there is an extra digit after the match.
+   13 Not an exact match, because there is an extra digit after the match.
 
-   13 Address matches here.
+   14 Address matches here.
 
-   14 Prefix match in the address.
+   15 Prefix match in the address.
 
-   15 Exact match requested, but only prefix match found.
+   16 Exact match requested, but only prefix match found.
 
-   16 Not a prefix match.
+   17 Not a prefix match.
 
-   17 Address-only request and match in the address.
+   18 Address-only request and match in the address.
 
-   18 Match is only in the Name, but was requested in the address.
+   19 Match is only in the Name, but was requested in the address.
 
-   19 This match fails because the request specifies DCC long address, but the train has DCC short address.
+   20 This match fails because the request specifies DCC long address, but the train has DCC short address.
 
-   20 The request specifies a Märklin-Motorola address, but the train is DCC.
+   21 The request specifies a Märklin-Motorola address, but the train is DCC.
 
-   21 The Address does not match here, because all of the bullet points are false in Section 6.3, “qq qq qq
+   22 The Address does not match here, because all of the bullet points are false in Section 6.3, “qq qq qq
    nibbles of E matches the Address if and only if”. This is the most complex case. Specifically, calling
    up the default with allocate explicitly requests a short address, but the locomotive has a long address.
    If this item were a match, it would become impossible to run both long address 13 and short address 13
    from a displayless throttle.
 
-   22 Requests long address, train has short address.
+   23 Requests long address, train has short address.
 
-   23 Request Märklin-Motorola II, train has DCC.
+   24 Request Märklin-Motorola II, train has DCC.
 
-   24 Protocol versions (MM I vs MM II, just like DCC speed step modes) do not partake in the match
+   25 Protocol versions (MM I vs MM II, just like DCC speed step modes) do not partake in the match
    algorithm. The Command Station might take this allocate request as a hint that the user wants to change
    the protocol version of the given Train Node, but that Train Node has to match the request. A new Train
    Node can not be created, because it would have the same OpenLCB Node ID as the existing one.
 
-   25 Requests DCC long address, but train has MM.
+   26 Requests DCC long address, but train has MM.
 
-   26 Requests DCC address, but train has MM.
+   27 Requests DCC address, but train has MM.

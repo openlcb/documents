@@ -6,18 +6,23 @@
 
                                          2 Intended Use (Informative)
 
-   The OpenLCB Train Control Protocol describes how a Node acting as throttle can and should control a Node
+   The OpenLCB Train Control protocol describes how a Node acting as throttle can and should control a Node
    acting as a train. An important component of an ecosystem is how the throttle can find the remote Train
    Node that corresponds to the user’s desired locomotive to control. This standard defines one possible
    method on how to find Train Nodes from a throttle. As a basic transport this method uses the Event
    Transport protocol.
 
+   When an OpenLCB Command Station is controlling many locomotives through a track protocol (e.g. DCC), it
+   acts as a gateway between the OpenLCB Train Control protocol and the track protocol. For the purpose of
+   the Train Control protocol, all of the controlled trains have to have unique Train Nodes on the OpenLCB
+   bus, therefore the Command Station is representing many Nodes on the OpenLCB bus. These are called
+   virtual Nodes, or virtual Train Nodes.
+
    In addition to finding already existing Train Nodes, this standard describes an interaction that can be
-   followed by a Command Station to instantiate virtual Nodes in order to act as a gateway between the
-   OpenLCB Train Control protocol and a pre-existing track protocol such as DCC. As part of this
-   interaction, certain options are specifically enumerated in this standard that are specific to current
-   commonly used track protocols (such as DCC), while leaving expansion space for including additional such
-   protocols in future revisions.
+   followed by a Command Station to instantiate the virtual Train Nodes. As part of this interaction,
+   certain options are specifically enumerated in this standard that are specific to current commonly used
+   track protocols (such as DCC), while leaving expansion space for including additional such protocols in
+   future revisions.
 
    Note that this standard does not exclude other methods and standards, including some not yet developed,
    for the same or similar purposes. See the Train Search Protocol Technical Note for some alternatives
@@ -52,25 +57,28 @@
    All Event Identifiers in this range are reserved for exclusive use according to the interactions defined
    by this standard and shall not be used for any other purpose.
 
-   The legal entity to whom this Event Identifier range is allocated by the Event Identifiers Standard,
+   The legal entity to whom this Event Identifier range is allocated by the Unique Identifiers Standard,
    Train Control Systems, Inc, hereby grants an irrevocable, non-transferable license to anyone for using
    the quoted Event Identifiers on the condition, and only so long as, that their use is compliant to this
    Standard or any later version of it, published by Train Control Systems, Inc., or the OpenLCB Group.
 
 5.2 Identifier Format
 
-   The Event Identifiers in the given range are defined as follows:
+   Note that the semantic meaning of these identifiers are defined in Section 6 (Interactions).
+
+   Table 1. The Event Identifiers in the given range are defined as follows:
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Byte 7 Byte 8 
    09     00     99     FF     qq     qq     qq     rr     
-                               Search query                
-   Fixed prefix                                     Flags
+   Fixed prefix                Search query         Flags  
                                (6 nibbles)
 
     
 
    The search query ‘qq qq qq’ shall be a sequence of 6 nibbles in MSB-first order stored in Bytes 5, 6 and
-   7 of the Event Identifier. Each individual nibble is one position of the search string:
+   7 of the Event Identifier.
+
+   Table 2. Each individual nibble is one position of the search string:
 
    Search Query Nibble value Description                                                                    
    0 - 9                     The given position of the search term is the given number                      
@@ -78,11 +86,11 @@
                              Empty / unused character position. Short queries shall be padded with this     
    0xF                       nibble value to 6 characters long. Multiple search terms may be concatenated   
                              to a search query with this nibble as a separator between them, which means    
-                             the individual terms shall be evaluated with AND relation between them.        
+                             the individual terms shall be evaluated with an AND relation between them.     
 
     
 
-   The flag byte ‘rr’ is defined as follows:
+   Table 3. The flag byte ‘rr’ is defined as follows:
 
    Bit 7    Bit 6 Bit 5        Bits 4-0       Description                              
    Allocate                                   0x80: Force allocate new gateway node    
@@ -93,29 +101,33 @@
                                               0x20: Match only in address              
                   Address only                                                         
                                               0: Match everywhere (address and name)   
-                               Track Protocol See separate table for assignment        
+                               Track Protocol See Table 4 for assignment               
 
     
 
-   The Track Protocol values are defined as follows:
+   Table 4. The Track Protocol values are defined as follows:
 
    Bit 4-3 Bit 2 Bits 1-0 Description                                                        
-   0b00    0     0b00     Any / Default track protocol                                       
-   0b00    0     0b01     Native OpenLCB Train Node                                          
-   0b00    0     0b10     MFX® / M4® track protocol                                          
-   0b00    0     0b11     Reserved (do not send, check on receipt).                          
-   0b00    1     *        Märklin-Motorola track protocol                                    
-   "       "     0b00     MM – Any / Default version                                         
-   "       "     0b01     MM – Protocol version I (14 speed steps + F0)                      
-   "       "     0b10     MM – Protocol version II (Directional + F0-F4)                     
-   "       "     0b11     MM – Protocol version II with following address for F5-F8 support. 
-   0b01    *     *        DCC track protocol                                                 
-   "       0     *        DCC – Default address space                                        
-   "       1     *        DCC – Force 14-bit (long) address                                  
-   "       *     0b00     DCC – Any / Default speed steps                                    
-   "       *     0b01     DCC – 14 speed steps                                               
-   "       *     0b10     DCC – 28 speed steps                                               
-   "       *     0b11     DCC – 128 speed steps                                              
+           0     0b00     Any / Default track protocol                                       
+                 0b01     Native OpenLCB Train Node                                          
+                 0b10     MFX® / M4® track protocol                                          
+                 0b11     Reserved (do not send, check on receipt).                          
+   0b00          *        Märklin-Motorola track protocol                                    
+           1     0b00     MM – Any / Default version                                         
+                 0b01     MM – Protocol version I (14 speed steps + F0)                      
+                 0b10     MM – Protocol version II (Directional + F0-F4)                     
+                 0b11     MM – Protocol version II with following address for F5-F8 support. 
+           *     *        DCC track protocol                                                 
+           0              DCC – Default address space                                        
+                          
+           1              DCC – Force 14-bit (long) address                                  
+                 0b00     DCC – Any / Default speed steps                                    
+   0b01          
+                 0b01     DCC – 14 speed steps                                               
+                 
+                 0b10     DCC – 28 speed steps                                               
+                 
+                 0b11     DCC – 128 speed steps                                              
    0b10    *     *        Reserved (do not send, check upon receipt)                         
    0b11    *     *        Reserved (do not send, check upon receipt)                         
 
@@ -147,7 +159,7 @@
      * Name is a user-assigned textual (alphanumeric) description for the train.
 
      * Protocol defines the native command set that is used to address this train. The options are listed
-       in the Track Protocol table.
+       in Table 4.
 
      * Address is a user-assigned numerical value that uniquely identifies a train within a Protocol. There
        cannot be two trains with the same Protocol and same Address on the track at the same time. Not all
@@ -187,7 +199,7 @@
    Node. This interaction can also be used to change the Protocol Version of an existing Train Node.
 
    The Throttle Node shall represent the requested address as an Event Identifier E according to Section
-   5.2, with setting the flag byte ‘rr’ Bit 7 (Allocate) to one (0x80). The Throttle Node may, but is not
+   5.2, with the flag byte ‘rr’ Bit 7 (Allocate) set to one (0x80). The Throttle Node may, but is not
    required to, specify the desired track protocol in the flag byte. It is recommended that the Throttle
    Node also sets Bit 6 (Exact) to one (0x40) in the flag byte.
 
@@ -233,8 +245,8 @@
 
    The Protocol Version is not used by the matching algorithm.
 
-   We say that the Flag byte rr requests a DCC long address if and only if rr specifies the DCC protocol
-    AND Bit 2 (DCC - Force long address bit) is set.
+   The Flag byte rr requests a DCC long address if and only if rr specifies the DCC protocol  AND Bit 2
+   (DCC - Force long address bit) is set.
 
    The search query represented by the qq qq qq nibbles of E matches if and only if
 
