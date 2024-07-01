@@ -304,6 +304,11 @@
    would create the new Virtual Train Node according to that protocol. Here the CS used the default
    settings (DCC protocol).
 
+   If the Command Station does not support the protocol requested, or the address requested for that
+   protocol5, then no new virtual Train Node is created and no response is sent to the throttle. The
+   throttle will typically display a “Train not found or Command Station not responding” error in this
+   case.
+
   2.6.3 Event Identifier matching algorithm
 
    In this section a complex logic expression is defined. The parentheses are important in such an
@@ -354,7 +359,7 @@
        be DCC and set the bit DCC Force Long Address to indicate that a long address train is requested. A
        common practice for throttles is to select DCC Long Address when the user prefixes the number with
        an extra zero, e.g. the user typing “053” would be sent as DCC-force-long-address 53, with the Event
-       ID <prefix>53FFFFEC (Note5). When the Command Station receives a request with Force Long Address,
+       ID <prefix>53FFFFEC (Note6). When the Command Station receives a request with Force Long Address,
        only the trains with actual long addresses will match. When the Protocol is Default/Any or Protocol
        is DCC but the Force Long Address bit is clear, the Allocate bit is consulted to decide what to do.
        If the Allocate bit is clear, both short and long address Trains are matching. When the Allocate bit
@@ -461,23 +466,23 @@
 
    Result Event ID Addr Name Protocol
 
-   no match6 090099FFFFFF1300 45 "FooBar" DCC
+   no match7 090099FFFFFF1300 45 "FooBar" DCC
 
-   no match7 090099FFFFFF1300 4513 "FooBar" DCC
+   no match8 090099FFFFFF1300 4513 "FooBar" DCC
 
     
 
-      match8 090099FFFFFF1300 45 "FooBar13" DCC
+      match9 090099FFFFFF1300 45 "FooBar13" DCC
 
-      match9 090099FFFFFF1300 45 "Foo135" DCC
+      match10 090099FFFFFF1300 45 "Foo135" DCC
 
-   no match10 090099FFFFFF1340 45 "Foo135" DCC
+   no match11 090099FFFFFF1340 45 "Foo135" DCC
 
       match 090099FFFFFF1340 45 "Foo13 5" DCC
 
-      match11 090099FFFFF13540 45 "Foo13 5" DCC
+      match12 090099FFFFF13540 45 "Foo13 5" DCC
 
-   no match12 090099FFFFF13540 45 "Foo13 51" DCC
+   no match13 090099FFFFF13540 45 "Foo13 51" DCC
 
       match 090099FFFFF11340 45 "1 11 3" DCC
 
@@ -485,19 +490,19 @@
 
     
 
-      match13 090099FFFFFF1300 13 "FooBar777" DCC
+      match14 090099FFFFFF1300 13 "FooBar777" DCC
 
-      match14 090099FFFFFF1300 135 "FooBar777" DCC
+      match15 090099FFFFFF1300 135 "FooBar777" DCC
 
-   no match15 090099FFFFFF1340 135 "FooBar777" DCC
+   no match16 090099FFFFFF1340 135 "FooBar777" DCC
 
       match 090099FFFFF13540 135 "FooBar777" DCC
 
-   no match16 090099FFFFFF3500 135 "FooBar777" DCC
+   no match17 090099FFFFFF3500 135 "FooBar777" DCC
 
-      match17 090099FFFFFF1360 13 "FooBar777" DCC
+      match18 090099FFFFFF1360 13 "FooBar777" DCC
 
-   no match18 090099FFFFFF3520 135 "FooBar35" DCC
+   no match19 090099FFFFFF3520 135 "FooBar35" DCC
 
     
 
@@ -517,7 +522,7 @@
 
       match 090099FFFFF0130C 13 "FooBar777" DCC long address
 
-   no match19 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
+   no match20 090099FFFFF0130C 13 "FooBar777" DCC 28-speed
 
    no match 090099FFFFF013EC 13 "FooBar777" DCC
 
@@ -527,7 +532,7 @@
 
     
 
-   no match20 090099FFFFF13FE6 13 "FooBar777" DCC
+   no match21 090099FFFFF13FE6 13 "FooBar777" DCC
 
       match 090099FFFFF13FE6 13 "FooBar777" Märklin-Motorola II
 
@@ -535,17 +540,17 @@
 
     
 
-   no match21 090099FFFFFF13E0 13 "013" DCC 28-speed long address
+   no match22 090099FFFFFF13E0 13 "013" DCC 28-speed long address
 
-   no match22 090099FFFFF013EC 13 "13" DCC 28-speed
+   no match23 090099FFFFF013EC 13 "13" DCC 28-speed
 
     
 
-   no match23 090099FFFFF13FE6 13 "013L" DCC 28-speed long address
+   no match24 090099FFFFF13FE6 13 "013L" DCC 28-speed long address
 
    no match 090099FFFFF13FE6 13 "13S" DCC 28-speed
 
-      match24 090099FFFFF13FE6 13 "13m" Märklin-Motorola I
+      match25 090099FFFFF13FE6 13 "13m" Märklin-Motorola I
 
       match 090099FFFFF13FE6 13 "13M" Märklin-Motorola II
 
@@ -553,7 +558,7 @@
 
       match 090099FFFFFF13E0 13 "13M" Märklin-Motorola II
 
-   no match25 090099FFFFF013EC 13 "13m" Märklin-Motorola I
+   no match26 090099FFFFF013EC 13 "13m" Märklin-Motorola I
 
    no match 090099FFFFF013EC 13 "13M" Märklin-Motorola II
 
@@ -561,7 +566,7 @@
 
    no match 090099FFFFF13FEC 13 "13m" Märklin-Motorola I
 
-   no match26 090099FFFFF13FE8 13 "13m" Märklin-Motorola I
+   no match27 090099FFFFF13FE8 13 "13m" Märklin-Motorola I
 
    no match 090099FFFFF13FE8 13 "13M" Märklin-Motorola II
 
@@ -710,54 +715,57 @@
    is an exception to the rule that Producer Range Identified should only be used to identify a range that
    is more than 50% produced as Events.
 
-   5 This Event ID also sets Allocate, Exact and Address-only bits to ensure that it connects to a DCC
+   5 An example would be addresses 82 to 255 for Märklin-Motorola protocol or short address 100 to 127 when
+   using certain DCC Command Stations.
+
+   6 This Event ID also sets Allocate, Exact and Address-only bits to ensure that it connects to a DCC
    train via a Command Station.
 
-   6 Neither Name or Address matches here.
+   7 Neither Name or Address matches here.
 
-   7 Address contains 13 but not as a prefix, therefore it does not match.
+   8 Address contains 13 but not as a prefix, therefore it does not match.
 
-   8 Name contains a sequence of digits matching 13.
+   9 Name contains a sequence of digits matching 13.
 
-   9 Name contains a sequence of digits which has a prefix of 13.
+   10 Name contains a sequence of digits which has a prefix of 13.
 
-   10 Exact match fails in the name.
+   11 Exact match fails in the name.
 
-   11 Name match jumps over spaces between the digits here.
+   12 Name match jumps over spaces between the digits here.
 
-   12 Not an exact match, because there is an extra digit after the match.
+   13 Not an exact match, because there is an extra digit after the match.
 
-   13 Address matches here.
+   14 Address matches here.
 
-   14 Prefix match in the address.
+   15 Prefix match in the address.
 
-   15 Exact match requested, but only prefix match found.
+   16 Exact match requested, but only prefix match found.
 
-   16 Not a prefix match.
+   17 Not a prefix match.
 
-   17 Address-only request and match in the address.
+   18 Address-only request and match in the address.
 
-   18 Match is only in the Name, but was requested in the address.
+   19 Match is only in the Name, but was requested in the address.
 
-   19 This match fails because the request specifies DCC long address, but the train has DCC short address.
+   20 This match fails because the request specifies DCC long address, but the train has DCC short address.
 
-   20 The request specifies a Märklin-Motorola address, but the train is DCC.
+   21 The request specifies a Märklin-Motorola address, but the train is DCC.
 
-   21 The Address does not match here, because all of the bullet points are false in Section 6.3, “qq qq qq
+   22 The Address does not match here, because all of the bullet points are false in Section 6.3, “qq qq qq
    nibbles of E matches the Address if and only if”. This is the most complex case. Specifically, calling
    up the default with allocate explicitly requests a short address, but the locomotive has a long address.
    If this item were a match, it would become impossible to run both long address 13 and short address 13
    from a displayless throttle.
 
-   22 Requests long address, train has short address.
+   23 Requests long address, train has short address.
 
-   23 Request Märklin-Motorola II, train has DCC.
+   24 Request Märklin-Motorola II, train has DCC.
 
-   24 Protocol versions (MM I vs MM II, just like DCC speed step modes) do not partake in the match
+   25 Protocol versions (MM I vs MM II, just like DCC speed step modes) do not partake in the match
    algorithm. The Command Station might take this allocate request as a hint that the user wants to change
    the protocol version of the given Train Node, but that Train Node has to match the request. A new Train
    Node can not be created, because it would have the same OpenLCB Node ID as the existing one.
 
-   25 Requests DCC long address, but train has MM.
+   26 Requests DCC long address, but train has MM.
 
-   26 Requests DCC address, but train has MM.
+   27 Requests DCC address, but train has MM.
