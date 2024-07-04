@@ -3,6 +3,14 @@
 <!-- XML Schema for OpenLCB Function Description Information (FDI)     -->
 <xs:schema version="FDI 1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
+  <xs:simpleType name="NonNegativeInteger">
+    <xs:restriction base="xs:int">
+      <xs:totalDigits value="5"/>
+      <xs:fractionDigits value="2"/>
+      <xs:minInclusive value="0"/>
+    </xs:restriction>
+  </xs:simpleType>
+
   <xs:complexType name="groupType">
     <xs:sequence>
       <xs:element name="name" minOccurs="0" maxOccurs="1" />
@@ -22,8 +30,8 @@
   <xs:complexType name="functionType">
     <xs:sequence>
       <xs:element name="name" minOccurs="0" maxOccurs="1" />
-      <xs:element name="number" minOccurs="1" maxOccurs="1" />
-      <xs:element name="min" minOccurs="0" maxOccurs="1" >
+      <xs:element name="number" type="NonNegativeInteger" minOccurs="1" maxOccurs="1" />
+      <xs:element name="min" type="xs:int" minOccurs="0" maxOccurs="1" >
         <xs:annotation>
           <xs:documentation>
             Smallest valid value for this function.
@@ -31,7 +39,7 @@
           </xs:documentation>
         </xs:annotation>
       </xs:element>
-      <xs:element name="max" minOccurs="0" maxOccurs="1" >
+      <xs:element name="max" type="xs:int" minOccurs="0" maxOccurs="1" >
         <xs:annotation>
           <xs:documentation>
             Largest valid value for this function.
@@ -78,7 +86,7 @@
     </xs:annotation>
     <xs:complexType>
       <xs:sequence>
-        <xs:element name="segment" minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="segment" minOccurs="1" maxOccurs="1">
           <xs:annotation>
             <xs:documentation>
               Define the contents of the function memory space
@@ -126,13 +134,18 @@
 
               </xs:choice>
             </xs:sequence>
-            <xs:attribute name="space" type="xs:int" default="249">
+            <xs:attribute name="space" default="249">
               <xs:annotation>
                 <xs:documentation>
                   The decimal number of the address space where the information is found.
                   Reserved, ignore upon receipt.
                 </xs:documentation>
               </xs:annotation>
+              <xs:simpleType>
+                <xs:restriction base="xs:token">
+                  <xs:enumeration value="249"/>
+                </xs:restriction>
+              </xs:simpleType>
             </xs:attribute>
             <xs:attribute name="origin" default="0">
               <xs:annotation>
