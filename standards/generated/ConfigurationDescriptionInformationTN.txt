@@ -68,10 +68,10 @@
 
     
 
-   The online schema is really the normative thing, because that's what we check for conformance testing.
-   There is no requirement that a node using the CDI to perform validation against the schema. But since
-   the contents of the schema are normative, it has to obey the defaults, etc., for missing elements. There
-   is further information about schema versions in the Section Future Extension.
+   The online schema is really the normative thing, because that's what we check for conformance testing. A
+   node using the CDI is not required to validate it against the schema. But since the contents of the
+   schema are normative, it has to obey the defaults, etc., for missing elements. There is further
+   information about schema versions in the Section Future Extension.
 
     
 
@@ -193,7 +193,7 @@
    There can be multiple segments that bind to the same Memory Space.
 
    Node developers are advised to assign relatively short <name> values to segments, because certain
-   Configuration Tools may use these as labels for a tabbed dialog box.
+   Configuration Tools may use these as labels for a tabbed dialog box or similar.
 
     2.5.1.4 Data Elements
 
@@ -231,8 +231,8 @@
 
    Data Elements support constraints for the values:
 
-     * Integers have <min> and <max> elements inside. They constrain the range with endpoints inclusive,
-       i.e. <min>5</min> allows value 5 but disallows value 4.
+     * Integers and floats have <min> and <max> elements inside. They constrain the range with endpoints
+       inclusive i.e., <min>5</min> allows value 5 but disallows value 4.
 
      * All elements support a <map> which can be used to constrain the possible values to a fixed list, as
        well as provide user-readable descriptions to the values. Inside the map, the <property> entry is
@@ -241,13 +241,66 @@
 
    Be aware that all data is to be written in big-endian byte order.
 
+   Any data element’s <name> and <description> elements and the <group>  element’s <repname> elements are
+   intended as hints for optional UI display by configuration tools.  
+
+   A recommended approach for <repname> is:
+
+    1. If the <repname> element occurs the same number of times as the number in the “replication”
+       attribute then they will be used as the group repeat labels directly in the UI.
+
+    2. If the <repname> element occurs at least once, but less than the number in the “replication”
+       attribute, then the last occurrence should be extended to the group labels using the following,
+       specific rules:
+
+         1. If the text in does not end with a decimal representation of an integer, then the group
+            repetition number shall be appended to it, starting from 1..N, including the group repetition
+            offset that received that specific label. Any whitespace at the end of the <repname> element
+            should be preserved before appending the number.
+
+            For example,  
+
+            <group replication=4><repname>Headlight</repname><repname>F</repname>
+
+            should translate into labels of "Headlight", "F1", "F2", "F3".
+
+         2. If the text in ends with a decimal representation of an integer, then that integer shall be
+            incremented by one for every additional group for which there were not enough elements. Note
+            this does not imply any whitespace before the integer is needed.
+
+            For example
+
+            <group replication=4><repname>F0</repname>
+
+            should translate into labels of "F0", "F1", "F2", "F3".
+
+    
+
+   Other UI representations are permitted. For example, some configuration tools use information from the
+   contained elements for group labels in their UI.
+
+    
+
+   2.5.1.4.3 <string> element
+
+    
+
+   Note that node developers should not assume any particular contents in a string field beyond the first
+   null character.
+
+    
+
+    
+
+    
+
 2.6 Future Expansion
 
    This section provides guarantees that allow for a Configuration Tool designed for the current version of
    the standard be able to configure a node designed for a future version of the standard, allowing at
    least a common set of functionality to operate properly.
 
-   The guarantees given in the standard allow the algorithm for tracking the current_address to function
+   The guarantees given in the standard allow the algorithm for tracking the current address to function
    properly for future minor versions of the standard. This ensures that all known Data Elements are laid
    out by the Configuration Tool as intended by the CDI developer. Any unknown Data Elements can be skipped
    by the Configuration Tool. It is advised for Configuration Tool developers to identify to the user that
@@ -420,9 +473,9 @@
 
     
 
-     * Type: represented by the element tag. Can be int, string (UTF-8), eventid. Previously other types
-       were also considered, e.g. "bit", "digit" (an unsigned binary-coded-decimal value), "signed" (a
-       binary value with a sign), "unsigned" (a binary value without a sign), "blob" (arbitrary byte
+     * Type: represented by the element tag. Can be int, string (UTF-8), eventid, float. Previously other
+       types were also considered, e.g. "bit", "digit" (an unsigned binary-coded-decimal value), "signed"
+       (a binary value with a sign), "unsigned" (a binary value without a sign), "blob" (arbitrary byte
        vector).
 
      * Name: String, required to be unique within enclosing group or node
@@ -431,12 +484,12 @@
 
      * Min: Integer - the minimum value allowed.
 
-     * Size: describes how many bytes are occupied by this variable. Also used for integers to describe the
-       data type size (e.g. byte, word, dword etc).
+     * Size: describes how many bytes are occupied by this variable. Also used for integers and floats to
+       describe the data type size (e.g. byte, word, dword etc). It is required for floats and strings.
 
      * Description: Optional String
 
-     * Default: optional, for integer type only
+     * Default: optional, for integer and float types only
 
      * Offset: Optional integer offset to skip before this element in the layout, data is otherwise laid
        out by length in depth-first order.
@@ -480,7 +533,7 @@
    <?xml version="1.0"?>
 
    <cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/1/cdi.xsd">
+   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/3/cdi.xsd">
 
     
 
@@ -861,9 +914,9 @@
    to support UTF-32BE or UTF-32LE), or the UTF-8 text for “<?xml” which starts with 0x3C. (But concern
    about support for too many character sets!)
 
-   A first byte of 0x80 is defined as the “Compressed” indicator(s), followed by a byte that indicates the
-   compression type.  (We don't want to have too many kinds, as receivers need to implement all of them to
-   be able to use the CDI!)  0x80 00 is the code for our choice of default, see
+   A first byte of 0x80 could be defined as the “Compressed” indicator(s), followed by a byte that
+   indicates the compression type.  (We don't want to have too many kinds, as receivers need to implement
+   all of them to be able to use the CDI!)  0x80 00 is the code for our choice of default, see
    http://excamera.com/sphinx/article-compression.html
 
     
