@@ -104,9 +104,12 @@
    who want to minimize cost, do not need distributed power, and are willing to forego future use of the
    reserved conductors can use these four-conductor CAT-3 “Ethernet” cables between nodes.
 
-   The discussion of connecting in parallel is to make sure that all 8 wires go through a board, whether
-   it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than one
-   connection to other nodes.
+   The discussion of wiring connectors in parallel is to make sure that all 8 wires go through a board,
+   whether it's got connectors, pig-tail cables or a combination of the two, so long as it's got more than
+   one connection to other nodes. The “single segment” language is meant to cover e.g. CAN repeaters and
+   similar devices which have connections to two or more segments that are not electrically connected
+   together. Note that nodes that provide power and/or the ALT_L and ALT_H signals do not have to wire
+   those in parallel.
 
    The requirement to have all eight conductors present in nodes is so users can add power later, or an
    updated Standard can define the reserved conductors later, and still use them. The 1A requirement on
@@ -119,11 +122,10 @@
    single jack or pig-tail cable with plug. In that case, only two pairs are required.
 
    If a conforming device is providing power and has e.g. two jacks, the device can either connect them
-   together and provide a max of 0.5A to both combined, or separately power them up to 0.5A each. This is
-   the only case where a conductor doesn't have to pass through the board as a continuous electrical
-   circuit. Note that this means that the device has to provide power, however; if providing power is an
-   option, not always present, the device should connect conductor 8 across the board to ensure that
-   downstream nodes aren't cut off from power when it's not provided by the device.
+   together and provide a max of 0.5A to both combined, or separately power them up to 0.5A each. Note that
+   this means that the device has to provide power, however; if providing power is an option, not always
+   present, the device should connect conductor 8 across the board to ensure that downstream nodes aren't
+   cut off from power when it's not provided by the device. See Section 2.7 for more discussion of this.
 
    Note that the Standard permits, but does not require, connecting the CAN signal ground on conductors 3 &
    6 with the PWR_NEG power distribution ground on conductor 7. Power-supplying and power-consuming boards
@@ -372,6 +374,13 @@
    separately connected to two CAN connectors. A power-providing node is required to provide power to all
    connectors to reduce user confusion.
 
+   Having separate supplies for the connectors, without a pass-through connection, is the recommended
+   approach.  This can be done with two isolation diodes. See the sample schematic in section 3.3 . This
+   recommendation is based on experience on large layouts with early nodes that implemented power
+   pass-through.  If the power supplies came up at different times, there were large currents generated as
+   the early powered-on supplies passed power through to nodes beyond the still powered-off supplies. The
+   resulting voltage drop caused problems that were hard to diagnose.
+
    Nodes must be marked with their capacity to supply current and/or their current requirements in order to
    make the power calculation simple and reliable: Just add up the numbers on the labels. The requirement
    that the label is always present, even when zero, is to reduce user frustration when they can't find a
@@ -539,14 +548,12 @@
    J. Lepkowski and B. Wolfe, ON Semiconductor: EMI/ESD protection solutions for the CAN bus; CAN in
    Automation, iCC 200511
 
-   For an example of external protection, see the footnote below12.
-
 3.3 Sample Schematic
-
-   Image3
 
    The following informative schematic is a sample of various possible design choices, and not normative in
    any way.
+
+   Image3
 
                                       4 Repeaters, Bridges and Gateways
 
@@ -563,8 +570,8 @@
    graphics1
 
    In each section, URLs are provided for a few example devices. Inclusion of a device in this section is
-   informational, and does not a imply a recommendation, positive or negative, for the device. No
-   inferences should be drawn from a device being or not being included in this section.
+   informational, and does not imply a recommendation, positive or negative, for the device. No inferences
+   should be drawn from a device being or not being included in this section.
 
 4.1 Repeaters
 
@@ -580,7 +587,7 @@
    requires detailed understanding of CAN characteristics.
 
    Repeaters are sometimes referred to as “working at the bit level”. The CAN transmission is delayed by
-   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.13
+   less than a bit time, and the CAN arbitration process still works between nodes on the two segments.12
 
 4.2 Bridges
 
@@ -599,7 +606,7 @@
    Because bridges break the timing connection between the connected segments, they can also be used for
    remote connections via non-CAN cables, wireless, etc. In this case, a bridge device is usually used at
    each end of the remote link, and the protocol between the two devices is specific to the CAN bridge
-   function14.
+   function13.
 
 4.3 Gateways
 
@@ -608,7 +615,7 @@
    USB-CAN adapter may convert the CAN frame bytes into some form of human-readable text.
 
    This reformatting may be independent of the CAN frame content information, or specific to some protocol
-   that defines meaning for the CAN frames15.
+   that defines meaning for the CAN frames14.
 
                                                  5 References
 
@@ -618,14 +625,14 @@
 5.1 Standards
 
    The OpenLCB CAN Physical Layer Standard references ISO 11898-1 and ISO 11898-2 for CAN specifications.
-   The ISO16 sells PDF and paper copies of these. Copies can generally be found in engineering libraries17.
+   The ISO15 sells PDF and paper copies of these. Copies can generally be found in engineering libraries16.
 
    Note that ISO 11898-3, 11898-4 and 11898-5 specify different variants of the CAN standard that are not
    relevant to OpenLCB CAN-compliant implementations. The original 1995 Bosch CAN standard, which can be
    found online, is similar to ISO 11898-1 and -2, but not identical.
 
    The OpenLCB CAN Physical Layer Standard references TIA/EIA-568-B or the successor TIA/EIA- 568-C for
-   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA18 sells PDF
+   unshielded twisted pair (UTP) cable, and TIA-968-A for RJ45 modular plugs and jacks. The TIA17 sells PDF
    and paper copies of these. Copies can generally be found in engineering libraries.
 
 5.2 Books
@@ -666,47 +673,47 @@
 
   5.3.1 Anixter
 
-   “ANSI/TIA/EIA-568-B Standards Reference Guide”19
+   “ANSI/TIA/EIA-568-B Standards Reference Guide”18
 
   5.3.2 Mohawk.com
 
-   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”20
+   “ANSI/TIA/EIA-568-B (B.1, B.2 and B.3) Commercial Building Telecommunications Cabling Standard”19
 
   5.3.3 Microchip Corp
 
-   AN713 “Controller Area Network (CAN) Basics”21
+   AN713 “Controller Area Network (CAN) Basics”20
 
-   AN228 “A CAN Physical Layer Discussion”22
+   AN228 “A CAN Physical Layer Discussion”21
 
-   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”23
+   AN853 “PIC18XXX8 CAN Driver with Prioritized Transmit Buffer”22
 
   5.3.4 ON Semiconductor
 
-   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”24
+   AND8376/D “AMIS-30660/42000 - Topology Aspects of a High-Speed CAN Bus”23
 
   5.3.5 NXP Electronics (Philips)
 
-   AN96116 “PCA82C250 / 251 CAN Transceiver”25
+   AN96116 “PCA82C250 / 251 CAN Transceiver”24
 
-   AN10211 “TJA1040 high speed CAN transceiver”26
+   AN10211 “TJA1040 high speed CAN transceiver”25
 
   5.3.6 Texas Instruments
 
    Analog Applications Journal, August 1999, TI SLYT197 “TIA/EIA-568A Category 5 cables in low-voltage
-   differential signaling (LVDS)”27
+   differential signaling (LVDS)”26
 
-   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”28
+   Application Report SLOA101A “Introduction to the Controller Area Network (CAN)”27
 
-   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”29
+   Application Report SLLA270 “Controller Area Network Physical Layer Requirements”28
 
-   Application Report SLLA298B “Isolated CAN Reference Design”30
+   Application Report SLLA298B “Isolated CAN Reference Design”29
 
-   Application Report SLOU262 “Isolated CAN Transceiver EVM”31
+   Application Report SLOU262 “Isolated CAN Transceiver EVM”30
 
-   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”32
+   Application Report SLLA271 “Common Mode Chokes in CAN Networks: Source of Unexpected Transients”31
 
    Analog Applications Journal, 3Q 2006, TI SLYT249 “Improved CAN network security with TI’s SN65HVD1050
-   transceiver”33
+   transceiver”32
 
 5.4 Component data sheets
 
@@ -717,33 +724,31 @@
 
   5.4.1 Microchip
 
-   MCP2551 High-Speed CAN Transceiver34
+   MCP2551 High-Speed CAN Transceiver33
 
-   MCP2561, MCP2562 High-Speed CAN Transceiver35
+   MCP2561, MCP2562 High-Speed CAN Transceiver34
 
-   MCP2515 Stand-Alone CAN Controller With SPI Interface36
+   MCP2515 Stand-Alone CAN Controller With SPI Interface35
 
   5.4.2 NXP Electronics (Philips)
 
-   PCA82C250 CAN controller interface37
+   PCA82C250 CAN controller interface36
 
-   TJA1043 High-speed CAN transceiver38
-
-   PESD1CAN CAN bus ESD protection diode39
+   TJA1043 High-speed CAN transceiver37
 
   5.4.3 STMicroelectronics
 
-   L9615 transceiver40
+   L9615 transceiver38
 
   5.4.4 Texas Instruments
 
-   ISO1050 Isolated CAN Transceiver41
+   ISO1050 Isolated CAN Transceiver39
 
-   SN55HVD251, SN65HVD251 Industrial CAN Transceiver42
+   SN55HVD251, SN65HVD251 Industrial CAN Transceiver40
 
-   SN65HVD1050 EMC Optimized CAN Transceiver43
+   SN65HVD1050 EMC Optimized CAN Transceiver41
 
-   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers44
+   SN55HVD230, SN55HVD231, SN55HVD232 3.3-V CAN Transceivers42
 
 5.5 Tools
 
@@ -754,13 +759,11 @@
 
   5.5.1 Microchip
 
-   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”45
+   CAN BUS Analyzer Tool “simple to use low cost CAN bus monitor”43
 
   5.5.2 IXAAT
 
-   CANcheck “Installation tester for CAN networks”46
-
-   CAN Bus Tester “Diagnostic tool for long-term monitoring of CAN bus systems”47
+   CANcheck “Installation tester for CAN networks”44
 
     
 
@@ -872,7 +875,9 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 http://www.vtiinstruments.com/Catalog/Technotes/RJ-45_Excels_For_Stria_Gage_Connection.pdf
+   1 https://www.psirep.com/sites/default/files/RJ-45_Excels_For_Stria_Gage_Connection.pdf
+
+    
 
    2 http://focus.ti.com/lit/an/slla270/slla270.pdf
 
@@ -881,21 +886,17 @@
 
    4 Some CAN controllers require SJW to be at least 1 TQ less than PhaseSeg2.
 
-   5 http://focus.ti.com/lit/an/slla270/slla270.pdf, http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   5 http://focus.ti.com/lit/an/slla270/slla270.pdf, https://www.ti.com/lit/an/sloa101b/sloa101b.pdf
 
    6 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
 
-   7 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   7 https://www.ti.com/lit/an/sloa101b/sloa101b.pdf
 
    http://www.nxp.com/documents/application_note/AN10211.pdf
 
-   8 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
+   8 https://www.microchip.com/en-us/development-tool/apgdt002
 
    http://www.ixxat.com/cancheck_en.html?markierung=cancheck
-
-   http://www.ixxat.com/can_bus_tester_cbt_en.html
-
-   http://www.can-cia.org/pg/can/categories/generic_tool/physical/none/none/index.html
 
    9 http://www.nxp.com/documents/application_note/AN10211.pdf
 
@@ -903,96 +904,79 @@
 
    10 http://www.ti.com/lit/an/slla271/slla271.pdf
 
-   11 www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
+   11
+   https://web.archive.org/web/20121113225427/https://www.can-cia.org/fileadmin/cia/files/icc/10/cia_paper_lepkowski.pdf
 
-   12 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+   12 https://web.archive.org/web/20111211031716/http://www.ixxat.com/introduction-repeater_en.html
 
-   13 http://www.ixxat.com/introduction-repeater_en.html
-
-   http://www.esd-electronics-usa.com/shared/datasheets/repeat-e.pdf
-
-   http://www.ixxat.com/can_cr200_en.html
-
-   14 http://www.ixxat.com/introduction_bridges_en.html
-
-   http://www.ieee-icnp.org/1996/papers/1996-21.pdf
+   13 http://www.ieee-icnp.org/1996/papers/1996-21.pdf
 
    http://doi.ieeecomputersociety.org/10.1109/ISPAN.1996.509033
 
-   http://www.ixxat.com/can_bridge_en.html
-
-   http://www.wrcakron.com/devicenet/CAN_Bus_Applications.pdf
-
-   http://www.matric.com/canbridge.html
-
-   15 http://www.phytec.com/products/can/pc-can-interfaces/CAN-Ethernet-Gateway.html
-
-   http://news.thomasnet.com/fullstory/Gateway-converts-from-CAN-into-Ethernet-529941
+   14 http://news.thomasnet.com/fullstory/Gateway-converts-from-CAN-into-Ethernet-529941
 
    http://www.icpdas-usa.com/products.php?PID=3075
 
-   16 http://www.iso.org
+   15 http://www.iso.org
 
-   17 http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422
+   16 http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33422
 
    http://www.iso.org/iso/iso_catalogue/catalogue_tc/catalogue_detail.htm?csnumber=33423
 
-   18 http://www.tiaonline.org
+   17 http://www.tiaonline.org
 
-   19 https://www.anixter.com/content/dam/Anixter/Guide/12H0001X00-Anixter-Standard-Ref-Guide-ECS-US.pdf
+   18
+   https://www.anixter.com/content/dam/Anixter/Guide/12H0008X00-Anixter-IA-Standards-Ref-Guide-ECS-EN-US.pdf
 
-   20 http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html
+   19
+   https://web.archive.org/web/20130817232725/http://www.mohawk-cable.com/support/ansi-tia-eia-568-b.html
 
-   21 http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf
+   20 http://ww1.microchip.com/downloads/en/AppNotes/00713a.pdf
 
-   22 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
+   21 http://ww1.microchip.com/downloads/en/AppNotes/00228a.pdf
 
-   23 http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf
+   22 http://ww1.microchip.com/downloads/en/AppNotes/00853a.pdf
 
-   24 http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF
+   23 http://www.onsemi.com/pub_link/Collateral/AND8376-D.PDF
 
-   25 http://www.nxp.com/documents/application_note/AN96116.pdf
+   24 http://www.nxp.com/documents/application_note/AN96116.pdf
 
-   26 http://www.nxp.com/documents/application_note/AN10211.pdf
+   25 http://www.nxp.com/documents/application_note/AN10211.pdf
 
-   27 http://focus.ti.com/lit/an/slyt197/slyt197.pdf
+   26 http://focus.ti.com/lit/an/slyt197/slyt197.pdf
 
-   28 http://focus.ti.com.cn/cn/lit/an/sloa101a/sloa101a.pdf
+   27 https://www.ti.com/lit/an/sloa101b/sloa101b.pdf
 
-   29 http://focus.ti.com/lit/an/slla270/slla270.pdf
+   28 http://focus.ti.com/lit/an/slla270/slla270.pdf
 
-   30 http://focus.ti.com/lit/an/slla298b/slla298b.pdf
+   29 http://focus.ti.com/lit/an/slla298b/slla298b.pdf
 
-   31 http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf
+   30 http://focus.tij.co.jp/jp/lit/ug/slou262/slou262.pdf
 
-   32 http://www.ti.com/lit/an/slla271/slla271.pdf
+   31 http://www.ti.com/lit/an/slla271/slla271.pdf
 
-   33 http://focus.ti.com/lit/an/slyt249/slyt249.pdf
+   32 http://focus.ti.com/lit/an/slyt249/slyt249.pdf
 
-   34 http://ww1.microchip.com/downloads/en/DeviceDoc/21667f.pdf
+   33 https://www.microchip.com/en-us/product/mcp2551
 
-   35 http://ww1.microchip.com/downloads/en/DeviceDoc/20005167C.pdf
+   34 https://www.microchip.com/en-us/product/mcp2561
 
-   36 http://ww1.microchip.com/downloads/en/DeviceDoc/21801e.pdf
+   35 https://www.microchip.com/en-us/product/mcp2515
 
-   37 http://www.nxp.com/documents/data_sheet/PCA82C250.pdf
+   36 http://www.nxp.com/documents/data_sheet/PCA82C250.pdf
 
-   38 http://www.nxp.com/documents/data_sheet/TJA1043.pdf
+   37 http://www.nxp.com/documents/data_sheet/TJA1043.pdf
 
-   39 http://www.nxp.com/documents/data_sheet/PESD1CAN.pdf
+   38 http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00001375.pdf
 
-   40 http://www.st.com/st-web-ui/static/active/en/resource/technical/document/datasheet/CD00001375.pdf
+   39 http://focus.ti.com/lit/ds/symlink/iso1050.pdf
 
-   41 http://focus.ti.com/lit/ds/symlink/iso1050.pdf
+   40 http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf
 
-   42 http://focus.ti.com/lit/ds/symlink/sn55hvd251.pdf
+   41 http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf
 
-   43 http://focus.ti.com/lit/ds/symlink/sn65hvd1050.pdf
+   42 http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf
 
-   44 http://www.ti.com/lit/ds/symlink/sn65hvd230.pdf
+   43 https://www.microchip.com/en-us/development-tool/apgdt002
 
-   45 http://www.microchip.com/stellent/idcplg?IdcService=SS_GET_PAGE&nodeId=1406&dDocName=en546534
-
-   46 http://www.ixxat.com/cancheck_en.html?markierung=cancheck
-
-   47 http://www.ixxat.com/can_bus_tester_cbt_en.html
+   44 http://www.ixxat.com/cancheck_en.html?markierung=cancheck
