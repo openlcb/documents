@@ -3,11 +3,10 @@
 <!-- XML Schema for OpenLCB Function Description Information (FDI)     -->
 <xs:schema version="FDI 1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
-  <xs:simpleType name="NonNegativeInteger">
+  <xs:simpleType name="FunctionNumberType">
     <xs:restriction base="xs:int">
-      <xs:totalDigits value="5"/>
-      <xs:fractionDigits value="2"/>
       <xs:minInclusive value="0"/>
+      <xs:maxInclusive value="16777215"/>
     </xs:restriction>
   </xs:simpleType>
 
@@ -30,12 +29,13 @@
   <xs:complexType name="functionType">
     <xs:sequence>
       <xs:element name="name" minOccurs="0" maxOccurs="1" />
-      <xs:element name="number" type="NonNegativeInteger" minOccurs="1" maxOccurs="1" />
+      <xs:element name="number" type="FunctionNumberType" minOccurs="1" maxOccurs="1" />
       <xs:element name="min" type="xs:int" minOccurs="0" maxOccurs="1" >
         <xs:annotation>
           <xs:documentation>
             Smallest valid value for this function.
             Only used when type is "analog".
+            Default is 0.
           </xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -44,6 +44,7 @@
           <xs:documentation>
             Largest valid value for this function.
             Only used when type is "analog".
+            Default is 255.
           </xs:documentation>
         </xs:annotation>
       </xs:element>
@@ -105,7 +106,7 @@
                 <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1">
                   <xs:annotation>
                     <xs:documentation>
-                      Allows grouping and replication of multiple locations.
+                      Allows grouping of multiple functions.
                     </xs:documentation>
                   </xs:annotation>
                 </xs:element>

@@ -1,308 +1,499 @@
-                                                1 Introduction
+                                         1 Introduction (Informative)
 
-   "Function Description Information" (FDI) in this context refers to fixed information available from an
-   OpenLCB Train node, via OpenLCB, so that other devices can properly and correctly operate it.
+   This document defines a standard for the storage of static information that describes the user interface
+   options for controlling available functions on an OpenLCB Train Node, called “Function Description
+   Information (FDI)”.
 
-    
+   The format is XML-based in order to allow reasonable extensibility, while enabling programmatic
+   generation and parsing of the structured information. This XML document is specific to the particular
+   Train, and is exposed at the Memory Space 0xFA. Throttle Nodes retrieve this data from the Train Node
+   using the Memory Configuration Protocol.
 
-   Other information may be available via e.g. manuals or the Internet, but the format of that information
-   is not under specification here.
+                                         2 Intended Use (Informative)
 
-    
+   The Throttle Node downloads the FDI content from the Train Node using the Memory Configuration Protocol
+   after the user selected the given train. The XML is exposed at a fixed Memory Space number (0xFA). The
+   throttle parses the XML and uses the information therein to configure the function buttons’ behavior
+   and/or the display items shown to the user.
 
-   A key use for FDI is to enable an OpenLCB throttle to determiine the features provided by a train node’s
-   functions. The throttle will use the FDI information to render some form of suitable Graphical User
-   Interface to allow the user to easily and intuitively operate the functions provided by the Train Node
+   The information presented is the list of available function numbers, the type of the function button
+   (toggle, momentary or analog function), optional name and description strings, and for analog functions
+   the available range of values that are valid.
 
-    
+   If the throttle has fixed marked buttons (e.g. a button labeled Horn/Whistle), it will assign a varying
+   function number to these buttons, by finding which function number belongs to the given behavior.
 
-   An important design choice was to embed the FDI into each node so that the system has all it needs to
-   operate the train node without having to source the information externally to the OpenLCB network from
-   the manufacturer or some other on-line repository via the Internet or a CD/DVD etc.
+   OpenLCB-connected native Train Nodes built into specific models may ship a fixed constant FDI XML, as it
+   will describe the behavior of the functions as implemented by the hardware and software. Flexible /
+   configurable OpenLCB decoders may provide a mechanism to update the FDI XML if their function numbers
+   can be reconfigured. DCC Command Stations that provide Virtual Train Nodes for OpenLCB throttles may
+   either provide a generic fixed FDI (e.g. listing Headlight, Bell, Horn, F3..F28), or may have a Roster
+   configuration storage, where the user can store a per-DCC-address mapping of functions to behaviors. In
+   this case the Command Station generates the FDI XML on-the-fly based on the DCC address that is being
+   controlled from the throttle. For an MFX/M4 decoder, or a DCC decoder supporting DCC-A, RailComPlus, or
+   the appropriate standardized RailCom data pages, the function mapping can be read out from the
+   locomotive directly using the track protocol, and this information can be used to generate the FDI XML
+   on-the-fly.
 
-    
+   The FDI provides a read-only interaction to retrieve the function metadata. There is no provision in
+   this Standard on how to modify the function metadata. For modification, the regular configuration
+   standards and protocols are recommended.
 
-1.1 Requirements
+                                     3 References and Context (Normative)
 
-     * Train nodes must carry enough context that a stand-alone throttle can provide a useful human
-       interface without getting any data from an external source, e.g. needing an Internet download to
-       manipulate the associated train’s functions.
+   For more information on format and presentation, see:
 
-     * It must be possible to control a train entirely over the OpenLCB, without physical interactions,
-       e.g. pushing buttons on the train.
+     * OpenLCB Common Information Technical Note
 
-1.2 Preferences
+   For information on how to fetch the FDI information from a node, see:
 
-     * Train nodes shouldn't need a lot of processing power, e.g. to compress or decompress data in real
-       time. Memory usage should also be limited, but is a second priority.
+     * OpenLCB Memory Configuration Protocol Standard
 
-     * The necessary OpenLCB operations should be state-less and idempotent to simplify software at both
-       ends.
+   For information on how to control the functions, see
 
-                                        2 Annotations to the Standard
+     * OpenLCB Train Control Protocol Standard
 
-2.1 Introduction
+   For information on XML encoding and XML Schema, see:
 
-   Note that this section of the Standard is informative, not normative.
+     * World Wide Web Consortium (W3C) “Extensible Markup Language (XML)”1
 
-   The concept and interaction are using the same pattern and similar format as the Configuration
-   Description Information, purposefully, with the expectation that OpenLCB devices will be able to share
-   the software implementation between these two use-cases.
+     * World Wide Web Consortium (W3C) “XML Schema”2
 
-2.2 Intended Use
+                                            4 Content (normative)
 
-   Note that this section of the Standard is informative, not normative.
+   The FDI information shall be constant.  A node may not change the FDI information after any part of it
+   has been retrieved and before the next transition of the node away from the Initialized state.
 
-   The most important use-case of operating a model train is controlling speed and functions. The protocol
-   for these are defined in the OpenLCB Train Control protocol Standard. The user typically uses a Throttle
-   for performing these operations, either as a special-purpose hardware device, or as a software function
-   on a generic computing device.
+                                             5 Format (normative)
 
-   While the semantic meaning of speed control is very well defined, the meaning of functions is left very
-   vague by the OpenLCB Train Control standard, just like other standards of the industry; a function is
-   some form of remote controlled feature of the train (or locomotive). This vague definition is
-   intentional, as manufacturers have come up with new and innovative ideas on what kind of additional
-   features they want to add to their models, and the typical way to operate these features is using the
-   function abstraction.
+   The FDI is provided as a zero-terminated string of bytes. The bytes encode UTF-8 characters. There is no
+   byte-order mark (BOM) at the start of the string. Lines in the string are delimited with 0x0A Newline
+   (NL) characters.
 
-   Typical functions are lighting functions (like headlights, tail lights, class marker lights, etc.),
-   motor control functions (momentum, braking, etc.), sound functions (horn, bell, whistle, engine sounds,
-   compressor, etc.) and a variety of other functions, such as a smoke unit, raising and lowering a
-   pantograph or operating a locomotive-mounted remote uncoupler. There is no definitive list of all
-   possible functions. The TN-218 document by RailCommunity lists over 120 different types.
+   The content defines the configuration description information in XML 1.0 format using a specific XML
+   vocabulary defined by an XML 1.0 Schema. No extensions to XML 1.0 are permitted.
 
-   Not only is the list of possibilities is very large, one specific model alone can carry dozens of
-   different  functions. Users of proprietary throttles have to activate these typically by their function
-   number, for example using a numeric keypad. This is easy to operate, provided that the user has
-   memorized  which function number does what on that specific locomotive. With dozens of functions per
-   locomotive and up to hundreds of locomotives on a big layout, this is no easy task. As such, it is an
-   important use-case for the OpenLCB Throttle to display a user interface that provides information to the
-   user about what function numbers are available, and which numbers perform what operations on the train.
+   The version number of an OpenLCB FDI schema contains two numbers: The major version first, and the minor
+   version second. This version of this Standard specifies version 1.0 of the schema.  That version of the
+   schema is defined at https://openlcb.org/schema/fdi/1/0/fdi.xsd and in Appendix A of this document. The
+   FDI content shall pass validation against its referenced schema. Nodes are not required to do the
+   validation.
 
-   The Function Description Information (FDI) provides exactly this metadata for the throttle: the list of
-   functions, for each function the number at which it is accessible, and a textual description of what the
-   given function does.
+   The first line of the FDI is:
 
-   In addition to the description for the user, the throttle user interface needs some additional metadata
-   to determine how the particular function button should behave. There are two common behaviors for on/off
-   functions: momentary functions are turned on while the user is holding the button, and turned off upon
-   release. Toggle (or binary) functions are turned on with a press of the button, then they stay on after
-   release, until the user presses the button again. A typical momentary function is horn, a typical toggle
-   function is headlight. This is purely a behavior of the user interface, as the underlying protocol for
-   turning the function on and off is the same for both cases. Analog functions, such as a horn volume or
-   pitch, take a numerical value to control their operation.
+   <?xml version="1.0"?>
 
-2.3 Reference and Context
+   to define the XML version of the content.
 
-   The Memory Configuration Protocol is one way to retrieve the FDI, but FDI is independent of that.
+   The root element of the FDI XML is required to be:
 
-   CiA 306 “Electronic data sheet specification” describes the CANopen version of a similar capability.
+   <fdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+   xsi:noNamespaceSchemaLocation="https://openlcb.org/schema/fdi/1/0/fdi.xsd">
 
-    
+   to define the OpenLCB FDI version of the content.
 
-2.4 Content
+   The schema contents are normative.
 
-   The function description information for a train node is invariant while the node has any OpenLCB
-   connections in the Initialized state. The train node’s transition back to Initialized state via sending
-   an Initialization Complete global message tells other nodes to flush their caches and pick up any
-   changed content.
+   Numerical values in attributes and element text shall be specified as decimal numbers. OpenLCB nodes are
+   not required to parse any other numeric format.
 
-   There are no default values that e.g. associate "Bell" with a particular location or function. These are
-   thought to be too brittle, and there are just too many possibilities to be useful.
+5.1 XML Elements
 
-2.5 Format
+  5.1.1 <fdi> Element
 
-   The structure is somewhat similar to the Configuration Definition Information structure, with named
-   sections that organize and describe individual items.
+   A single <fdi> element is the root of the XML information. The <fdi> element must contain exactly one
+   <segment> element.
 
-   The use of XML 1.0 format is intended to make the content as easy as possible to parse.
+  5.1.2 <segment> Element
 
-   The use of XML Schema 1.0 is intended to allow the use of common XML parsers. Note that the schema
-   definition file includes an XML Schema 1.1 check for extensibility that has been commented out so that
-   the operational schema remains valid Schema 1.0.
+   A <segment> element shall contain an optional user-readable name and optional description, and a
+   sequence of zero or more <group> and/or <function> elements. The user-readable name and description are
+   intended as hints for optional UI display by throttles.
 
-  2.5.1 XML Elements
+   A <segment> element may provide a “space” attribute with the fixed value of “249”. Alternative memory
+   spaces beyond the Function Space (249, 0xF9) are not currently defined for use with Functions. A
+   <segment> element may provide an “origin” attribute with the fixed value of “0”. The “space” and
+   “origin” attributes are reserved, and new implementations should omit them.
 
-    
+  5.1.3 <group> Element
 
-   Note that nothing in the Standard prevents providing an xml-stylesheet instruction, and it’s common to
-   provide one of the form:
+   The <group> element allows logical grouping of functions, providing common documentation for them.
 
-   <?xml-stylesheet type='text/xsl' href='xslt/fdi.xsl'?>
+   A <group> element shall contain an optional user-readable name and optional description tags, and a
+   sequence of zero or more <group> and/or <function> elements. The user-readable name and description are
+   intended as hints for optional UI display by throttles.
 
-    2.5.1.1 <fdi> Element
+  5.1.4 <function> Element
 
-   The <fdi> element forms the root of the document.  It provides the “xmlns:xsi” and
-   “xsi:noNamespaceSchemaLocation” attributes that define the schema for automated processing.
+   The <function> element describes the metadata of one function.
 
-    2.5.1.2 <segment> Element
+   The ‘size’ attribute is currently reserved, and if specified, shall carry a value of 1.
 
-   The <segment> element is provided for future extensibility.  The “space” and “origin” attributes are
-   optionally allowed for compatibility with some early, pre-Standard implementations.  They should be
-   omitted in current and future implementations.
+   The ‘kind’ attribute specifies the behavior of the function button, with the following allowed values:
 
-    2.5.1.3 <group> Element
+     * ‘binary’ (default) defines an on-off function with a toggle button behavior
 
-   Groups may contain one or more inner groups, with the same representation. This may continue to any
-   desired level.
+     * ‘momentary’ defines an on-off function with a momentary button behavior
 
-    2.5.1.4 <function> Element
+     * ‘analog’ defines an analog function with unsigned integer values accepted between the optional <min>
+       and <max> sub-elements (inclusive) If not provided, the default for <min> is 0 and the default for
+       <max> is 255.
 
-   The “kind” attribute is an enumerated type of (initially) "binary", “momentary”, and "analog".
+   The <function> element may contain a <name> element. The string contents of that element is meant to be
+   used by a Throttle to convey information about this function to the user.
+
+   The <function> element shall contain a <number> element with a decimal integer as contents, which
+   specifies the function number defined. The number must be greater than or equal to zero and less than or
+   equal to 16777215.
 
     
 
-   The “number” element indicates which function is being described by this element.
-
-   The “name” element provides information which can be used if the throttle has e.g. a graphical interface
-   to the user.
-
-   The “size” attribute is optionally allowed for compatibility with some early, pre-Standard
-   implementations.  It should be omitted in current and future implementations.
-
-                                           3 Additional Information
-
-3.1 Design points
-
-   Basic configuration is done with the configuration protocol defined elsewhere.
-
-   Function values are stored in the 0xF9 memory space. The can be addressed through the Train Control
-   protocol’s Set Function and Query Function commands.
+                            Appendix A: The 1.0 Version of the XML Schema for FDI
 
     
 
-3.2 Sample Function Definition XML:
+   <?xml version="1.0" encoding="utf-8"?>
 
-    <?xml version='1.0' encoding='UTF-8'?>
+   <?xml-stylesheet href="schema2xhtml.xsl" type="text/xsl"?>
 
-    <?xml-stylesheet type='text/xsl' href='xslt/fdi.xsl'?>
+   <!-- XML Schema for OpenLCB Function Description Information (FDI)     -->
 
-    <fdi xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xsi:noNamespaceSchemaLocation='http://openlcb.org/trunk/prototypes/xml/schema/fdi/1/0/fdi.xsd'>
-
-    
-
-    <segment>
-
-      <group>
-
-        <name>Lighting Functions</name>
-
-        <description>Headlights and Marker lights and Running lights, oh my.</description>
-
-        <function kind="binary">
-
-          <name>Headlights</name>
-
-          <number>0</number>
-
-        </function>
-
-        <function>
-
-          <name>Ditch Lights</name>
-
-          <number>4</number>
-
-        </function>
-
-      </group>
-
-      <group>
-
-        <name>Sound Functions</name>
-
-        <description>Toot toot!.</description>
-
-        <function kind="analog">
-
-          <name>Horn</name>
-
-          <number>8</number>
-
-        </function>
-
-      </group>
-
-    </segment>
-
-    </fdi>
+   <xs:schema version="FDI 1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     
 
-3.3 Sample Older Implementation
+     <xs:simpleType name="NonNegativeInteger">
 
-   A sample older implementation of the DCC F0-F28 functions, with some optional attributes still in place:
+       <xs:restriction base="xs:int">
 
-   <?xml version='1.0' encoding='UTF-8'?>
+         <xs:totalDigits value="5"/>
 
-   <?xml-stylesheet type='text/xsl' href='xslt/fdi.xsl'?>
+         <xs:fractionDigits value="2"/>
 
-   <fdi xmlns:xsi='http://www.w3.org/2001/XMLSchema-instance'
-   xsi:noNamespaceSchemaLocation='http://openlcb.org/trunk/prototypes/xml/schema/fdi/1/0/fdi.xsd'>
+         <xs:minInclusive value="0"/>
 
-   <segment origin='0' space='249'>
+       </xs:restriction>
 
-     <group>
+     </xs:simpleType>
 
-       <name>F0-F28</name>
+    
 
-       <description>Standard DCC functions</description>
+     <xs:complexType name="groupType">
 
-       <function size="1" kind="binary">
+       <xs:sequence>
 
-         <name>Headlight</name>
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
 
-         <number>0</number>
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
 
-       </function>
+         <xs:choice minOccurs="0" maxOccurs="unbounded">
 
-       <function size="1">
+           <xs:annotation>
 
-         <number>1</number>
+             <xs:documentation>
 
-       </function>
+               Allows any sequence of the contained element types
 
-       ...
+             </xs:documentation>
 
-       <function size="1">
+           </xs:annotation>
 
-         <number>28</number>
+           <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1" />
 
-       </function>
+           <xs:element name="function" type="functionType" minOccurs="0" maxOccurs="1" />
 
-     </group>
+         </xs:choice>
 
-   </segment>
+       </xs:sequence>
 
-   </fdi>
+     </xs:complexType>
+
+    
+
+     <xs:complexType name="functionType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="number" type="NonNegativeInteger" minOccurs="1" maxOccurs="1" />
+
+         <xs:element name="min" type="xs:int" minOccurs="0" maxOccurs="1" >
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Smallest valid value for this function.
+
+               Only used when type is "analog".
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+         <xs:element name="max" type="xs:int" minOccurs="0" maxOccurs="1" >
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Largest valid value for this function.
+
+               Only used when type is "analog".
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+       </xs:sequence>
+
+       <xs:attribute name="kind" default="binary">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Type of function being described
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+         <xs:simpleType>
+
+           <xs:restriction base="xs:token">
+
+             <xs:enumeration value="binary"/>
+
+             <xs:enumeration value="momentary"/>
+
+             <xs:enumeration value="analog"/>
+
+           </xs:restriction>
+
+         </xs:simpleType>
+
+       </xs:attribute>
+
+       <xs:attribute name="size" default="1">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+             Reserved, ignore upon receipt.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+         <xs:simpleType>
+
+           <xs:restriction base="xs:token">
+
+             <xs:enumeration value="1"/>
+
+           </xs:restriction>
+
+         </xs:simpleType>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+    
+
+     <xs:element name="fdi">
+
+       <xs:annotation>
+
+         <xs:documentation>
+
+           This is the schema for Function
+
+           Description Information (fdi)
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:complexType>
+
+         <xs:sequence>
+
+           <xs:element name="segment" minOccurs="1" maxOccurs="1">
+
+             <xs:annotation>
+
+               <xs:documentation>
+
+                 Define the contents of the function memory space
+
+               </xs:documentation>
+
+             </xs:annotation>
+
+             <xs:complexType>
+
+               <xs:sequence>
+
+                 <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+                 <xs:choice minOccurs="0" maxOccurs="unbounded">
+
+                   <xs:annotation>
+
+                     <xs:documentation>
+
+                       Allows any sequence of the contained element types
+
+                     </xs:documentation>
+
+                   </xs:annotation>
+
+                   <xs:element name="group" type="groupType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Allows grouping and replication of multiple locations.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+                   <xs:element name="function" type="functionType" minOccurs="0" maxOccurs="1">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes one function.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:element>
+
+    
+
+   <!--
+
+                   XML Schema 1.1 construct expressing extensibility promise
+
+                   <xs:any minOccurs="0" maxOccurs="1" processContents="lax">
+
+                   <xs:assert test="every $x in * satisfies
+
+                                       (exists($x/@size) and $x/@size castable to xs:integer)"/>
+
+                   <xs:assert test="every $x in * satisfies
+
+                                       (exists($x/@offset) and $x/@offset castable to xs:integer)"/>
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         Extension point for future schema
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:any>
+
+    -->
+
+    
+
+                 </xs:choice>
+
+               </xs:sequence>
+
+               <xs:attribute name="space" default="249">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     The decimal number of the address space where the information is found.
+
+                     Reserved, ignore upon receipt.
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+                 <xs:simpleType>
+
+                   <xs:restriction base="xs:token">
+
+                     <xs:enumeration value="249"/>
+
+                   </xs:restriction>
+
+                 </xs:simpleType>
+
+               </xs:attribute>
+
+               <xs:attribute name="origin" default="0">
+
+                 <xs:annotation>
+
+                   <xs:documentation>
+
+                     Starting address of the segment's contents
+
+                     within the memory space.
+
+                     Reserved, ignore upon receipt.
+
+                   </xs:documentation>
+
+                 </xs:annotation>
+
+                 <xs:simpleType>
+
+                   <xs:restriction base="xs:token">
+
+                     <xs:enumeration value="0"/>
+
+                   </xs:restriction>
+
+                 </xs:simpleType>
+
+               </xs:attribute>
+
+             </xs:complexType>
+
+           </xs:element>
+
+         </xs:sequence>
+
+       </xs:complexType>
+
+     </xs:element>
+
+   </xs:schema>
 
     
 
     
-
-                                            4 Possible Future Work
-
-   This section discusses some areas where future work may be desired.  It is meant as a record of the
-   discussions to date, not as defining any specific solution(s).
-
-4.1 Data Compression
-
-   Some work has gone into XML content compression for the Configuration Description Information (CDI)
-   data.  See the CDI Technical Note for various considerations that have been discussed.  A solution
-   there, if developed, standardized and deployed, could also be used here.
-
-   The function definition information is expected to be significantly smaller than a train node’s CDI, so
-   there may be less need to compress the FDI.
-
-4.2 Internationalization of the Content
-
-   Not everybody runs their trains in English.
-
-   The xml:lang attribute could be used to define versions of the <name> and <description> elements that
-   use an alternate language.1 This approach can greatly increase the size of the XML content if the
-   internationalization effort is very successful. On the other hand, it’s transparent to XML-using nodes
-   that don’t implement internationalization.
 
     
 
@@ -310,51 +501,32 @@
 
    Table of Contents
 
-   1 Introduction
+   1 Introduction (Informative)
 
-   1.1 Requirements
+   2 Intended Use (Informative)
 
-   1.2 Preferences
+   3 References and Context (Normative)
 
-   2 Annotations to the Standard
+   4 Content (normative)
 
-   2.1 Introduction
+   5 Format (normative)
 
-   2.2 Intended Use
+   5.1 XML Elements
 
-   2.3 Reference and Context
+   5.1.1 <fdi> Element
 
-   2.4 Content
+   5.1.2 <segment> Element
 
-   2.5 Format
+   5.1.3 <group> Element
 
-   2.5.1 XML Elements
+   5.1.4 <function> Element
 
-   2.5.1.1 <fdi> Element
-
-   2.5.1.2 <segment> Element
-
-   2.5.1.3 <group> Element
-
-   2.5.1.4 <function> Element
-
-   3 Additional Information
-
-   3.1 Design points
-
-   3.2 Sample Function Definition XML:
-
-   3.3 Sample Older Implementation
-
-   4 Possible Future Work
-
-   4.1 Data Compression
-
-   4.2 Internationalization of the Content
+   Appendix A: The 1.0 Version of the XML Schema for FDI
 
     
 
      ----------------------------------------------------------------------------------------------------
 
-   1 JMRI DecoderPro does this in its decoder definitions.  That experience guides some of the rest of this
-   paragraph.
+   1 http://www.w3.org/XML/
+
+   2 http://www.w3.org/XML/Schema
