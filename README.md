@@ -151,18 +151,20 @@ git checkout -b bracz-adopt-foo-standard
     standards/changes directory. Name it with the date, 
     e.g. FooStandardS-changes-2024-07-22.pdf
   - Add that copy and commit it with all other changed files (odt, pdf, txt) to
-    your branch.
+    your branch with comment "adopted with changes present"
     
 5. Update the ODT file to remove change markers
 
   - Accept all changes. There should be no changes left in the Manage changes
     dialog.
   - Check for comment bubbles.  If any are found, remove them.
+  - Update the Table of Contents
     
 6. Save the ODT file, quit openoffice. Run `make` to generate the PDF and TXT
    output.
    
-7. Commit the odt, pdf, txt files to your branch.
+7. Commit the odt, pdf, txt files to your branch 
+   with comment "adopted with changes accepted"
 
 8. Delete the files from the standards directory. This step should be skipped
    if we are adopting a document for the first time, and there are no previous
@@ -174,7 +176,7 @@ git rm standards/FooStandardS.pdf
 git rm standards/generated/FooStandardS.txt
 ```
 
-9. Commit these to your branch.
+9. Commit these to your branch with comment "previous files removed"
 
 10. Move the files from draft to standards.
 
@@ -184,7 +186,7 @@ git mv {drafts,standards}/FooStandardS.pdf
 git mv {drafts,standards}/generated/FooStandardS.txt
 ```
 
-11. Commit these to your branch.
+11. Commit these to your branch with comment "move adopted files to standards/"
 
 12. Create a PR with your changes on GitHub. Ask a maintainer to review the PR.
 
