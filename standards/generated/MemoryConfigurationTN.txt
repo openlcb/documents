@@ -108,6 +108,9 @@
    same memory objects, e.g. “all memory” and “configuration” spaces may reference the same physical (or
    virtual) location in memory.
 
+   Note that the Standard does not require that the 0xFD, 0xFE, and 0xFF address spaces be present. It only
+   requires that, if present, they contain specific information.
+
   2.4.3 Generic Error Handling
 
    An unknown command in byte 1 error may result from requesting a command that is not defined by the
@@ -239,7 +242,7 @@
 
   2.4.13 Get Configuration Options Command
 
-   See section 2.4.14 Get Configuration Options Reply for additional information.
+   See section 2.4.14 Get Configuration Options Reply for additional information.
 
   2.4.14 Get Configuration Options Reply
 
@@ -247,14 +250,22 @@
    provided. The reply to “Get Configuration Options” provides information that a configuring device can
    use to control how it communicates with the node so that it only uses available modes.
 
+   The bits marked as “reserved, must be ignored on receipt and sent as one” were previously assigned to
+   functionality which is no longer in use. Existing nodes sent one bits for those functions. These bits
+   have been reserved to “send as one” to preserve the option of assigning some future function to the
+   sending of zero bits in these positions.
+
   2.4.15 Get Address Space Information Command
 
-   See section 2.4.16 Get Address Space Information Reply for additional information.
+   See section 2.4.16 Get Address Space Information Reply for additional information.
 
   2.4.16 Get Address Space Information Reply
 
    To ease automated access, a configuring node can inquire about the address spaces in the
    being-configured node. Whether or not the address space is present, a reply is required.
+
+   If the address space is not present, the Address, Flags and Description fields are not meaningful and
+   can be omitted. In that case, the reply will contain only the Command byte and Address Space byte.
 
   2.4.17 Lock/Reserve Command
 
@@ -263,7 +274,7 @@
 
   2.4.18 Lock/Reserve Reply
 
-   See section 2.4.17 Lock/Reserve Command for additional information.
+   See section 2.4.17 Lock/Reserve Command for additional information.
 
   2.4.19 Get Unique ID Command
 
@@ -351,7 +362,7 @@
 
   2.4.20 Get Unique ID Reply
 
-   See section 2.4.19 Get Unique ID Command for additional information.
+   See section 2.4.19 Get Unique ID Command for additional information.
 
   2.4.21 Unfreeze Command
 
@@ -391,7 +402,7 @@
 
   2.4.22 Freeze Command
 
-   See Section 2.4.21 Unfreeze Command for additional information.
+   See Section 2.4.21  Unfreeze Command for additional information.
 
   2.4.23 Update Complete Command
 
