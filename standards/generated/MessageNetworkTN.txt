@@ -26,7 +26,7 @@
 
   2.2.1 References and Context
 
-   There is nothing  to add to the Standard.
+   There is nothing to add to the Standard.
 
 2.3 Messages
 
@@ -47,14 +47,14 @@
    software implementations.
 
    The MTI may be adapted for some transports.  For example, on CAN, the MTIs are mapped to a 12 bit CAN
-   MTI, and other aspects are encoded in the CAN frame type and additional bits elsewhere.  
+   MTI, and other aspects are encoded in the CAN frame format and additional bits elsewhere.  
 
    The 0x8000 MTI bit-field is reserved because it may be used in the future as part of a CAN hold-off
    mechanism; it has a very high priority so that nodes can send it to delay other frames from being
    transmitted.  
 
    The Stream or Datagram bit-field (0x1000) does not appear in the CAN-MTI, but is converted to a CAN
-   frame-type.  It is used by Gateways to indicate need for buffering.  
+   frame-format.  It is used by Gateways to indicate need for buffering.  
 
    The Priority bit-field is the only field that explicitly determines message priority.   The subsidiary
    Type within Priority bit-field distinguishes different MTIs, but does not contribute to their priority.
@@ -128,8 +128,9 @@
    always present, is a normal part of CAN that must be considered) won't result in problems for
    communications.
 
-   The priority mechanism may or may not work outside the priority field; MTIs should be chosen to work in
-   either case.
+   The priority mechanism may or may not work outside the priority field. In some cases, such as CAN, the
+   entire MTI field will enter into the priority calculation. MTIs should be chosen to work in either case.
+   For an example of this, see the Event Transfer Protocol Standard and Technical Note.
 
    Bits 5-9 Type within Priority
 
@@ -400,7 +401,11 @@
     2.3.5.1 Reject Addressed Optional Interaction
 
    This is a response to a message directly addressed to this node, as such the originating node will be
-   expecting some action, or a reply.  
+   expecting some action, or a reply.  The intent is that a node would always reply with OIR if it received
+   a self-addressed MTI that it was not going to process via some other interaction. That way, the sending
+   node would be told that the receiving node wasn't able to properly handle a request, and could invoke
+   some error handling. The goal here was to provide that error handling (without need for timeouts) for
+   future interactions that might involve MTIs that pre-existing nodes didn't implement.
 
    Example:  A node receives an addressed message with an unrecognized MTI:
 
@@ -412,7 +417,9 @@
 
    The 0068 indicates Reject Optional-Interaction, note that it has its addressed-bit set. The 0x04 F9 is
    the original MTI. The 0x10 00  is the error code, which in this case indicates this is a permanent
-   error.
+   error. The MTI is included so that the originating node can determine which type of interaction failed.
+
+    
 
     2.3.5.2 Reject Unaddressed Optional Interaction
 
@@ -491,7 +498,7 @@
    can be determined by using and monitoring Identify Consumer and Identify Producer messages, and their
    replies.   In this way, Gateways may construct routing-tables of node interest, and use these to
    determine whether to forward a specific Event to a particular segment.  This mechanism has the potential
-   to significantly reduce bus traffic on some segments, which may be particularly inportant on slower bus
+   to significantly reduce bus traffic on some segments, which may be particularly important on slower bus
    segments.  
 
    The discussion of event routing is an example of protocol-specific routing of global messages, and the
@@ -634,7 +641,7 @@
 
      * Adequate buffering to ensure sufficient bandwidth.  
 
-   Gateways are responsible for ttransferring traffic from one transport to the another.  Between two
+   Gateways are responsible for transferring traffic from one transport to the another.  Between two
    capable transports, this is can be as simple as a copy operation.  For example, transfers between
    Ethernet segments is straight forward.  If filtering is instituted, then the Gateway needs to record and
    maintain tables of events, so that only traffic which is of interest to the second transport is actually
@@ -674,13 +681,13 @@
 
    CAN is a very robust transport with good availability, excellent noise resistance, load characteristics,
    and good hardware support for error detection and correction.  Its main limitations are its small frame
-   (data packet) size, and its bus speed and length.  125 kbps was chosen as it  allows CAN segments to be
-   a useful length while maintaining a useful bit-rate.  The CAN frame is also divided between a header and
+   (data packet) size, and its bus speed and length.  125 kbps was chosen as it allows CAN segments to be a
+   useful length while maintaining a useful bit-rate.  The CAN frame is also divided between a header and
    data-part.  The header is used to implement automatic prioritization and arbitration on frames but this
    does impose the requirement that headers be unique.  OpenLCB ensures this by including the source Node's
    Alias in every header.
 
-   The following table shows the  general scheme used for the CAN mapping:
+   The following table shows the general scheme used for the CAN mapping:
 
     
 
@@ -718,20 +725,20 @@
 
       2.7.3.1.2 CAN MTI Mapping
 
-   Having different types of frame formats allowed the formats to be tailored to their purpose, and
-   increase message density and efficiency.  Type 1 maintains the CAN MTI in the header to allow the
-   possibility of hardware filtering on it, and includes the destination Alias in the data part, only if it
-   is necessary.  Types 2-5 and 7 place the destination Alias into the header, preserving more room in the
-   data part for actual data transport.
+   Having different frame formats allowed the formats to be tailored to their purpose, and increase message
+   density and efficiency.  Format 1 maintains the CAN MTI in the header to allow the possibility of
+   hardware filtering on it, and includes the destination Alias in the data part, only if it is necessary.
+    Formats 2-5 and 7 place the destination Alias into the header, preserving more room in the data part
+   for actual data transport.
 
-   Most MTIs will map to frame type 1.  These carry their MTI, shortened to a 12 bit CAN-MTI, in the
+   Most MTIs will map to frame format 1.  These carry their MTI, shortened to a 12 bit CAN-MTI, in the
    header, in the form 0x19mmmsss, where mmm are the CAN-MTI bits, and sss are the source Node's Alias.
     Global messages do not have a destination Alias, but addressed messages carry the destination Alias in
    the 12 low-order bits of the data-segment, as 0xfddd, where ddd is the Alias, see 8.3.1.2.    
 
-   Frame types 2, 3, 4, 5 (Datagram frames) and 7 (Stream Data) are special cases chosen for efficient
+   Frame formats 2, 3, 4, 5 (Datagram frames) and 7 (Stream Data) are special cases chosen for efficient
    processing of large amounts of data on CAN.  They have their MTIs compressed to 3 bits, and are carried
-   in the five high order bits of the header in the form 0b11mmm , where mmm is the frame-type (ie 0x1A,
+   in the five high order bits of the header in the form 0b11mmm , where mmm is the frame-format (ie 0x1A,
    0x1B, 0x1C, 0x1D and 0x1F, respectively).   These forms allow the source and destination Aliases to be
    located in the header, leaving the entire data-segment for other data transfer.  See Datagram Transport
    and Stream Transport documents.   
@@ -746,12 +753,12 @@
    preserve the CAN priority structure, an MTI within each of the priority levels has been reserved.
     Messages with one of these MTIs will treat the start of the data-part of the message (after the
    destination address et al, if present) as another byte of MTI. Nodes created before the expanded MTIs
-   need to be defined to just ignore these. Two CAN frame-types have been reserved for possible future
-   expansion. Specifically, type-0 has the highest priority which may be useful in the future, say for a
-   null- or pause-message to slow the segment down.  Similarly, type-6 is reserved and has a lower
+   need to be defined to just ignore these. Two CAN frame-formats have been reserved for possible future
+   expansion. Specifically, format-0 has the highest priority which may be useful in the future, say for a
+   null- or pause-message to slow the segment down.  Similarly, format-6 is reserved and has a lower
    priority.  
 
-      2.7.3.1.3 Global and Addressed Messages, CAN Frame Type 1
+      2.7.3.1.3 Global and Addressed Messages, CAN Frame Format 1
 
    The ability to form multi-part messages  was included because often 6-8 bytes of data is not sufficient
    for many purposes.  However, designers of protocols should use this feature prudently.  Longer addressed
@@ -810,7 +817,7 @@
 
     
 
-      2.7.3.1.4 Datagram and Stream Messages, CAN Frame Types 2-5 and 7
+      2.7.3.1.4 Datagram and Stream Messages, CAN Frame Formats 2-5 and 7
 
    These formats are designed to include the Source and Destination Node ID Aliases in the CAN-header,
    allowing the full use of the CAN data-part for message data.  
@@ -819,14 +826,14 @@
    OpenLCB document for definitive information.  
 
    29-bit CAN Header
-   Field            CAN prefix  Frame Type     Destination ID/ddd3    Source ID/sss
+   Field            CAN prefix  Frame Format   Destination ID/ddd3    Source ID/sss
                     2 bits      3 bits         12 bits                12 bits
    Size & location                                                           
                     0x1800,0000 0x0700,0000    0x00FF,F000            0x0000,0FFF
    Value(s)         3           2,3,4,5,or 7   Destination Node Alias Source Node Alias
    Up to 8-Byte Data-Part
-   Byte#      0         1       2          3       4       5      6          7          
-   Value      (data)    (data)  (data)     (data)  (data)  (data) (data)     (data)     
+   Byte#      0         1       2         3       4       5       6          7          
+   Value      (data)    (data)  (data)    (data)  (data)  (data)  (data)     (data)     
 
    Table 1: CAN Datagram and Stream Format
 
@@ -1032,10 +1039,22 @@
 
    (There is nothing to add to the standard)  
 
-    2.7.3.6 Routing
+    2.7.3.6 Routing and Sequencing
 
-   Although higher-priority messages can be sent in the middle of a lower-priority message, there are only
-   N priority levels, so a receiving Node only need to provide N buffers to reassemble CAN messages.
+   The requirement that frames of a message be sent consecutively is meant to reduce and simplify buffering
+   requirements. Note that this language does not require that the CAN frames be sent with no inter-frame
+   idle time.  It’s strongly recommended that the frames be sent with no inter-frame idle time, because
+   that can reduce and simplify buffering requirements even further, but that is not required by this
+   Standard.
+
+   OpenLCB only has 4 priority levels, so the nesting of higher-priority messages in the middle of a
+   lower-priority message is restricted to 4 levels per sending source Node. Nodes initiating addressed
+   interactions are generally in control of how many buffers they need to keep around for reassembling
+   multi-frame responses.
+
+   In the presence of many potential source Nodes, such as in the situation of a Gateway, the number of
+   buffers is not theoretically bounded. It is expected that handling a very large network requires a
+   Gateway that is not memory-constrained, such as a Single-Board Computer (e.g. Raspberry Pi, BeagleBone).
 
   2.7.4 Message Type Indicators
 
@@ -1149,13 +1168,13 @@
 
    2.7.3.1.2.1 Future Expansion of CAN MTI
 
-   2.7.3.1.3 Global and Addressed Messages, CAN Frame Type 1
+   2.7.3.1.3 Global and Addressed Messages, CAN Frame Format 1
 
    2.7.3.1.3.1 Longer Messages / Fragmentation
 
    2.7.3.1.3.2 Multi-frame Messages
 
-   2.7.3.1.4 Datagram and Stream Messages, CAN Frame Types 2-5 and 7
+   2.7.3.1.4 Datagram and Stream Messages, CAN Frame Formats 2-5 and 7
 
    2.7.3.2 States
 
@@ -1191,7 +1210,7 @@
 
    2.7.3.5 Error Handling
 
-   2.7.3.6 Routing
+   2.7.3.6 Routing and Sequencing
 
    2.7.4 Message Type Indicators
 
