@@ -211,8 +211,24 @@
    are invalid and shall not be written. The default value of the <min> sub-element is zero, and the
    default value of the <max> sub-element is the largest possible value for the given size.
 
-   If the <map> enumeration is present, then values not present in the list of <property> entries of the
-   enumeration are invalid and shall not be written.
+   If the <map> enumeration sub-element is present, then values not present in the list of <property>
+   entries of the enumeration are invalid and shall not be written.
+
+   The optional <hints> sub-element provides hints to a GUI implementation on how it might best display the
+   integer variable.  No specific behavior is required by the presence of this element. Available
+   sub-elements for the <hints> element are <slider>, <radiobutton> and <checkbox>.
+
+     * <slider> hints that the GUI should present the variable value as a slider between the min and max
+       values.  The optional “divisions” attribute recommends a number of subdivisions for the slider.
+
+     * <radiobutton> hints that the GUI should present the variable value as a set of radio buttons
+       corresponding to the <property> elements in the associated <map> element. The <map> element must be
+       present.
+
+     * <checkbox> hints that the GUI should present the variable value as a checkbox. The unchecked value
+       corresponds to the first <property> element in the associated <map> element.  The checked value
+       corresponds to the second <property> element in the associated <map> element. The <map> element must
+       be present.
 
     5.1.4.3 <string> Element
 
@@ -247,13 +263,75 @@
    corresponding size.
 
    The floating point value shall be written to the bytes pointed to in big-endian byte order. All bytes
-   shall be written. Values smaller than defined by the <min> or larger than defined by the <max>
-   sub-element, if present, are invalid and shall not be written. If the <map> enumeration is present, then
-   values not present in the list of <property> entries of the enumeration are invalid and shall not be
-   written.
+   shall be written.
+
+   Values smaller than defined by the <min> or larger than defined by the <max> sub-element, if present,
+   are invalid and shall not be written. The default value of the <min> sub-element is zero, and the
+   default value of the <max> sub-element is the largest possible value for the given size.
+
+   If the <map> enumeration is present, then values not present in the list of <property> entries of the
+   enumeration are invalid and shall not be written.
 
    The optional “floatFormat” attribute defines a preferred, but not mandatory, printf-style format for
    displaying the data to the user.
+
+    5.1.4.6 <action> Element
+
+   The <action> element defines a write-only variable that causes the target node to perform some specific
+   action. It may be linked to e.g. a button in the GUI.
+
+   The size of the <action> element is defined as the value of the `size' attribute in bytes. Valid values
+   are 1, 2, 4, and 8 bytes.
+
+   The optional <buttonText> sub-element, when present, is a hint to the rendering code about what should
+   appear in the user interface e.g, as the text on the button that triggers the action’s write operation.
+   Note that no specific behavior is required.
+
+   The optional <dialogText> sub-element, when non-blank, suggests to the GUI that it would be good to
+   provide an additional warning to the user before triggering the action’s write operation.  This could be
+   done by e.g. presenting an OK/Confirm dialog with the dialogText value. A blank or not-present value for
+   the element is a hint that no additional warning is requested. Note that no specific behavior is
+   required.
+
+   The required <value> sub-element is the specific decimal value to be written when the action is
+   triggered.
+
+   The write-only variable defined by the <action> element must not be written other than when the action
+   is to be triggered.
+
+    5.1.4.7 <blob> Element
+
+   The <blob> element defines a region of memory that a GUI can transfer to an external file (“read”),
+   transfer from an external file (“write”) or both (“readwrite”).
+
+   The required size and optional offset attributes define a ten-byte section of memory containing:
+
+     * 1 byte operation flag;
+
+     * 5 bytes of a memory space followed by a four-byte address of the memory blob;
+
+     * 4 bytes of length of the memory blob.
+
+   To read the blob data:
+
+     * Write a value of 1 to the operation flag location.
+
+     * Read the memory space and address of the memory blob.
+
+     * Read the length of the memory blob.
+
+     * Use the Memory Configuration Protocol to read the data.
+
+   To write the blob data:
+
+     * Write a value of 1 to the operation flag location.
+
+     * Read the memory space and address of the memory blob.
+
+     * Write the length of the data to be written.  The node being configured will positively acknowledge
+       this write if the data can be accepted, and negatively acknowledge it if the data can’t be accepted.
+
+     * Use the Memory Configuration protocol to write the data.
 
                                         6 Future Extension (Normative)
 
@@ -1019,6 +1097,10 @@
    5.1.4.4 <eventid> Element
 
    5.1.4.5 <float> Element
+
+   5.1.4.6 <action> Element
+
+   5.1.4.7 <blob> Element
 
    6 Future Extension (Normative)
 

@@ -244,6 +244,8 @@
    Any data element’s <name> and <description> elements and the <group>  element’s <repname> elements are
    intended as hints for optional UI display by configuration tools.  
 
+   2.5.1.4.1 <group> element
+
    A recommended approach for <repname> is:
 
     1. If the <repname> element occurs the same number of times as the number in the “replication”
@@ -281,6 +283,19 @@
 
     
 
+   2.5.1.4.2 <integer> element
+
+    
+
+   Note that the <hints> element is itself optional, as are its subelements. Multiple sub-elements may be
+   present, in which case the GUI implementation can choose one to display.  Note that nothing prevents the
+   GUI implementation from displaying a slider, radio box or check box even when there’s no <hints>
+   element. All aspects of the human interface are up to the interpreter of the Configuration Description
+   Information. Hints on positioning, orientation, coloring, size etc have been deliberately omitted in
+   favor of the GUI implementation making its own consistent choices about these.
+
+    
+
    2.5.1.4.3 <string> element
 
     
@@ -290,7 +305,39 @@
 
     
 
+   2.5.1.4.6 <action> element
+
     
+
+   Multiple action buttons can be defined to write different values to the same configuration memory
+   location by using suitable negative values for the offset attribute.
+
+    
+
+   Not that the underlying write-only action variable must not be read or written as part of a backup
+   and/or restore operation. Should a GUI provide read-all and/or write-all operation, these must not
+   access the underlying write-only action variable.
+
+    
+
+   2.5.1.4.7 <blob> element
+
+    
+
+   The <blob> element is intended to provide bulk access to the target node’s memory space.  
+
+    
+
+   The ten-byte area defined in the enclosing segment’s memory space provides access to a contiguous area
+   in any location in any of the target node’s memory spaces. Nothing may be assumed about the content or
+   format of the underlying memory locations in the blob.
+
+    
+
+   Note that nothing prevents the accessing node from reading in bulk from any valid memory space in the
+   target node.  For example, it’s permissible to bulk read a number of variables from the 0xFD
+   configuration space at the same time.  The <blob> element is intended to provide bulk access to areas
+   that are not otherwise described by the CDI, but it can also define access to a CDI-defined memory area.
 
     
 
@@ -309,7 +356,7 @@
 
    On the other hand, a new major version of the standard may define the XML elements or the layout
    algorithm in a completely different way that prevents a Configuration Tool designed for an earlier
-   version of the standard for properly following the layout algorithm.
+   version of the standard from properly following the layout algorithm.
 
                                            3 Background Information
 
