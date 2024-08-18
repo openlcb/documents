@@ -1,0 +1,429 @@
+                                         1 Introduction (Informative)
+
+   The OpenLCB suite of protocols can be used on multiple physical transports; this document defines the
+   specifics that relate to using Bluetooth Low Energy (BLE) as a transport layer. The BLE protocol uses
+   broadcast messages and connection based transfer of attribute data. This Standard defines unique
+   broadcast messages called advertisements to identify the presence of OpenLCB nodes supporting BLE and
+   the exchange of data using attributes over connections.
+
+                                         2 Intended Use (Informative)
+
+   This Standard is intended for use whenever OpenLCB nodes are communicating using BLE. It is not intended
+   to cover OpenLCB communications over other types of communications links.
+
+                                           3 References and Context
+
+   This specification is in the context of the following OpenLCB-CAN Standards:
+
+     * The OpenLCB Message Network Standard, which specifies the general OpenLCB message format
+
+   For more information about BLE, please refer to the Bluetooth Special Interest Group.
+
+   For the purposes of this standard, a BLE “device” implements the BLE Peripheral role and uses BLE
+   Advertisements to both announce itself and accept connections. A “client” implements the BLE Central
+   role and uses BLE scanning to find BLE devices to establish connections to.
+
+                                              4 Message Formats
+
+   There exists two possible ways in which a node using BLE transport can join the network.
+
+    1. The Streaming method utilizes the general OpenLCB message format transported over a pair of BLE
+       attributes. This method requires a full OpenLCB stack implementation on the BLE device.
+
+    2. The Simplified method assumes that the BLE device implements one or more very specific applications.
+       It uses one or more BLE attributes to exchange information specific to the given application. This
+       method does not require a full OpenLCB stack implementation on the BLE device.
+
+   All multi-byte advertising fields are in little-endian format, consistent with BLE conventions.
+
+4.1 BLE UUIDs
+
+   Version 4 BLE UUIDs are used by OpenLCB services and characteristics. A Version 4 UUID is a 128-bit
+   universally unique identifier that is generated using random numbers.
+
+   ‍OpenLCB BLE UUIDs                
+   Description                       ‍UUID                                 
+   Streaming Service                 ‍0ff45220-84a9-4daf-83e7-da4c828d1851 
+   Streaming Active Characteristic   ‍                                     
+   Streaming Data In Characteristic  ‍b029e1ba-47bc-4d8a-a28e-fbe167fc06cb 
+   Streaming Data Out Characteristic c4fed917-55d9-485d-bf30-2eb3c095a90f  
+   Simplified Services               ‍                                     
+   Node Information Service          ‍                                     
+   ‍Node Manufacturer Name           ‍                                     
+   Node Model Name‍                  ‍                                     
+   Node Hardware Version             ‍                                     
+   Node Software Version             ‍                                     
+   Node User Name                    ‍                                     
+   Node User Description                                                   
+   emory Configuration Service                                             
+   emory Configuration Command                                             
+   emory Configuration Reply                                               
+   Train Service                     ‍                                     
+   Train Incoming Message            ‍                                     
+   ‍Train Outgoing Message           ‍                                     
+
+    
+
+4.2 Streaming
+
+   If a node supports streaming protocol, it shall implement the following advertising format to announce
+   itself and accept connections.
+
+   ‍Legacy Advertising Payload (Connectable Undirected)
+   ‍Bytes Field                   Payload                                                                   
+   ‍1     flags length            2                                                                         
+   ‍1     flags type                                                                                        
+   ‍1     flags                                                                                             
+   ‍1     local name length       2-27                                                                      
+                                  Use “short” type if the OpenLCB Node user name does not fit.              
+   ‍1     local name type                                                                                   
+                                  Use “complete” type if the OpenLCB Node user name does fit.               
+                                  Up to the first 26 bytes of the OpenLCB Node user name, null terminated   
+   ‍1-26  local name              if length is less than 26 bytes. Shall not contain a ‘:’ or ‘;’           
+                                  character. ‘:’ or ‘;’ characters shall be replaced by spaces.             
+   Legacy Scan Response Payload‍
+   ‍Bytes Field                   Payload                                                                   
+   ‍1     service data 128 length 27                                                                        
+   ‍1     service data 128 type                                                                             
+                                  Unique Identifier identifying this as having an OpenLCB Streaming Service 
+   ‍16    128-bit UUID            (and more).                                                               
+                                                                                                            
+                                  0ff45220-84a9-4daf-83e7-da4c828d1851                                      
+   ‍6     OpenLCB Node ID         48-bit OpenLCB Node ID.                                                   
+   ‍4     OpenLCB PIP             If PIP exceeds four bytes, then a connection is required to get the rest. 
+
+    
+
+    
+
+   If a node supports streaming protocol, it shall implement the following BLE GATT Service.
+
+    
+
+   OpenLCB Streaming Service Attribute Table
+   ‍‍UUID                                                      Size                                         
+   Length UUID                                    ‍Permissions (bytes) ‍Value
+   (bits) 
+                                                                       ‍Streaming Service UUID              
+   ‍‍‍16  Primary Service                         ‍Read        16                                           
+                                                                       0ff45220-84a9-4daf-83e7-da4c828d1851 
+   ‍16    Characteristic Declaration              Read         1       Characteristic Property write        
+                                                                       0: Streaming connection not active   
+   128‍   Streaming Active Characteristic         Write        1                                            
+                                                                       1: Streaming connection active       
+   ‍‍16   Characteristic Declaration              ‍Read        1       ‍Characteristic Property write       
+          Streaming Data In Characteristic                                                                  
+   ‍‍128                                          ‍Write       244     OpenLCB message data to the device.
+          b029e1ba-47bc-4d8a-a28e-fbe167fc06cb    
+   ‍‍16   Characteristic Declaration              ‍Read        1       ‍Characteristic Property read notify 
+                                                                       ack                                  
+          Streaming Data out Characteristic                                                                 
+   ‍‍128                                          ‍Read        244     OpenLCB message date from the device
+          c4fed917-55d9-485d-bf30-2eb3c095a90f    
+   ‍‍16   Client Characteristic Configuration     ‍Read/Write  2                                            
+          Descriptor                              
+
+    
+
+4.3 Simplified
+
+   If a node supports one or more of the simplified protocols, it shall implement the following advertising
+   format to announce itself and accept connections.
+
+   ‍Legacy Advertising Payload (Connectable Undirected)
+   ‍‍‍Bytes Field                   Payload                                                                 
+   ‍‍‍1     flags length            2                                                                       
+   ‍‍1      flags type                                                                                      
+   ‍‍1      flags                                                                                           
+   ‍‍‍1     local name length       2-27                                                                    
+                                    Use “short” type if the OpenLCB Node user name does not fit.            
+   ‍‍‍1     local name type                                                                                 
+                                    Use “complete” type if the OpenLCB Node user name does fit.             
+   ‍‍‍1-26  local name              Up to the first 26 bytes of the OpenLCB Node user name, null terminated 
+                                    if length is less than 26 bytes.                                        
+   Legacy Scan Response Payload‍
+   ‍‍‍Bytes Field                   Payload                                                                 
+   ‍‍‍1     service data 128 length 27 - 30                                                                 
+   ‍‍1      service data 128 type                                                                           
+   ‍‍‍‍16   128-bit UUID            Unique Identifier identifying this as having one or more OpenLCB        
+                                    Simplified Services (and more).                                         
+   ‍‍‍6     OpenLCB Node ID         48-bit OpenLCB Node ID.                                                 
+   ‍‍‍4     OpenLCB PIP             If PIP exceeds four bytes, then a connection is required to get the     
+                                    rest.                                                                   
+
+    
+
+    
+
+   If a node supports one or more of the simplified protocols, it shall implement one or more of the
+   following BLE GATT Services.
+
+   OpenLCB Node Information Attribute Table
+   ‍‍‍‍‍‍UUID Length UUID                               ‍Permissions Size (bytes) ‍Value                    
+   (bits)            
+   ‍‍‍‍‍‍‍16         Primary Service                    ‍Read        16           ‍Node Information Service 
+                                                                                  UUID                      
+   ‍16               Characteristic Declaration         Read         1            Characteristic Property   
+                                                                                  read                      
+   ‍128              Manufacturer Name                  Read         41           Null terminated string    
+   16‍               Characteristic Declaration         Read         1            Characteristic Property   
+                                                                                  read                      
+   128‍              Model Name                         Read         41           Null terminated string    
+   ‍‍‍‍‍16           Characteristic Declaration         Read         1            Characteristic Property   
+                                                                                  read                      
+   128‍              Hardware Revision Characteristic   Read         21           Null terminated string    
+   ‍‍‍‍‍‍16          Characteristic Declaration         ‍Read        1            ‍Characteristic Property  
+                                                                                  read                      
+   ‍‍‍‍‍‍128         Software Version Characteristic    ‍Read        21           Null terminated string    
+   ‍‍‍‍‍‍16          Characteristic Declaration         ‍Read        1            ‍Characteristic Property  
+                                                                                  read                      
+   ‍‍‍‍‍‍128         Node User Name Characteristic      ‍Read        63           Null terminated string    
+   16                Characteristic Declaration         Read         1            Characteristic Property   
+                                                                                  read                      
+   128‍              Node User Description              Read         64           Null terminated string    
+                     Characteristic                     
+
+    
+
+   OpenLCB Memory Configuration Attribute Table
+   ‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍UUID Length UUID                       ‍Permissions Size (bytes) ‍Value                
+   (bits)                        
+   ‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍16         Primary Service            ‍Read        16           ‍Memory Configuration 
+                                                                                      Service UUID          
+   ‍‍‍‍‍‍‍‍‍‍‍‍‍16               Characteristic Declaration Read         1            Characteristic        
+                                                                                      Property write        
+   ‍‍‍‍‍‍‍‍‍‍‍‍‍‍128             Command                    Write        72                                 
+                                                                                      Characteristic        
+   16‍                           Characteristic Declaration Read         1            Property read notify  
+                                                                                      ack                   
+   128‍                          Reply                      Read         72                                 
+   ‍‍‍‍‍‍‍‍‍‍‍‍‍‍‍16             Client Characteristic      Read/Write   2                                  
+                                 Configuration Descriptor   
+
+    
+
+   OpenLCB Train Attribute Table
+   ‍‍‍‍‍‍‍‍‍‍UUID Length UUID                             ‍Permissions Size (bytes) ‍Value                  
+   (bits)                
+   ‍‍‍‍‍‍‍‍‍‍‍16         Primary Service                  ‍Read        16           ‍Train Service UUID     
+   ‍‍‍‍‍16               Characteristic Declaration       Read         1            Characteristic Property 
+                                                                                    write                   
+   ‍‍‍‍‍128              Incoming Message                 Write        11           Train Control Message   
+   16‍                   Characteristic Declaration       Read         1            Characteristic Property 
+                                                                                    read notify ack         
+   128‍                  Outgoing Message                 Read         11           Train Control Message   
+   ‍‍‍‍‍‍‍‍‍16           Client Characteristic            Read/Write   2                                    
+                         Configuration Descriptor         
+
+    
+
+                                                   5 States
+
+5.1 General
+
+   2.5 ±0.5 seconds after a connection is established, the device shall request an update of the connection
+   parameters within the bounds provided in Section 6.2 below. The client shall respond with one of the
+   following:
+
+    1. Rejection of connection parameter update.
+
+    2. Request to update connection parameters within the bounds requested by the device.
+
+    3. Request to update connection parameters outside the bounds requested by the device.
+
+         1. In this case, the connection parameters must still fall within the bounds provided in Section
+            6.2 below.
+
+   The client may skip the connection parameter update request if the initial connection parameters are
+   already acceptable to it.
+
+   Upon initiation of a connection, a device shall disable all advertisements and not accept new
+   connections until either:
+
+    1. All connections are terminated.
+
+    2. At least 5 seconds has past since the last connection initiation.
+
+5.2 Streaming
+
+   A connection is not required for basic device interaction. A client may “proxy” information contained in
+   the advertising and scan response payload over the OpenLCB network without an active connection having
+   been established. A client may initiate a connection with a device if:
+
+    1. The device is sent an addressed message (routed through the client).
+
+   A client is only required to initiate a connection with a device if it has the capacity to establish
+   more BLE connections and one of:
+
+    1. The device is sent an addressed message (routed through the client) and the client is previously
+       paired to the device.
+
+    2. The client is paired to the device and configured to force connect upon discovery.
+
+   The client may automatically terminate connections to devices if a timeout occurs with no OpenLCB
+   messages exchanged between the device and client, and the client is not paired to the device and also
+   configured to force connect upon discovery.
+
+   A client shall not proxy information contained in the advertising and scan response payload over the
+   OpenLCB network if does not have the capacity to establish any more BLE connections.
+
+   A device shall only support one active streaming connection at any given time. The lifetime of an active
+   streaming connection is as follows:
+
+    1. Device starts advertising.
+
+    2. Client scans for and receives device advertisement.
+
+    3. Client initiates a BLE connection to the device, device stops advertising.
+
+    4. Client exchanges MTU with device.
+
+    5. Client discovers OpenLCB Streaming Service handles.
+
+    6. Client enables notifications on Streaming Data Out characteristic.
+
+    7. Client writes a value of 1 to the Streaming Active characteristic.
+
+    8. Device sends Streaming Active characteristic write response.
+
+    9. Device moves node to the initialized state upon write of value 1 to Streaming Active characteristic
+       and begins sending OpenLCB messages over the Streaming Data Out characteristic.
+
+   10. Upon receiving Streaming Active characteristic write response from the device, client begins sending
+       OpenLCB messages over the Streaming Data In characteristic.
+
+   If any errors occur during the above sequence, the connection shall be terminated. The connection may be
+   terminated by either device or client side. The device shall not enable a streaming advertisement and
+   scan response payload as long as it has an active streaming connection.
+
+   When an active streaming connection is terminated, the device shall force the Streaming Active
+   characteristic value to 0.
+
+   If a client requests a write of value 1 to the Streaming Active characteristic when the value is already
+   set to 1, the client connection shall be immediately terminated by the device.
+
+5.3 Simplified
+
+                                                6 Interactions
+
+   This section applies to all client/device interactions.
+
+6.1 Scanning and Advertising
+
+   For all device advertising, the recommended interval is 20 milliseconds. The maximum advertising
+   interval is 152.5 milliseconds.
+
+   There are no specific requirements on client scanning. The recommended scanning interval is 100
+   milliseconds maximum. The recommended scanning window is 20 milliseconds. Passive and active scanning
+   may be utilized.
+
+   The values in this section are “nominal”. Because scanning and advertising are asynchronous activities,
+   many BLE protocol stack implementations will defer and/or skip scanning and advertising activities if a
+   higher priority activity conflicts and preempts a scanning or advertising activity.
+
+   All scanning and advertising shall be at 1M PHY rates.
+
+6.2 Connections
+
+   Parameter               Minimum Recommended Maximum 
+   Interval (milliseconds) 30      30 to 60    500     
+   ‍Latency (intervals)    0                   30      
+   ‍Timeout (seconds)      6       6           10      
+
+    
+
+   The device requests the connection parameters. The client makes the final choice of connection
+   parameters. The device connection parameter request must also meet the following criteria:
+
+    1. Interval minimum shall be a multiple of 30 milliseconds.
+
+    2. Interval maximum shall be at least 30 milliseconds greater than interval minimum.
+
+    3. Interval maximum * (Peripheral Latency + 1) <= 6 seconds
+
+    4. Timeout shall be greater than interval maximum * (Peripheral Latency + 1) * 3
+
+   The minimum MTU size shall be 27. It is recommended that the client request the maximum supported MTU
+   size supported by both client and device, up to the max of 251 supported by the BLE Data Packet Length
+   Extension.
+
+6.3 Privacy
+
+   The device should be able to resolve a Resolvable Private Address in all situations. The device shall
+   use a Random Device Address as defined in the Bluetooth 4.0 specification Volume 3, Part C Section 10.8.
+
+6.4 Permissions
+
+   The accessory should not require special permissions, such as pairing, authentication, or encryption to
+   discover services and characteristics. It may require special permissions only for access to a
+   characteristic value or a descriptor value. See the Bluetooth 4.0 specification, Volume 3, Part G,
+   Section 8.1, fifth paragraph.
+
+6.5 Pairing
+
+   The accessory should not request pairing until an ATT request is rejected using the Insufficient
+   Authentication error code. See the Bluetooth 4.0 specification, Volume 3, Part F, Section 4 for details.
+
+   If, for security reasons, the accessory requires a bonded relationship with the Central, the Peripheral
+   should reject the ATT request using the Insufficient Authentication error code, as appropriate. As a
+   result, the device may proceed with the necessary security procedures.
+
+   Similarly, if the device acts as a Central and a GATT server, it may reject an ATT request using the
+   Insufficient Authentication error code. The accessory should initiate the security procedure for pairing
+   in response.
+
+   Pairing may require user authorization depending on device. Once an accessory is paired with a device,
+   the accessory shall retain the distributed keys of both central and peripheral for future use. If the
+   pairing is no longer required, the accessory shall delete both sets of keys.
+
+6.6 PHY Modes
+
+   All clients and devices shall support the 1M PHY. If a client and device both support 2M, 500K, and/or
+   125K PHY modes, the PHY may be dynamically upgraded or down graded upon request by the client in order
+   to maximize throughput or maximize range. The PHY selection criteria may be based on Receive Signal
+   Strength Initiator (RSSI) of the link, however other selection criteria may also be used. The device may
+   also initiate a request for a PHY mode change, but the client is not required to honor the request.
+
+    
+
+    
+
+   Table of Contents
+
+   1 Introduction (Informative)
+
+   2 Intended Use (Informative)
+
+   3 References and Context
+
+   4 Message Formats
+
+   4.1 BLE UUIDs
+
+   4.2 Streaming
+
+   4.3 Simplified
+
+   5 States
+
+   5.1 General
+
+   5.2 Streaming
+
+   5.3 Simplified
+
+   6 Interactions
+
+   6.1 Scanning and Advertising
+
+   6.2 Connections
+
+   6.3 Privacy
+
+   6.4 Permissions
+
+   6.5 Pairing
+
+   6.6 PHY Modes
+
+    
