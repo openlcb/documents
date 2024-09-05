@@ -67,9 +67,10 @@
    The content defines the configuration description information in XML 1.0 format using a specific XML
    vocabulary defined by an XML Schema. No extensions to XML 1.0 are permitted.
 
-   This version of this Standard specifies version 1.3 of the schema.  That version of the schema is
-   defined at http://openlcb.org/schema/cdi/1/3/cdi.xsd and in Appendix A of this document. The CDI content
-   shall pass validation against its referenced schema. Nodes are not required to do the validation.
+   This version of this Standard specifies version 1.4 of the schema.  That version of the schema is
+   defined at https://openlcb.org/schema/cdi/1/4/cdi.xsd and in Appendix A of this document. The CDI
+   content shall pass validation against its referenced schema. Nodes are not required to do the
+   validation.
 
    The version number of an OpenLCB CDI schema contains two numbers: The major version first, and the minor
    version second.  
@@ -83,7 +84,7 @@
    The root element of the CDI XML is:
 
    <cdi xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:noNamespaceSchemaLocation="http://openlcb.org/schema/cdi/1/3/cdi.xsd">
+   xsi:noNamespaceSchemaLocation="https://openlcb.org/schema/cdi/1/4/cdi.xsd">
 
    to define the OpenLCB CDI version of the content.
 
@@ -219,7 +220,10 @@
    sub-elements for the <hints> element are <slider>, <radiobutton> and <checkbox>.
 
      * <slider> hints that the GUI should present the variable value as a slider between the min and max
-       values.  The optional “divisions” attribute recommends a number of subdivisions for the slider.
+       values.  The optional “divisions” attribute recommends a number of subdivisions for the slider. The
+       options “immediate” attribute recommends that the slider value be written to the node’s
+       configuration memory immediately when the slider value is changed, without waiting for a “Write”
+       button to be pressed.
 
      * <radiobutton> hints that the GUI should present the variable value as a set of radio buttons
        corresponding to the <property> elements in the associated <map> element. The <map> element must be
@@ -361,7 +365,7 @@
 
    <!-- XML Schema for OpenLCB Configuration Description Information (CDI)     -->
 
-   <xs:schema version="CDI 1.3" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   <xs:schema version="CDI 1.4" xmlns:xs="http://www.w3.org/2001/XMLSchema"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 
     
@@ -440,6 +444,10 @@
 
            <xs:element name="float" type="floatType" minOccurs="0" maxOccurs="1" />
 
+           <xs:element name="action" type="actionButtonType" minOccurs="0" maxOccurs="1" />
+
+           <xs:element name="blob" type="blobType" minOccurs="0" maxOccurs="1" />
+
          </xs:choice>
 
        </xs:sequence>
@@ -510,6 +518,94 @@
 
     
 
+     <xs:simpleType name="yesNoType">
+
+       <xs:annotation>
+
+           <xs:documentation>
+
+             General definition of string that's either "yes" or "no".
+
+           </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:restriction base="xs:token">
+
+         <xs:enumeration value="yes"/>
+
+         <xs:enumeration value="no"/>
+
+       </xs:restriction>
+
+     </xs:simpleType>
+
+    
+
+     <xs:complexType name="hintsType">
+
+       <xs:annotation>
+
+         <xs:documentation>
+
+           Presents optional hints to a GUI program
+
+           for how to render this variable.
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:sequence>
+
+         <xs:element name="slider" minOccurs="0" maxOccurs="1" >
+
+           <xs:complexType>
+
+             <xs:attribute name="divisions" type="xs:integer" default="0">
+
+               <xs:annotation>
+
+                 <xs:documentation>
+
+                   Recommends a number of subdivisions in the presented slider.
+
+                 </xs:documentation>
+
+               </xs:annotation>
+
+             </xs:attribute>
+
+             <xs:attribute name="immediate" type="yesNoType" default="no">
+
+               <xs:annotation>
+
+                 <xs:documentation>
+
+                   If yes, the slider will write to the
+
+                   configuration memory immediately when changed
+
+                 </xs:documentation>
+
+               </xs:annotation>
+
+             </xs:attribute>
+
+           </xs:complexType>
+
+         </xs:element>
+
+         <xs:element name="radiobutton" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="checkbox" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+     </xs:complexType>
+
+    
+
      <xs:complexType name="intType">
 
        <xs:sequence>
@@ -542,6 +638,8 @@
 
          </xs:element>
 
+         <xs:element name="hints" type="hintsType" minOccurs="0" maxOccurs="1" />     
+
        </xs:sequence>
 
        <xs:attribute name="size" default="1">
@@ -568,7 +666,7 @@
 
              <xs:enumeration value="8"/>
 
-             </xs:restriction>
+           </xs:restriction>
 
          </xs:simpleType>
 
@@ -606,9 +704,9 @@
 
     <!-- This is a somewhat limiting regex, as it does not allow all possible -->
 
-    <!-- printf formats. It will allow the most common formats that have    -->
+    <!-- printf formats.   It will allow the most common formats that I have -->
 
-    <!-- been seen and used before, however -->
+    <!-- seen and used before, howerver -->
 
     <xs:pattern value="%[0-9]*(\.([0-9]*))?f"/>
 
@@ -658,25 +756,25 @@
 
            <xs:documentation>
 
-             Storage size of this variable in bytes.
+             Storage size of this variable in bytes. 2, 4 and 8 are valid.
 
            </xs:documentation>
 
          </xs:annotation>
 
-       <xs:simpleType>
+         <xs:simpleType>
 
-         <xs:restriction base="xs:token">
+           <xs:restriction base="xs:token">
 
-           <xs:enumeration value="2"/>
+             <xs:enumeration value="2"/>
 
-           <xs:enumeration value="4"/>
+             <xs:enumeration value="4"/>
 
-           <xs:enumeration value="8"/>
+             <xs:enumeration value="8"/>
 
            </xs:restriction>
 
-       </xs:simpleType>
+         </xs:simpleType>
 
        </xs:attribute>
 
@@ -769,6 +867,216 @@
            </xs:documentation>
 
          </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+    
+
+     <xs:complexType name="actionButtonType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="buttonText" minOccurs="0" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Text to be displayed on the button.
+
+               This is required.
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+         <xs:element name="dialogText" minOccurs="0" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Text to be displayed on the confirmation dialog.
+
+               If empty or not present, no confirmation dialog is displayed.
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+         <xs:element name="value" minOccurs="1" maxOccurs="1">
+
+           <xs:annotation>
+
+             <xs:documentation>
+
+               Value to be written when the button is triggered.
+
+               This is required.
+
+             </xs:documentation>
+
+           </xs:annotation>
+
+         </xs:element>
+
+       </xs:sequence>
+
+       <xs:attribute name="size" use="required">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+             This is required for backwards compatibility.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+         <xs:simpleType>
+
+           <xs:restriction base="xs:token">
+
+             <xs:enumeration value="1"/>
+
+             <xs:enumeration value="2"/>
+
+             <xs:enumeration value="4"/>
+
+             <xs:enumeration value="8"/>
+
+           </xs:restriction>
+
+         </xs:simpleType>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of
+
+             the end of previous element and the start of
+
+             this elements's contents.
+
+             Offset of zero means that this element starts
+
+             immediately after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+     </xs:complexType>
+
+    
+
+     <xs:complexType name="blobType">
+
+       <xs:sequence>
+
+         <xs:element name="name" minOccurs="0" maxOccurs="1" />
+
+         <xs:element name="description" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+       <xs:attribute name="size" use="required">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Storage size of this variable in bytes.
+
+             This is fixed at 10 bytes.
+
+             An explicit value is required for backwards compatibility.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+         <xs:simpleType>
+
+           <xs:restriction base="xs:token">
+
+             <xs:enumeration value="10"/>
+
+           </xs:restriction>
+
+         </xs:simpleType>
+
+       </xs:attribute>
+
+       <xs:attribute name="offset" type="xs:int" default="0">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Positive or negative offset between the address of
+
+             the end of previous element and the start of
+
+             this elements's contents.
+
+             Offset of zero means that this element starts
+
+             immediately after the previous one.
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+       </xs:attribute>
+
+       <xs:attribute name="mode" use="required">
+
+         <xs:annotation>
+
+           <xs:documentation>
+
+             Whether the underlying blob can be read ("read"), can be written ("write"),
+
+             or both ("readwrite").
+
+           </xs:documentation>
+
+         </xs:annotation>
+
+         <xs:simpleType>
+
+           <xs:restriction base="xs:token">
+
+             <xs:enumeration value="read"/>
+
+             <xs:enumeration value="write"/>
+
+             <xs:enumeration value="readwrite"/>
+
+           </xs:restriction>
+
+         </xs:simpleType>
 
        </xs:attribute>
 
@@ -986,19 +1294,63 @@
 
                    </xs:element>
 
+   <xs:element name="float" type="floatType" minOccurs="0" maxOccurs="1">
+
+    <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes a float type in the data
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+   </xs:element>
+
+   <xs:element name="action" type="actionButtonType" minOccurs="0" maxOccurs="1">
+
+    <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes how to create an action button to write into the data.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+   </xs:element>
+
+   <xs:element name="blob" type="blobType" minOccurs="0" maxOccurs="1">
+
+    <xs:annotation>
+
+                       <xs:documentation>
+
+                         Describes a blob of data that can be read/written/both.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+   </xs:element>
+
     
 
    <!--
 
                    XML Schema 1.1 construct expressing extensibility promise
 
-                   <xs:assert test="every $x in * satisfies (exists($x/@size) and $x/@size castable to
-   xs:integer)"/>
-
-                   <xs:assert test="every $x in * satisfies (exists($x/@offset) and $x/@offset castable to
-   xs:integer)"/>
-
                    <xs:any minOccurs="0" maxOccurs="1" processContents="lax">
+
+                   <xs:assert test="every $x in * satisfies
+
+                                       (exists($x/@size) and $x/@size castable to xs:integer)"/>
+
+                   <xs:assert test="every $x in * satisfies
+
+                                       (exists($x/@offset) and $x/@offset castable to xs:integer)"/>
 
                      <xs:annotation>
 
@@ -1061,8 +1413,6 @@
      </xs:element>
 
    </xs:schema>
-
-    
 
     
 
