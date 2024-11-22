@@ -100,9 +100,12 @@
    The <identification> element, if present, specifies manufacturer-provided identification information
    about the node. This information is not user-editable. If this element is provided and the node also
    supports the OpenLCB Simple Node Information Protocol (SNIP), the contents of the SNIP Reply shall match
-   the respective tags in the <identification> element. If this element is provided, and the node also
-   provides the <acdi> element, the contents provided by the ACDI spaces shall match the respective tags in
-   the <identification> element.
+   the respective tags in the <identification> element. An optional <link> sub-element can provide an
+   optional  hyperlink to additional information.  An optional <map> sub-element can provide one or more
+   key-value pairs to be optionally displayed.
+
+   If this element is provided, and the node also provides the <acdi> element, the contents provided by the
+   ACDI spaces shall match the respective tags in the <identification> element.
 
   5.1.2 <acdi> Element
 
@@ -149,7 +152,8 @@
 
    A <segment> element shall contain an optional user-readable name and optional description tags, and a
    sequence of zero or more data elements. The user-readable name and description are intended as hints for
-   optional UI display by configuration tools.
+   optional UI display by configuration tools. An optional <link> sub-element can provide an optional
+    hyperlink to additional information.
 
   5.1.4 Data Elements
 
@@ -184,12 +188,25 @@
    this feature to express configuration of repeated hardware or software components (such as multiple
    input ports, output ports etc).
 
-   A <group> element shall contain an optional user-readable name, optional description and a sequence of
-   zero or more data elements. This sequence is considered to contain a data element of size 0 (zero)
-   before the specified data elements3.
+   A <group> element shall contain an optional user-readable name, optional description, optional link
+   information, optional display hints, optional replication-name information, and a sequence of zero or
+   more data elements. This sequence is considered to contain a data element of size 0 (zero) before the
+   specified data elements3.
 
    If the `replication' attribute is present with the value of N, then the group shall be considered as if
    the entire sequence of data elements were repeated N times.
+
+   The optional <link> sub-element can provide an optional  hyperlink to additional information.
+
+   The optional <hints> sub-element provides hints to a configuration tool on how it might best display the
+   integer variable.  No specific behavior is required by the presence of this element. Available
+   sub-elements for the <hints> element are <visibility> and <readOnly>.
+
+     * <visibility> has attributes “hideable” and “hidden” that recommend whether the group be displayed in
+       a form that the user can hide, and recommend whether the group is initially displayed as hidden.
+
+     * <readOnly>, if present, recommends that the contents of the group be considered to be read-only
+       values which cannot be written.
 
    The end address of a <group> element is defined as the end address of the last data element in the
    contained sequence (after replication). The size of a <group> element is defined as the end address
@@ -220,10 +237,17 @@
    sub-elements for the <hints> element are <slider>, <radiobutton> and <checkbox>.
 
      * <slider> hints that the configuration tool should present the variable value as a slider between the
-       min and max values.  The optional “tickSpacing” attribute recommends a value for the spacing between
-       tick marks on the slider.  The optional “immediate” attribute recommends that the slider value be
-       written to the node’s configuration memory immediately when the slider value is changed, without
-       waiting for a “Write” button to be pressed.
+       min and max values.  
+
+          * The optional “tickSpacing” attribute recommends a value for the spacing between tick marks on
+            the slider.  
+
+          * The optional “immediate” attribute recommends that the slider value be written to the node’s
+            configuration memory immediately when the slider value is changed, without waiting for a
+            “Write” button to be pressed.
+
+          * The optional “showValue” attribute recommends that the Configuration Tool show the decimal
+            slider value somewhere near the slider on the display.
 
      * <radiobutton> hints that the configuration tool should present the variable value as a set of radio
        buttons corresponding to the <property> elements in the associated <map> element. The <map> element
@@ -232,7 +256,7 @@
      * <checkbox> hints that the configuration tool should present the variable value as a checkbox. The
        unchecked value corresponds to the first <property> element in the associated <map> element.  The
        checked value corresponds to the second <property> element in the associated <map> element. The
-       <map> element must be present.
+       <map> element must be present. It is an error if there are not exactly two map entries present.
 
     5.1.4.3 <string> Element
 
@@ -1473,4 +1497,4 @@
    3 This is required to make “previous element” an unambiguous reference for the first element in the
    contained sequence.
 
-   4 No name, no description and no Data Elements contained.
+   4 No name, no description, no link and no Data Elements contained.
