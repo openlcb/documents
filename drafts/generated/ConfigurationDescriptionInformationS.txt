@@ -437,6 +437,106 @@
 
     
 
+     <xs:simpleType name="booleanType">
+
+       <xs:annotation>
+
+           <xs:documentation>
+
+             General definition for a string that represents a boolean
+
+             via yes/true/1 and no/false/0 values
+
+           </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:restriction base="xs:token">
+
+         <xs:enumeration value="yes"/>
+
+         <xs:enumeration value="no"/>
+
+         <xs:enumeration value="true"/>
+
+         <xs:enumeration value="false"/>
+
+         <xs:enumeration value="1"/>
+
+         <xs:enumeration value="0"/>
+
+       </xs:restriction>
+
+     </xs:simpleType>
+
+    
+
+     <xs:complexType name="groupHintsType">
+
+       <xs:annotation>
+
+         <xs:documentation>
+
+           Presents optional hints to a GUI program
+
+           for how to render the contents of this group.
+
+         </xs:documentation>
+
+       </xs:annotation>
+
+       <xs:sequence>
+
+         <xs:element name="visibility" minOccurs="0" maxOccurs="1" >
+
+           <xs:complexType>
+
+             <xs:attribute name="hideable" type="booleanType" default="no">
+
+               <xs:annotation>
+
+                 <xs:documentation>
+
+                   Recommends that the group be
+
+                   presented in a form that can be made visible
+
+                   or hidden at the user's request.
+
+                 </xs:documentation>
+
+               </xs:annotation>
+
+             </xs:attribute>
+
+             <xs:attribute name="hidden" type="booleanType" default="no">
+
+               <xs:annotation>
+
+                 <xs:documentation>
+
+                   If yes, recommends a hideable=true group
+
+                   be hidden when first displayed
+
+                 </xs:documentation>
+
+               </xs:annotation>
+
+             </xs:attribute>
+
+          </xs:complexType>
+
+         </xs:element>
+
+         <xs:element name="readOnly" minOccurs="0" maxOccurs="1" />
+
+       </xs:sequence>
+
+     </xs:complexType>
+
+    
+
      <xs:complexType name="groupType">
 
        <xs:sequence>
@@ -445,7 +545,11 @@
 
          <xs:element name="description" minOccurs="0" maxOccurs="1" />
 
+         <xs:element name="link" type="linkType" minOccurs="0" maxOccurs="1" />
+
          <xs:element name="repname" minOccurs="0" maxOccurs="unbounded" />
+
+         <xs:element name="hints" type="groupHintsType" minOccurs="0" maxOccurs="1" />     
 
          <xs:choice minOccurs="0" maxOccurs="unbounded">
 
@@ -543,31 +647,7 @@
 
     
 
-     <xs:simpleType name="yesNoType">
-
-       <xs:annotation>
-
-           <xs:documentation>
-
-             General definition of string that's either "yes" or "no".
-
-           </xs:documentation>
-
-       </xs:annotation>
-
-       <xs:restriction base="xs:token">
-
-         <xs:enumeration value="yes"/>
-
-         <xs:enumeration value="no"/>
-
-       </xs:restriction>
-
-     </xs:simpleType>
-
-    
-
-     <xs:complexType name="hintsType">
+     <xs:complexType name="integerHintsType">
 
        <xs:annotation>
 
@@ -575,7 +655,7 @@
 
            Presents optional hints to a GUI program
 
-           for how to render this variable.
+           for how to render this integer variable.
 
          </xs:documentation>
 
@@ -595,11 +675,13 @@
 
                    Recommends a value for the spacing between
 
-                   tick marks on the slider.  For example, "10"
+                   tick marks on the slider.  For example, "10" with a
 
-                   with a minimum value of 1 would put ticks at 0, 10, 20 etc
+                   minimum value of 0 would recommend ticks at 0, 10, 20 etc
 
-                   along the slider axis.
+                   along the slider axis. Values of zero or less
+
+                   recommend that no tick marks be displayed.
 
                  </xs:documentation>
 
@@ -607,15 +689,31 @@
 
              </xs:attribute>
 
-             <xs:attribute name="immediate" type="yesNoType" default="no">
+             <xs:attribute name="immediate" type="booleanType" default="no">
 
                <xs:annotation>
 
                  <xs:documentation>
 
-                   If yes, the slider will write to the
+                   If yes, recommends that the slider should write to the
 
                    configuration memory immediately when changed
+
+                 </xs:documentation>
+
+               </xs:annotation>
+
+             </xs:attribute>
+
+             <xs:attribute name="showValue" type="booleanType" default="no">
+
+               <xs:annotation>
+
+                 <xs:documentation>
+
+                   If yes, recommends that a slider should also
+
+                   show the exact value, perhaps in a near-by numeric field
 
                  </xs:documentation>
 
@@ -669,7 +767,7 @@
 
          </xs:element>
 
-         <xs:element name="hints" type="hintsType" minOccurs="0" maxOccurs="1" />     
+         <xs:element name="hints" type="integerHintsType" minOccurs="0" maxOccurs="1" />     
 
        </xs:sequence>
 
@@ -731,17 +829,17 @@
 
      <xs:simpleType name="floatFormat">
 
-   <xs:restriction base="xs:string">
+     <xs:restriction base="xs:string">
 
-    <!-- This is a somewhat limiting regex, as it does not allow all possible -->
+       <!-- This is a somewhat limiting regex, as it does not allow all possible -->
 
-    <!-- printf formats.   It will allow the most common formats that I have -->
+       <!-- printf formats.   It will allow the most common formats that I have -->
 
-    <!-- seen and used before, howerver -->
+       <!-- seen and used before, howerver -->
 
-    <xs:pattern value="%[0-9]*(\.([0-9]*))?f"/>
+       <xs:pattern value="%[0-9]*(\.([0-9]*))?f"/>
 
-   </xs:restriction>
+     </xs:restriction>
 
      </xs:simpleType>
 
@@ -749,7 +847,7 @@
 
      <xs:complexType name="floatType">
 
-   <xs:sequence>
+      <xs:sequence>
 
          <xs:element name="name" minOccurs="0" maxOccurs="1" />
 
@@ -831,9 +929,9 @@
 
        </xs:attribute>
 
-   <xs:attribute name="formatting" type="floatFormat" >
+     <xs:attribute name="formatting" type="floatFormat" >
 
-        <xs:annotation>
+           <xs:annotation>
 
            <xs:documentation>
 
@@ -843,7 +941,7 @@
 
          </xs:annotation>
 
-   </xs:attribute>
+     </xs:attribute>
 
      </xs:complexType>
 
@@ -1115,6 +1213,40 @@
 
     
 
+     <xs:complexType name="linkType">
+
+           <xs:simpleContent>
+
+               <xs:extension base="xs:string">
+
+                   <xs:attribute name="ref" type="xs:string" use="required">
+
+                     <xs:annotation>
+
+                       <xs:documentation>
+
+                         URL for this link.  When the link is triggered
+
+                         in a configuration tool, it's recommended that this
+
+                         link be retrieved and displayed.
+
+                       </xs:documentation>
+
+                     </xs:annotation>
+
+                   </xs:attribute>
+
+               </xs:extension>
+
+           </xs:simpleContent>
+
+     </xs:complexType>
+
+    
+
+     <!-- Definition of the primary "cdi" element -->
+
      <xs:element name="cdi">
 
        <xs:annotation>
@@ -1156,6 +1288,8 @@
                  <xs:element name="hardwareVersion" minOccurs="0" maxOccurs="1" />
 
                  <xs:element name="softwareVersion" minOccurs="0" maxOccurs="1" />
+
+                 <xs:element name="link" type="linkType" minOccurs="0" maxOccurs="1" />
 
                  <xs:element name="map" type="mapType" minOccurs="0" maxOccurs="1">
 
@@ -1253,6 +1387,8 @@
 
                  <xs:element name="description" minOccurs="0" maxOccurs="1" />
 
+                 <xs:element name="link" type="linkType" minOccurs="0" maxOccurs="1" />
+
                  <xs:choice minOccurs="0" maxOccurs="unbounded">
 
                    <xs:annotation>
@@ -1325,9 +1461,9 @@
 
                    </xs:element>
 
-   <xs:element name="float" type="floatType" minOccurs="0" maxOccurs="1">
+           <xs:element name="float" type="floatType" minOccurs="0" maxOccurs="1">
 
-    <xs:annotation>
+             <xs:annotation>
 
                        <xs:documentation>
 
@@ -1337,11 +1473,11 @@
 
                      </xs:annotation>
 
-   </xs:element>
+           </xs:element>
 
-   <xs:element name="action" type="actionButtonType" minOccurs="0" maxOccurs="1">
+           <xs:element name="action" type="actionButtonType" minOccurs="0" maxOccurs="1">
 
-    <xs:annotation>
+             <xs:annotation>
 
                        <xs:documentation>
 
@@ -1351,11 +1487,11 @@
 
                      </xs:annotation>
 
-   </xs:element>
+           </xs:element>
 
-   <xs:element name="blob" type="blobType" minOccurs="0" maxOccurs="1">
+           <xs:element name="blob" type="blobType" minOccurs="0" maxOccurs="1">
 
-    <xs:annotation>
+             <xs:annotation>
 
                        <xs:documentation>
 
@@ -1365,7 +1501,7 @@
 
                      </xs:annotation>
 
-   </xs:element>
+           </xs:element>
 
     
 
