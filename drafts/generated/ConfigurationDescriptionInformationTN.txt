@@ -103,6 +103,10 @@
    This Standard specifies the CDI-held information for format and access to the ACDI-held information. The
    standard also requires that all these different access methods must return the same values.
 
+   The optional <link> element defines an optional hyperlink to e.g. additional information.  A
+   Configuration Tool is not required to display this hyperlink.  If a Configuration Tool cannot make an
+   active link, it’s recommended that the content of the element not be displayed.
+
     2.5.1.2 <acdi> Element
 
    ACDI defines two specific memory spaces that contain the basic identification information. The layout of
@@ -195,6 +199,10 @@
    Node developers are advised to assign relatively short <name> values to segments, because certain
    Configuration Tools may use these as labels for a tabbed dialog box or similar.
 
+   The optional <link> element defines an optional hyperlink to e.g. additional information.  A
+   Configuration Tool is not required to display this hyperlink.  If a Configuration Tool cannot make an
+   active link, it’s recommended that the content of the element not be displayed.
+
     2.5.1.4 Data Elements
 
    This is the point of the whole standard: the actual Variables. The most important information for each
@@ -244,6 +252,26 @@
    Any data element’s <name> and <description> elements and the <group>  element’s <repname> elements are
    intended as hints for optional UI display by configuration tools.  
 
+   2.5.1.4.1 <group> element
+
+   The optional <link> element defines an optional hyperlink to e.g. additional information.  A
+   Configuration Tool is not required to display this hyperlink.  If a Configuration Tool cannot make an
+   active link, it’s recommended that the content of the element not be displayed.
+
+   The <visibility> sub-element in the <hints> sub-element has two attributes:
+
+     * “hideable” If true, recommends that the group be presented in a form that can be made visible or
+       hidden at the user's request. Different Configuration Tools might do this in different ways, or
+       might not do it at all.  The CDI author should take this variability into account when laying out
+       the CDI.
+
+     * “hidden” If true, recommends that a hideable=”true” group initially be displayed in its hidden form.
+
+   Implementation of the <readOnly> element might include disabling or removing “write” or “store” buttons
+   from this group’s data elements.  This is not required behavior, and the CDI author should consider what
+   will happen if a Configuration Tool allows writing of those data elements. Note that the data elements
+   of this group are expected to still be readable.
+
    A recommended approach for <repname> is:
 
     1. If the <repname> element occurs the same number of times as the number in the “replication”
@@ -281,6 +309,27 @@
 
     
 
+   2.5.1.4.2 <integer> element
+
+    
+
+   Note that the <hints> element is itself optional, as are its subelements. Multiple sub-elements may be
+   present, in which case the configuration tool can choose one to display, or use none at all.  Note that
+   nothing prevents the configuration tool from displaying a slider, radio box or check box even when
+   there’s no <hints> element. All aspects of the human interface are up to the application interpreting
+   the Configuration Description Information. Hints on positioning, orientation, coloring, size etc have
+   been deliberately omitted in favor of an implementation making its own consistent choices about these.
+
+    
+
+   Note that the “tickSpacing” optional attribute on the “slider” element defines the spaces between the
+   tick marks on the slider For example, "10" with a minimum value of 0 recommends putting ticks at 0, 10,
+   20 etc along the slider axis. The configuration tool may not provide tick marks, or it might choose
+   another spacing. Even if the configuration tool does follow the requested tick spacing, what the
+   configuration tool does if the spacing does not exactly fit the max value of the slider is not defined.
+
+    
+
    2.5.1.4.3 <string> element
 
     
@@ -290,7 +339,40 @@
 
     
 
+   2.5.1.4.6 <action> element
+
     
+
+   Multiple action buttons can be defined to write different values to the same configuration memory
+   location by using suitable negative values for the offset attribute.
+
+    
+
+   Note that the underlying write-only action variable must not be read or written as part of a backup
+   and/or restore operation. Should a GUI provide read-all and/or write-all operation, these must not
+   access the underlying write-only action variable.
+
+    
+
+   2.5.1.4.7 <blob> element
+
+    
+
+   The <blob> element is intended to provide bulk access to the target node’s memory space.  
+
+    
+
+   The ten-byte area defined in the enclosing segment’s memory space provides access to a contiguous area
+   in any location in any of the target node’s memory spaces. Nothing may be assumed about the content or
+   format of the underlying memory locations in the blob.
+
+    
+
+   Note that nothing prevents the accessing node from reading in bulk from any valid memory space in the
+   target node.  For example, it’s permissible to bulk read a number of variables from the configuration
+   memory space (number 0xFD) at the same time.  The <blob> element is intended to provide bulk access to
+   areas that are not otherwise described by the CDI, but it can also define access to a CDI-defined memory
+   area.
 
     
 
@@ -309,7 +391,7 @@
 
    On the other hand, a new major version of the standard may define the XML elements or the layout
    algorithm in a completely different way that prevents a Configuration Tool designed for an earlier
-   version of the standard for properly following the layout algorithm.
+   version of the standard from properly following the layout algorithm.
 
                                            3 Background Information
 
