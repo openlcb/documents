@@ -67,7 +67,7 @@
    motor control functions (momentum, braking, etc.), sound functions (horn, bell, whistle, engine sounds,
    compressor, etc.) and a variety of other functions, such as a smoke unit, raising and lowering a
    pantograph or operating a locomotive-mounted remote uncoupler. There is no definitive list of all
-   possible functions. The TN-218 document by RailCommunity lists over 120 different types.
+   possible functions. The TN-2181 document by RailCommunity lists over 120 different types.
 
    Not only is the list of possibilities is very large, one specific model alone can carry dozens of
    different  functions. Users of proprietary throttles have to activate these typically by their function
@@ -167,8 +167,8 @@
    number not listed in the FDI is assumed by throttles to be doing nothing (i.e., not presented on a UI
    having a list of functions).
 
-   The “name” element provides information which can be used if the throttle has e.g. a graphical interface
-   to the user.
+   The “name” and “icon” elements provide information which can be used if the throttle has e.g. a
+   graphical interface to the user.
 
    The “size” attribute is optionally allowed for compatibility with some early, pre-Standard
    implementations.  It should be omitted in current and future implementations.
@@ -322,14 +322,14 @@
    Not everybody runs their trains in English.
 
    The xml:lang attribute could be used to define versions of the <name> and <description> elements that
-   use an alternate language.1 This approach can greatly increase the size of the XML content if the
+   use an alternate language.2 This approach can greatly increase the size of the XML content if the
    internationalization effort is very successful. On the other hand, it’s transparent to XML-using nodes
    that don’t implement internationalization.
 
 4.3 Machine-readable function classification
 
-   Currently the function's type is expressed in a free-text form in the <name> element. This has a wide
-   expressibility, but presents challenges for user interface development:
+   Expressing the function’s type in a free-text form in the <name> element has a wide expressibility, but
+   presents challenges for user interface development:
 
      * Text generally needs to be rendered with a font size that is readable for the given user.
 
@@ -343,12 +343,17 @@
    different icons provided by the implementation usually), but a larger number of functions will fit on
    the user interface than in a text version.
 
-   In order to add machine-readable function type, we need two things:
+   In order to add machine-readable function type, an enumeration is needed that lists possible function
+   types and assigns numbers to them. There is such as the list in section 3 of the TN-218 by
+   RailCommunity. This is then used in the <icon> element for transmitting the function enumeration in the
+   FDI.
 
-     * An enumeration that lists possible function types and assigns numbers to them. There is such a list
-       in TN-218 by RailCommunity.
+   In the future, the NMRA may define a set of icons as part of their DCC work.  A future migration to
+   those standard icons is possibly desirable, but will require work to ensure backward compatibility.
 
-     * An attribute or element for transmitting the function enumeration in the FDI.
+   Note that the <icon> element is defined in terms of the TN-218 function names.  TN-218 doesn’t provide
+   actual icons for these names.  It may be useful to provide a list of sample graphics with some future
+   work. The size, resolution, color palette, etc of these sample icons needs careful consideration.
 
     
 
@@ -402,5 +407,7 @@
 
      ----------------------------------------------------------------------------------------------------
 
-   1 JMRI DecoderPro does this in its decoder definitions.  That experience guides some of the rest of this
+   1 https://normen.railcommunity.de/TN-218.pdf
+
+   2 JMRI DecoderPro does this in its decoder definitions.  That experience guides some of the rest of this
    paragraph.
