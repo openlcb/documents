@@ -48,7 +48,7 @@ define DOCU_template
 obj/$(1)-header.tex: header_template.tex
 	cat $$< > $$@
 	echo $(if $(filter $(6),Draft),Submitted for public comment,Adopted) as NMRA $(if $(filter $(2),TN),Technical Note,Standard) $(2)-$(5) >> $$@
-	echo '\end{document}' >> $$@
+	cat header_template_end.tex >> $$@
 
 
 obj/$(1)-header.pdf: obj/$(1)-header.tex
@@ -89,25 +89,25 @@ DOCU_stn=$(call DOCU_call,$(1),S,$(2),$(3),$(4))  $(call DOCU_call,$(1),TN,$(2),
 
 $(eval $(call DOCU_call,9.7.0.1,TN,Glossary,2021-04-25))
 $(eval $(call DOCU_call,9.7.0.2,TN,CommonInformation,2021-04-25))
-$(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.0.3,UniqueIdentifiers,2024-07-22))
+$(eval $(call DOCU_stn,9.7.0.4,EventIdentifiers,2024-07-22))
+$(eval $(call DOCU_stn,9.7.1.1,CanPhysical,2024-07-22))
 #$(eval $(call DOCU_stn,9.7.1.2,TcpPhysical)) does not exist yet
-$(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.2.1,CanFrameTransfer,2024-07-22))
 #$(eval $(call DOCU_stn,9.7.2.2,TcpTransfer)) does not exist yet
-$(eval $(call DOCU_stn,9.7.3.1,EventTransport,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.3.1,EventTransport,2024-07-22))
 $(eval $(call DOCU_stn,9.7.3.2,DatagramTransport,2021-04-25))
 #$(eval $(call DOCU_stn,9.7.3.3,StreamTransport)) does not exist yet
-$(eval $(call DOCU_stn,9.7.3,MessageNetwork,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.3,MessageNetwork,2024-07-22))
 
-$(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.4.1,ConfigurationDescriptionInformation,2024-07-22))
+$(eval $(call DOCU_stn,9.7.4.2,MemoryConfiguration,2024-07-22))
+$(eval $(call DOCU_stn,9.7.4.3,SimpleNodeInformation,2024-07-22))
 $(eval $(call DOCU_stn,9.7.4.4,FirmwareUpgrade,2021-04-25))
 $(eval $(call DOCU_stn,9.7.4.5,BroadcastTime,2021-04-25))
 
-$(eval $(call DOCU_stn,9.7.4.6,TrainControl,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.4.7,TrainSearch,2024-07-22,Draft))
-$(eval $(call DOCU_stn,9.7.4.8,FunctionDescriptionInformation,2024-07-22,Draft))
+$(eval $(call DOCU_stn,9.7.4.6,TrainControl,2024-07-22))
+$(eval $(call DOCU_stn,9.7.4.7,TrainSearch,2024-07-22))
+$(eval $(call DOCU_stn,9.7.4.8,FunctionDescriptionInformation,2024-07-22))
 
 
