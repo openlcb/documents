@@ -291,7 +291,39 @@
    (8-bit) DCC manufacture ID have two 24-bit allocations assigned to them without having to explicitly
    request any additional allocation.
 
-  2.5.12 Reserved Unique Identifiers
+  2.5.12 Locally-Allocated Identifiers
+
+   It is strongly recommended that Unique identifiers be constructed from ranges allocated to a particular
+   user or manufacturer (Sections 5.4, 5.5, 5.7, and 5.11), or those dedicated to specific purposes by the
+   Unique Identifiers Standard (Sections 5.3, 5.6, 5.8, and 5.10). This guarantees that there will be no
+   conflicts with other equipment currently part of an LCC network or added in the future.
+
+   Never-the-less, some constructors of LCC networks want to allocate bits in an Event ID1 to code for
+   various things, such as allocating bit fields to carry the function, type and location of the device
+   producing or consuming them.  The large address space of LCC's Event IDs makes this easier to do than
+   with other systems which typically have 11 or 12 bits available.
+
+   Assigning Event IDs using a custom allocation system, without properly allocating the underlying Unique
+   ID, will cause conflicts to occur.  One obvious case is when a node is taken from a layout with one
+   custom assignment to a layout with another, i.e. as part of a modular setup.  But conflicts can arise
+   even if the nodes aren't moved to another layout. For example, when installing a new node that uses
+   properly allocated Unique IDs and Event IDs, those might conflict with the custom allocation system. Or
+   when a throttle or train is brought to run on the layout, that might cause a conflict.  These can be
+   difficult to resolve.
+
+   The 0x0A Unique Identifier range is meant to reduce the probability of conflicts when doing local
+   allocation of Unique IDs and Event IDs.
+
+   By allocating Unique Ids and Event Ids that start with a 0x0A byte, the implementor can be assured that
+   no new node brought to the layout with properly allocated Unique IDs and Event IDs will conflict:  No
+   new node will have IDs that start with 0x0A.
+
+   This does not resolve conflicts with a locally-allocated node is taken to another layout with
+   locally-allocated Unique Ids and Event IDs.  The 0x0A prefix is not intended for e.g. modular layout
+   groups.  It is intended for independent clubs and home layouts that want to create their own allocation
+   system for use only on their layout.
+
+  2.5.13 Reserved Unique Identifiers
 
    For error detection, we permanently reserve all identifiers that start with either a 0x00 or 0xFF value.
    OpenLCB implementations should, but are not required to, treat it as an error when any of those are
@@ -310,7 +342,7 @@
    allocations may need to be added in the future.
 
    Because of the inherent difficulties in protecting an SQL or other Internet accessible databases from
-   abuse, both intentionally malicious and unintentional, an Unique Identifier Appendix document will
+   abuse, both intentionally malicious and unintentional, a Unique Identifier Appendix document will
    periodically be generated for the purposes of archival to a higher integrity revision control system.
     The Unique Identifier Appendix document is the final authority on assignments should the SQL database
    become corrupted creating a discrepancy between the two.
@@ -355,8 +387,14 @@
 
    2.5.11 Long (16-bit) NMRA DCC Manufacture Specific
 
-   2.5.12 Reserved Unique Identifiers
+   2.5.12 Locally-Allocated Identifiers
+
+   2.5.13 Reserved Unique Identifiers
 
    3 Implementation Information
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 See the Event Identifiers Standard and Technical Note

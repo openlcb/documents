@@ -1,13 +1,14 @@
-FROM ubuntu:20.04
+FROM ubuntu:24.04
 
 # Based on: https://github.com/ipunkt/docker-libreoffice-headless
 
-LABEL maintainer="kiwi64ajs@gmail.com" version.ubuntu="20.04"
+LABEL maintainer="kiwi64ajs@gmail.com" version.ubuntu="24.04"
 
-ENV DEBIAN_FRONTEND noninteractive
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt update && \
 	apt -y -q install \
+ 		pdftk \
 		libreoffice \
 		libreoffice-writer \
 		ure \
@@ -35,7 +36,8 @@ RUN apt update && \
 		fonts-sil-gentium \
 		fonts-texgyre \
 		fonts-tlwg-purisa \
-		writer2latex links make git texlive-latex-base texlive-latex-extra pdftk locales && \
+		writer2latex links make git texlive-latex-base texlive-latex-extra \
+		locales && \
 	apt-get -y -q remove libreoffice-gnome && \
 	apt -y autoremove && \
 	rm -rf /var/lib/apt/lists/*
@@ -47,9 +49,9 @@ WORKDIR "/tmp"
 
 RUN locale-gen en_US.UTF-8 && update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
 
-ENV LANG en_US.UTF-8  
-ENV LANGUAGE en_US:en  
-ENV LC_ALL en_US.UTF-8
+ENV LANG=en_US.UTF-8  
+ENV LANGUAGE=en_US:en  
+ENV LC_ALL=en_US.UTF-8
 
 ARG USER_ID
 ARG GROUP_ID
