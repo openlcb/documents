@@ -1,400 +1,353 @@
-                                                1 Introduction
+                                         1 Introduction (Informative)
 
-   This technical note contains informative discussion and background for the corresponding “OpenLCB Unique
-   Identifiers Standard”. This explanation is not normative in any way.
+   This standard describes the format and allocation of OpenLCB 48-bit Unique Identifiers. It is not
+   specific to any wire protocol.
 
-                                        2 Annotations to the Standard
+                                         2 Intended Use (Informative)
 
-   This section provides background information on corresponding sections of the Standard document. It's
-   expected that two documents will be read together.
+   Many OpenLCB protocols rely on each node having a Node ID, and those Node IDs being absolutely unique
+   between nodes. OpenLCB defines 48-bit unique identifiers for this purpose. Unique Identifiers are also
+   used to ensure that Event Identifiers are uniquely specified. This Standard is intended to ensure these
+   Unique Identifiers are available. It applies to all OpenLCB uses of 48-bit Unique Identifiers, including
+   as Node Identifiers.
 
-2.1 Introduction
+                                     3 References and Context (Normative)
 
-   Originally, OpenLCB Unique Identifiers was defined in terms of 48-bit unique “Node IDs”.  Other uses
-   were found for these identifiers that didn't associate them with a specific node, which demonstrated the
-   need for Unique Identifiers beyond just Node IDs.  Therefore, the Standard and this Technical Note are
-   generally written in terms of Unique Identifiers, which includes Node IDs usage.
+   This specification is in the context of the following OpenLCB Standards:
 
-2.2 Intended Use
-
-   The “globally unique” requirement only refers to the universe of connected nodes; nodes that never need
-   to communicate with each other need not have separate Node IDs. In general, however, nodes can move:
-   they can be sold or loaned for use on another layout, nodes on modular layouts can be connected to other
-   arbitrary modules, and few assumptions can be made. It is best if nodes are given a completely unique
-   identifier when manufactured, so there's no need to ever detect and resolve a conflict.  If a Node ID
-   conflict should occur on an OpenLCB network, the Message Network Standard defines how the conflict
-   should be handled.  In general, OpenLCB standards place the effort and burden on preventing a conflict
-   from occurring rather than resolving a conflict if and when it does occur.
-
-2.3 References and Context
-
-2.4 Format
-
-   The Standards don't require any particular human-readable format for input and output, but hex-pairs
-   with separators (example:  01.AB.34.01.CD.E3) are recommended by the Common Information TN. If any other
-   format is used, including decimal pairs, it's very important to make it clear how to interpret it.
-
-   There are many methods to store a Unique Identifier, and there is no constraint placed by the Unique
-   Identifier Standard on how a Unique Identifier is stored. It could be stored in a non-volatile memory,
-   as jumpers on a board, etc.
-
-2.5 Allocation
-
-  2.5.1 Overview
-
-   Unique Identifiers are assigned via a delegation process. At the highest level, ranges are assigned to
-   people and organizations, within which they are responsible for assigning Unique Identifiers to separate
-   devices. These ranges can be subdivided and delegated further, as needed. Additional ranges can then be
-   requested, which will eventually be recorded in the Unique Identifier Standard or the Unique Identifier
-   Appendix as appropriate.  The OpenLCB organization reserves the right to allocate Unique Identifiers
-   within a separate database in real-time and periodically update the Unique Identifier Appendix document
-   from this database.  In the unlikely event that a conflict shall arise between OpenLCB managed real-time
-   database and the Unique Identifiers Appendix, the Unique Identifiers Appendix , document represents the
-   true allocation.
-
-   One of the reasons for having a long, 48-bit Unique Identifier space is to make it easier to use a
-   delegation system like this.  Because there are a lot of possible Unique Identifiers, large ranges can
-   be delegated to groups without having to ensure that the range be efficiently used.  For example, most
-   NMRA members will not design their own OpenLCB nodes and need to assign Node IDs, but assigning a range
-   to every member makes it easy for those who want to, at a total cost of less than 0.0016% of the
-   available Unique Identifier space.
-
-   In the delegated assignments, the lower order byte(s) are self-assigned. Though not strictly required,
-   by convention, the value of zero  for the lower self-assigned byte(s) should be reserved, indicating
-   that a number within the range hasn't been assigned.
-
-   The high byte of each range is different for each type of assignment, making it easy to determine the
-   allocation pattern in use for a particular Unique Identifier.
-
-   Allocations are meant to be unique forever, so the standard requires that new allocation ranges not
-   overlap existing ones, and allocation regions not be reused later.
-
-  2.5.2 Reserved Leading Zero
-
-   A Unique Identifier with a most significant value of 0x00 is never valid.  This range is reserved.  A
-   message utilizing one of these values must never be sent on the OpenLCB bus.  If a node receives a
-   message utilizing a Unique Identifier from this range, it may ignore the message, or throw an error,
-   however, it must never act on the message as if it was a valid Unique Identifier.
-
-   The fact that the Unique Identifiers in this range are invalid may be, and often is, exploited within
-   the internal software of a node in order to mark an unused, or invalid, Node ID.  This use is private
-   and internal to the node and as such is not subject to scrutiny by the OpenLCB standards as long as it
-   is not exposed external to the node.
-
-  2.5.3 Well-Known Global Identifiers
-
-   In addition to use as Node Identifiers (Node IDs), OpenLCB Unique Identifiers are used to ensure
-   uniqueness of specific global event identifiers and for other purposes.  These numbers must be allocated
-   so that they are kept unique.  The identifiers specified in this section are of that type.
-
-   Note that the detailed use of these identifiers is specified elsewhere. In some cases, the protocols are
-   still being developed, and the entry here is just reserving a range for a specific future use.
-
-  2.5.4 Manufacturer Specific
-
-   This group of Unique Identifiers is reserved specifically for manufacturers.  Manufacturers may request
-   a range of Unique Identifiers for use within their products.  A Manufacturer may assign the Unique
-   Identifiers within their allocated range at their own discretion so long as every assignment is unique.
-
-   A manufacturer is not required to assign Unique Identifiers sequentially.  They may choose their own
-   arbitrary scheme that could be based on product type, manufacture date, or some other method of their
-   choosing.  Though it is strongly recommended for a manufacturer to make reasonably efficient use of
-   their self-assigned space, should a manufacturer require additional space, it may be requested, and
-   granted, without the requirement of having used every last available Unique Identifier within a
-   previously assigned space.  Manufacturers are not required to publicly disclose their allocation scheme
-   for Unique Identifiers.
-
-   In order to encourage existing manufacturers to participate in developing OpenLCB products, every DCC
-   manufacturer has already been allocated a 24-bit region within which to self-assign Unique Identifiers
-   from.  The DIY, JMRI, MERG, and NMRA Reserved spaces are sub-sets of the DCC manufacturer space and are
-   consistent with the DCC ID's already assigned for these purposes in the NMRA standards doc “S-9.2.2
-   Appendix A, DCC Manufacturer ID Codes”.  They are singled out only for the purpose of drawing attention
-   to the fact that they exist and not for any other purpose.
-
-   Only those DCC manufacturers assigned a short (8-bit) DCC manufacturer ID have allocations in this
-   region.  For those manufacturers that obtain a long (16-bit) DCC manufacture ID, please see section
-   2.5.11.  The result is that those manufacturers who happen to be earlier assignees of a unique DCC
-   manufacture ID have a slight advantage in that they have two 24-bit regions assigned to them without
-   having to explicit request assignment of a 2nd 24-bit region.  The reason for this is accidental.  It
-   was not known to the OpenLCB developers at the time of the first DCC manufacture ID based allocation
-   what the scheme for long (16-bit) DCC manufacture ID allocation would be.  When the long (16-bit) DCC
-   manufacture allocation scheme became known, it also became clear that this scheme would not fit within
-   the unassigned space remaining in the Manufacture Specific region.
-
-   The advantage posed by having two automatically allocated 24-bit DCC manufacture ID based regions is
-   negligible.  As stated in section 2.5.1, there is no shortage of 24-bit regions that can be assigned,
-   and another 24-bit region can be assigned to any manufacture upon request.
-
-  2.5.5 Self-Assigning Groups
-
-   MERG kit builders and others would like to assign their own identifiers without going through a
-   complicated process. To make this possible without any interaction with anybody, these groups are
-   assigned identifier ranges that involve their member number in the organization. A member may assign any
-   identifier from this range to the node(s) they produce, provided that each identifier is assigned to at
-   most one node. A range of 255 identifiers per member is typically sufficient for hobby usage.  Should a
-   hobbyist exhaust their assigned range, the hobbyist can get another, larger assignment. It's also
-   convenient to give hobbyists a byte as their range.
-
-   Each organization is assigned a unique high-order two bytes. The organization member number is given 24
-   bits.   Byte 2 of the Unique Identifier advances by 4 between groups (NMRA is 0x00, MERG is 0x04, etc)
-   to allow a little more headroom on group membership numbers; this space can be reclaimed later if
-   needed.
-
-   Other groups have defined mechanisms to ensure that their node numbers or equivalent constructs are
-   uniquely assigned. They may have non-technical reasons for wishing to use those same mechanisms to
-   assign OpenLCB unique identifiers. Ranges of OpenLCB Unique Identifiers can be assigned to these groups,
-   so that members may then use their group's mechanism to select a value within that range, the result
-   will be a properly unique OpenLCB Unique Identifier.
-
-   The first example of this is MERG CBUS developers. MERG CBUS has defined a “no cost” way of identifying
-   unique 16-bit Node Number (NN) for CBUS use, perhaps with an optional 16-bit Layout Number (LN). People
-   who wish to use this mechanism to allocate unique OpenLCB Node ID identifiers can, without having to
-   consult anybody, generate an OpenLCB Node ID from the unique CBUS number(s) as described in the
-   Standard.
-
-   If the user is involved in determining the Unique Identifier for a node (the Node ID) by setting
-   switches, the possibility of duplicated Node IDs must be considered. Users make mistakes. To reduce user
-   frustration, the node should provide a user-visible way to indicating a duplicate has been seen, and
-   should fully implement the relevant wire-protocol-specific methods for detecting duplicate Node IDs.
-
-  2.5.6 Assigned by Software at Runtime
-
-   Programs that act as one or more OpenLCB nodes need to associate unique identifiers with them. For
-   licensed software, where a unique key can be associated with each instance of the program, this is easy:
-   Use the manufacturer space defined above, and generate the lower bits of a specific ID from the license
-   key.
-
-   Free, open and unlicensed software can't use a license-key-based method. Unfortunately, the 48-bit
-   address space is too small to use the IP-address-plus-signature GIDs that would otherwise make this a
-   simple problem, or the even larger MAC-address-plus-signature GIDs.
-
-   Initial experiments were done using 32-bit IPv4 addresses as components of Unique Identifiers, but this
-   is no longer recommended for several reasons:
-
-     * Not all IPv4 addresses are globally unique.  Some IP addresses correspond to “private networks”,
-       which are only locally unique.  See RFC 1918 and RFC 3330 for more information.  In addition,
-       Microsoft defined a non-IETF “Automatic Private IP Addressing” mechanism for providing non-global IP
-       addresses.
-
-     * A single computer may run several programs, so there still needs to be separate mechanism to provide
-       a unique value for the lowest bytes of the ID.  That involves a level of coordination across
-       multiple software vendors that is hard to imagine.
-
-     * IPv6 is coming.  It provides addresses that are too large to use directly. Even before that happens,
-       the various issues of IPv4 to IPv6 mapping raise all sorts of questions about uniqueness of IPv4
-       addresses.
-
-     * Even globally routable IPv4 addresses may not be unique over time.  For example, DHCP may assign the
-       same address to multiple computers sequentially.  This is particularly an issue with wireless access
-       at e.g. clubs and shows.
-
-   Computers that have global Internet access, even if they don't have a permanent and unique IP address,
-   can still get a Unique Identifier from an openlcb.org-provided service.  These Unique Identifiers are
-   provided from a specified range to ensure that they are unique when created.  Each identifier is only
-   provided once to ensure that it remains unique.  Programs using this facility should permanently
-   remember Unique Identifiers obtained this way, because they won't get the same one on a later request.
-
-   Other organizations can also distribute Unique Identifiers from within their allocated blocks. For
-   example, a Unique Identifier could be provided when a free-software program is downloaded, perhaps as
-   part of the download package or even as part of its filename.
-
-   Programs without access to an ID-providing service must use some other mechanism, which may result in
-   prompting the user for a Unique Identifier assigned by one of the other mechanisms.
-
-  2.5.7 Specifically Assigned by Request
-
-   Users can request blocks of Unique Identifiers of various sizes.  The small (256) and medium (65536)
-   blocks are not scarce resources. Requests for these blocks should be routinely granted once the
-   requester has been identified. The 24-bit blocks are slightly scarcer, but there are still almost 216 of
-   them available by using additional values for byte 2.  
-
-   An automated system for requesting and obtaining unique ID ranges is available at
-   http://registry.openlcb.org and subsequent pages.  
-
-  2.5.8 Locomotive Control Systems
-
-   Though locomotive control was initially beyond the scope of OpenLCB development, later work has defined
-   OpenLCB methods for working with existing locomotive control systems.  This section specifies ranges of
-   Unique Identifiers that are reserved for the purpose of interfacing with existing locomotive control,
-   including how a given Unique Identifier maps into the address space of the existing locomotive control
-   system.  Additional details of how these Unique Identifiers are to be used are specified elsewhere, but
-   sufficient range has been reserved to allow providing existing locomotive control systems with Unique
-   Identifiers.
-
-   The expected use case is for a physical OpenLCB device to provide virtual Node representations with
-   Unique Identifiers defined within this space. The virtual Node representations may be static (created
-   automatically upon startup of the OpenLCB device) or dynamic (created on demand by mechanisms defined
-   elsewhere).
-
-   It is the responsibility of the user to ensure that only one OpenLCB device can exist in the network
-   that provides a virtual Node representation of a given Unique Identifier in this space. These Unique
-   Identifiers are not expected to be globally unique among all OpenLCB networks, but are expected to be
-   unique within the confines of a single OpenLCB network. It is for this reason that assignment of Unique
-   Event Identifiers out of this range are not allowed. Manufacturers are encouraged to provide guidance,
-   in the form of user facing documentation, to ensure that these criteria are met.
-
-   While a Unique Identifier space has been reserved for the MTH DCS system, the details of this system are
-   not well known enough at this time to provide greater specificity. Public information about the MTH DCS
-   protocol is limited. Manufacturers interested in implementing the MTH DCS system are encouraged to share
-   their knowledge of the MTH DCS system and its supported addressing schemes so that this Unique
-   Identifier space may become better defined in the future.
-
-  2.5.9 RFID and NFC
-
-   The RFID and NFC Unique Identifiers space is reserved to be used in future standards to be defined
-   elsewhere.
-
-  2.5.10 Temporary Assigned by Software at Runtime
-
-   As described in the section 2.5.6 Assigned by Software at Runtime above, there are many reasons for
-   which a node may want to be assigned a Unique Identifier at runtime.  This Unique Identifier space is
-   specifically designated for temporary (leased) assignment of these Unique Identifiers.  There is a
-   contract implied with the assignment between the assigning server and client node that is valid for a
-   time period defined by the server.  Once the prescribed time period expires, the client node must cease
-   usage of the previously assigned Unique Identifier.
-
-   It is left up to the user to guarantee that there are not two or more servers with the potential to
-   assign the same Unique Identifier within a single OpenLCB network.
-
-   The implementation of the client server protocol is not explicitly defined, and currently there is no
-   OpenLCB protocol that allows this client/server process to run over an OpenLCB network.  Other
-   mechanisms, such as a TCP connection over the Internet may be of use in implementation.  The following
-   list suggests implementation details that are not required, but might be considered when designing such
-   a client server pair:
-
-     * Lease time can be extended through a renewal process.
-
-     * The server does not reassign a previously assigned and currently expired Unique Identifier until it
-       has run through the entire pool allocated to it.
-
-     * The server allows the client to suggest a Unique Identifier that it would like from the server's
-       pool.
-
-     * The server have persistent storage of current leases that it can can consult in case of a restart.
-
-     * The client remembers its last Unique Identifier assignment and suggests to the server to be
-       re-assigned this Unique Identifier upon reset, power failure, or reconnection to the server
-       following a previous disconnect.
-
-   Use this pool with caution.  Implementation mechanisms that make use of this pool are currently
-   experimental.  Because Unique Event Identifiers assigned out of this range could be captured and
-   disseminated into use by nodes that could become unaware of a lease expiration and reassignment, Unique
-   Event Identifiers are not to be assigned out of this range.
-
-  2.5.11 Long (16-bit) NMRA DCC Manufacture Specific
-
-   When it became known that the long (16-bit) NMRA DCC manufacture ID space would not fit within the
-   unassigned space of the Manufacture Specific region described in section 2.5.4, this region was reserved
-   to be assigned to DCC manufacturers with a long (16-bit) DCC manufacture ID.  Because all short (8-bit)
-   DCC manufacturer IDs can all be represented as valid long (16-bit) DCC manufacture IDs by having the
-   most significant of the long (16-bit) DCC manufacture ID set to 0x00, those manufacturers with a short
-   (8-bit) DCC manufacture ID have two 24-bit allocations assigned to them without having to explicitly
-   request any additional allocation.
-
-  2.5.12 Locally-Allocated Identifiers
-
-   It is strongly recommended that Unique identifiers be constructed from ranges allocated to a particular
-   user or manufacturer (Sections 5.4, 5.5, 5.7, and 5.11), or those dedicated to specific purposes by the
-   Unique Identifiers Standard (Sections 5.3, 5.6, 5.8, and 5.10). This guarantees that there will be no
-   conflicts with other equipment currently part of an LCC network or added in the future.
-
-   Never-the-less, some constructors of LCC networks want to allocate bits in an Event ID1 to code for
-   various things, such as allocating bit fields to carry the function, type and location of the device
-   producing or consuming them.  The large address space of LCC's Event IDs makes this easier to do than
-   with other systems which typically have 11 or 12 bits available.
-
-   Assigning Event IDs using a custom allocation system, without properly allocating the underlying Unique
-   ID, will cause conflicts to occur.  One obvious case is when a node is taken from a layout with one
-   custom assignment to a layout with another, i.e. as part of a modular setup.  But conflicts can arise
-   even if the nodes aren't moved to another layout. For example, when installing a new node that uses
-   properly allocated Unique IDs and Event IDs, those might conflict with the custom allocation system. Or
-   when a throttle or train is brought to run on the layout, that might cause a conflict.  These can be
-   difficult to resolve.
-
-   The 0x0A Unique Identifier range is meant to reduce the probability of conflicts when doing local
-   allocation of Unique IDs and Event IDs.
-
-   By allocating Unique Ids and Event Ids that start with a 0x0A byte, the implementor can be assured that
-   no new node brought to the layout with properly allocated Unique IDs and Event IDs will conflict:  No
-   new node will have IDs that start with 0x0A.
-
-   This does not resolve conflicts with a locally-allocated node is taken to another layout with
-   locally-allocated Unique Ids and Event IDs.  The 0x0A prefix is not intended for e.g. modular layout
-   groups.  It is intended for independent clubs and home layouts that want to create their own allocation
-   system for use only on their layout.
-
-  2.5.13 Reserved Unique Identifiers
-
-   For error detection, we permanently reserve all identifiers that start with either a 0x00 or 0xFF value.
-   OpenLCB implementations should, but are not required to, treat it as an error when any of those are
-   encountered.
-
-                                         3 Implementation Information
-
-   Specific Unique Identifier assignments are stored in a MySQL database, and the full list of assignments,
-   including overall ranges from the standard and ranges assigned for specific purposes and users can be
-   found on the http://registry.openlcb.org website.  
-
-   Automated allocation systems can be abused, and we don't want to give away large chunks of address space
-   to automated requesters.  All available information about requests is logged. Users are asked for their
-   name and contact information at the time of the request, which is also logged.  Depending on experience
-   with requests, an email challenge-response or other mechanism to ensure only valid requests get
-   allocations may need to be added in the future.
-
-   Because of the inherent difficulties in protecting an SQL or other Internet accessible databases from
-   abuse, both intentionally malicious and unintentional, a Unique Identifier Appendix document will
-   periodically be generated for the purposes of archival to a higher integrity revision control system.
-    The Unique Identifier Appendix document is the final authority on assignments should the SQL database
-   become corrupted creating a discrepancy between the two.
+     * The OpenLCB Message Network Standard, which defines the basic messages and how they interact.
+       Higher-level protocols are based on this message network, but are defined elsewhere.
+
+     * The OpenLCB Event Identification Standard, which defines the well-known Events Identifiers.
+
+                                             4 Format (Normative)
+
+   An OpenLCB Unique Identifier (Unique ID) shall be six bytes of eight bits each.
+
+   The order of bytes in an OpenLCB unique Identifier shall be considered significant. The most-significant
+   byte shall be transmitted first during communication operations. The most-significant byte shall be
+   written first (left-most in Western format) in any human-readable representation.  Within the tables
+   below, byte 1 is considered the most-significant byte, while byte 6 is considered the least significant
+   byte.
+
+   An OpenLCB Unique Identifier shall include one or more 1 bits.
+
+   Every OpenLCB node shall have a Unique Identifier to use as a Node Identifier (Node ID).
+
+                                           5 Allocation (Normative)
+
+   Unique Identifiers shall be allocated using one of the mechanisms in this section.  When additional
+   allocation methods are defined, the Unique Identifiers defined by those additional methods shall only
+   provide allocation ranges that do no overlap with existing allocation ranges.  Ranges that are not
+   explicitly allocated are reserved for future use unless otherwise noted within this document.
+
+5.1 Overview
+
+   Unique Identifiers are allocated in groups starting with the most significant byte as the macro group
+   assignment.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization Comment                                           
+   00     *      *      *      *      *      OpenLCB      Reserved, leading zero indicates uninitialized or 
+                                                          non-standard Node ID                              
+   01     *      *      *      *      *      OpenLCB      Reserved for well-known global identifiers        
+   02     *      *      *      *      *      OpenLCB      Manufacturer Specific Assignments                 
+   03     *      *      *      *      *      OpenLCB      Self-assigning groups space                       
+   04     *      *      *      *      *      OpenLCB      Individual Unique Identifiers allocated by        
+                                                          automatic requests                                
+   05     *      *      *      *      *      OpenLCB      Specifically assigned ranges by request           
+   06     *      *      *      *      *      OpenLCB      Locomotive control systems (deprecated, may be    
+                                                          reassigned in the future)                         
+   07     *      *      *      *      *      OpenLCB      (tentative) RFID and NFC messages as events       
+   08     *      *      *      *      *      OpenLCB      Temporary individually Unique Identifiers leased  
+                                                          by automatic requests                             
+   09     *      *      *      *      *      OpenLCB      Long (16-bit) NMRA DCC manufacture identifiers    
+   FF     *      *      *      *      *      OpenLCB      Reserved, indicates an error (example:  reset     
+                                                          non-volatile memory)                              
+
+    
+
+5.2 Reserved Leading Zero
+
+   A value of zero in the most significant byte of the Unique Identifier indicates uninitialized or
+   non-standard Node ID.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization Comment                                          
+   00     00     00     00     00     00     OpenLCB      Convenient value for “no valid Node ID assigned” 
+
+    
+
+5.3 Well-Known Global Identifiers
+
+   OpenLCB defines specific well-known identification numbers and number ranges for specific uses. The
+   details of these ranges are defined in in either the Event Identifiers Standard or another Standard.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization Comment                                     
+                                                                Reserved for automatically-routed Event     
+   01     00     00     00     00        00        OpenLCB      Identifiers.  See Event Identifiers         
+                                                                Standard.                                   
+   01     01     00     00     00        00        OpenLCB      Reserved for well-known Event Identifiers.  
+                                                                 See Event Identifiers Standard.            
+                                                                Reserved for CBUS-defined Event Identifiers 
+   01     01     01     00     CBUS        Node ID MERG         (ON state).  See Event Identifiers Standard 
+                                                                and Technical Note.                         
+                                                                Reserved for CBUS-defined Event Identifiers 
+   01     01     01     01     CBUS        Node ID MERG         (OFF state).  See Event Identifiers         
+                                                                Standard Technical Note.                    
+   01     01     01     *      CBUS        Node ID MERG         Reserved for CBUS-defined future expansion. 
+   01     63     *      *      *         *         OpenLCB      XpressNet translation                       
+   01     81     *      *      *         *         OpenLCB      LocoNet translation                         
+   01     EE     *      *      *         *         OpenLCB      DCC Translation                             
+
+    
+
+5.4 Manufacturer Specific
+
+   Manufacturers shall ensure uniqueness for identifiers they assign.  Short (8-bit) NMRA DCC manufacture
+   ID's are assigned out of this pool.  Please see section 5.11 for long (16-bit) NMRA DCC manufacture
+   ID's.  Some of the DCC manufacture ID's are called out specifically in the table below as an example and
+   to draw attention to their existence, but they are assigned in accordance with their corresponding DCC
+   manufacture ID.  This pool may also be used for new, unique, non-DCC manufacture ID based assignments in
+   the future.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
+                                                                    Manufacturers who have been assigned a  
+                                                                    short DCC Manufacturer ID code may, but 
+   02     01     DCC ID Self-Assigned              DCC Manufacturer are not required to, use this range.    
+                                                                     These IDs are defined within the NMRA  
+                                                                    standard “S-9.2.2 Appendix A, DCC       
+                                                                    Manufacture ID Codes”                   
+   02     01     0D     Self-Assigned              DCC – DIY        Do-It-Yourself (shared unmanaged space, 
+                                                                    not recommended for individual use)     
+   02     01     12     Self-Assigned              DCC – JMRI       JMRI (for use in software solutions)    
+   02     01     A5     *      CBUS        Node ID DCC – MERG       MERG Node ID translation                
+   02     01     EE     *      *         *         DCC – NMRA       NMRA Reserved (for extended manufacture 
+                                                                    ID numbers).  Not available for use.    
+   02     02     *      *      *         *         Manufacturer     Manufacturers without a DCC             
+                                                                    Manufacturer ID                         
+
+    
+
+5.5 Self-Assigning Groups
+
+   These Unique Identifiers are assigned in association with an outside organization's unique
+   identification scheme.  The outside organization is responsible for assigning a globally unique
+   identifier that maps into the OpenLCB Unique Identifier space designated in the table below.  Future
+   definition of ranges for additional groups will use unique values in Byte 2.
+
+   Byte 1 Byte 2 Byte 3     Byte 4     Byte 5    Byte 6    Organization Comment                             
+                                                                        NMRA members may, but are not       
+                                                                        required to, use their NMRA         
+   03     00     Membership Number               *         NMRA         membership number to self-assign    
+                                                                        Unique Identifiers.  The least      
+                                                                        significant byte is self-assigned.  
+                                                                        MERG members may, but are not       
+                                                                        required to, use their MERG         
+   03     04     Membership Number               *         MERG         membership number to self-assign    
+                                                                        Unique Identifiers.  The least      
+                                                                        significant byte is self-assigned.  
+                                                                        CBUS – for mapping existing         
+   03     08     CBUS        Layout ID CBUS        Node ID MERG         modules, using the Layout ID        
+                                                                        defined by CBUS                     
+
+    
+
+5.6 Assigned by Software at Runtime
+
+   A program running in a computer with an IP address must not use that address to directly formulate a
+   unique identifier. The program may use an IP connection to request a unique identifier from openlcb.org,
+   or from another organization that is distributing unique identifiers from a range designated to it.
+
+   Byte 1 Byte 2 Byte 3 Byte 4    Byte 5    Byte 6   Organization Comment                                   
+   04     00     00     Sequentially Assigned Values OpenLCB      Allocated through OpenLCB.org             
+   04     00     *      Sequentially Assigned Values OpenLCB      Reserved for OpenLCB.org future expansion 
+
+    
+
+5.7 Specifically Assigned by Request
+
+   These ranges are assigned by the OpenLCB group.  The OpenLCB group regularly publishes the authoritative
+   list of these assignments. The most up-to-date draft of these assignments are available on the OpenLCB
+   Unique Identifiers website: http://registry.openlcb.org.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5         Byte 6        Organization Comment                            
+                                                                         8-bit assigned ranges.  The least  
+   05     01     *      *      *              *             OpenLCB      significant byte is sequentially   
+                                                                         assigned.                          
+                                                                         16-bit assigned ranges.  The least 
+   05     02     *      *      Sequentially Assigned Values OpenLCB      significant two bytes are          
+                                                                         sequentially assigned.             
+                                                                         24-bit assigned ranges.  The least 
+   05     03     *      Sequentially Assigned Values        OpenLCB      significant three bytes are        
+                                                                         sequentially assigned.             
+
+    
+
+5.8 Locomotive Control Systems
+
+   This Unique Identifier range (starting with a most significant byte value of 0x06) is allocated for
+   locomotive control systems. Unique Event Identifiers shall not be defined out of this range.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6  Organization Comment                                          
+                                                           DC system. Valid byte 6 values are 0 to 255, and 
+   06     00     00     00     00     00 - FF OpenLCB      correspond with the DC cab ID in a multi-cab     
+                                                           block system.                                    
+   06     01     *      *      *      *       OpenLCB      DCC operated. Undefined values are reserved.     
+                                                           DCC short (7-bit) address. Valid byte 6 values   
+                                                           are 0 to 127. 0 is the broadcast address and can 
+   06‍    01     00     00     00     00 - 7F OpenLCB      be used to control all DCC short and long        
+                                                           address locomotives. All other values are        
+                                                           reserved.                                        
+                                                           DCC long (14-bit) address Valid byte 5 and 6     
+                                                           values are 0 to 10239 logically or’d with        
+   ‍06    01     00     00     C000 - E7FF    OpenLCB      0xC000, consistent with DCC conventions. Byte 5  
+                                                           is the most significant byte and byte 6 is the   
+                                                           least significant byte. All other values are     
+                                                           reserved.                                        
+   06     02     *      *      *      *       OpenLCB      TMCC.                                            
+                                                           TMCC 2-digit address. Valid byte 6 values are 1  
+   06‍    02     00     00     00     01 - 63 OpenLCB      to 99, all other values are reserved. Address 99 
+                                                           is the broadcast address and can be used to      
+                                                           control all TMCC 2-digit locomotives.            
+                                                           TMCC 4-digit address. Valid byte 5 and 6 values  
+                                                           are 0 to 9999 logically or’d with 0xC000. Byte 5 
+                                                           is the most significant byte and byte 6 is the   
+   ‍06    02     00     00     C000 - E70F    OpenLCB      least significant byte. 0xC000 is the broadcast  
+                                                           address and can be used to control all TMCC      
+                                                           4-digit locomotives. All other values are        
+                                                           reserved.                                        
+   06     03     00     00     00     01-50   OpenLCB      Märklin/Motorola system. Valid byte 6 values are 
+                                                           1 to 80, all other values are reserved.          
+   06     04     *      *      *      *       OpenLCB      MTH DCS, reserved for future definition, do not  
+                                                           use.                                             
+
+    
+
+5.9 RFID and NFC
+
+   The RFID Unique Identifiers space is reserved for further standardization in the future.  Do not use
+   this space before contacting the OpenLCB organization first.
+
+5.10 Temporary Assigned by Software at Runtime
+
+   This range has been reserved for specialized software and network services specifically designed to
+   lease a Unique Identifier to nodes upon request. Nodes that come without a Unique Identifier (such as
+   computer programs) may contact an instance of such leasing service to obtain a Unique Identifier. Nodes
+   may use any method outside the OpenLCB network to locate and communicate with a leasing service (for
+   example an Internet connection or a local TCP/IP network). The leases shall be limited in time, and a
+   node shall not use an identifier after the lease time expires. The node may communicate with the leasing
+   service to periodically extend the lease.
+
+   Each such service shall operate from a range assigned to the specific instance, and is responsible for
+   ensuring uniqueness among its clients. The owner or maintainer of an OpenLCB Installation is responsible
+   for ensuring that all the leasing services that all the nodes participating in the installation are
+   using, have disjoint ranges. In particular, if the installation operates one or more leasing services,
+   they must be assigned disjoint ranges to hand out identifiers from. Globally available leasing services
+   (such as over the Internet) shall have a unique range assigned to them.
+
+   Because Unique Event Identifiers assigned out of this range could be captured and disseminated into use
+   by nodes that could become unaware of a lease expiration and reassignment, Unique Event Identifiers
+   shall not be assigned out of this range.
+
+   It is possible that a future OpenLCB protocol may, or may not, define a mechanism to negotiate a Unique
+   Identifier lease over an OpenLCB network.  It is important to note that no such protocol is prescribed
+   by this standard.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization     Comment                                       
+   08     00     00     Self-Assigned        OpenLCB          Allocated through OpenLCB.org.                
+   08     00     *      Self-Assigned        OpenLCB          Reserved for future OpenLCB.org allocations.  
+                                                              Manufacturers who have been assigned a DCC    
+               Long                                           Manufacturer ID code may, but are not         
+   08     01   DCC ID          Self-Assigned DCC Manufacturer required to, use this range.  These IDs are   
+                                                              defined within the the NMRA standard “S-9.2.2 
+                                                              Appendix A, DCC Manufacture ID Codes”.        
+   08     01     00     0D     Self-Assigned DCC - DIY        Do-It-Yourself (shared unmanaged space).  Use 
+                                                              with Caution.                                 
+
+    
+
+5.11 Long (16-bit) NMRA DCC Manufacturer Specific
+
+   Manufacturers shall ensure uniqueness for identifiers they assign.  Long (8-bit) NMRA DCC manufacture
+   ID's are assigned out of this pool.  Some of the DCC manufacture ID's are called out specifically in the
+   table below as an example and to draw attention to their existence, but they are assigned in accordance
+   with their corresponding DCC manufacture ID.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
+                                                                    Manufacturers who have been assigned a  
+          Long                                                      DCC Manufacturer ID code may, but are   
+   09                   Self-Assigned              DCC Manufacturer not required to, use this range.  These 
+          DCC ID                                                    IDs are defined within the NMRA         
+                                                                    standard “S-9.2.2 Appendix A, DCC       
+                                                                    Manufacture ID Codes”                   
+   09     00     0D     Self-Assigned              DCC – DIY        Do-It-Yourself (shared unmanaged space, 
+                                                                    not recommended for individual use)     
+   09     00     12     Self-Assigned              DCC – JMRI       JMRI (for use in software solutions)    
+   09     00     A5     *      CBUS        Node ID DCC – MERG       MERG Node ID translation                
+   09     00     EE     *      *         *         DCC – NMRA       NMRA Reserved (for extended manufacture 
+                                                                    ID numbers).  Not available for use.    
+
+    
+
+5.12 Locally-Allocated Identifiers
+
+   This Unique Identifier range (starting with the most significant byte value of 0x0A) is reserved for the
+   creation of locally-allocated identifiers.  For example, a club might allocate EventIDs from this range
+   with subfields that identify the type, location and function served by each EventID.  Selecting Unique
+   IDs and Event IDs from this range will ensure that installing new globally-unique hardware and software
+   will not cause conflicts with the locally-allocated IDs.
+
+5.13 Reserved Unique Identifiers
+
+   All other unique identifiers not specifically discussed in this Standard shall not be used until the
+   Standard is revised to permit their use.  Additionally, the following table identifies Unique
+   Identifiers that shall be reserved indefinitely.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 Byte 5 Byte 6 Organization Comment                         
+   00     *      *      *      *      *      OpenLCB      Shall not be used at any point. 
+   FF     *      *      *      *      *      OpenLCB      Shall not be used at any point. 
+
+    
+
+    
 
     
 
    Table of Contents
 
-   1 Introduction
+   1 Introduction (Informative)
 
-   2 Annotations to the Standard
+   2 Intended Use (Informative)
 
-   2.1 Introduction
+   3 References and Context (Normative)
 
-   2.2 Intended Use
+   4 Format (Normative)
 
-   2.3 References and Context
+   5 Allocation (Normative)
 
-   2.4 Format
+   5.1 Overview
 
-   2.5 Allocation
+   5.2 Reserved Leading Zero
 
-   2.5.1 Overview
+   5.3 Well-Known Global Identifiers
 
-   2.5.2 Reserved Leading Zero
+   5.4 Manufacturer Specific
 
-   2.5.3 Well-Known Global Identifiers
+   5.5 Self-Assigning Groups
 
-   2.5.4 Manufacturer Specific
+   5.6 Assigned by Software at Runtime
 
-   2.5.5 Self-Assigning Groups
+   5.7 Specifically Assigned by Request
 
-   2.5.6 Assigned by Software at Runtime
+   5.8 Locomotive Control Systems
 
-   2.5.7 Specifically Assigned by Request
+   5.9 RFID and NFC
 
-   2.5.8 Locomotive Control Systems
+   5.10 Temporary Assigned by Software at Runtime
 
-   2.5.9 RFID and NFC
+   5.11 Long (16-bit) NMRA DCC Manufacturer Specific
 
-   2.5.10 Temporary Assigned by Software at Runtime
+   5.12 Locally-Allocated Identifiers
 
-   2.5.11 Long (16-bit) NMRA DCC Manufacture Specific
-
-   2.5.12 Locally-Allocated Identifiers
-
-   2.5.13 Reserved Unique Identifiers
-
-   3 Implementation Information
+   5.13 Reserved Unique Identifiers
 
     
-
-     ----------------------------------------------------------------------------------------------------
-
-   1 See the Event Identifiers Standard and Technical Note
