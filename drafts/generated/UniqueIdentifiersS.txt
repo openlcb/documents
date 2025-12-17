@@ -38,7 +38,7 @@
 
    Unique Identifiers shall be allocated using one of the mechanisms in this section.  When additional
    allocation methods are defined, the Unique Identifiers defined by those additional methods shall only
-   provide allocation ranges that do no overlap with existing allocation ranges.  Ranges that are not
+   provide allocation ranges that do not overlap with existing allocation ranges.  Ranges that are not
    explicitly allocated are reserved for future use unless otherwise noted within this document.
 
 5.1 Overview
@@ -55,12 +55,14 @@
    04     *      *      *      *      *      OpenLCB      Individual Unique Identifiers allocated by        
                                                           automatic requests                                
    05     *      *      *      *      *      OpenLCB      Specifically assigned ranges by request           
-   06     *      *      *      *      *      OpenLCB      Locomotive control systems (deprecated, may be    
-                                                          reassigned in the future)                         
+   06     *      *      *      *      *      OpenLCB      Locomotive control systems                        
    07     *      *      *      *      *      OpenLCB      (tentative) RFID and NFC messages as events       
    08     *      *      *      *      *      OpenLCB      Temporary individually Unique Identifiers leased  
                                                           by automatic requests                             
-   09     *      *      *      *      *      OpenLCB      Long (16-bit) NMRA DCC manufacture identifiers    
+   09     *      *      *      *      *      OpenLCB      Long (12-bit) NMRA DCC manufacture identifiers    
+   ‍0A    *      *      *      *      *      OpenLCB      Locally-Allocated Identifiers                     
+   ‍1*    *      *      *      *      *      OpenLCB      Devices originating RailCom® and Bi-Directional   
+                                                          Communications1                                   
    FF     *      *      *      *      *      OpenLCB      Reserved, indicates an error (example:  reset     
                                                           non-volatile memory)                              
 
@@ -197,11 +199,20 @@
    06‍    01     00     00     00     00 - 7F OpenLCB      be used to control all DCC short and long        
                                                            address locomotives. All other values are        
                                                            reserved.                                        
-                                                           DCC long (14-bit) address Valid byte 5 and 6     
+                                                           DCC long (14-bit) address. Valid byte 5 and 6    
                                                            values are 0 to 10239 logically or’d with        
    ‍06    01     00     00     C000 - E7FF    OpenLCB      0xC000, consistent with DCC conventions. Byte 5  
                                                            is the most significant byte and byte 6 is the   
                                                            least significant byte. All other values are     
+                                                           reserved.                                        
+                                                           DCC basic accessory decoder addresses. The value 
+                                                           is formed from the 9 AAA AAA AAA and two NN bits 
+   ‍06    01     00     01     0000-07FF      OpenLCB      defined in the NMRA DCC packet address. Valid    
+                                                           byte 5 and 6 values are 0 to 2047. All other     
+                                                           values are reserved.                             
+                                                           DCC extended accessory decoder address with      
+   06‍    01     00     02     0000-07FF      OpenLCB      11-bit decoder addresses. Valid byte 5 and 6     
+                                                           values are 0-2047. All other values are          
                                                            reserved.                                        
    06     02     *      *      *      *       OpenLCB      TMCC.                                            
                                                            TMCC 2-digit address. Valid byte 6 values are 1  
@@ -267,14 +278,17 @@
 
 5.11 Long (16-bit) NMRA DCC Manufacturer Specific
 
-   Manufacturers shall ensure uniqueness for identifiers they assign.  Long (8-bit) NMRA DCC manufacture
+   Manufacturers shall ensure uniqueness for identifiers they assign.  Long (12-bit) NMRA DCC manufacture
    ID's are assigned out of this pool.  Some of the DCC manufacture ID's are called out specifically in the
    table below as an example and to draw attention to their existence, but they are assigned in accordance
    with their corresponding DCC manufacture ID.
 
+   Note that, given that Long DCC IDs are defined as 12 bits long, values other than 0x0 in the upper four
+   bits of Byte 2 are reserved to the OpenLCB group.
+
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
                                                                     Manufacturers who have been assigned a  
-          Long                                                      DCC Manufacturer ID code may, but are   
+          12 bit Long                                               DCC Manufacturer ID code may, but are   
    09                   Self-Assigned              DCC Manufacturer not required to, use this range.  These 
           DCC ID                                                    IDs are defined within the NMRA         
                                                                     standard “S-9.2.2 Appendix A, DCC       
@@ -294,9 +308,29 @@
    creation of locally-allocated identifiers.  For example, a club might allocate EventIDs from this range
    with subfields that identify the type, location and function served by each EventID.  Selecting Unique
    IDs and Event IDs from this range will ensure that installing new globally-unique hardware and software
-   will not cause conflicts with the locally-allocated IDs.
+   will not cause conflicts with the locally-allocated IDs. It will not guarantee that moving nodes between
+   model railroads using this range, e.g. on modular railroads, will not cause conflicts.
 
-5.13 Reserved Unique Identifiers
+5.13 Devices originating RailCom® and Bidirectional Communications
+
+   The RailCommunity’s RailCom Standard and the NMRA’s Bi-Directional Communications Standard define a
+   44-bit range for communications.  The most-significant 12 bits of this is a RailCommunity and NMRA
+   manufacturer identifier number.  This range is a 44-bit allocation for the originators of those
+   communications.
+
+   As of 2025, the RailCommunity and the NMRA are allocating manufacturer identifier numbers with an upper
+   four bits of zero.  When/if those identifiers expand to have non-zero bits in their upper four bits,
+   more of this range will be allocated for those identifiers.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 ‍Byte 5 Byte 6‍ Organization           Comment                               
+   10     *      *      *      *‍      *‍      RailCommunity and NMRA Initial allocation for RailCom and    
+                                                                      Bi-Directional Communications         
+   11-1F  *      *      *      *‍      *‍      OpenLCB                Reserved for expansion of RailCom and 
+                                                                      Bi-Directional Communications         
+
+    
+
+5.14 Reserved Unique Identifiers
 
    All other unique identifiers not specifically discussed in this Standard shall not be used until the
    Standard is revised to permit their use.  Additionally, the following table identifies Unique
@@ -348,6 +382,14 @@
 
    5.12 Locally-Allocated Identifiers
 
-   5.13 Reserved Unique Identifiers
+   5.13 Devices originating RailCom® and Bidirectional Communications
+
+   5.14 Reserved Unique Identifiers
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 The NMRA uses “Bid-Drectional Communications” and the RailCommunity uses RailCom to refer to the
+   ability of a DCC decoder to return communications to a detector.  Note that RailCom is the registered
+   trademake of Lenx GmbH in Germany.

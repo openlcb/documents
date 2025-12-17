@@ -281,13 +281,13 @@
    disseminated into use by nodes that could become unaware of a lease expiration and reassignment, Unique
    Event Identifiers are not to be assigned out of this range.
 
-  2.5.11 Long (16-bit) NMRA DCC Manufacture Specific
+  2.5.11 Long (12-bit) NMRA DCC Manufacture Specific
 
-   When it became known that the long (16-bit) NMRA DCC manufacture ID space would not fit within the
+   When it became known that the long (12-bit) NMRA DCC manufacture ID space would not fit within the
    unassigned space of the Manufacture Specific region described in section 2.5.4, this region was reserved
-   to be assigned to DCC manufacturers with a long (16-bit) DCC manufacture ID.  Because all short (8-bit)
-   DCC manufacturer IDs can all be represented as valid long (16-bit) DCC manufacture IDs by having the
-   most significant of the long (16-bit) DCC manufacture ID set to 0x00, those manufacturers with a short
+   to be assigned to DCC manufacturers with a long (12-bit) DCC manufacture ID.  Because all short (8-bit)
+   DCC manufacturer IDs can all be represented as valid long (12-bit) DCC manufacture IDs by having the
+   most significant of the long (12-bit) DCC manufacture ID set to 0x00, those manufacturers with a short
    (8-bit) DCC manufacture ID have two 24-bit allocations assigned to them without having to explicitly
    request any additional allocation.
 
@@ -318,12 +318,33 @@
    no new node brought to the layout with properly allocated Unique IDs and Event IDs will conflict:  No
    new node will have IDs that start with 0x0A.
 
-   This does not resolve conflicts with a locally-allocated node is taken to another layout with
-   locally-allocated Unique Ids and Event IDs.  The 0x0A prefix is not intended for e.g. modular layout
-   groups.  It is intended for independent clubs and home layouts that want to create their own allocation
-   system for use only on their layout.
+   An example club coding might  be:
 
-  2.5.13 Reserved Unique Identifiers
+     * Use byte 2 to code a location on the layout
+
+     * Use byte 3 to code a sub-location such as the west-bound end of the location
+
+     * Use byte 4 to code the particular device type, such as signal, turnout, etc.
+
+     * Use byte 5 to code the specific device, such as the signal number within the location
+
+   Note that this is not a recommendation for allocating unique IDs.  The recommended  allocation system is
+   defined in other sections of the Standard and Technical note.  
+
+   Use of the 0x0A allccation does not resolve conflicts with a locally-allocated node is taken to another
+   layout with locally-allocated Unique Ids and Event IDs.  The 0x0A prefix is not intended for e.g.
+   modular layout groups.  It is intended for independent clubs and home layouts that want to create their
+   own allocation system for use only on their layout.
+
+  2.5.13 Devices originating RailCom© and Bi-Directional Communications2
+
+   OpenLCB is reserving the allocations from 0x12.*.*.*.*.* to 0x1F.*.*.*.*.* so that they can be reclaimed
+   for other purposes should they not be needed for manufacturer IDs at some point in the future.  The NMRA
+   and RailCommunity are doing the first allocations of manufacturer IDs with the top 4 bits of zero.
+   Discussions are underweigh (2025) to request that they use a one in the top four bits for when they need
+   to extend that range.
+
+  2.5.14 Reserved Unique Identifiers
 
    For error detection, we permanently reserve all identifiers that start with either a 0x00 or 0xFF value.
    OpenLCB implementations should, but are not required to, treat it as an error when any of those are
@@ -385,11 +406,13 @@
 
    2.5.10 Temporary Assigned by Software at Runtime
 
-   2.5.11 Long (16-bit) NMRA DCC Manufacture Specific
+   2.5.11 Long (12-bit) NMRA DCC Manufacture Specific
 
    2.5.12 Locally-Allocated Identifiers
 
-   2.5.13 Reserved Unique Identifiers
+   2.5.13 Devices originating RailCom© and Bi-Directional Communications2
+
+   2.5.14 Reserved Unique Identifiers
 
    3 Implementation Information
 
@@ -398,3 +421,7 @@
      ----------------------------------------------------------------------------------------------------
 
    1 See the Event Identifiers Standard and Technical Note
+
+   2 The NMRA uses “Bid-Drectional Communications” and the RailCommunity uses RailCom to refer to the
+   ability of a DCC decoder to return communications to a detector.  Note that RailCom is the registered
+   trademake of Lenx GmbH in Germany.
