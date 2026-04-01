@@ -79,14 +79,29 @@
 
          2. If the high bits are 0x39 this represents a DCC consist address
 
-         3. An address of 0x3800 (short address 0) represents “unknown”.
+         3. An address of 0x3800 (short address 0) represents that the track is empty, i.e. there is no
+            decoder present.
 
          4. Otherwise it’s a DCC long address
 
    The encoding of DCC addresses into 14 bits follows the S-9.2.1.1 and RCN-218 standards.
 
-   The 0x3800 value is used for unknown instead of 0x0000 because 0x0000 is long address zero, which is a
-   valid (though uncommon) long address.
+   The 0x3800 value is used for track empty instead of 0x0000 because 0x0000 is long address zero, which is
+   a valid (though uncommon) long address.
+
+   A detector may, but does not have to, use the 0x3800 “track is empty” by for example producing a “'track
+   is empty' leaves” event when the track becomes occupied, and a “‘track is empty arrives” when the track
+   becomes unoccupied.  For example:
+
+    
+
+   06.80.99.30.03.50.38.00 - "track is empty” leaves
+
+   06.80.99.30.03.50.F8.03 - 3S arrives
+
+   06.80.99.30.03.50.38.03 - 3S leaves
+
+   06.80.99.30.03.50.F8.00 - "track is empty" arrives
 
 2.5 States
 
