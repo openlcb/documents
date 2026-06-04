@@ -38,7 +38,7 @@
 
    Unique Identifiers shall be allocated using one of the mechanisms in this section.  When additional
    allocation methods are defined, the Unique Identifiers defined by those additional methods shall only
-   provide allocation ranges that do no overlap with existing allocation ranges.  Ranges that are not
+   provide allocation ranges that do not overlap with existing allocation ranges.  Ranges that are not
    explicitly allocated are reserved for future use unless otherwise noted within this document.
 
 5.1 Overview
@@ -55,12 +55,14 @@
    04     *      *      *      *      *      OpenLCB      Individual Unique Identifiers allocated by        
                                                           automatic requests                                
    05     *      *      *      *      *      OpenLCB      Specifically assigned ranges by request           
-   06     *      *      *      *      *      OpenLCB      Locomotive control systems (deprecated, may be    
-                                                          reassigned in the future)                         
+   06     *      *      *      *      *      OpenLCB      Locomotive control systems                        
    07     *      *      *      *      *      OpenLCB      (tentative) RFID and NFC messages as events       
    08     *      *      *      *      *      OpenLCB      Temporary individually Unique Identifiers leased  
                                                           by automatic requests                             
-   09     *      *      *      *      *      OpenLCB      Long (16-bit) NMRA DCC manufacture identifiers    
+   09     *      *      *      *      *      OpenLCB      Long (12-bit) NMRA DCC manufacturer identifiers   
+   ‍0A    *      *      *      *      *      OpenLCB      Locally-Allocated Identifiers                     
+   ‍1*    *      *      *      *      *      OpenLCB      Devices originating RailCom® and Bi-Directional   
+                                                          Communications1                                   
    FF     *      *      *      *      *      OpenLCB      Reserved, indicates an error (example:  reset     
                                                           non-volatile memory)                              
 
@@ -102,12 +104,12 @@
 
 5.4 Manufacturer Specific
 
-   Manufacturers shall ensure uniqueness for identifiers they assign.  Short (8-bit) NMRA DCC manufacture
-   ID's are assigned out of this pool.  Please see section 5.11 for long (16-bit) NMRA DCC manufacture
-   ID's.  Some of the DCC manufacture ID's are called out specifically in the table below as an example and
-   to draw attention to their existence, but they are assigned in accordance with their corresponding DCC
-   manufacture ID.  This pool may also be used for new, unique, non-DCC manufacture ID based assignments in
-   the future.
+   Manufacturers shall ensure uniqueness for identifiers they assign.  Short (8-bit) NMRA DCC manufacturer
+   ID's are assigned out of this pool.  Please see section 5.11 for long (12-bit) NMRA DCC manufacturer
+   ID's.  Some of the DCC manufacturer ID's are called out specifically in the table below as an example
+   and to draw attention to their existence, but they are assigned in accordance with their corresponding
+   DCC manufacturer ID.  This pool may also be used for new, unique, non-DCC manufacturer ID based
+   assignments in the future.
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
                                                                     Manufacturers who have been assigned a  
@@ -115,13 +117,14 @@
    02     01     DCC ID Self-Assigned              DCC Manufacturer are not required to, use this range.    
                                                                      These IDs are defined within the NMRA  
                                                                     standard “S-9.2.2 Appendix A, DCC       
-                                                                    Manufacture ID Codes”                   
+                                                                    Manufacturer ID Codes”                  
    02     01     0D     Self-Assigned              DCC – DIY        Do-It-Yourself (shared unmanaged space, 
                                                                     not recommended for individual use)     
    02     01     12     Self-Assigned              DCC – JMRI       JMRI (for use in software solutions)    
    02     01     A5     *      CBUS        Node ID DCC – MERG       MERG Node ID translation                
-   02     01     EE     *      *         *         DCC – NMRA       NMRA Reserved (for extended manufacture 
-                                                                    ID numbers).  Not available for use.    
+                                                                    NMRA Reserved (for extended             
+   02     01     EE     *      *         *         DCC – NMRA       manufacturer ID numbers).  Not          
+                                                                    available for use.                      
    02     02     *      *      *         *         Manufacturer     Manufacturers without a DCC             
                                                                     Manufacturer ID                         
 
@@ -137,9 +140,18 @@
    Byte 1 Byte 2 Byte 3     Byte 4     Byte 5    Byte 6    Organization Comment                             
                                                                         NMRA members may, but are not       
                                                                         required to, use their NMRA         
-   03     00     Membership Number               *         NMRA         membership number to self-assign    
+                                                                        membership number to self-assign    
                                                                         Unique Identifiers.  The least      
                                                                         significant byte is self-assigned.  
+                                                                        The most significant nibble (upper  
+   03     00     Membership Number               *         NMRA         4 bits of Byte 3) is 0x0 for        
+                                                                        regular NMRA members, 0x8 for Life  
+                                                                        Members with an “L” preceding their 
+                                                                        membership number, and 0x9 for      
+                                                                        Honorary Life Members with an HLM   
+                                                                        preceding their number. The number  
+                                                                        used here shall not include the     
+                                                                        separate family code.               
                                                                         MERG members may, but are not       
                                                                         required to, use their MERG         
    03     04     Membership Number               *         MERG         membership number to self-assign    
@@ -197,12 +209,22 @@
    06‍    01     00     00     00     00 - 7F OpenLCB      be used to control all DCC short and long        
                                                            address locomotives. All other values are        
                                                            reserved.                                        
-                                                           DCC long (14-bit) address Valid byte 5 and 6     
+                                                           DCC long (14-bit) address. Valid byte 5 and 6    
                                                            values are 0 to 10239 logically or’d with        
    ‍06    01     00     00     C000 - E7FF    OpenLCB      0xC000, consistent with DCC conventions. Byte 5  
                                                            is the most significant byte and byte 6 is the   
                                                            least significant byte. All other values are     
                                                            reserved.                                        
+                                                           DCC basic accessory decoder addresses. The value 
+                                                           is formed from the 9 AAA AAA AAA and two NN bits 
+   ‍06    01     00     01     0000-07FF      OpenLCB      defined in the NMRA DCC packet address. The top  
+                                                           three bits shall not be inverted. Valid byte 5   
+                                                           and 6 values are 0 to 2047. All other values are 
+                                                           reserved.                                        
+                                                           DCC extended accessory decoders with 11-bit      
+   06‍    01     00     02     0000-07FF      OpenLCB      decoder addresses. The top three bits shall not  
+                                                           be inverted. Valid byte 5 and 6 values are       
+                                                           0-2047. All other values are reserved.           
    06     02     *      *      *      *       OpenLCB      TMCC.                                            
                                                            TMCC 2-digit address. Valid byte 6 values are 1  
    06‍    02     00     00     00     01 - 63 OpenLCB      to 99, all other values are reserved. Address 99 
@@ -259,32 +281,36 @@
                Long                                           Manufacturer ID code may, but are not         
    08     01   DCC ID          Self-Assigned DCC Manufacturer required to, use this range.  These IDs are   
                                                               defined within the the NMRA standard “S-9.2.2 
-                                                              Appendix A, DCC Manufacture ID Codes”.        
+                                                              Appendix A, DCC Manufacturer ID Codes”.       
    08     01     00     0D     Self-Assigned DCC - DIY        Do-It-Yourself (shared unmanaged space).  Use 
                                                               with Caution.                                 
 
     
 
-5.11 Long (16-bit) NMRA DCC Manufacturer Specific
+5.11 Long (12-bit) NMRA DCC Manufacturer Specific
 
-   Manufacturers shall ensure uniqueness for identifiers they assign.  Long (8-bit) NMRA DCC manufacture
-   ID's are assigned out of this pool.  Some of the DCC manufacture ID's are called out specifically in the
-   table below as an example and to draw attention to their existence, but they are assigned in accordance
-   with their corresponding DCC manufacture ID.
+   Manufacturers shall ensure uniqueness for identifiers they assign.  Long (12-bit) NMRA DCC manufacturer
+   ID's are assigned out of this pool.  Some of the DCC manufacturer ID's are called out specifically in
+   the table below as an example and to draw attention to their existence, but they are assigned in
+   accordance with their corresponding DCC manufacturer ID.
+
+   Note that, given that Long DCC IDs are defined as 12 bits long, values other than 0x0 in the upper four
+   bits of Byte 2 are reserved to the OpenLCB group.
 
    Byte 1 Byte 2 Byte 3 Byte 4 Byte 5    Byte 6    Organization     Comment                                 
                                                                     Manufacturers who have been assigned a  
-          Long                                                      DCC Manufacturer ID code may, but are   
+          12 bit Long                                               DCC Manufacturer ID code may, but are   
    09                   Self-Assigned              DCC Manufacturer not required to, use this range.  These 
           DCC ID                                                    IDs are defined within the NMRA         
                                                                     standard “S-9.2.2 Appendix A, DCC       
-                                                                    Manufacture ID Codes”                   
+                                                                    Manufacturer ID Codes”                  
    09     00     0D     Self-Assigned              DCC – DIY        Do-It-Yourself (shared unmanaged space, 
                                                                     not recommended for individual use)     
    09     00     12     Self-Assigned              DCC – JMRI       JMRI (for use in software solutions)    
    09     00     A5     *      CBUS        Node ID DCC – MERG       MERG Node ID translation                
-   09     00     EE     *      *         *         DCC – NMRA       NMRA Reserved (for extended manufacture 
-                                                                    ID numbers).  Not available for use.    
+                                                                    NMRA Reserved (for extended             
+   09     00     EE     *      *         *         DCC – NMRA       manufacturer ID numbers).  Not          
+                                                                    available for use.                      
 
     
 
@@ -294,9 +320,32 @@
    creation of locally-allocated identifiers.  For example, a club might allocate EventIDs from this range
    with subfields that identify the type, location and function served by each EventID.  Selecting Unique
    IDs and Event IDs from this range will ensure that installing new globally-unique hardware and software
-   will not cause conflicts with the locally-allocated IDs.
+   will not cause conflicts with the locally-allocated IDs. It will not guarantee that moving nodes between
+   model railroads using this range, e.g. on modular railroads, will not cause conflicts.
 
-5.13 Reserved Unique Identifiers
+5.13 Devices originating RailCom® and Bidirectional Communications
+
+   The RailCommunity’s RailCom Standard and the NMRA’s Bi-Directional Communications Standard define a
+   44-bit device identifier called the UID.  The most-significant 12 bits of this is a RailCommunity and
+   NMRA manufacturer identifier number.  This range is a 44-bit allocation for the device’s UID to be used
+   by the originators of those communications. As of 2025, the RailCommunity and the NMRA are allocating
+   manufacturer identifier numbers with an upper four bits of zero.  
+
+   Values that don’t correspond to valid manufacturer IDs are reserved to OpenLCB so that they can be
+   reclaimed later if needed.
+
+   Byte 1 Byte 2 Byte 3 Byte 4 ‍Byte 5 Byte 6‍ Organization           Comment                               
+                                                                      Initial allocation for RailCom and    
+                                                                      Bi-Directional Communications. Only   
+   10-1F  *      *      *      *‍      *‍      RailCommunity and NMRA values where the upper 12 bits of the 
+                                                                      allocation corresponds to an assigned 
+                                                                      manufacturer ID are allocated. The    
+                                                                      rest are reserved to OpenLCB.         
+                                                                                                            
+
+    
+
+5.14 Reserved Unique Identifiers
 
    All other unique identifiers not specifically discussed in this Standard shall not be used until the
    Standard is revised to permit their use.  Additionally, the following table identifies Unique
@@ -344,10 +393,18 @@
 
    5.10 Temporary Assigned by Software at Runtime
 
-   5.11 Long (16-bit) NMRA DCC Manufacturer Specific
+   5.11 Long (12-bit) NMRA DCC Manufacturer Specific
 
    5.12 Locally-Allocated Identifiers
 
-   5.13 Reserved Unique Identifiers
+   5.13 Devices originating RailCom® and Bidirectional Communications
+
+   5.14 Reserved Unique Identifiers
 
     
+
+     ----------------------------------------------------------------------------------------------------
+
+   1 The NMRA uses “Bi-Directional Communications” and the RailCommunity uses RailCom to refer to the
+   ability of a DCC decoder to return communications to a detector.  Note that RailCom is the registered
+   trademark of Lenz GmbH in Germany.
