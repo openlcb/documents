@@ -68,8 +68,8 @@ sudo apt-get install writer2latex links
 
 ## Process for adopting a document
 
-The technical process for adopting a document is described in
-[standards/Conventions.html](standards/Conventions.html).
+Some consideration when deciding to adopt a document are described in
+[DevelopmentAndAdoption.md](DevelopmentAndAdoption.md).
 
 ### Forking an adopted document to drafts
 
