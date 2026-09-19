@@ -63,15 +63,15 @@
 
     1. 6 byte unique ID of the detector,
 
-    2. Two bits to represent entry/exit and forward/reverse.  These are coded:
+    2. Two bits to represent entry/exit and orientation.  These are coded:
 
-   0b00 unoccupied, ie exit
+   0b00 unoccupied, i.e., exit
 
-   0b01 occupied, forward, ie entry
+   0b01 occupied, facing West, i.e., entry
 
-   0b10 occupied, reverse, ie entry
+   0b10 occupied, facing East, i.e., entry
 
-   0b11 occupied, direction unknown, ie entry
+   0b11 occupied, orientation unknown, i.e., entry
 
     1. 14 bits of DCC address
 
@@ -102,6 +102,90 @@
    06.80.99.30.03.50.38.03 - 3S leaves
 
    06.80.99.30.03.50.F8.00 - "track is empty" arrives
+
+  2.4.1 Orientation Definitions
+
+   Detectors that report orientation (such as RailCom detectors) determine the physical orientation of the
+   decoder on the track, rather than the internal throttle direction ("forward" or "reverse") commanded to
+   the locomotive motor. Following DCC standards, the two detectable track orientations are specified as
+   "facing West" and "facing East".
+
+   The normative definitions of "West" and "East" are taken from RailCommunity standard RCN-217
+   (Bi-directional communication, Section 5.5, Endnote 5):
+
+   „West“ ist definiert als bei positiver Polarität des Gleissignals nach [RCN-210] Abschnitt 2.3 vorwärts
+   und rückwärts bei negativer Polarität. „Ost“ ist entsprechend umgekehrt definiert.
+
+   (Translation: "West" is defined as forward movement with positive polarity of the track signal according
+   to [RCN-210] Section 2.3, and reverse movement with negative polarity. "East" is correspondingly defined
+   vice versa.)
+
+   RCN-210 Section 2.3 establishes the electrical and wiring polarity:
+
+    1. The red decoder wire connects to the right-hand rail (facing forward from the cab).
+
+    2. The black decoder wire connects to the left-hand rail.
+
+    3. "Positive polarity" is defined as the right rail being positive with respect to the left rail during
+       the first half of the DCC bit cycle: V(right rail - left rail) > 0.
+
+   Standard Layout Reference:
+
+    1. For track running East-West, the North rail is wired as Rail A (positive polarity in the first half
+       of the DCC bit), and the South rail is wired as Rail B. In a common depiction, this means that on
+       the track in front of you leftwards is Westbound, rightwards is Eastbound, the back rail (the rail
+       that is further away from you) is Rail A, wired with red wire.
+
+    2. A locomotive facing West has its right rail on the North rail (Rail A). In forward motion, its right
+       rail is positive, satisfying the RCN-217 definition for "West". In reverse motion facing East, its
+       right rail is Rail B (negative), which also evaluates to "West".
+
+    3. A locomotive facing East has its right rail on the South rail (Rail B). In forward motion, its right
+       rail is negative, satisfying the RCN-217 definition for "East".
+
+   Translation to RailCom Detector Hardware:
+
+    1. During the RailCom cutout, RailCom detectors measure current flow between Rail A and Rail B:
+
+         1. When the North rail (Rail A) sources RailCom current and the South rail (Rail B) sinks
+            current—producing a positive voltage across the detector measurement resistor on (Rail A - Rail
+            B)—the locomotive is detected as facing West (code 0b01).
+
+         2. When the South rail (Rail B) sources RailCom current and the North rail (Rail A) sinks
+            current—producing a negative voltage on (Rail A - Rail B)—the locomotive is detected as facing
+            East (code 0b10).
+
+   Unknown orientation needs to be used in a variety of situations:
+
+     * If a RailCom detector is wired on a three-rail layout (where direction of current is fixed / does
+       not correlate with orientation).
+
+     * If a RailCom detector is not equipped with hardware for distinguishing positive / negative current
+       flow direction.
+
+     * If the detector uses a technology (e.g. RFID) that represents DCC address but does not represent
+       orientation.
+
+   Bit Mapping:
+
+   0b01 Occupied, facing West
+
+   0b10 Occupied, facing East
+
+   0b11 Occupied, orientation unknown (used when the detector can read the decoder address, but cannot
+   determine track orientation)
+
+   Examples of Orientation Events:
+
+   For a detector with Node ID 06.80.99.30.03.50 detecting locomotive short address 3 (0x3803):
+
+   06.80.99.30.03.50.78.03 - Locomotive 3S arrives, facing West (0b01)
+
+   06.80.99.30.03.50.B8.03 - Locomotive 3S arrives, facing East (0b10)
+
+   06.80.99.30.03.50.F8.03 - Locomotive 3S arrives, orientation unknown (0b11)
+
+   06.80.99.30.03.50.38.03 - Locomotive 3S leaves (0b00)
 
 2.5 States
 
@@ -134,28 +218,30 @@
 
     
 
-   Table of Contents
+                                              Table of Contents
 
-   1 Introduction
+     * 1 Introduction
 
-   1.1 Served Use Cases
+     * 1.1 Served Use Cases
 
-   1.2 Unserved Use Cases
+     * 1.2 Unserved Use Cases
 
-   2 Specified Sections
+     * 2 Specified Sections
 
-   2.1 Introduction
+     * 2.1 Introduction
 
-   2.2 Intended Use
+     * 2.2 Intended Use
 
-   2.3 Reference and Context
+     * 2.3 Reference and Context
 
-   2.4 Message Formats
+     * 2.4 Message Formats
 
-   2.5 States
+     * 2.4.1 Orientation Definitions
 
-   2.6 Interactions
+     * 2.5 States
 
-   3 Background Information
+     * 2.6 Interactions
+
+     * 3 Background Information
 
     
