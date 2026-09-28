@@ -205,6 +205,33 @@
    A detector, acting as a producer, must reply to Verify Events and Identify Producers messages with the
    appropriate event(s) or range.
 
+   Upon an Identify Producers message for an Event ID falling into the range:
+
+     * Detectors that do not produce Exit events shall reply with Producer Identified Unknown;
+
+     * Detectors that do not detect the orientation of a locomotive, upon receiving an Event ID with a
+       definite orientation (East or West) shall reply with Producer Identified Unknown; otherwise the
+       response shall be Valid or Invalid as follows:
+
+          * A Locomotive Entry with Orientation Unknown Event ID shall receive the Producer Identified
+            Valid response if and only if the locomotive is currently in the block.
+
+          * A Locomotive Exit Event ID shall receive a Producer Identified Valid response if and only if
+            the locomotive is currently NOT in the block.
+
+          * A Locomotive Entry Orientation West Event ID shall receive a Producer Identified Valid response
+            if and only if the locomotive is in the block with orientation West.
+
+          * A Locomotive Entry Orientation East Event ID shall receive a Producer Identified Valid response
+            if and only if the locomotive is in the block with orientation East.
+
+   In addition to the above, detectors that produce Exit events, upon receiving an Identify Producer
+   message for the Event ID with suffix 0000 (Locomotive Exit Long Address 00), shall enumerate all
+   currently registered locomotives that are inside the block and emit a Producer Identified Valid message
+   for each of them according to the above rules; followed by a Producer Identifier Valid or Invalid
+   message for event ID suffix 0000; followed by a Producer Range Identified message for the entire 64k
+   Event ID range.
+
    Consumers can consume the entire 16-bit range of the lower EventID bytes. Or they can consume just the
    specific EventIDs that correspond to the particular decoder(s) that they’re tracking.  In either case,
    they must respond to Verify Events and Identify Consumers messages with the appropriate event(s) or
